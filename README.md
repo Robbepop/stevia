@@ -1,3 +1,6 @@
+[![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia)
+[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
 This is an brave attempt to write an [SMT](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories) solver in the [Rust](https://www.rust-lang.org/) programming language based on the design of [STP](http://stp.github.io/).
