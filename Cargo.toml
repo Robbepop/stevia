@@ -1,0 +1,8 @@
+[package]
+name = "stp"
+version = "0.1.0"
+authors = ["Robbepop <robbepop@web.de>"]
+
+[dependencies]
+smt-expr-derive = { path = "smt-expr-derive" }
+smallvec = "0.3.3"
