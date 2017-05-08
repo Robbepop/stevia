@@ -2,7 +2,7 @@
 use bitvec::BitVec;
 use ast::variants::Expr;
 use ast::Type;
-use ast::errors::Error;
+use ast::errors::Result;
 
 pub trait ExprFactory {
 	//=========================================================================
