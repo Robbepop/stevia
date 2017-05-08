@@ -2,226 +2,100 @@
 use ast::Type;
 use ast::formulas::*;
 use ast::terms::*;
-use ast::kinds::ExprKind;
 use ast::traits::ExprTrait;
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 use ast::{Equals, IfThenElse, Symbol};
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum ExprVariant {
+macro_rules! gen_kinds_and_variant {
+	( $($names:ident),* ) => {
+		#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+		pub enum ExprKind {
+			$($names),*
+		}
 
-	// TERM EXPRESSIONS
+		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+		pub enum ExprVariant {
+			$($names($names)),*
+		}
 
-	BitVecConst(BitVecConst),
+		impl ExprVariant {
+			pub fn as_trait(&self) -> &ExprTrait {
+				use self::ExprVariant::*;
+				match *self {
+					$($names(ref expr) => expr),*
+				}
+			}
 
-	Neg(Neg),
+			pub fn as_trait_mut(&mut self) -> &mut ExprTrait {
+				use self::ExprVariant::*;
+				match *self {
+					$($names(ref mut expr) => expr),*
+				}
+			}
+		}
+	}
+}
 
-	Add(Add),
-	Mul(Mul),
+gen_kinds_and_variant! {
+	BitVecConst,
+	Neg,
+	Add,
+	Mul,
+	Sub,
+	Div,
+	Mod,
+	SignedDiv,
+	SignedMod,
+	SignedRem,
 
-	Sub(Sub),
+	BitNot,
+	BitAnd,
+	BitOr,
+	BitXor,
+	BitNand,
+	BitNor,
+	BitXnor,
 
-	Div(Div),
-	Mod(Mod),
-	SignedDiv(SignedDiv),
-	SignedMod(SignedMod),
-	SignedRem(SignedRem),
+	Lt,
+	Le,
+	Gt,
+	Ge,
+	SignedLt,
+	SignedLe,
+	SignedGt,
+	SignedGe,
 
-	BitNot(BitNot),
-	BitAnd(BitAnd),
-	BitOr(BitOr),
-	BitXor(BitXor),
-	BitNand(BitNand),
-	BitNor(BitNor),
-	BitXnor(BitXnor),
+	Shl,
+	Shr,
+	SignedShr,
 
-	Lt(Lt),
-	Le(Le),
-	Gt(Gt),
-	Ge(Ge),
-	SignedLt(SignedLt),
-	SignedLe(SignedLe),
-	SignedGt(SignedGt),
-	SignedGe(SignedGe),
+	Concat,
+	Extract,
+	Extend,
+	SignedExtend,
 
-	Shl(Shl),
-	Shr(Shr),
-	SignedShr(SignedShr),
-
-	Concat(Concat),
-	Extract(Extract),
-	Extend(Extend),
-	SignedExtend(SignedExtend),
-
-	Read(Read),
-	Write(Write),
+	Read,
+	Write,
 
 	// FORMULA EXPRESSIONS
 
-	BoolConst(BoolConst),
+	BoolConst,
 
-	Not(Not),
+	Not,
 
-	And(And),
-	Or(Or),
-	Xor(Xor),
-	Iff(Iff),
-	Implies(Implies),
+	And,
+	Or,
+	Xor,
+	Iff,
+	Implies,
 
-	ParamBool(ParamBool),
+	ParamBool,
 
 	// GENERIC EXPRESSIONS
 
-	Equals(Equals),
-	IfThenElse(IfThenElse),
-	Symbol(Symbol),
-
-}
-
-impl ExprVariant {
-	pub fn as_trait(&self) -> &ExprTrait {
-		use self::ExprVariant::*;
-		match *self {
-
-			// TERM EXPRESSIONS
-
-			BitVecConst(ref expr) => expr,
-
-			Neg(ref expr) => expr,
-
-			Add(ref expr) => expr,
-			Mul(ref expr) => expr,
-
-			Sub(ref expr) => expr,
-
-			Div(ref expr) => expr,
-			Mod(ref expr) => expr,
-			SignedDiv(ref expr) => expr,
-			SignedMod(ref expr) => expr,
-			SignedRem(ref expr) => expr,
-
-			BitNot(ref expr) => expr,
-			BitAnd(ref expr) => expr,
-			BitOr(ref expr) => expr,
-			BitXor(ref expr) => expr,
-			BitNand(ref expr) => expr,
-			BitNor(ref expr) => expr,
-			BitXnor(ref expr) => expr,
-
-			Lt(ref expr) => expr,
-			Le(ref expr) => expr,
-			Gt(ref expr) => expr,
-			Ge(ref expr) => expr,
-			SignedLt(ref expr) => expr,
-			SignedLe(ref expr) => expr,
-			SignedGt(ref expr) => expr,
-			SignedGe(ref expr) => expr,
-
-			Shl(ref expr) => expr,
-			Shr(ref expr) => expr,
-			SignedShr(ref expr) => expr,
-
-			Concat(ref expr) => expr,
-			Extract(ref expr) => expr,
-			Extend(ref expr) => expr,
-			SignedExtend(ref expr) => expr,
-
-			Read(ref expr) => expr,
-			Write(ref expr) => expr,
-
-			// FORMULA EXPRESSIONS
-
-			BoolConst(ref expr) => expr,
-
-			Not(ref expr) => expr,
-
-			And(ref expr) => expr,
-			Or(ref expr) => expr,
-			Xor(ref expr) => expr,
-			Iff(ref expr) => expr,
-			Implies(ref expr) => expr,
-
-			ParamBool(ref expr) => expr,
-
-			// GENERIC EXPRESSIONS
-
-			Equals(ref expr) => expr,
-			IfThenElse(ref expr) => expr,
-			Symbol(ref expr) => expr,
-		}
-	}
-
-	pub fn as_trait_mut(&mut self) -> &mut ExprTrait {
-		use self::ExprVariant::*;
-		match *self {
-
-			// TERM EXPRESSIONS
-
-			BitVecConst(ref mut expr) => expr,
-
-			Neg(ref mut expr) => expr,
-
-			Add(ref mut expr) => expr,
-			Mul(ref mut expr) => expr,
-
-			Sub(ref mut expr) => expr,
-
-			Div(ref mut expr) => expr,
-			Mod(ref mut expr) => expr,
-			SignedDiv(ref mut expr) => expr,
-			SignedMod(ref mut expr) => expr,
-			SignedRem(ref mut expr) => expr,
-
-			BitNot(ref mut expr) => expr,
-			BitAnd(ref mut expr) => expr,
-			BitOr(ref mut expr) => expr,
-			BitXor(ref mut expr) => expr,
-			BitNand(ref mut expr) => expr,
-			BitNor(ref mut expr) => expr,
-			BitXnor(ref mut expr) => expr,
-
-			Lt(ref mut expr) => expr,
-			Le(ref mut expr) => expr,
-			Gt(ref mut expr) => expr,
-			Ge(ref mut expr) => expr,
-			SignedLt(ref mut expr) => expr,
-			SignedLe(ref mut expr) => expr,
-			SignedGt(ref mut expr) => expr,
-			SignedGe(ref mut expr) => expr,
-
-			Shl(ref mut expr) => expr,
-			Shr(ref mut expr) => expr,
-			SignedShr(ref mut expr) => expr,
-
-			Concat(ref mut expr) => expr,
-			Extract(ref mut expr) => expr,
-			Extend(ref mut expr) => expr,
-			SignedExtend(ref mut expr) => expr,
-
-			Read(ref mut expr) => expr,
-			Write(ref mut expr) => expr,
-
-			// FORMULA EXPRESSIONS
-
-			BoolConst(ref mut expr) => expr,
-
-			Not(ref mut expr) => expr,
-
-			And(ref mut expr) => expr,
-			Or(ref mut expr) => expr,
-			Xor(ref mut expr) => expr,
-			Iff(ref mut expr) => expr,
-			Implies(ref mut expr) => expr,
-
-			ParamBool(ref mut expr) => expr,
-
-			// GENERIC EXPRESSIONS
-
-			Equals(ref mut expr) => expr,
-			IfThenElse(ref mut expr) => expr,
-			Symbol(ref mut expr) => expr,
-		}
-	}
+	Equals,
+	IfThenElse,
+	Symbol
 }
 
 impl ExprTrait for ExprVariant {

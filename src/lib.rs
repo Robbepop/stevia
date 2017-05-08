@@ -4,4 +4,6 @@ extern crate smallvec;
 extern crate smt_expr_derive;
 
 mod bitvec;
-mod ast;
+pub mod ast;
+
+pub use bitvec::BitVec;

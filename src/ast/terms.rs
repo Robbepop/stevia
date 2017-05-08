@@ -1,8 +1,7 @@
 
 use bitvec::BitVec;
-use ast::variants::ExprVariant;
+use ast::variants::{ExprVariant, ExprKind};
 use ast::traits::ExprTrait;
-use ast::kinds::ExprKind;
 use ast::{P, Type};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 

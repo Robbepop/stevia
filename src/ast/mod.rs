@@ -1,16 +1,17 @@
 
 mod formulas;
 mod terms;
-mod kinds;
 mod variants;
 mod traits;
 mod iterators;
 mod factory;
+pub mod prelude;
 
-use self::variants::ExprVariant;
-use self::traits::ExprTrait;
-use self::kinds::ExprKind;
-use self::iterators::{Childs, ChildsMut, IntoChilds};
+pub use self::terms::*;
+pub use self::formulas::*;
+pub use self::variants::{ExprVariant, ExprKind};
+pub use self::traits::ExprTrait;
+pub use self::iterators::{Childs, ChildsMut, IntoChilds};
 
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;

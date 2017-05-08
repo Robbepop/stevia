@@ -1,7 +1,6 @@
 
 use ast::traits::ExprTrait;
-use ast::variants::ExprVariant;
-use ast::kinds::ExprKind;
+use ast::variants::{ExprVariant, ExprKind};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 use ast::{P, Type};
 
