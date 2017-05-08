@@ -5,6 +5,8 @@ mod variants;
 mod traits;
 mod iterators;
 mod factory;
+mod visitor;
+mod pretty_printer;
 pub mod prelude;
 
 pub use self::terms::*;
@@ -12,6 +14,8 @@ pub use self::formulas::*;
 pub use self::variants::{ExprVariant, ExprKind};
 pub use self::traits::ExprTrait;
 pub use self::iterators::{Childs, ChildsMut, IntoChilds};
+
+pub use self::pretty_printer::pretty_print_expr;
 
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
