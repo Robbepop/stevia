@@ -71,7 +71,7 @@ impl<'parent> Iterator for Childs<'parent> {
 				}
 			},
 			Extern{ref mut iter} => iter.next()
-			}
+		}
 	}
 }
 
