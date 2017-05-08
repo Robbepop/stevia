@@ -1,6 +1,6 @@
 
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
-use ast::variants::{ExprVariant, ExprKind};
+use ast::variants::{Expr, ExprKind};
 use ast::Type;
 
 pub trait ExprTrait {
@@ -24,6 +24,6 @@ pub trait ExprTrait {
 	/// This is useful for conversions between non-variant and variant expression objects
 	/// and mainly prevents boilerplate code.
 	/// 
-	/// Maybe remove this trait method again in favor of `impl From<impl ExprTrait> for ExprVariant`.
-	fn into_variant(self) -> ExprVariant;
+	/// Maybe remove this trait method again in favor of `impl From<impl ExprTrait> for Expr`.
+	fn into_variant(self) -> Expr;
 }

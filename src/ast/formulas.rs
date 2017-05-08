@@ -1,6 +1,6 @@
 
 use ast::traits::ExprTrait;
-use ast::variants::{ExprVariant, ExprKind};
+use ast::variants::{Expr, ExprKind};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 use ast::{P, Type};
 
@@ -8,22 +8,22 @@ use ast::{P, Type};
 pub struct BoolConst{pub value: bool}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Not{pub inner: P<ExprVariant>}
+pub struct Not{pub inner: P<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct And{pub formulas: Vec<ExprVariant>}
+pub struct And{pub formulas: Vec<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Or{pub formulas: Vec<ExprVariant>}
+pub struct Or{pub formulas: Vec<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Xor{pub left: P<ExprVariant>, pub right: P<ExprVariant>}
+pub struct Xor{pub left: P<Expr>, pub right: P<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Iff{pub left: P<ExprVariant>, pub right: P<ExprVariant>}
+pub struct Iff{pub left: P<Expr>, pub right: P<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Implies{pub assumption: P<ExprVariant>, pub implication: P<ExprVariant>}
+pub struct Implies{pub assumption: P<Expr>, pub implication: P<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct ParamBool{pub bool_var: P<ExprVariant>, pub param: P<ExprVariant>}
+pub struct ParamBool{pub bool_var: P<Expr>, pub param: P<Expr>}

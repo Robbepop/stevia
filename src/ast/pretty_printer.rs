@@ -2,7 +2,7 @@
 use ast::prelude::*;
 use ast::visitor::{Visitor, Event};
 
-pub fn pretty_print_expr(out: &mut ::std::io::Write, expr: &ExprVariant) {
+pub fn pretty_print_expr(out: &mut ::std::io::Write, expr: &Expr) {
 	PrettyPrinter::new(out).visit(expr);
 }
 

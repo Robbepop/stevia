@@ -11,7 +11,7 @@ pub mod prelude;
 
 pub use self::terms::*;
 pub use self::formulas::*;
-pub use self::variants::{ExprVariant, ExprKind};
+pub use self::variants::{Expr, ExprKind};
 pub use self::traits::ExprTrait;
 pub use self::iterators::{Childs, ChildsMut, IntoChilds};
 
@@ -49,13 +49,13 @@ impl Type {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Equals{pub exprs: Vec<ExprVariant>}
+pub struct Equals{pub exprs: Vec<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct IfThenElse{
-	pub cond: P<ExprVariant>,
-	pub then_case: P<ExprVariant>,
-	pub else_case: P<ExprVariant>,
+	pub cond: P<Expr>,
+	pub then_case: P<Expr>,
+	pub else_case: P<Expr>,
 	pub ty: Type
 }
 

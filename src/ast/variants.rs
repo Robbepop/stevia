@@ -9,6 +9,9 @@ use ast::{Equals, IfThenElse, Symbol};
 macro_rules! forall_expr_kinds {
 	( $mac:ident ) => {
 		$mac!{
+
+			// TERM EXPRESSIONS
+
 			BitVecConst,
 			Neg,
 			Add,
@@ -84,20 +87,20 @@ macro_rules! impl_expr_kinds {
 		}
 
 		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-		pub enum ExprVariant {
+		pub enum Expr {
 			$($names($names)),*
 		}
 
-		impl ExprVariant {
+		impl Expr {
 			pub fn as_trait(&self) -> &ExprTrait {
-				use self::ExprVariant::*;
+				use self::Expr::*;
 				match *self {
 					$($names(ref expr) => expr),*
 				}
 			}
 
 			pub fn as_trait_mut(&mut self) -> &mut ExprTrait {
-				use self::ExprVariant::*;
+				use self::Expr::*;
 				match *self {
 					$($names(ref mut expr) => expr),*
 				}
@@ -115,7 +118,7 @@ forall_expr_kinds!(impl_expr_kinds);
 macro_rules! impl_into_childs {
     ( $($names:ident),* ) => {
 		fn into_childs(self) -> IntoChilds {
-			use self::ExprVariant::*;
+			use self::Expr::*;
 			match self {
 				$( $names(expr) => expr.into_childs() ),*
 			}
@@ -123,7 +126,7 @@ macro_rules! impl_into_childs {
     }
 }
 
-impl ExprTrait for ExprVariant {
+impl ExprTrait for Expr {
 	#[inline]
 	fn childs(&self) -> Childs {
 		self.as_trait().childs()
@@ -147,7 +150,7 @@ impl ExprTrait for ExprVariant {
 	}
 
 	#[inline(always)]
-	fn into_variant(self) -> ExprVariant {
+	fn into_variant(self) -> Expr {
 		self
 	}
 }

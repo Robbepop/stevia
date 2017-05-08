@@ -1,5 +1,5 @@
 
-use ast::variants::ExprVariant;
+use ast::variants::Expr;
 use smallvec;
 
 //=============================================================================
@@ -8,11 +8,11 @@ use smallvec;
 
 pub enum Childs<'parent> {
 	Inline{
-		data: [Option<&'parent ExprVariant>; 3],
+		data: [Option<&'parent Expr>; 3],
 		pos : usize
 	},
 	Extern{
-		iter: ::std::slice::Iter<'parent, ExprVariant>
+		iter: ::std::slice::Iter<'parent, Expr>
 	}
 }
 
@@ -24,14 +24,14 @@ impl<'parent> Childs<'parent> {
 		}
 	}
 
-	pub fn unary(inner: &'parent ExprVariant) -> Childs<'parent> {
+	pub fn unary(inner: &'parent Expr) -> Childs<'parent> {
 		Childs::Inline{
 			data: [Some(inner), None, None],
 			pos : 0
 		}
 	}
 
-	pub fn binary(left: &'parent ExprVariant, right: &'parent ExprVariant) -> Childs<'parent> {
+	pub fn binary(left: &'parent Expr, right: &'parent Expr) -> Childs<'parent> {
 		Childs::Inline{
 			data: [Some(left), Some(right), None],
 			pos : 0
@@ -39,9 +39,9 @@ impl<'parent> Childs<'parent> {
 	}
 
 	pub fn ternary(
-		fst: &'parent ExprVariant,
-		snd: &'parent ExprVariant,
-		trd: &'parent ExprVariant) -> Childs<'parent>
+		fst: &'parent Expr,
+		snd: &'parent Expr,
+		trd: &'parent Expr) -> Childs<'parent>
 	{
 		Childs::Inline{
 			data: [Some(fst), Some(snd), Some(trd)],
@@ -49,13 +49,13 @@ impl<'parent> Childs<'parent> {
 		}
 	}
 
-	pub fn nary(childs: &'parent [ExprVariant]) -> Childs<'parent> {
+	pub fn nary(childs: &'parent [Expr]) -> Childs<'parent> {
 		Childs::Extern{ iter: childs.iter() }
 	}
 }
 
 impl<'parent> Iterator for Childs<'parent> {
-	type Item = &'parent ExprVariant;
+	type Item = &'parent Expr;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		use self::Childs::*;
@@ -81,11 +81,11 @@ impl<'parent> Iterator for Childs<'parent> {
 
 pub enum ChildsMut<'parent> {
 	Inline{
-		data: [Option<&'parent mut ExprVariant>; 3],
+		data: [Option<&'parent mut Expr>; 3],
 		pos : usize
 	},
 	Extern{
-		iter: ::std::slice::IterMut<'parent, ExprVariant>
+		iter: ::std::slice::IterMut<'parent, Expr>
 	}
 }
 
@@ -97,14 +97,14 @@ impl<'parent> ChildsMut<'parent> {
 		}
 	}
 
-	pub fn unary(inner: &'parent mut ExprVariant) -> ChildsMut<'parent> {
+	pub fn unary(inner: &'parent mut Expr) -> ChildsMut<'parent> {
 		ChildsMut::Inline{
 			data: [Some(inner), None, None],
 			pos : 0
 		}
 	}
 
-	pub fn binary(left: &'parent mut ExprVariant, right: &'parent mut ExprVariant) -> ChildsMut<'parent> {
+	pub fn binary(left: &'parent mut Expr, right: &'parent mut Expr) -> ChildsMut<'parent> {
 		ChildsMut::Inline{
 			data: [Some(left), Some(right), None],
 			pos : 0
@@ -112,9 +112,9 @@ impl<'parent> ChildsMut<'parent> {
 	}
 
 	pub fn ternary(
-		fst: &'parent mut ExprVariant,
-		snd: &'parent mut ExprVariant,
-		trd: &'parent mut ExprVariant) -> ChildsMut<'parent>
+		fst: &'parent mut Expr,
+		snd: &'parent mut Expr,
+		trd: &'parent mut Expr) -> ChildsMut<'parent>
 	{
 		ChildsMut::Inline{
 			data: [Some(fst), Some(snd), Some(trd)],
@@ -122,13 +122,13 @@ impl<'parent> ChildsMut<'parent> {
 		}
 	}
 
-	pub fn nary(childs: &'parent mut [ExprVariant]) -> ChildsMut<'parent> {
+	pub fn nary(childs: &'parent mut [Expr]) -> ChildsMut<'parent> {
 		ChildsMut::Extern{ iter: childs.iter_mut() }
 	}
 }
 
 impl<'parent> Iterator for ChildsMut<'parent> {
-	type Item = &'parent mut ExprVariant;
+	type Item = &'parent mut Expr;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		use self::ChildsMut::*;
@@ -154,7 +154,7 @@ impl<'parent> Iterator for ChildsMut<'parent> {
 //=============================================================================
 
 pub struct IntoChilds {
-	iter: smallvec::IntoIter<[ExprVariant; 3]>
+	iter: smallvec::IntoIter<[Expr; 3]>
 }
 
 impl<'parent> IntoChilds {
@@ -164,7 +164,7 @@ impl<'parent> IntoChilds {
 		}
 	}
 
-	pub fn unary(inner: ExprVariant) -> IntoChilds {
+	pub fn unary(inner: Expr) -> IntoChilds {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(inner);
 		IntoChilds{
@@ -172,7 +172,7 @@ impl<'parent> IntoChilds {
 		}
 	}
 
-	pub fn binary(left: ExprVariant, right: ExprVariant) -> IntoChilds {
+	pub fn binary(left: Expr, right: Expr) -> IntoChilds {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(left);
 		vec.push(right);
@@ -181,7 +181,7 @@ impl<'parent> IntoChilds {
 		}
 	}
 
-	pub fn ternary(fst: ExprVariant, snd: ExprVariant, trd: ExprVariant) -> IntoChilds {
+	pub fn ternary(fst: Expr, snd: Expr, trd: Expr) -> IntoChilds {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		vec.push(snd);
@@ -191,7 +191,7 @@ impl<'parent> IntoChilds {
 		}
 	}
 
-	pub fn nary(childs: Vec<ExprVariant>) -> IntoChilds {
+	pub fn nary(childs: Vec<Expr>) -> IntoChilds {
 		IntoChilds{
 			iter: smallvec::SmallVec::from_vec(childs).into_iter()
 		}
@@ -199,7 +199,7 @@ impl<'parent> IntoChilds {
 }
 
 impl Iterator for IntoChilds {
-	type Item = ExprVariant;
+	type Item = Expr;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		self.iter.next()

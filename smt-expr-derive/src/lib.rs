@@ -98,11 +98,11 @@ fn collect_fields_with_typename<'ast>(fields: &'ast[syn::Field], typename: &str)
 }
 
 fn collect_single_childs(fields: &[syn::Field]) -> Vec<&syn::Field> {
-	collect_fields_with_typename(fields, "P<ExprVariant>")
+	collect_fields_with_typename(fields, "P<Expr>")
 }
 
 fn collect_compound_childs(fields: &[syn::Field]) -> Vec<&syn::Field> {
-	collect_fields_with_typename(fields, "Vec<ExprVariant>")
+	collect_fields_with_typename(fields, "Vec<Expr>")
 }
 
 fn extract_iterator_components(fields: &[syn::Field]) -> ChildsIterTokens {
@@ -154,7 +154,7 @@ fn gen_final_code(name: &syn::Ident, fields: &[syn::Field]) -> quote::Tokens {
 			fn into_childs(self) -> IntoChilds {
 				#into_childs
 			}
-			fn into_variant(self) -> ExprVariant { ExprVariant::#name(self) }
+			fn into_variant(self) -> Expr { Expr::#name(self) }
 		}
 	}
 }

@@ -1,6 +1,6 @@
 
 pub use ast::traits::ExprTrait;
-pub use ast::variants::{ExprVariant, ExprKind};
+pub use ast::variants::{Expr, ExprKind};
 pub use ast::iterators::{Childs, ChildsMut, IntoChilds};
 pub use ast::factory::ExprFactory;
 pub use ast::{

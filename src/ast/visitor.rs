@@ -71,8 +71,8 @@ pub trait Visitor<'ast>: Sized {
 	fn visit_ite(&mut self, expr: &'ast IfThenElse, event: Event);
 	fn visit_symbol(&mut self, expr: &'ast Symbol, event: Event);
 
-	fn visit_at_event(&mut self, expr: &'ast ExprVariant, event: Event) {
-		use self::ExprVariant::*;
+	fn visit_at_event(&mut self, expr: &'ast Expr, event: Event) {
+		use self::Expr::*;
 		match *expr {
 			BitVecConst(ref expr) => self.visit_bvconst(expr, event),
 			Neg(ref expr) => self.visit_bvneg(expr, event),
@@ -136,14 +136,14 @@ pub trait Visitor<'ast>: Sized {
 		}
 	}
 
-	fn visit(&mut self, expr: &'ast ExprVariant) {
+	fn visit(&mut self, expr: &'ast Expr) {
 		self.visit_at_event(expr, Event::Entering);
 		walk_expr(self, expr);
 		self.visit_at_event(expr, Event::Leaving);
 	}
 }
 
-fn walk_expr<'ast, V: Visitor<'ast>>(visitor: &mut V, expr: &'ast ExprVariant) {
+fn walk_expr<'ast, V: Visitor<'ast>>(visitor: &mut V, expr: &'ast Expr) {
 	for child in expr.childs() {
 		visitor.visit(child)
 	}
