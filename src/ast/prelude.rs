@@ -8,7 +8,8 @@ pub use ast::{
 	IfThenElse,
 	Symbol,
 	SymName,
-	Type
+	Type,
+	TypeKind
 };
 pub use ast::formulas::*;
 pub use ast::terms::*;

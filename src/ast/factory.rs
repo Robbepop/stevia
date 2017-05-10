@@ -104,8 +104,8 @@ pub trait ExprFactory {
 
 	fn ite(&mut self, cond: Expr, then_case: Expr, else_case: Expr) -> Result<Expr>;
 
-	fn symbol<S: AsRef<str>>(&mut self, name: S, ty: Type);
-	fn boolean<S: AsRef<str>>(&mut self, name: S);
-	fn bitvec<S: AsRef<str>>(&mut self, name: S, bitwidth: usize);
-	fn array<S: AsRef<str>>(&mut self, name: S, idx_width: usize, val_width: usize);
+	fn symbol<S: AsRef<str>>(&mut self, name: S, ty: Type) -> Result<Expr>;
+	fn boolean<S: AsRef<str>>(&mut self, name: S) -> Result<Expr>;
+	fn bitvec<S: AsRef<str>>(&mut self, name: S, bitwidth: usize) -> Result<Expr>;
+	fn array<S: AsRef<str>>(&mut self, name: S, idx_width: usize, val_width: usize) -> Result<Expr>;
 }

@@ -2,8 +2,8 @@
 
 ## Critical TODO's
 
-- Implement error handling mechanism and data structures. Used by factories for example.
 - Implement `NaiveExprFactory` for handling creation of expressions. Required to implement a testing framework.
+- Implement a macro to simplify building up extression trees.
 
 ## Short term TODO's
 
@@ -17,7 +17,7 @@
 
 - Implement simplifier based on generic recursive AST consumer.
 - Find and depend on decent Bitvector library implementation.
-- Find and depend on decent library implementation similar to STP's `libabc`.
+- Find and depend on decent library implementation similar to STP's `libabc` for and inverter graph (AIG) computation..
 - Add SMTLib2.X serialization and deserialization support.
 
 ## Considerations
