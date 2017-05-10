@@ -125,3 +125,39 @@ pub struct SymName(usize);
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Symbol{pub name: SymName, pub ty: Type}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	fn simple_macro() {
+		use ast::factory::ExprFactory;
+		let fab = NaiveExprFactory::new();
+
+		let expr1 = fab.eq(
+			fab.bvmul(
+				fab.bitvec("x", 32).unwrap(),
+				fab.bvconst(2u64).unwrap()
+			).unwrap(),
+			fab.bvadd(
+				fab.bitvec("x", 32).unwrap(),
+				fab.bitvec("x", 32).unwrap()
+			).unwrap()
+		).unwrap();
+
+		let expr2 = expr_gen!(fab, expr!{
+			(equals
+				(mul
+					(symbol "x")
+				    (bvconst 2)
+			    )
+				(add
+					(symbol "x")
+					(symbol "x")
+				)
+			)
+		});
+
+		assert_eq!(expr1, expr2);
+	}
+}

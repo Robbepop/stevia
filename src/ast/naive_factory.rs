@@ -16,6 +16,12 @@ pub struct NaiveExprFactory {
 	// TODO: ctx: Context
 }
 
+impl NaiveExprFactory {
+	pub fn new() -> NaiveExprFactory {
+		NaiveExprFactory{}
+	}
+}
+
 impl ExprFactory for NaiveExprFactory {
 	fn bvconst<T: Into<BitVec>>(&mut self, value: T) -> Result<Expr> {
 		Ok(Expr::BoolConst(BoolConst{value: true}))
@@ -202,15 +208,11 @@ impl ExprFactory for NaiveExprFactory {
 	}
 
 	fn eq(&mut self, left: Expr, right: Expr) -> Result<Expr> {
-		Ok(Expr::BoolConst(BoolConst{value: true}))
+		self.equality(vec![left, right])
 	}
 
 	fn ne(&mut self, left: Expr, right: Expr) -> Result<Expr> {
-		// left.ty().expect(Type::Boolean)?;
-		// right.ty().expect(Type::Boolean)?;
-		// Ok(Expr::BoolConst(BoolConst{value: true}))
-		// let eq = self.equality(vec![left, right])?;
-		let eq = self.equality(vec![left, right])?;
+		let eq = self.eq(left, right)?;
 		self.not(eq)
 	}
 

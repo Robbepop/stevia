@@ -13,3 +13,9 @@ impl BitVec {
 		self.value
 	}
 }
+
+impl From<u64> for BitVec {
+	fn from(val: u64) -> BitVec {
+		BitVec{ value: val }
+	}
+}
