@@ -1,4 +1,5 @@
 
+pub use ast::errors::Result;
 pub use ast::traits::ExprTrait;
 pub use ast::variants::{Expr, ExprKind};
 pub use ast::iterators::{Childs, ChildsMut, IntoChilds};
