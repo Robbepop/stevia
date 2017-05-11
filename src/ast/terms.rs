@@ -45,7 +45,8 @@ pub struct SignedRem{pub dividend: P<Expr>, pub divisor: P<Expr>}
 //=============================================================================
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct BitNot{pub left: P<Expr>, pub right: P<Expr>}
+// pub struct BitNot{pub left: P<Expr>, pub right: P<Expr>}
+pub struct BitNot{pub inner: P<Expr>}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct BitAnd{pub left: P<Expr>, pub right: P<Expr>}

@@ -132,27 +132,27 @@ pub struct SymName(usize);
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Symbol{pub name: SymName, pub ty: Type}
 
-#[cfg(test)]
-mod tests {
-	use super::*;
+// #[cfg(test)]
+// mod tests {
+	// use super::*;
 
-	#[test]
-	fn simple_macro() {
-		use ast::factory::ExprFactory;
-		let fab = NaiveExprFactory::new();
+	// #[test]
+	// fn simple_macro() {
+		// use ast::factory::ExprFactory;
+		// let fab = NaiveExprFactory::new();
 
-		let expr1 = fab.eq(
-			fab.bvmul(
-				fab.bitvec("x", 32),
-				fab.bvconst(2)
-			),
-			fab.bvadd(
-				fab.bitvec("x", 32),
-				fab.bitvec("x", 32)
-			)
-		).unwrap();
+		// let expr1 = fab.eq(
+		// 	fab.bvmul(
+		// 		fab.bitvec("x", 32),
+		// 		fab.bvconst(2)
+		// 	),
+		// 	fab.bvadd(
+		// 		fab.bitvec("x", 32),
+		// 		fab.bitvec("x", 32)
+		// 	)
+		// ).unwrap();
 
-		pretty_print_expr(&mut ::std::io::stdout(), &expr1);
+		// pretty_print_expr(&mut ::std::io::stdout(), &expr1);
 
 		// let expr2 = expr_tree!(fab, expr!{
 		// 	(=
@@ -168,5 +168,5 @@ mod tests {
 		// });
 
 		// assert_eq!(expr1, expr2);
-	}
-}
+	// }
+// }

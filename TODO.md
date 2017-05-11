@@ -2,7 +2,8 @@
 
 ## Critical TODO's
 
-- Implement `NaiveExprFactory` for handling creation of expressions. Required to implement a testing framework.
+- Add a `ty: Type` field to all non-boolean expressions and implement `NaiveExprFactory` for them.
+- Finally add an attribute to `SmtExpr` proc. macro to set the expression type explicitely. (Is this needed if `ty: Type` detection works?)
 - Implement a macro to simplify building up extression trees.
 
 ## Short term TODO's

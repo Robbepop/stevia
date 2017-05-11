@@ -32,7 +32,7 @@ pub trait ExprFactoryImpl {
 	// BITWISE EXPRESSIONS
 	//-------------------------------------------------------------------------
 
-	fn bvnot_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
+	fn bvnot_impl(&self, inner: Expr) -> Result<Expr>;
 	fn bvand_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
 	fn bvor_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
 	fn bvxor_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
@@ -64,8 +64,8 @@ pub trait ExprFactoryImpl {
 
 	fn concat_impl(&self, hi: Expr, lo: Expr) -> Result<Expr>;
 	fn extract_impl(&self, source: Expr, lo_bit: Expr, hi_bit: Expr) -> Result<Expr>;
-	fn uextend_impl(&self, source: Expr, target_width: Expr) -> Result<Expr>;
-	fn sextend_impl(&self, source: Expr, target_width: Expr) -> Result<Expr>;
+	fn uextend_impl(&self, source: Expr, extension: Expr) -> Result<Expr>;
+	fn sextend_impl(&self, source: Expr, extension: Expr) -> Result<Expr>;
 
 	// ARRAY EXPRESSIONS
 	//-------------------------------------------------------------------------
@@ -158,9 +158,8 @@ pub trait ExprFactory {
 	// BITWISE EXPRESSIONS
 	//-------------------------------------------------------------------------
 
-	fn bvnot<L, R>(&self, left: L, right: R) -> Result<Expr>
-		where L: Into<Result<Expr>>,
-		      R: Into<Result<Expr>>;
+	fn bvnot<E>(&self, inner: E) -> Result<Expr>
+		where E: Into<Result<Expr>>;
 	fn bvand<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
@@ -231,10 +230,10 @@ pub trait ExprFactory {
 		where S: Into<Result<Expr>>,
 		      L: Into<Result<Expr>>,
 		      H: Into<Result<Expr>>;
-	fn uextend<S, T>(&self, source: S, target_width: T) -> Result<Expr>
+	fn uextend<S, T>(&self, source: S, extension: T) -> Result<Expr>
 		where S: Into<Result<Expr>>,
 		      T: Into<Result<Expr>>;
-	fn sextend<S, T>(&self, source: S, target_width: T) -> Result<Expr>
+	fn sextend<S, T>(&self, source: S, extension: T) -> Result<Expr>
 		where S: Into<Result<Expr>>,
 		      T: Into<Result<Expr>>;
 
@@ -273,7 +272,7 @@ pub trait ExprFactory {
 	fn xor<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
-	fn iff<L, R>(&self, left: L, right: R) -> Result<Expr>
+	fn iff<L, R>(&self, assumption: L, implication: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
 	fn implies<L, R>(&self, left: L, right: R) -> Result<Expr>
@@ -404,11 +403,10 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 	// BITWISE EXPRESSIONS
 	//-------------------------------------------------------------------------
 
-	fn bvnot<L, R>(&self, left: L, right: R) -> Result<Expr>
-		where L: Into<Result<Expr>>,
-		      R: Into<Result<Expr>>
+	fn bvnot<E>(&self, inner: E) -> Result<Expr>
+		where E: Into<Result<Expr>>
 	{
-		self.bvnot_impl(left.into()?, right.into()?)
+		self.bvnot_impl(inner.into()?)
 	}
 
 	fn bvand<L, R>(&self, left: L, right: R) -> Result<Expr>
@@ -643,11 +641,11 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.xor_impl(left.into()?, right.into()?)
 	}
 
-	fn iff<L, R>(&self, left: L, right: R) -> Result<Expr>
+	fn iff<L, R>(&self, assumption: L, implication: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>
 	{
-		self.iff_impl(left.into()?, right.into()?)
+		self.iff_impl(assumption.into()?, implication.into()?)
 	}
 
 	fn implies<L, R>(&self, left: L, right: R) -> Result<Expr>
