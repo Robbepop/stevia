@@ -1,8 +1,6 @@
 
 mod errors;
 pub mod expr;
-// mod formulas;
-// mod terms;
 mod variants;
 mod traits;
 mod iterators;
@@ -14,13 +12,11 @@ mod visitor;
 mod pretty_printer;
 pub mod prelude;
 
-// pub use self::terms::*;
-// pub use self::formulas::*;
-
 pub use self::variants::{Expr, ExprKind};
 pub use self::traits::ExprTrait;
 pub use self::iterators::{Childs, ChildsMut, IntoChilds};
 pub use self::errors::{Result, AstError, ErrorKind};
+pub use self::factory::ExprFactory;
 pub use self::naive_factory::NaiveExprFactory;
 
 pub use self::pretty_printer::pretty_print_expr;
@@ -117,22 +113,8 @@ impl TypeKind {
 	}
 }
 
-// #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-// pub struct Equals{pub exprs: Vec<Expr>}
-
-// #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-// pub struct IfThenElse{
-// 	pub cond: P<Expr>,
-// 	pub then_case: P<Expr>,
-// 	pub else_case: P<Expr>,
-// 	pub ty: Type
-// }
-
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SymName(usize);
-
-// #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-// pub struct Symbol{pub name: SymName, pub ty: Type}
 
 // #[cfg(test)]
 // mod tests {

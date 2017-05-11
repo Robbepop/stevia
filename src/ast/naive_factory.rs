@@ -1,6 +1,4 @@
 
-// !! CURRENTLY SET ON HOLD BECAUSE OF OTHER TODOs !!
-
 use ast;
 use bitvec::BitVec;
 
