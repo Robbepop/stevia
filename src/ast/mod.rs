@@ -68,6 +68,31 @@ impl Type {
 		}
 	}
 
+	/// Returns the bitwidths of the given type if it is a bitvector type.
+	/// Returns an appropriate error, otherwise.
+	pub fn bitwidth(self) -> Result<usize> {
+		use self::Type::*;
+		match self {
+			BitVec(bits) => Ok(bits),
+			wrong_ty     => {
+				Err(AstError(ErrorKind::ExpectedBitVecType{found_type: wrong_ty}))
+			}
+		}
+	}
+
+	/// Returns the common bitwidth of both given types if they are bitvec types.
+	/// Returns an appropriate error, otherwise.
+	pub fn common_bitwidth(fst: Type, snd: Type) -> Result<usize> {
+		use self::Type::*;
+		use self::ErrorKind::*;
+		match (fst, snd) {
+			(BitVec(n), BitVec(m)) if n == m => Ok(n),
+			(BitVec(n), BitVec(m)) if n != m => Err(AstError(IncompatibleBitWidth(n, m))),
+			(BitVec(_), wrong_ty ) |
+			(wrong_ty , _        ) => Err(AstError(ExpectedBitVecType{found_type: wrong_ty}))
+		}
+	}
+
 	/// Returns the common type of two types if possible.
 	/// 
 	/// This in particular is useful for computing the type an if-expression

@@ -1,8 +1,7 @@
-
-use ast::{Type, TypeKind};
-
 use std::fmt;
 use std::error;
+
+use ast::{Type, TypeKind};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ErrorKind {

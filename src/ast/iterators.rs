@@ -1,6 +1,6 @@
+use smallvec;
 
 use ast::Expr;
-use smallvec;
 
 //=============================================================================
 // ITERATOR: Childs

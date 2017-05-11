@@ -1,7 +1,6 @@
-
 use ast::Type;
 
-use ast::expr::*;
+use ast::expr;
 use ast::traits::ExprTrait;
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
@@ -87,7 +86,7 @@ macro_rules! impl_expr_kinds {
 
 		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 		pub enum Expr {
-			$($names($names)),*
+			$($names(expr::$names)),*
 		}
 
 		impl Expr {

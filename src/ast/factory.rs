@@ -1,7 +1,7 @@
-
 use bitvec::BitVec;
-use ast::variants::Expr;
+
 use ast::Type;
+use ast::variants::Expr;
 use ast::errors::Result;
 
 pub trait ExprFactoryImpl {

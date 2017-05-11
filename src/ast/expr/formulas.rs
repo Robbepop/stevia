@@ -1,7 +1,7 @@
+use ast::{P, Type};
 use ast::traits::ExprTrait;
 use ast::variants::{Expr, ExprKind};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
-use ast::{P, Type};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct BoolConst{pub value: bool}

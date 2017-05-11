@@ -1,7 +1,6 @@
-
+use ast::Type;
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 use ast::variants::{Expr, ExprKind};
-use ast::Type;
 
 pub trait ExprTrait {
 	/// Returns the kind of this expression.
