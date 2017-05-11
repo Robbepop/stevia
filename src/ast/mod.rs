@@ -23,6 +23,12 @@ pub use self::naive_factory::NaiveExprFactory;
 
 pub use self::pretty_printer::pretty_print_expr;
 
+impl From<Expr> for Result<Expr> {
+	fn from(expr: Expr) -> Result<Expr> {
+		Ok(expr)
+	}
+}
+
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
@@ -130,34 +136,37 @@ pub struct Symbol{pub name: SymName, pub ty: Type}
 mod tests {
 	use super::*;
 
+	#[test]
 	fn simple_macro() {
 		use ast::factory::ExprFactory;
 		let fab = NaiveExprFactory::new();
 
 		let expr1 = fab.eq(
 			fab.bvmul(
-				fab.bitvec("x", 32).unwrap(),
-				fab.bvconst(2u64).unwrap()
-			).unwrap(),
+				fab.bitvec("x", 32),
+				fab.bvconst(2)
+			),
 			fab.bvadd(
-				fab.bitvec("x", 32).unwrap(),
-				fab.bitvec("x", 32).unwrap()
-			).unwrap()
+				fab.bitvec("x", 32),
+				fab.bitvec("x", 32)
+			)
 		).unwrap();
 
-		let expr2 = expr_gen!(fab, expr!{
-			(equals
-				(mul
-					(symbol "x")
-				    (bvconst 2)
-			    )
-				(add
-					(symbol "x")
-					(symbol "x")
-				)
-			)
-		});
+		pretty_print_expr(&mut ::std::io::stdout(), &expr1);
 
-		assert_eq!(expr1, expr2);
+		// let expr2 = expr_tree!(fab, expr!{
+		// 	(=
+		// 		(bvmul
+		// 			(bitvec "x")
+		// 		    (bvconst 2)
+		// 	    )
+		// 		(bvadd
+		// 			(bitvec "x")
+		// 			(bitvec "x")
+		// 		)
+		// 	)
+		// });
+
+		// assert_eq!(expr1, expr2);
 	}
 }
