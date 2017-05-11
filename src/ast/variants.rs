@@ -1,10 +1,9 @@
 
 use ast::Type;
-use ast::formulas::*;
-use ast::terms::*;
+
+use ast::expr::*;
 use ast::traits::ExprTrait;
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
-use ast::{Equals, IfThenElse, Symbol};
 
 macro_rules! forall_expr_kinds {
 	( $mac:ident ) => {

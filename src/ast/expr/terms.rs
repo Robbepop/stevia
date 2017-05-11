@@ -1,4 +1,3 @@
-
 use bitvec::BitVec;
 use ast::variants::{Expr, ExprKind};
 use ast::traits::ExprTrait;
@@ -6,7 +5,6 @@ use ast::{P, Type};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-#[SmtExprFnTyBody = "self.value.width()"]
 pub struct BitVecConst{pub value: BitVec}
 
 //=============================================================================

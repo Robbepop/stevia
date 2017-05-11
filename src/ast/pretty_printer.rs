@@ -1,5 +1,6 @@
 
 use ast::prelude::*;
+use ast::expr::*;
 use ast::visitor::{Visitor, Event};
 
 pub fn pretty_print_expr(out: &mut ::std::io::Write, expr: &Expr) {
