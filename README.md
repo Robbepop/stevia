@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia)
+[![Build Status](https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true)](https://ci.appveyor.com/project/Robbepop/stevia/branch/master)
 [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
