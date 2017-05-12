@@ -1,0 +1,30 @@
+
+smt_cmd! {
+	(set-logic QF_LIA)
+	(declare-fun x () Int) // declare some constants
+	(declare-fun y () Int)
+	(declare-fun z () Int)
+	(push 1)
+	(assert (= (+ x y) 10))
+	(assert (= (+ x (* 2 y)) 20))
+	(check-sat)
+	// sat ; there is a solution
+	(pop 1) ; clear the assertions
+	(push 1) ; ready for another problem
+	(assert (= (+ (* 3 x) y) 10))
+	(assert (= (+ (* 2 x) (* 2 y)) 21))
+	(check-sat)
+	// unsat ; no solution
+	(declare-fun p () Bool)
+	(pop 1)
+	(assert p)
+	// ( error "p is not declared") ; the declaration of p was popped
+}
+
+expr_tree!{
+	(= (+ (* 3 x) y) 10))
+}
+
+expr_tree!{
+	(= (+ (* 2 x) (* 2 y)) 21))
+}

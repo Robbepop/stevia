@@ -7,7 +7,7 @@ extern crate quote;
 
 use proc_macro::TokenStream;
 
-#[proc_macro_derive(SmtExpr, attributes(SmtExprFnTyBody))]
+#[proc_macro_derive(SmtExpr, attributes(stevia))]
 pub fn smt_expr(input: TokenStream) -> TokenStream {
 	// Construct a string representation of the type definition
 	let s = input.to_string();

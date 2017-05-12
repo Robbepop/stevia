@@ -1,6 +1,6 @@
 use bitvec::BitVec;
 
-use ast::Type;
+use ast::{Bits, Type};
 use ast::variants::Expr;
 use ast::errors::Result;
 
@@ -9,7 +9,7 @@ pub trait ExprFactoryImpl {
 	// TERM EXPRESSIONS
 	//=========================================================================
 
-	fn bvconst_impl<T: Into<BitVec>>(&self, value: T) -> Result<Expr>;
+	fn bvconst_impl<T: Into<BitVec>>(&self, bits: Bits, value: T) -> Result<Expr>;
 
 	// ARITHMETHIC EXPRESSIONS
 	//-------------------------------------------------------------------------
@@ -106,8 +106,8 @@ pub trait ExprFactoryImpl {
 
 	fn symbol_impl(&self, name: &str, ty: Type) -> Result<Expr>;
 	fn boolean_impl(&self, name: &str) -> Result<Expr>;
-	fn bitvec_impl(&self, name: &str, bitwidth: usize) -> Result<Expr>;
-	fn array_impl(&self, name: &str, idx_width: usize, val_width: usize) -> Result<Expr>;
+	fn bitvec_impl(&self, name: &str, bitwidth: Bits) -> Result<Expr>;
+	fn array_impl(&self, name: &str, idx_width: Bits, val_width: Bits) -> Result<Expr>;
 }
 
 pub trait ExprFactory {
@@ -115,7 +115,7 @@ pub trait ExprFactory {
 	// TERM EXPRESSIONS
 	//=========================================================================
 
-	fn bvconst<BV>(&self, value: BV) -> Result<Expr>
+	fn bvconst<BV>(&self, bits: Bits, value: BV) -> Result<Expr>
 		where BV: Into<BitVec>;
 
 	// ARITHMETHIC EXPRESSIONS
@@ -304,8 +304,8 @@ pub trait ExprFactory {
 
 	fn symbol(&self, name: &str, ty: Type) -> Result<Expr>;
 	fn boolean(&self, name: &str) -> Result<Expr>;
-	fn bitvec(&self, name: &str, bitwidth: usize) -> Result<Expr>;
-	fn array(&self, name: &str, idx_width: usize, val_width: usize) -> Result<Expr>;
+	fn bitvec(&self, name: &str, bitwidth: Bits) -> Result<Expr>;
+	fn array(&self, name: &str, idx_width: Bits, val_width: Bits) -> Result<Expr>;
 }
 
 impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: ExprFactoryImpl {
@@ -313,10 +313,10 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 	// TERM EXPRESSIONS
 	//=========================================================================
 
-	fn bvconst<BV>(&self, value: BV) -> Result<Expr>
+	fn bvconst<BV>(&self, bits: Bits, value: BV) -> Result<Expr>
 		where BV: Into<BitVec>
 	{
-		self.bvconst_impl(value)
+		self.bvconst_impl(bits, value)
 	}
 
 	// ARITHMETHIC EXPRESSIONS
@@ -709,12 +709,12 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.boolean_impl(name)
 	}
 
-	fn bitvec(&self, name: &str, bitwidth: usize) -> Result<Expr>
+	fn bitvec(&self, name: &str, bitwidth: Bits) -> Result<Expr>
 	{
 		self.bitvec_impl(name, bitwidth)
 	}
 
-	fn array(&self, name: &str, idx_width: usize, val_width: usize) -> Result<Expr>
+	fn array(&self, name: &str, idx_width: Bits, val_width: Bits) -> Result<Expr>
 	{
 		self.array_impl(name, idx_width, val_width)
 	}

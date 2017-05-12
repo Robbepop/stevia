@@ -2,6 +2,26 @@ use ast::prelude::*;
 use ast::AstError;
 use ast::ErrorKind::*;
 
+/// Acts as documentation and thin abstraction over bits 
+/// that are given as argument to functions like `bvconst`
+/// to construct bitvec and array types out of it.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Bits(pub usize);
+
+impl From<Bits> for Type {
+	fn from(bits: Bits) -> Type {
+		let Bits(bits) = bits;
+		Type::BitVec(bits)
+	}
+}
+
+impl From<(Bits, Bits)> for Type {
+	fn from(bits_pair: (Bits, Bits)) -> Type {
+		let (Bits(idx_bits), Bits(val_bits)) = bits_pair;
+		Type::Array(idx_bits, val_bits)
+	}
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
 	/// Boolean type.

@@ -17,9 +17,10 @@ impl NaiveExprFactory {
 }
 
 impl ExprFactoryImpl for NaiveExprFactory {
-	fn bvconst_impl<T: Into<BitVec>>(&self, value: T) -> Result<Expr> {
+	fn bvconst_impl<T: Into<BitVec>>(&self, bits: Bits, value: T) -> Result<Expr> {
 		Ok(Expr::BitVecConst(expr::BitVecConst{
-			value: value.into()
+			value: value.into(),
+			ty   : bits.into()
 		}))
 	}
 
@@ -291,7 +292,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 			source: Box::new(source),
 			hi_bit: Box::new(hi_bit),
 			lo_bit: Box::new(lo_bit),
-			ty    : panic!("FIXME/TODO - Error at NaiveExprFactory::uextend_impl: \\
+			ty    : panic!("FIXME/TODO - Error at NaiveExprFactory::extract_impl: \\
 			                Cannot infer correct type since `hi_bit - lo_bit` is not necessarily evaluatable!")
 		}))
 	}
@@ -467,11 +468,11 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		self.symbol(name, Type::Boolean)
 	}
 
-	fn bitvec_impl(&self, name: &str, bitwidth: usize) -> Result<Expr> {
-		self.symbol(name, Type::BitVec(bitwidth))
+	fn bitvec_impl(&self, name: &str, bits: Bits) -> Result<Expr> {
+		self.symbol(name, Type::from(bits))
 	}
 
-	fn array_impl(&self, name: &str, idx_width: usize, val_width: usize) -> Result<Expr> {
-		self.symbol(name, Type::Array(idx_width, val_width))
+	fn array_impl(&self, name: &str, idx_width: Bits, val_width: Bits) -> Result<Expr> {
+		self.symbol(name, Type::from((idx_width, val_width)))
 	}
 }

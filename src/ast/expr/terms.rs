@@ -6,7 +6,11 @@ use ast::variants::{Expr, ExprKind};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct BitVecConst{pub value: BitVec}
+pub struct BitVecConst{
+	pub value: BitVec,
+	/// The bitvec type of this expression.
+	pub ty: Type
+}
 
 //=============================================================================
 // ARITHMETIC EXPRESSIONS

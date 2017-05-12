@@ -13,7 +13,7 @@ mod visitor;
 mod pretty_printer;
 pub mod prelude;
 
-pub use self::ty::{Type, TypeKind};
+pub use self::ty::{Bits, Type, TypeKind};
 pub use self::variants::{Expr, ExprKind};
 pub use self::traits::ExprTrait;
 pub use self::iterators::{Childs, ChildsMut, IntoChilds};
@@ -32,30 +32,60 @@ impl From<Expr> for Result<Expr> {
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct SymName(usize);
 
-// #[cfg(test)]
-// mod tests {
-	// use super::*;
+// smt_cmd! {
+// 	(set-logic QF_LIA)
+// 	(declare-fun x () Int) // declare some constants
+// 	(declare-fun y () Int)
+// 	(declare-fun z () Int)
+// 	(push 1)
+// 	(assert (= (+ x y) 10))
+// 	(assert (= (+ x (* 2 y)) 20))
+// 	(check-sat)
+// 	// sat ; there is a solution
+// 	(pop 1) ; clear the assertions
+// 	(push 1) ; ready for another problem
+// 	(assert (= (+ (* 3 x) y) 10))
+// 	(assert (= (+ (* 2 x) (* 2 y)) 21))
+// 	(check-sat)
+// 	// unsat ; no solution
+// 	(declare-fun p () Bool)
+// 	(pop 1)
+// 	(assert p)
+// 	// ( error "p is not declared") ; the declaration of p was popped
+// }
 
-	// #[test]
-	// fn simple_macro() {
-		// use ast::factory::ExprFactory;
-		// let fab = NaiveExprFactory::new();
+// expr_tree!{
+// 	(= (+ (* 3 x) y) 10))
+// }
 
-		// let expr1 = fab.eq(
-		// 	fab.bvmul(
-		// 		fab.bitvec("x", 32),
-		// 		fab.bvconst(2)
-		// 	),
-		// 	fab.bvadd(
-		// 		fab.bitvec("x", 32),
-		// 		fab.bitvec("x", 32)
-		// 	)
-		// ).unwrap();
+// expr_tree!{
+// 	(= (+ (* 2 x) (* 2 y)) 21))
+// }
 
-		// pretty_print_expr(&mut ::std::io::stdout(), &expr1);
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn simple_macro() {
+		use ast::factory::ExprFactory;
+		let fab = NaiveExprFactory::new();
+
+		let expr1 = fab.eq(
+			fab.bvmul(
+				fab.bitvec("x", Bits(32)),
+				fab.bvconst(Bits(32), 2)
+			),
+			fab.bvadd(
+				fab.bitvec("x", Bits(32)),
+				fab.bitvec("x", Bits(32))
+			)
+		).unwrap();
+
+		pretty_print_expr(&mut ::std::io::stdout(), &expr1);
 
 		// let expr2 = expr_tree!(fab, expr!{
 		// 	(=
@@ -71,5 +101,5 @@ pub struct SymName(usize);
 		// });
 
 		// assert_eq!(expr1, expr2);
-	// }
-// }
+	}
+}
