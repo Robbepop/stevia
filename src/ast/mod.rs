@@ -12,6 +12,9 @@ mod naive_factory;
 mod visitor;
 mod pretty_printer;
 pub mod prelude;
+#[macro_use]
+mod transformer;
+mod simplifier;
 
 pub use self::ty::{Bits, Type, TypeKind};
 pub use self::variants::{Expr, ExprKind};
@@ -20,6 +23,8 @@ pub use self::iterators::{Childs, ChildsMut, IntoChilds};
 pub use self::errors::{Result, AstError, ErrorKind};
 pub use self::factory::ExprFactory;
 pub use self::naive_factory::NaiveExprFactory;
+
+use self::transformer::{Transformer, TransformerImpl};
 
 pub use self::pretty_printer::pretty_print_expr;
 

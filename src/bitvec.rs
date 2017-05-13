@@ -5,10 +5,6 @@ pub struct BitVec {
 }
 
 impl BitVec {
-	pub fn width(&self) -> usize {
-		self.value as usize
-	}
-
 	pub fn to_u64(&self) -> u64 {
 		self.value
 	}

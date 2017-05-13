@@ -47,7 +47,8 @@ impl<'out> PrettyPrinter<'out> {
 
 impl<'ast, 'out> Visitor<'ast> for PrettyPrinter<'out> {
 	fn visit_bvconst(&mut self, expr: &'ast BitVecConst, event: Event) {
-		self.block(event, format!("bvconst :{} {}", expr.value.width(), expr.value.to_u64()))
+		self.block(event,
+			format!("bvconst :{} {}", expr.ty.bitwidth().unwrap(), expr.value.to_u64())) // TODO: remove unwrap
 	}
 
 	fn visit_bvneg(&mut self, _: &'ast Neg, event: Event) {
