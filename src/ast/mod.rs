@@ -107,40 +107,4 @@ mod tests {
 
 		// assert_eq!(expr1, expr2);
 	}
-
-	#[test]
-	fn simplify_negneg_even() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.bvneg(
-			fab.bvneg(
-				fab.bvneg(
-					fab.bvneg(
-						fab.bvconst(Bits(32), 42)
-					)
-				)
-			)
-		).unwrap();
-		let simplified = simplify(expr);
-		let expected   = fab.bvconst(Bits(32), 42).unwrap();
-		assert_eq!(simplified, expected);
-	}
-
-	#[test]
-	fn simplify_negneg_odd() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.bvneg(
-			fab.bvneg(
-				fab.bvneg(
-					fab.bvneg(
-						fab.bvneg(
-							fab.bvconst(Bits(32), 42)
-						)
-					)
-				)
-			)
-		).unwrap();
-		let simplified = simplify(expr);
-		let expected   = fab.bvneg(fab.bvconst(Bits(32), 42)).unwrap();
-		assert_eq!(simplified, expected);
-	}
 }

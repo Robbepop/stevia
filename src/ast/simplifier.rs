@@ -37,7 +37,7 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_bvneg(&mut self, mut expr: Neg) -> Expr {
 		match *expr.inner {
-			Expr::Neg(ref mut negneg) => self.transform(negneg.inner.unpack()),
+			Expr::Neg(negneg) => self.transform(*negneg.inner),
 			_ => expr.into_variant()
 		}
 	}
@@ -175,7 +175,10 @@ impl TransformerImpl for Simplifier {
 	}
 
 	fn transform_not(&mut self, mut expr: Not) -> Expr {
-		expr.into_variant()
+		match *expr.inner {
+			Expr::Not(notnot) => self.transform(*notnot.inner),
+			_ => expr.into_variant()
+		}
 	}
 
 	fn transform_and(&mut self, mut expr: And) -> Expr {
@@ -206,15 +209,136 @@ impl TransformerImpl for Simplifier {
 		expr.into_variant()
 	}
 
-	fn transform_ite(&mut self, mut expr: IfThenElse) -> Expr {
-		expr.cond = self.boxed_transform(expr.cond);
-		expr.then_case = self.boxed_transform(expr.then_case);
-		expr.else_case = self.boxed_transform(expr.else_case);
-		expr.into_variant()
+	fn transform_ite(&mut self, expr: IfThenElse) -> Expr {
+		match *expr.cond {
+			Expr::BoolConst(BoolConst{value: true}) => {
+				simplify(*expr.then_case)
+			},
+			Expr::BoolConst(BoolConst{value: false}) => {
+				simplify(*expr.else_case)
+			},
+			_ => {
+				expr.into_variant()
+			}
+		}
+		// expr.cond = self.boxed_transform(expr.cond);
+		// expr.then_case = self.boxed_transform(expr.then_case);
+		// expr.else_case = self.boxed_transform(expr.else_case);
+		// expr.into_variant()
 	}
 
 	fn transform_symbol(&mut self, mut expr: Symbol) -> Expr {
 		expr.into_variant()
 	}
 
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use ast::NaiveExprFactory;
+
+	#[test]
+	fn simplify_negneg_even() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.bvneg(
+			fab.bvneg(
+				fab.bvneg(
+					fab.bvneg(
+						fab.bvconst(Bits(32), 42)
+					)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.bvconst(Bits(32), 42).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_negneg_odd() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.bvneg(
+			fab.bvneg(
+				fab.bvneg(
+					fab.bvneg(
+						fab.bvneg(
+							fab.bvconst(Bits(32), 42)
+						)
+					)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.bvneg(fab.bvconst(Bits(32), 42)).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_notnot_even() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.not(
+			fab.not(
+				fab.not(
+					fab.not(
+						fab.boolconst(false)
+					)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.boolconst(false).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_notnot_odd() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.not(
+			fab.not(
+				fab.not(
+					fab.not(
+						fab.not(
+							fab.boolconst(false)
+						)
+					)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.not(fab.boolconst(false)).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_ite_const_true_cond() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.ite(
+			fab.boolconst(true),
+			fab.bvconst(Bits(32), 42),
+			fab.bvneg(
+				fab.bvconst(Bits(32), 1337)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.bvconst(Bits(32), 42).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_ite_const_false_cond() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.ite(
+			fab.boolconst(false),
+			fab.bvconst(Bits(32), 42),
+			fab.bvneg(
+				fab.bvneg(
+					fab.bvconst(Bits(32), 1337)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.bvconst(Bits(32), 1337).unwrap();
+		assert_eq!(simplified, expected);
+	}
 }
