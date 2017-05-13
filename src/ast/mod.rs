@@ -27,6 +27,7 @@ pub use self::naive_factory::NaiveExprFactory;
 use self::transformer::{Transformer, TransformerImpl};
 
 pub use self::pretty_printer::pretty_print_expr;
+pub use self::simplifier::simplify;
 
 impl From<Expr> for Result<Expr> {
 	fn from(expr: Expr) -> Result<Expr> {
@@ -76,7 +77,6 @@ mod tests {
 
 	#[test]
 	fn simple_macro() {
-		use ast::factory::ExprFactory;
 		let fab = NaiveExprFactory::new();
 
 		let expr1 = fab.eq(
@@ -106,5 +106,41 @@ mod tests {
 		// });
 
 		// assert_eq!(expr1, expr2);
+	}
+
+	#[test]
+	fn simplify_negneg_even() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.bvneg(
+			fab.bvneg(
+				fab.bvneg(
+					fab.bvneg(
+						fab.bvconst(Bits(32), 42)
+					)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.bvconst(Bits(32), 42).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_negneg_odd() {
+		let fab  = NaiveExprFactory::new();
+		let expr = fab.bvneg(
+			fab.bvneg(
+				fab.bvneg(
+					fab.bvneg(
+						fab.bvneg(
+							fab.bvconst(Bits(32), 42)
+						)
+					)
+				)
+			)
+		).unwrap();
+		let simplified = simplify(expr);
+		let expected   = fab.bvneg(fab.bvconst(Bits(32), 42)).unwrap();
+		assert_eq!(simplified, expected);
 	}
 }

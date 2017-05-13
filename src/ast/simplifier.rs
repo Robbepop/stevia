@@ -6,8 +6,18 @@ use ast::transformer;
 
 use ast::{Transformer, TransformerImpl};
 
+pub fn simplify(expr: Expr) -> Expr {
+	Simplifier::new().transform(expr)
+}
+
 struct Simplifier {
 	// TODO
+}
+
+impl Simplifier {
+	fn new() -> Simplifier {
+		Simplifier{}
+	}
 }
 
 impl TransformerImpl for Simplifier {
@@ -16,7 +26,20 @@ impl TransformerImpl for Simplifier {
 	}
 
 	fn transform_bvneg(&mut self, mut expr: Neg) -> Expr {
-		expr.into_variant()
+		if let Some(negneg_expr) =
+			match *expr.inner {
+				Expr::Neg(ref mut negneg) => {
+					Some(::std::mem::replace(&mut* negneg.inner, Expr::BoolConst(BoolConst{value: false})))
+
+				},
+				_ => None
+			}
+		{
+			self.transform(negneg_expr)
+		}
+		else {
+			expr.into_variant()
+		}
 	}
 
 	fn transform_bvadd(&mut self, mut expr: Add) -> Expr {
