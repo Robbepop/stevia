@@ -177,6 +177,8 @@ impl TransformerImpl for Simplifier {
 	fn transform_not(&mut self, mut expr: Not) -> Expr {
 		match *expr.inner {
 			Expr::Not(notnot) => self.transform(*notnot.inner),
+			Expr::BoolConst(BoolConst{value: true}) => BoolConst{value: false}.into_variant(),
+			Expr::BoolConst(BoolConst{value: false}) => BoolConst{value: true}.into_variant(),
 			_ => expr.into_variant()
 		}
 	}
@@ -240,105 +242,117 @@ mod tests {
 
 	#[test]
 	fn simplify_negneg_even() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.bvneg(
-			fab.bvneg(
-				fab.bvneg(
-					fab.bvneg(
-						fab.bvconst(Bits(32), 42)
+		let f    = NaiveExprFactory::new();
+		let expr = f.bvneg(
+			f.bvneg(
+				f.bvneg(
+					f.bvneg(
+						f.bvconst(Bits(32), 42)
 					)
 				)
 			)
 		).unwrap();
 		let simplified = simplify(expr);
-		let expected   = fab.bvconst(Bits(32), 42).unwrap();
+		let expected   = f.bvconst(Bits(32), 42).unwrap();
 		assert_eq!(simplified, expected);
 	}
 
 	#[test]
 	fn simplify_negneg_odd() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.bvneg(
-			fab.bvneg(
-				fab.bvneg(
-					fab.bvneg(
-						fab.bvneg(
-							fab.bvconst(Bits(32), 42)
+		let f    = NaiveExprFactory::new();
+		let expr = f.bvneg(
+			f.bvneg(
+				f.bvneg(
+					f.bvneg(
+						f.bvneg(
+							f.bvconst(Bits(32), 42)
 						)
 					)
 				)
 			)
 		).unwrap();
 		let simplified = simplify(expr);
-		let expected   = fab.bvneg(fab.bvconst(Bits(32), 42)).unwrap();
+		let expected   = f.bvneg(f.bvconst(Bits(32), 42)).unwrap();
 		assert_eq!(simplified, expected);
 	}
 
 	#[test]
 	fn simplify_notnot_even() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.not(
-			fab.not(
-				fab.not(
-					fab.not(
-						fab.boolconst(false)
+		let f    = NaiveExprFactory::new();
+		let expr = f.not(
+			f.not(
+				f.not(
+					f.not(
+						f.boolconst(false)
 					)
 				)
 			)
 		).unwrap();
 		let simplified = simplify(expr);
-		let expected   = fab.boolconst(false).unwrap();
+		let expected   = f.boolconst(false).unwrap();
 		assert_eq!(simplified, expected);
 	}
 
 	#[test]
 	fn simplify_notnot_odd() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.not(
-			fab.not(
-				fab.not(
-					fab.not(
-						fab.not(
-							fab.boolconst(false)
+		let f    = NaiveExprFactory::new();
+		let expr = f.not(
+			f.not(
+				f.not(
+					f.not(
+						f.not(
+							f.boolconst(false)
 						)
 					)
 				)
 			)
 		).unwrap();
 		let simplified = simplify(expr);
-		let expected   = fab.not(fab.boolconst(false)).unwrap();
+		let expected   = f.boolconst(true).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_not_true() {
+		let f = NaiveExprFactory::new();
+		let e = f.not(f.boolconst(true)).unwrap();
+		let simplified = simplify(e);
+		let expected   = f.boolconst(false).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_not_false() {
+		let f = NaiveExprFactory::new();
+		let e = f.not(f.boolconst(false)).unwrap();
+		let simplified = simplify(e);
+		let expected   = f.boolconst(true).unwrap();
 		assert_eq!(simplified, expected);
 	}
 
 	#[test]
 	fn simplify_ite_const_true_cond() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.ite(
-			fab.boolconst(true),
-			fab.bvconst(Bits(32), 42),
-			fab.bvneg(
-				fab.bvconst(Bits(32), 1337)
-			)
+		let f  = NaiveExprFactory::new();
+		let expr = f.ite(
+			f.boolconst(true),
+			f.bvconst(Bits(32), 42),
+			f.bvconst(Bits(32), 1337)
 		).unwrap();
 		let simplified = simplify(expr);
-		let expected   = fab.bvconst(Bits(32), 42).unwrap();
+		let expected   = f.bvconst(Bits(32), 42).unwrap();
 		assert_eq!(simplified, expected);
 	}
 
 	#[test]
 	fn simplify_ite_const_false_cond() {
-		let fab  = NaiveExprFactory::new();
-		let expr = fab.ite(
-			fab.boolconst(false),
-			fab.bvconst(Bits(32), 42),
-			fab.bvneg(
-				fab.bvneg(
-					fab.bvconst(Bits(32), 1337)
-				)
-			)
+		let f  = NaiveExprFactory::new();
+		let expr = f.ite(
+			f.boolconst(false),
+			f.bvconst(Bits(32), 42),
+			f.bvconst(Bits(32), 1337)
 		).unwrap();
 		let simplified = simplify(expr);
-		let expected   = fab.bvconst(Bits(32), 1337).unwrap();
+		let expected   = f.bvconst(Bits(32), 1337).unwrap();
 		assert_eq!(simplified, expected);
 	}
 }
