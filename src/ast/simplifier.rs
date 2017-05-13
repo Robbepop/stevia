@@ -20,25 +20,25 @@ impl Simplifier {
 	}
 }
 
+impl Expr {
+	/// Unpacks an expression given by mutable reference with a dummy expression.
+	/// 
+	/// This is used as a semi-hack to avoid dynamic heap allocations when working
+	/// with boxed expressions during the simplification procedure.
+	fn unpack(&mut self) -> Expr {
+		::std::mem::replace(self, Expr::BoolConst(BoolConst{value: false}))
+	}
+}
+
 impl TransformerImpl for Simplifier {
 	fn transform_bvconst(&mut self, mut expr: BitVecConst) -> Expr {
 		expr.into_variant()
 	}
 
 	fn transform_bvneg(&mut self, mut expr: Neg) -> Expr {
-		if let Some(negneg_expr) =
-			match *expr.inner {
-				Expr::Neg(ref mut negneg) => {
-					Some(::std::mem::replace(&mut* negneg.inner, Expr::BoolConst(BoolConst{value: false})))
-
-				},
-				_ => None
-			}
-		{
-			self.transform(negneg_expr)
-		}
-		else {
-			expr.into_variant()
+		match *expr.inner {
+			Expr::Neg(ref mut negneg) => self.transform(negneg.inner.unpack()),
+			_ => expr.into_variant()
 		}
 	}
 
