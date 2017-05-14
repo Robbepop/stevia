@@ -92,25 +92,35 @@ pub trait TransformerImpl: Sized {
 }
 
 pub trait Transformer: Sized {
-	/// Consumes the given boxed-expression and returns a simplified equisatifiable boxed-expression.
+	/// Consumes the given boxed-expression and returns a transformed equisatifiable boxed-expression.
 	/// 
 	/// This will reuse the box and thus avoids allocating dynamic memory.
 	/// Returns identity if no simplifications have occured.
 	fn boxed_transform(&mut self, boxed: P<Expr>) -> P<Expr>;
 
-	/// Consumes the given expression and returns a simplified equisatifiable expression.
+	/// Consumes the given expression and returns a transformed equisatifiable expression.
 	/// 
 	/// Returns identity if no simplifications have occured.
 	fn transform(&mut self, expr: Expr) -> Expr;
+
+	/// Transforms the given expression inplace.
+	fn transform_assign(&mut self, expr: &mut Expr);
 }
 
 impl<ConcTransformer> Transformer for ConcTransformer where ConcTransformer: TransformerImpl {
+	fn transform_assign(&mut self, expr: &mut Expr) {
+		use ::std::mem;
+		let boxed_out   = mem::replace(expr, Expr::BoolConst(BoolConst{value: false}));
+		let transformed = self.transform(boxed_out);
+		mem::replace(expr, transformed);
+	}
+
 	fn boxed_transform(&mut self, mut boxed: P<Expr>) -> P<Expr> {
-		// replace dummy with the boxes content
+		// replace the boxes content with the dummy expression
 		let inner = ::std::mem::replace(&mut* boxed, Expr::BoolConst(BoolConst{value: false}));
 		// do the simplifying computation that performs on the stack
 		let transformed = self.transform(inner);
-		// replace the temporary dummy with the simplified expression
+		// replace the temporary dummy with the transformed expression
 		::std::mem::replace(&mut* boxed, transformed);
 		// return p without (re-)allocating dynamic memory
 		boxed

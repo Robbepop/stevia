@@ -207,11 +207,11 @@ impl TransformerImpl for Simplifier {
 		expr.into_variant()
 	}
 
-	fn transform_not(&mut self, expr: Not) -> Expr {
+	fn transform_not(&mut self, mut expr: Not) -> Expr {
+		expr.inner = self.boxed_transform(expr.inner);
 		match *expr.inner {
 			Expr::Not(notnot) => self.transform(*notnot.inner),
-			Expr::BoolConst(BoolConst{value: true}) => BoolConst{value: false}.into_variant(),
-			Expr::BoolConst(BoolConst{value: false}) => BoolConst{value: true}.into_variant(),
+			Expr::BoolConst(BoolConst{value}) => BoolConst{value: !value}.into_variant(),
 			_ => expr.into_variant()
 		}
 	}
@@ -228,7 +228,9 @@ impl TransformerImpl for Simplifier {
 		expr.into_variant()
 	}
 
-	fn transform_xor(&mut self, expr: Xor) -> Expr {
+	fn transform_xor(&mut self, mut expr: Xor) -> Expr {
+		expr.left  = self.boxed_transform(expr.left);
+		expr.right = self.boxed_transform(expr.right);
 		expr.into_variant()
 	}
 
@@ -244,31 +246,71 @@ impl TransformerImpl for Simplifier {
 		expr.into_variant()
 	}
 
-	fn transform_equals(&mut self, expr: Equals) -> Expr {
+	fn transform_equals(&mut self, mut expr: Equals) -> Expr {
+		assert!(expr.exprs.len() >= 2,
+			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
+
+		// TODO: flatten equality child expressions -> this strengthens the following unique-elemination procedure
+
+		// eleminate duplicates `a = b = a` => `a = b`
+		expr.exprs.sort();
+		expr.exprs.dedup_by(|l,r| l == r);
+
+		// after duplication if `a = ... = a => true`
+		if expr.exprs.len() == 1 {
+			return BoolConst{value: true}.into_variant()
+		}
+
+		// Find const constradiction pairs:
+		//  - `42 = 1337 => false`
+		//  - `false = true => false`
+		use itertools::Itertools;
+		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l,r)| { // TODO: filter out const bv and const bools
+			match (l, r) {
+				(&Expr::BitVecConst(BitVecConst{value: ref v1, ..}),
+				 &Expr::BitVecConst(BitVecConst{value: ref v2, ..})) => {
+					v1 != v2
+				},
+				(&Expr::BoolConst(BoolConst{value: ref v1, ..}),
+				 &Expr::BoolConst(BoolConst{value: ref v2, ..})) => {
+					v1 != v2
+				},
+				_ => false
+			}
+		}) {
+			return BoolConst{value: false}.into_variant()
+		}
+
+		// TODO: find contradiction pairs: `a = not(a) => false`
+
+		for child in expr.childs_mut() {
+			self.transform_assign(child);
+		}
+		expr.into_variant()
+
 		// TODO: `a == a => true`
 		// TODO: `a == not(a)` => false`
-		// TODO: `not(a) == a` => false`
-		expr.into_variant()
+		// TODO: `not(a) == a` => `a == not(a)` => false`
 	}
 
-	fn transform_ite(&mut self, expr: IfThenElse) -> Expr {
+	fn transform_ite(&mut self, mut expr: IfThenElse) -> Expr {
+		self.transform_assign(&mut expr.cond);
 		match *expr.cond {
-			Expr::BoolConst(BoolConst{value: true}) => {
-				self.transform(*expr.then_case)
-			},
-			Expr::BoolConst(BoolConst{value: false}) => {
-				self.transform(*expr.else_case)
+			Expr::BoolConst(BoolConst{value}) => {
+				if value {
+					self.transform(*expr.then_case)
+				}
+				else {
+					self.transform(*expr.else_case)
+				}
 			},
 			_ => {
+				self.transform_assign(&mut expr.then_case);
+				self.transform_assign(&mut expr.else_case);
 				expr.into_variant()
 			}
 		}
 		// TODO: `if (cond) {foo} else {foo} => foo`
-
-		// expr.cond = self.boxed_transform(expr.cond);
-		// expr.then_case = self.boxed_transform(expr.then_case);
-		// expr.else_case = self.boxed_transform(expr.else_case);
-		// expr.into_variant()
 	}
 
 	fn transform_symbol(&mut self, expr: Symbol) -> Expr {
@@ -396,5 +438,48 @@ mod tests {
 		let simplified = simplify(expr);
 		let expected   = f.bvconst(Bits(32), 1337).unwrap();
 		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_equals_same() {
+		let f  = NaiveExprFactory::new();
+
+		let bool_expr = f.eq(
+			f.boolconst(false),
+			f.boolconst(false)
+		).unwrap();
+		let bool_simplified = simplify(bool_expr);
+
+		let bv_expr = f.eq(
+			f.bvconst(Bits(32), 42),
+			f.bvconst(Bits(32), 42)
+		).unwrap();
+		let bv_simplified = simplify(bv_expr);
+
+		let expected   = f.boolconst(true).unwrap();
+		assert_eq!(bool_simplified, expected);
+		assert_eq!(bv_simplified, expected);
+	}
+
+	#[test]
+	fn simplify_equals_contradiction() {
+		let f  = NaiveExprFactory::new();
+
+		let bool_expr = f.eq(
+			f.boolconst(true),
+			f.boolconst(false)
+		).unwrap();
+		let bool_simplified = simplify(bool_expr);
+
+		let bv_expr = f.eq(
+			f.bvconst(Bits(32), 42),
+			f.bvconst(Bits(32), 1337)
+		).unwrap();
+		let bv_simplified = simplify(bv_expr);
+
+		let expected   = f.boolconst(false).unwrap();
+
+		assert_eq!(bool_simplified, expected);
+		assert_eq!(bv_simplified, expected);
 	}
 }

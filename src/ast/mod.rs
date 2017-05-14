@@ -76,7 +76,7 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn simple_macro() {
+	fn test_pretty_printer() {
 		let fab = NaiveExprFactory::new();
 
 		let expr1 = fab.eq(
@@ -90,21 +90,28 @@ mod tests {
 			)
 		).unwrap();
 
-		pretty_print_expr(&mut ::std::io::stdout(), &expr1);
-
-		// let expr2 = expr_tree!(fab, expr!{
-		// 	(=
-		// 		(bvmul
-		// 			(bitvec "x")
-		// 		    (bvconst 2)
-		// 	    )
-		// 		(bvadd
-		// 			(bitvec "x")
-		// 			(bitvec "x")
-		// 		)
-		// 	)
-		// });
-
-		// assert_eq!(expr1, expr2);
+		let mut buf = vec![];
+		pretty_print_expr(&mut buf, &expr1);
+		let printed  = String::from_utf8(buf).unwrap();
+		let expected = "\
+(=
+	(bvmul
+		(symbol SymName(0)
+		)
+		(bvconst :32 2
+		)
+	)
+	(bvadd
+		(symbol SymName(0)
+		)
+		(symbol SymName(0)
+		)
+	)
+)
+";
+		// println!("{:?}", printed);
+		// println!("{:?}", expected);
+		// pretty_print_expr(&mut ::std::io::stdout(), &expr1);
+		assert_eq!(printed, expected);
 	}
 }
