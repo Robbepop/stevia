@@ -257,13 +257,16 @@ impl TransformerImpl for Simplifier {
 		expr.exprs.dedup_by(|l,r| l == r);
 
 		// after duplication if `a = ... = a => true`
+
+		// Find equal childs tautology:
+		//  - `(= a ... a) => true`
 		if expr.exprs.len() == 1 {
 			return BoolConst{value: true}.into_variant()
 		}
 
 		// Find const constradiction pairs:
-		//  - `42 = 1337 => false`
-		//  - `false = true => false`
+		//  - `(= 42 1337)    => false`
+		//  - `(= false true) => false`
 		use itertools::Itertools;
 		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l,r)| { // TODO: filter out const bv and const bools
 			match (l, r) {
@@ -281,16 +284,28 @@ impl TransformerImpl for Simplifier {
 			return BoolConst{value: false}.into_variant()
 		}
 
-		// TODO: find contradiction pairs: `a = not(a) => false`
+		// Find contradiction pairs:
+		//  - `(= a not(a)) => false`
+		//  - `(= x (-x))   => false`
+		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l, r)| {
+			match (l, r) {
+				(&Expr::Not(Not{inner: ref negated}), non_negated) => {
+					&**negated == non_negated
+				},
+				(&Expr::Neg(Neg{inner: ref negated, ..}), non_negated) => {
+					&**negated == non_negated
+				},
+				_ => false
+			}
+		}) {
+			return BoolConst{value: false}.into_variant()
+		}
 
+		// Simplify child expressions.
 		for child in expr.childs_mut() {
 			self.transform_assign(child);
 		}
 		expr.into_variant()
-
-		// TODO: `a == a => true`
-		// TODO: `a == not(a)` => false`
-		// TODO: `not(a) == a` => `a == not(a)` => false`
 	}
 
 	fn transform_ite(&mut self, mut expr: IfThenElse) -> Expr {
@@ -474,6 +489,28 @@ mod tests {
 		let bv_expr = f.eq(
 			f.bvconst(Bits(32), 42),
 			f.bvconst(Bits(32), 1337)
+		).unwrap();
+		let bv_simplified = simplify(bv_expr);
+
+		let expected   = f.boolconst(false).unwrap();
+
+		assert_eq!(bool_simplified, expected);
+		assert_eq!(bv_simplified, expected);
+	}
+
+	#[test]
+	fn simplify_equals_negnot_contradictions() {
+		let f  = NaiveExprFactory::new();
+
+		let bool_expr = f.eq(
+			f.boolconst(true),
+			f.not(f.boolconst(true))
+		).unwrap();
+		let bool_simplified = simplify(bool_expr);
+
+		let bv_expr = f.eq(
+			f.bvneg(f.bvconst(Bits(32), 42)),
+			f.bvconst(Bits(32), 42)
 		).unwrap();
 		let bv_simplified = simplify(bv_expr);
 
