@@ -421,9 +421,11 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn eq_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
-		Type::common_of(left.ty(), right.ty())?;
-		Ok(Expr::Equals(expr::Equals{exprs: vec![left, right]}))
-		// self.equality(vec![left, right])
+		let common_ty = Type::common_of(left.ty(), right.ty())?;
+		Ok(Expr::Equals(expr::Equals{
+			exprs   : vec![left, right],
+			inner_ty: common_ty
+		}))
 	}
 
 	fn ne_impl(&self, left: Expr, right: Expr) -> Result<Expr> {

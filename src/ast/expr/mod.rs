@@ -10,7 +10,10 @@ use ast::prelude::*;
 use ast::P;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
-pub struct Equals{pub exprs: Vec<Expr>}
+pub struct Equals{
+	pub exprs: Vec<Expr>,
+	pub inner_ty: Type
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct IfThenElse{

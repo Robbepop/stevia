@@ -250,20 +250,21 @@ impl TransformerImpl for Simplifier {
 		assert!(expr.exprs.len() >= 2,
 			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
 
-		// TODO: flatten equality child expressions -> this strengthens the following unique-elemination procedure
-		for child in expr.exprs.iter_mut() {
-			match child {
-				&mut Expr::Equals(Equals{exprs: ref mut sub_childs}) => {
-					// remove this equals-expression from `expr.exprs` and push its child-expressions `sub_childs`
-					// into its parent `expr` child-vector `expr.exprs`.
-				},
-				_ => ()
-			}
-		}
+		// // TODO: flatten equality child expressions -> this strengthens the following unique-elemination procedure
+		// for child in expr.exprs.iter_mut() {
+		// 	match child {
+		// 		&mut Expr::Equals(Equals{exprs: ref mut sub_childs, ..}) => {
+		// 			let carved_out = ::std::mem::replace(sub_childs, vec![]);
+		// 			// remove this equals-expression from `expr.exprs` and push its child-expressions `sub_childs`
+		// 			// into its parent `expr` child-vector `expr.exprs`.
+		// 		},
+		// 		_ => ()
+		// 	}
+		// }
 
 		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
 		expr.exprs.sort();
-		expr.exprs.dedup_by(|l,r| l == r);
+		expr.exprs.dedup();
 
 		// After deduplication: Find equal childs tautology:
 		//  - `(= a ... a) => true`
@@ -524,5 +525,44 @@ mod tests {
 
 		assert_eq!(bool_simplified, expected);
 		assert_eq!(bv_simplified, expected);
+	}
+
+	#[test]
+	fn simplify_equals_flatten() {
+		let f = NaiveExprFactory::new();
+
+		let expr = f.eq(
+			f.eq(
+				f.eq(
+					f.boolconst(true),
+					f.boolconst(true)
+				),
+				f.eq(
+					f.boolconst(true),
+					f.boolconst(true)
+				)
+			),
+			f.eq(
+				f.eq(
+					f.boolconst(true),
+					f.boolconst(true)
+				),
+				f.eq(
+					f.eq(
+						f.boolconst(true),
+						f.boolconst(true)
+					),
+					f.eq(
+						f.boolconst(true),
+						f.boolconst(false)
+					)
+				)
+			)
+		).unwrap();
+
+		let simplified = simplify(expr);
+		let expected   = f.boolconst(false).unwrap();
+
+		assert_eq!(simplified, expected);
 	}
 }
