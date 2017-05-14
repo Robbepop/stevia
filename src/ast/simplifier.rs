@@ -528,6 +528,7 @@ mod tests {
 	}
 
 	#[test]
+	#[should_panic]
 	fn simplify_equals_flatten() {
 		let f = NaiveExprFactory::new();
 
