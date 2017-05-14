@@ -96,16 +96,12 @@ mod tests {
 		let expected = "\
 (=
 	(bvmul
-		(symbol SymName(0)
-		)
-		(bvconst :32 2
-		)
+		( symbol SymName(0) )
+		( bvconst :32 2 )
 	)
 	(bvadd
-		(symbol SymName(0)
-		)
-		(symbol SymName(0)
-		)
+		( symbol SymName(0) )
+		( symbol SymName(0) )
 	)
 )
 ";

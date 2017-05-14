@@ -30,6 +30,16 @@ impl<'out> PrettyPrinter<'out> {
 		self.indent.pop();
 	}
 
+	fn inline<S: AsRef<str>>(&mut self, event: Event, content: S) {
+		use self::Event::*;
+		match event {
+			Entering => {
+				writeln!(self.out, "{}( {} )", &self.indent, content.as_ref()).unwrap();
+			},
+			Leaving => ()
+		}
+	}
+
 	fn block<S: AsRef<str>>(&mut self, event: Event, tag: S) {
 		use self::Event::*;
 		match event {
@@ -47,8 +57,8 @@ impl<'out> PrettyPrinter<'out> {
 
 impl<'ast, 'out> Visitor<'ast> for PrettyPrinter<'out> {
 	fn visit_bvconst(&mut self, expr: &'ast BitVecConst, event: Event) {
-		self.block(event,
-			format!("bvconst :{} {}", expr.ty.bitwidth().unwrap(), expr.value.to_u64())) // TODO: remove unwrap
+		self.inline(event,
+			format!("bvconst :{} {}", expr.ty.bitwidth().unwrap(), expr.value.to_u64()))
 	}
 
 	fn visit_bvneg(&mut self, _: &'ast Neg, event: Event) {
@@ -184,7 +194,7 @@ impl<'ast, 'out> Visitor<'ast> for PrettyPrinter<'out> {
 	}
 
 	fn visit_boolconst(&mut self, expr: &'ast BoolConst, event: Event) {
-		self.block(event, format!("boolconst :bool {}", expr.value))
+		self.inline(event, format!("{}", expr.value))
 	}
 
 	fn visit_not(&mut self, _: &'ast Not, event: Event) {
@@ -224,6 +234,6 @@ impl<'ast, 'out> Visitor<'ast> for PrettyPrinter<'out> {
 	}
 
 	fn visit_symbol(&mut self, expr: &'ast Symbol, event: Event) {
-		self.block(event, format!("symbol {:?}", expr.name))
+		self.inline(event, format!("symbol {:?}", expr.name))
 	}
 }
