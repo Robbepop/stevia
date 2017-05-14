@@ -15,3 +15,39 @@ This is a brave attempt to write an [SMT](https://en.wikipedia.org/wiki/Satisfia
 - Use an efficient SAT solver, like [candy-kingdom](https://github.com/Udopia/candy-kingdom).
 
 <!-- Use incremental SMT solving of hard problem instances via [ipasir](http://baldur.iti.kit.edu/sat-competition-2016/downloads/ipasir.h) interface. -->
+
+## Simplifications
+
+Stevia will support a great machinery of simplifications to its input formulas.
+An early example of what is possible now:
+
+```lisp
+(=
+	(=
+		(= true true)
+		(= (bvconst :32 42) (bvconst :32 42) )
+	)
+	(=
+		(= true true )
+		(=
+			(= true true )
+			(= true (= true false ) )
+		)
+	)
+)
+```
+
+Gets flattened to the following structure in an initial simplification step:
+
+```lisp
+(= true true (= (bvconst :32 42) (bvconst :32 42)) true true true true true true false )
+
+```
+
+And finally simplified to this:
+
+```lisp
+false
+```
+
+Keep in mind that this is still a pretty naive simplification. More to come in future versions of Stevia!

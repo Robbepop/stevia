@@ -250,17 +250,28 @@ impl TransformerImpl for Simplifier {
 		assert!(expr.exprs.len() >= 2,
 			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
 
-		// // TODO: flatten equality child expressions -> this strengthens the following unique-elemination procedure
-		// for child in expr.exprs.iter_mut() {
-		// 	match child {
-		// 		&mut Expr::Equals(Equals{exprs: ref mut sub_childs, ..}) => {
-		// 			let carved_out = ::std::mem::replace(sub_childs, vec![]);
-		// 			// remove this equals-expression from `expr.exprs` and push its child-expressions `sub_childs`
-		// 			// into its parent `expr` child-vector `expr.exprs`.
-		// 		},
-		// 		_ => ()
-		// 	}
-		// }
+		// Flattens equality child expressions -> this strengthens the following unique-elemination procedure.
+		fn flatten(equals: &mut Equals) {
+			let eqty = equals.inner_ty;
+			let mut childs = vec![];
+			childs.reserve(equals.exprs.len());
+			::std::mem::swap(&mut childs, &mut equals.exprs);
+			for child in childs.into_iter() {
+				match child {
+					Expr::Equals(mut subeq) => {
+						if subeq.inner_ty == eqty {
+							flatten(&mut subeq);
+							equals.exprs.append(&mut subeq.exprs);
+						}
+						else {
+							equals.exprs.push(subeq.into_variant())
+						}
+					},
+					_ => equals.exprs.push(child)
+				}
+			}
+		}
+		flatten(&mut expr);
 
 		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
 		expr.exprs.sort();
@@ -528,7 +539,6 @@ mod tests {
 	}
 
 	#[test]
-	#[should_panic]
 	fn simplify_equals_flatten() {
 		let f = NaiveExprFactory::new();
 
@@ -539,8 +549,8 @@ mod tests {
 					f.boolconst(true)
 				),
 				f.eq(
-					f.boolconst(true),
-					f.boolconst(true)
+					f.bvconst(Bits(32), 42),
+					f.bvconst(Bits(32), 42)
 				)
 			),
 			f.eq(
@@ -555,7 +565,10 @@ mod tests {
 					),
 					f.eq(
 						f.boolconst(true),
-						f.boolconst(false)
+						f.eq(
+							f.boolconst(true),
+							f.boolconst(false)
+						)
 					)
 				)
 			)
@@ -563,7 +576,6 @@ mod tests {
 
 		let simplified = simplify(expr);
 		let expected   = f.boolconst(false).unwrap();
-
 		assert_eq!(simplified, expected);
 	}
 }
