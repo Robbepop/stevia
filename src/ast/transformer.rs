@@ -99,22 +99,22 @@ pub trait Transformer: Sized {
 	/// 
 	/// This expects a boxed expression as input and returns the same box with
 	/// the simplified expression.
-	fn boxed_transform(&mut self, boxed: P<Expr>) -> P<Expr>;
+	// fn boxed_transform(&mut self, boxed: P<Expr>) -> P<Expr>;
 
 	fn transform(&mut self, expr: Expr) -> Expr;
 }
 
 impl<ConcTransformer> Transformer for ConcTransformer where ConcTransformer: TransformerImpl {
-	fn boxed_transform(&mut self, mut boxed: P<Expr>) -> P<Expr> {
-		// replace dummy with the boxes content
-		let inner = ::std::mem::replace(&mut* boxed, Expr::BoolConst(BoolConst{value: false}));
-		// do the simplifying computation that performs on the stack
-		let transformed = self.transform(inner);
-		// replace the temporary dummy with the simplified expression
-		::std::mem::replace(&mut* boxed, transformed);
-		// return p without (re-)allocating dynamic memory
-		boxed
-	}
+	// fn boxed_transform(&mut self, mut boxed: P<Expr>) -> P<Expr> {
+	// 	// replace dummy with the boxes content
+	// 	let inner = ::std::mem::replace(&mut* boxed, Expr::BoolConst(BoolConst{value: false}));
+	// 	// do the simplifying computation that performs on the stack
+	// 	let transformed = self.transform(inner);
+	// 	// replace the temporary dummy with the simplified expression
+	// 	::std::mem::replace(&mut* boxed, transformed);
+	// 	// return p without (re-)allocating dynamic memory
+	// 	boxed
+	// }
 
 	fn transform(&mut self, expr: Expr) -> Expr {
 		use self::Expr::*;

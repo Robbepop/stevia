@@ -26,6 +26,7 @@
 ## Open Questions
 
 - Is it better to unify every possible AST simplification into one giantic simplification routine or is it better to factor all the semantically different optimization techniques (such as const-propagation, reduction or normaliztion, quantifier-elimination, etc.)
+- How are child-expressions of n-ary expressions sorted? Need a well-defined sorting strategy for some optimizations that require normalization.
 
 ## Science
 
