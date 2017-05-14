@@ -251,14 +251,21 @@ impl TransformerImpl for Simplifier {
 			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
 
 		// TODO: flatten equality child expressions -> this strengthens the following unique-elemination procedure
+		for child in expr.exprs.iter_mut() {
+			match child {
+				&mut Expr::Equals(Equals{exprs: ref mut sub_childs}) => {
+					// remove this equals-expression from `expr.exprs` and push its child-expressions `sub_childs`
+					// into its parent `expr` child-vector `expr.exprs`.
+				},
+				_ => ()
+			}
+		}
 
-		// eleminate duplicates `a = b = a` => `a = b`
+		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
 		expr.exprs.sort();
 		expr.exprs.dedup_by(|l,r| l == r);
 
-		// after duplication if `a = ... = a => true`
-
-		// Find equal childs tautology:
+		// After deduplication: Find equal childs tautology:
 		//  - `(= a ... a) => true`
 		if expr.exprs.len() == 1 {
 			return BoolConst{value: true}.into_variant()
@@ -268,7 +275,8 @@ impl TransformerImpl for Simplifier {
 		//  - `(= 42 1337)    => false`
 		//  - `(= false true) => false`
 		use itertools::Itertools;
-		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l,r)| { // TODO: filter out const bv and const bools
+		// TODO: Optimization: Filter for `BitVecConst` and `BoolConst`.
+		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l,r)| {
 			match (l, r) {
 				(&Expr::BitVecConst(BitVecConst{value: ref v1, ..}),
 				 &Expr::BitVecConst(BitVecConst{value: ref v2, ..})) => {
@@ -289,10 +297,8 @@ impl TransformerImpl for Simplifier {
 		//  - `(= x (-x))   => false`
 		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l, r)| {
 			match (l, r) {
-				(&Expr::Not(Not{inner: ref negated}), non_negated) => {
-					&**negated == non_negated
-				},
-				(&Expr::Neg(Neg{inner: ref negated, ..}), non_negated) => {
+				(non_negated, &Expr::Not(Not{inner: ref negated    })) |
+				(non_negated, &Expr::Neg(Neg{inner: ref negated, ..})) => {
 					&**negated == non_negated
 				},
 				_ => false
