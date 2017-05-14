@@ -12,4 +12,6 @@ This is a brave attempt to write an [SMT](https://en.wikipedia.org/wiki/Satisfia
 - Comprehensive documentation for all important parts of the code.
 - Eventually be able to keep up with other SMT solvers like STP.
 - C API to enable bindings for other languages.
-- Use incremental SMT solving of hard problem instances via [ipasir](http://baldur.iti.kit.edu/sat-competition-2016/downloads/ipasir.h) interface.
+- Use an efficient SAT solver, like [candy-kingdom](https://github.com/Udopia/candy-kingdom).
+
+<!-- Use incremental SMT solving of hard problem instances via [ipasir](http://baldur.iti.kit.edu/sat-competition-2016/downloads/ipasir.h) interface. -->
