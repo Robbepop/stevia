@@ -251,27 +251,20 @@ impl TransformerImpl for Simplifier {
 			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
 
 		// Flattens equality child expressions -> this strengthens the following unique-elemination procedure.
-		fn flatten(equals: &mut Equals) {
-			let eqty = equals.inner_ty;
-			let mut childs = vec![];
-			childs.reserve(equals.exprs.len());
-			::std::mem::swap(&mut childs, &mut equals.exprs);
-			for child in childs.into_iter() {
-				match child {
-					Expr::Equals(mut subeq) => {
-						if subeq.inner_ty == eqty {
-							flatten(&mut subeq);
-							equals.exprs.append(&mut subeq.exprs);
-						}
-						else {
-							equals.exprs.push(subeq.into_variant())
-						}
-					},
-					_ => equals.exprs.push(child)
+		fn flattening(child: Expr, eq: &mut Equals) {
+			if let Expr::Equals(subeq) = child {
+				for subchild in subeq.exprs.into_iter() {
+					flattening(subchild, eq)
 				}
 			}
+			else {
+				eq.exprs.push(child)
+			}
+		};
+		use std::mem;
+		for child in mem::replace(&mut expr.exprs, vec![]) {
+			flattening(child, &mut expr)
 		}
-		flatten(&mut expr);
 
 		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
 		expr.exprs.sort();
