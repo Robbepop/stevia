@@ -614,13 +614,3 @@ mod tests {
 		assert_eq!(simplified, expected);
 	}
 }
-
-// Equals(
-// 	Equals {
-// 		exprs: [
-// 			BitVecConst(BitVecConst { value: BitVec { value: 42 }, ty: BitVec(32) }),
-// 			BoolConst(BoolConst { value: true })
-// 		]
-// 		, inner_ty: Boolean
-// 	}
-// )

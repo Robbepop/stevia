@@ -2,7 +2,7 @@
 
 ## Critical
 
-- Implement generic recursive AST consumer that acts as a base for optimizations and other AST mutation operations.
+- Implement expression simplifier based on generic recursive AST consumer.
 
 ## Short term
 
@@ -11,7 +11,6 @@
 ## Long term
 
 - Write documentation for all stable parts of the code.
-- Implement expression simplifier based on generic recursive AST consumer.
 - Find and depend on decent Bitvector library implementation.
 - Find and depend on decent library implementation similar to STP's `libabc` for and-inverter-graph (AIG) computation..
 - Add SMTLib2.X serialization (printer) and deserialization (parser) support.
