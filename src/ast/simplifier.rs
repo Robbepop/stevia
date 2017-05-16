@@ -253,8 +253,13 @@ impl TransformerImpl for Simplifier {
 		// Flattens equality child expressions -> this strengthens the following unique-elemination procedure.
 		fn flattening(child: Expr, eq: &mut Equals) {
 			if let Expr::Equals(subeq) = child {
-				for subchild in subeq.exprs.into_iter() {
-					flattening(subchild, eq)
+				if subeq.inner_ty == eq.inner_ty {
+					for subchild in subeq.exprs.into_iter() {
+						flattening(subchild, eq)
+					}
+				}
+				else {
+					eq.exprs.push(subeq.into_variant())
 				}
 			}
 			else {
@@ -316,6 +321,15 @@ impl TransformerImpl for Simplifier {
 		for child in expr.childs_mut() {
 			self.transform_assign(child);
 		}
+
+		// Finally check for constant tautology evaluation.
+		//  - `= 42 42 42 => true`
+		if let Some((head, tail)) = expr.exprs.split_first() {
+			if tail.iter().all(|child| { head == child }) {
+				return BoolConst{value: true}.into_variant()
+			}
+		}
+
 		expr.into_variant()
 	}
 
@@ -571,4 +585,42 @@ mod tests {
 		let expected   = f.boolconst(false).unwrap();
 		assert_eq!(simplified, expected);
 	}
+
+	#[test]
+	fn simplify_equals_const_tautology() {
+		let f  = NaiveExprFactory::new();
+
+		let expr = f.eq(
+			f.eq(f.boolconst(true), f.boolconst(true)),
+			f.eq(f.bvconst(Bits(32), 42), f.bvconst(Bits(32), 42))
+		).unwrap();
+
+		let simplified = simplify(expr);
+		let expected   = f.boolconst(true).unwrap();
+		assert_eq!(simplified, expected);
+	}
+
+	#[test]
+	fn simplify_equals_const_bitvec_tautology() {
+		let f  = NaiveExprFactory::new();
+
+		let expr = f.eq(
+			f.bvconst(Bits(32), 42),
+			f.bvconst(Bits(32), 42)
+		).unwrap();
+
+		let simplified = simplify(expr);
+		let expected   = f.boolconst(true).unwrap();
+		assert_eq!(simplified, expected);
+	}
 }
+
+// Equals(
+// 	Equals {
+// 		exprs: [
+// 			BitVecConst(BitVecConst { value: BitVec { value: 42 }, ty: BitVec(32) }),
+// 			BoolConst(BoolConst { value: true })
+// 		]
+// 		, inner_ty: Boolean
+// 	}
+// )
