@@ -331,7 +331,7 @@ impl TransformerImpl for Simplifier {
 		// Finally check for constant tautology evaluation.
 		//  - `= 42 42 42 => true`
 		if let Some((head, tail)) = expr.exprs.split_first() {
-			if tail.iter().all(|child| { head == child }) {
+			if tail.iter().all(|child| head == child) {
 				return Expr::boolconst(true)
 			}
 		}
