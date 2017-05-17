@@ -2,37 +2,6 @@ use ast::prelude::*;
 use ast::expr::*;
 use ast::P;
 
-/// Four main traits that all build up on each other.
-/// 
-/// Implementors only need to implement `TransformerImpl`
-/// in order to make all other traits automatically just work out of the box.
-/// 
-/// The four traits and their responsibilities are:
-/// 
-/// - RecursiveTransformer
-///     - fn recursive_transform(&mut RecursiveTransformer, expr: Expr) -> Expr;
-///       Calls `recursive_transform_*` for the correct `ExprKind`.
-///       Gets auto implemented for all types that implement `RecursiveTransformerImpl`.
-/// 
-/// - RecursiveTransformerImpl
-///     - fn recursive_transform_add(&mut RecursiveTransformerImpl, expr: Add) -> Expr;
-///       fn recursive_transform_mul(&mut RecursiveTransformerImpl, expr: Mul) -> Expr;
-///       etc. ...
-///       Calls `transform` and recursively calls it for the expression's children.
-///       Gets auto implemented for all types that implement `Transformer`.
-///       This is done so complicated since every `Expr` has to be transformed in a certain way
-///       that cannot be easily generalized.
-/// 
-/// - Transformer
-///     - fn transform(&mut Transformer: expr: Expr) -> Expr;
-///       Calls `transform_*` for the correct `ExprKind`.
-///       Gets auto implemented for all types that implement `TransformerImpl`.
-/// 
-/// - TransformerImpl
-///     - fn transform_add(&mut TransformerImpl, expr: Add) -> Expr;
-///       fn transform_mul(&mut TransformerImpl, expr: Mul) -> Expr;
-/// 
-
 pub trait TransformerImpl: Sized {
 	fn transform_bvconst(&mut self, expr: BitVecConst) -> Expr;
 	fn transform_bvneg(&mut self, expr: Neg) -> Expr;

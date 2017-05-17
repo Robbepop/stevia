@@ -211,7 +211,7 @@ impl TransformerImpl for Simplifier {
 		expr.inner = self.boxed_transform(expr.inner);
 		match *expr.inner {
 			Expr::Not(notnot) => self.transform(*notnot.inner),
-			Expr::BoolConst(BoolConst{value}) => BoolConst{value: !value}.into_variant(),
+			Expr::BoolConst(BoolConst{value}) => Expr::boolconst(!value),
 			_ => expr.into_variant()
 		}
 	}
@@ -254,7 +254,7 @@ impl TransformerImpl for Simplifier {
 		fn flattening(child: Expr, eq: &mut Equals) {
 			if let Expr::Equals(subeq) = child {
 				if subeq.inner_ty == eq.inner_ty {
-					for subchild in subeq.exprs.into_iter() {
+					for subchild in subeq.exprs {
 						flattening(subchild, eq)
 					}
 				}
@@ -278,7 +278,7 @@ impl TransformerImpl for Simplifier {
 		// After deduplication: Find equal childs tautology:
 		//  - `(= a ... a) => true`
 		if expr.exprs.len() == 1 {
-			return BoolConst{value: true}.into_variant()
+			return Expr::boolconst(true)
 		}
 
 		// Find const constradiction pairs:
@@ -286,35 +286,41 @@ impl TransformerImpl for Simplifier {
 		//  - `(= false true) => false`
 		use itertools::Itertools;
 		// TODO: Optimization: Filter for `BitVecConst` and `BoolConst`.
-		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l,r)| {
-			match (l, r) {
-				(&Expr::BitVecConst(BitVecConst{value: ref v1, ..}),
-				 &Expr::BitVecConst(BitVecConst{value: ref v2, ..})) => {
-					v1 != v2
-				},
-				(&Expr::BoolConst(BoolConst{value: ref v1, ..}),
-				 &Expr::BoolConst(BoolConst{value: ref v2, ..})) => {
-					v1 != v2
-				},
-				_ => false
+		{
+			let has_const_contradicting_pair = expr.exprs.iter().cartesian_product(&expr.exprs).any(|(l,r)| {
+				match (l, r) {
+					(&Expr::BitVecConst(BitVecConst{value: ref v1, ..}),
+					 &Expr::BitVecConst(BitVecConst{value: ref v2, ..})) => {
+						v1 != v2
+					},
+					(&Expr::BoolConst(BoolConst{value: ref v1, ..}),
+					 &Expr::BoolConst(BoolConst{value: ref v2, ..})) => {
+						v1 != v2
+					},
+					_ => false
+				}
+			});
+			if has_const_contradicting_pair {
+				return Expr::boolconst(false)
 			}
-		}) {
-			return BoolConst{value: false}.into_variant()
 		}
 
 		// Find contradiction pairs:
 		//  - `(= a not(a)) => false`
 		//  - `(= x (-x))   => false`
-		if expr.exprs.iter().cartesian_product(expr.exprs.iter()).any(|(l, r)| {
-			match (l, r) {
-				(non_negated, &Expr::Not(Not{inner: ref negated    })) |
-				(non_negated, &Expr::Neg(Neg{inner: ref negated, ..})) => {
-					&**negated == non_negated
-				},
-				_ => false
+		{
+			let has_symbolic_contradicting_pair = expr.exprs.iter().cartesian_product(&expr.exprs).any(|(l, r)| {
+				match (l, r) {
+					(non_negated, &Expr::Not(Not{inner: ref negated    })) |
+					(non_negated, &Expr::Neg(Neg{inner: ref negated, ..})) => {
+						&**negated == non_negated
+					},
+					_ => false
+				}
+			});
+			if has_symbolic_contradicting_pair {
+				return Expr::boolconst(false)
 			}
-		}) {
-			return BoolConst{value: false}.into_variant()
 		}
 
 		// Simplify child expressions.
@@ -326,7 +332,7 @@ impl TransformerImpl for Simplifier {
 		//  - `= 42 42 42 => true`
 		if let Some((head, tail)) = expr.exprs.split_first() {
 			if tail.iter().all(|child| { head == child }) {
-				return BoolConst{value: true}.into_variant()
+				return Expr::boolconst(true)
 			}
 		}
 

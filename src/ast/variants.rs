@@ -1,6 +1,5 @@
-use ast::Type;
-
 use ast::expr;
+use ast::{Bits, Type};
 use ast::traits::ExprTrait;
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
@@ -248,8 +247,21 @@ impl ExprTrait for Expr {
 		self.as_trait().ty()
 	}
 
-	#[inline(always)]
+	#[inline]
 	fn into_variant(self) -> Expr {
 		self
+	}
+}
+
+impl Expr {
+	pub fn boolconst(flag: bool) -> Expr {
+		Expr::BoolConst(expr::BoolConst{value: flag})
+	}
+
+	pub fn bvconst<T: Into<::BitVec>>(&self, bits: Bits, value: T) -> Expr {
+		Expr::BitVecConst(expr::BitVecConst{
+			value: value.into(),
+			ty   : bits.into()
+		})
 	}
 }
