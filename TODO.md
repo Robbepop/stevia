@@ -2,7 +2,11 @@
 
 ## Critical
 
-- Implement expression simplifier based on generic recursive AST consumer.
+- Implement simplifier based on generic, recursive AST transformer.
+	- [ ] Symbolic Simplifier
+	- [ ] Const Evaluator
+	- [ ] If-Constraint Propagator
+	- [ ] Linear Bitvector Solver
 
 ## Short term
 
@@ -25,15 +29,12 @@
 ## Open Questions
 
 - Is it better to unify every possible AST simplification into one giantic simplification routine or is it better to factor all the semantically different optimization techniques (such as const-propagation, reduction or normaliztion, quantifier-elimination, etc.)
-- How are child-expressions of n-ary expressions sorted? Need a well-defined sorting strategy for some optimizations that require normalization.
 
 ## Science
 
 - Find a decent design for an `expr_tree!` macro that simplifies creation of expression trees via factories and a syntax similar to SMTLIB2.0.
 - Try to find a decent design to model `bvsum`, `bvprod`, `conjunction` and `disjunction` in `ExprFactory`.
-
-- Find out how to solve the problem of evaluability of bitvector `ty: Type` in `NaiveExprFactory::{s|u}extend` methods.
-	- STP restricts these operations to constant values only but wraps them within expression nodes due to the bad underlying model of STP.
+	- Is it okay to just leave them out and depend on the simplifier to inline them automatically?
 - Find out what scopes `push` & `pop` in STP are and how to incorporate them into this SMT solver.
 	- STP has a stack of vectors that acts as assertion scope level. Users may wish to add or remove such scopes to add or remove entire
 	   groups of assertions that have been added to the removed scope level. The STP scope design is inefficient and should not be taken over to Stevia. Stevia should model this concept with a single vector for the assertions and another vector for entry points to new scope levels.

@@ -1,3 +1,4 @@
+use std::ops::Range;
 
 use bitvec::BitVec;
 
@@ -284,38 +285,30 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		}))
 	}
 
-	fn extract_impl(&self, source: Expr, lo_bit: Expr, hi_bit: Expr) -> Result<Expr> {
+	fn extract_impl(&self, source: Expr, range: Range<usize>) -> Result<Expr> {
 		source.ty().kind().expect(TypeKind::BitVec)?;
-		lo_bit.ty().kind().expect(TypeKind::BitVec)?;
-		hi_bit.ty().kind().expect(TypeKind::BitVec)?;
 		Ok(Expr::Extract(expr::Extract{
 			source: Box::new(source),
-			hi_bit: Box::new(hi_bit),
-			lo_bit: Box::new(lo_bit),
-			ty    : panic!("FIXME/TODO - Error at NaiveExprFactory::extract_impl: \\
-			                Cannot infer correct type since `hi_bit - lo_bit` is not necessarily evaluatable!")
+			ty    : Type::BitVec(range.end - range.start),
+			range : range,
 		}))
 	}
 
-	fn uextend_impl(&self, source: Expr, extension: Expr) -> Result<Expr> {
+	fn uextend_impl(&self, source: Expr, extension: usize) -> Result<Expr> {
 		source.ty().kind().expect(TypeKind::BitVec)?;
-		extension.ty().kind().expect(TypeKind::BitVec)?;
 		Ok(Expr::Extend(expr::Extend{
 			source   : Box::new(source),
-			extension: Box::new(extension),
-			ty       : panic!("FIXME/TODO - Error at NaiveExprFactory::uextend_impl: \\
-			                   Cannot infer correct type since `extension` is not necessarily evaluatable!")
+			extension: extension,
+			ty       : Type::BitVec(extension)
 		}))
 	}
 
-	fn sextend_impl(&self, source: Expr, extension: Expr) -> Result<Expr> {
+	fn sextend_impl(&self, source: Expr, extension: usize) -> Result<Expr> {
 		source.ty().kind().expect(TypeKind::BitVec)?;
-		extension.ty().kind().expect(TypeKind::BitVec)?;
 		Ok(Expr::SignedExtend(expr::SignedExtend{
 			source   : Box::new(source),
-			extension: Box::new(extension),
-			ty       : panic!("FIXME/TODO - Error at NaiveExprFactory::sextend_impl: \\
-			                   Cannot infer correct type since `extension` is not necessarily evaluatable!")
+			extension: extension,
+			ty       : Type::BitVec(extension)
 		}))
 	}
 

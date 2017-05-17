@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use bitvec::BitVec;
 
 use ast::{Bits, Type};
@@ -63,9 +65,9 @@ pub trait ExprFactoryImpl {
 	//-------------------------------------------------------------------------
 
 	fn concat_impl(&self, hi: Expr, lo: Expr) -> Result<Expr>;
-	fn extract_impl(&self, source: Expr, lo_bit: Expr, hi_bit: Expr) -> Result<Expr>;
-	fn uextend_impl(&self, source: Expr, extension: Expr) -> Result<Expr>;
-	fn sextend_impl(&self, source: Expr, extension: Expr) -> Result<Expr>;
+	fn extract_impl(&self, source: Expr, range: Range<usize>) -> Result<Expr>;
+	fn uextend_impl(&self, source: Expr, extension: usize) -> Result<Expr>;
+	fn sextend_impl(&self, source: Expr, extension: usize) -> Result<Expr>;
 
 	// ARRAY EXPRESSIONS
 	//-------------------------------------------------------------------------
@@ -226,16 +228,15 @@ pub trait ExprFactory {
 	fn concat<H, L>(&self, hi: H, lo: L) -> Result<Expr>
 		where H: Into<Result<Expr>>,
 		      L: Into<Result<Expr>>;
-	fn extract<S, L, H>(&self, source: S, lo_bit: L, hi_bit: H) -> Result<Expr>
-		where S: Into<Result<Expr>>,
-		      L: Into<Result<Expr>>,
-		      H: Into<Result<Expr>>;
-	fn uextend<S, T>(&self, source: S, extension: T) -> Result<Expr>
-		where S: Into<Result<Expr>>,
-		      T: Into<Result<Expr>>;
-	fn sextend<S, T>(&self, source: S, extension: T) -> Result<Expr>
-		where S: Into<Result<Expr>>,
-		      T: Into<Result<Expr>>;
+
+	fn extract<S>(&self, source: S, range: Range<usize>) -> Result<Expr>
+		where S: Into<Result<Expr>>;
+
+	fn uextend<S>(&self, source: S, extension: usize) -> Result<Expr>
+		where S: Into<Result<Expr>>;
+
+	fn sextend<S>(&self, source: S, extension: usize) -> Result<Expr>
+		where S: Into<Result<Expr>>;
 
 	// ARRAY EXPRESSIONS
 	//-------------------------------------------------------------------------
@@ -547,26 +548,22 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.concat_impl(hi.into()?, lo.into()?)
 	}
 
-	fn extract<S, L, H>(&self, source: S, lo_bit: L, hi_bit: H) -> Result<Expr>
-		where S: Into<Result<Expr>>,
-		      L: Into<Result<Expr>>,
-		      H: Into<Result<Expr>>
+	fn extract<S>(&self, source: S, range: Range<usize>) -> Result<Expr>
+		where S: Into<Result<Expr>>
 	{
-		self.extract_impl(source.into()?, lo_bit.into()?, hi_bit.into()?)
+		self.extract_impl(source.into()?, range)
 	}
 
-	fn uextend<S, T>(&self, source: S, target_width: T) -> Result<Expr>
-		where S: Into<Result<Expr>>,
-		      T: Into<Result<Expr>>
+	fn uextend<S>(&self, source: S, target_width: usize) -> Result<Expr>
+		where S: Into<Result<Expr>>
 	{
-		self.uextend_impl(source.into()?, target_width.into()?)
+		self.uextend_impl(source.into()?, target_width)
 	}
 
-	fn sextend<S, T>(&self, source: S, target_width: T) -> Result<Expr>
-		where S: Into<Result<Expr>>,
-		      T: Into<Result<Expr>>
+	fn sextend<S>(&self, source: S, target_width: usize) -> Result<Expr>
+		where S: Into<Result<Expr>>
 	{
-		self.sextend_impl(source.into()?, target_width.into()?)
+		self.sextend_impl(source.into()?, target_width)
 	}
 
 

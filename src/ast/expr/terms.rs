@@ -1,3 +1,5 @@
+use std::ops::Range;
+
 use bitvec::BitVec;
 
 use ast::{P, Type};
@@ -255,7 +257,7 @@ pub struct Concat{
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Extract{
 	pub source: P<Expr>,
-	pub lo_bit: P<Expr>, pub hi_bit: P<Expr>,
+	pub range : Range<usize>,
 	/// The bitvec type of this expression.
 	pub ty: Type
 }
@@ -263,7 +265,7 @@ pub struct Extract{
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Extend{
 	pub source: P<Expr>,
-	pub extension: P<Expr>,
+	pub extension: usize,
 	/// The bitvec type of this expression.
 	pub ty: Type
 }
@@ -271,7 +273,7 @@ pub struct Extend{
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct SignedExtend{
 	pub source: P<Expr>,
-	pub extension: P<Expr>,
+	pub extension: usize,
 	/// The bitvec type of this expression.
 	pub ty: Type
 }
