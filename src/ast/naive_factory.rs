@@ -7,6 +7,7 @@ use ast::prelude::*;
 use ast::{AstError, ErrorKind};
 use ast::factory::ExprFactoryImpl;
 
+#[derive(Debug, Clone)]
 pub struct NaiveExprFactory {
 	// TODO: ctx: Context
 }
