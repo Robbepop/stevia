@@ -8,3 +8,4 @@ smt-expr-derive = { path = "smt-expr-derive" }
 smallvec = "0.3.3"
 unreachable = "1.0.0"
 itertools = "0.6.0"
+string-interner = "0.3.3"
