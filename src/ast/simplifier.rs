@@ -118,8 +118,41 @@ impl TransformerImpl for Simplifier {
 		expr.into_variant()
 	}
 
-	fn transform_bvsub(&mut self, expr: Sub) -> Expr {
-		expr.into_variant()
+	fn transform_bvsub(&mut self, mut sub: Sub) -> Expr {
+		self.transform_assign(&mut sub.minuend);
+		self.transform_assign(&mut sub.subtrahend);
+
+		// Inverse element: `(- a a) -> 0`
+		if sub.minuend == sub.subtrahend {
+			return Expr::bvconst(sub.ty.bits().unwrap(), 0)
+		}
+
+		// Null element: `(- 0 a) -> -a`
+		if sub.minuend.is_bvconst_with_value(0) {
+			return self.transform(
+				Expr::Neg(Neg{ ty: sub.ty(), inner: sub.subtrahend }))
+		}
+
+		// Neutral element: `(- a 0) -> a`
+		if sub.subtrahend.is_bvconst_with_value(0) {
+			return *sub.minuend // already simplified (see above!)
+		}
+
+		// Lowering to `Add`
+		if let Expr::Neg(negation) = *sub.subtrahend {
+			// maybe this constructor possibility would be nicer?
+			// Expr::bvadd(negation.ty(), *sub.minuend, *negation.inner)
+			Expr::Add(Add{
+				ty: negation.ty(),
+				terms: vec![
+					*sub.minuend,
+					*negation.inner
+				]
+			})
+		}
+		else {
+			sub.into_variant()
+		}
 	}
 
 	fn transform_bvudiv(&mut self, expr: Div) -> Expr {
@@ -1229,6 +1262,65 @@ mod tests {
 		// TODO:
 		//  - lower_to_mul
 		//  - lower_to_shift
+	}
+
+	mod sub {
+		use super::*;
+
+		#[test]
+		fn neutral_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvsub(
+					f.bitvec("x", Bits(32)),
+					f.bvconst(Bits(32), 0)
+				),
+				f.bitvec("x", Bits(32))
+			);
+		}
+
+		#[test]
+		fn null_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvsub(
+					f.bvconst(Bits(32), 0),
+					f.bitvec("x", Bits(32))
+				),
+				f.bvneg(
+					f.bitvec("x", Bits(32))
+				)
+			);
+		}
+
+		#[test]
+		fn inverse_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvsub(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("x", Bits(32))
+				),
+				f.bvconst(Bits(32), 0)
+			);
+		}
+
+		#[test]
+		fn add_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvsub(
+					f.bitvec("x", Bits(32)),
+					f.bvneg(
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvadd(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			);
+		}
 	}
 
 	#[test]
