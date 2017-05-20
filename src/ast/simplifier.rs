@@ -392,8 +392,8 @@ impl TransformerImpl for Simplifier {
 		parambool.into_variant()
 	}
 
-	fn transform_equals(&mut self, mut expr: Equals) -> Expr {
-		assert!(expr.exprs.len() >= 2,
+	fn transform_equals(&mut self, mut equals: Equals) -> Expr {
+		assert!(equals.exprs.len() >= 2,
 			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
 
 		// // Flattens equality child expressions -> this strengthens the following unique-elemination procedure.
@@ -413,22 +413,20 @@ impl TransformerImpl for Simplifier {
 		// 	}
 		// };
 		// use std::mem;
-		// for child in mem::replace(&mut expr.exprs, vec![]) {
-		// 	flattening(child, &mut expr)
+		// for child in mem::replace(&mut equals.exprs, vec![]) {
+		// 	flattening(child, &mut equals)
 		// }
 
 		// Simplify child expressions.
-		for child in expr.childs_mut() {
-			self.transform_assign(child);
-		}
+		equals.childs_mut().foreach(|child| self.transform_assign(child));
 
 		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
-		expr.exprs.sort();
-		expr.exprs.dedup();
+		equals.exprs.sort();
+		equals.exprs.dedup();
 
 		// After deduplication: Find equal childs tautology:
 		//  - `(= a ... a) => true`
-		if expr.exprs.len() == 1 {
+		if equals.exprs.len() == 1 {
 			return Expr::boolconst(true)
 		}
 
@@ -438,7 +436,7 @@ impl TransformerImpl for Simplifier {
 		use itertools::Itertools;
 		// TODO: Optimization: Filter for `BitVecConst` and `BoolConst`.
 		{
-			let has_const_contradicting_pair = expr.exprs.iter().cartesian_product(&expr.exprs).any(|(l,r)| {
+			let has_const_contradicting_pair = equals.exprs.iter().cartesian_product(&equals.exprs).any(|(l,r)| {
 				match (l, r) {
 					(&Expr::BitVecConst(BitVecConst{value: ref v1, ..}),
 					 &Expr::BitVecConst(BitVecConst{value: ref v2, ..})) => {
@@ -460,7 +458,7 @@ impl TransformerImpl for Simplifier {
 		//  - `(= a not(a)) => false`
 		//  - `(= x (-x))   => false`
 		{
-			let has_symbolic_contradicting_pair = expr.exprs.iter().cartesian_product(&expr.exprs).any(|(l, r)| {
+			let has_symbolic_contradicting_pair = equals.exprs.iter().cartesian_product(&equals.exprs).any(|(l, r)| {
 				match (l, r) {
 					(non_negated, &Expr::Not(Not{inner: ref negated    })) |
 					(non_negated, &Expr::Neg(Neg{inner: ref negated, ..})) => {
@@ -475,7 +473,7 @@ impl TransformerImpl for Simplifier {
 		}
 
 		// // Simplify child expressions.
-		// for child in expr.childs_mut() {
+		// for child in equals.childs_mut() {
 		// 	self.transform_assign(child);
 		// }
 
@@ -483,29 +481,29 @@ impl TransformerImpl for Simplifier {
 		//  - `= 42 42 42 => true`
 		// 
 		// Note: This should be equal to the above dedup + len check.
-		if let Some((head, tail)) = expr.exprs.split_first() {
+		if let Some((head, tail)) = equals.exprs.split_first() {
 			if tail.iter().all(|child| head == child) {
 				return Expr::boolconst(true)
 			}
 		}
 
-		expr.into_variant()
+		equals.into_variant()
 	}
 
-	fn transform_ite(&mut self, mut expr: IfThenElse) -> Expr {
-		self.transform_assign(&mut expr.cond);
+	fn transform_ite(&mut self, mut ite: IfThenElse) -> Expr {
+		self.transform_assign(&mut ite.cond);
 
-		if let Expr::BoolConst(BoolConst{value}) = *expr.cond {
+		if let Expr::BoolConst(BoolConst{value}) = *ite.cond {
 			if value {
-				return self.transform(*expr.then_case)
+				return self.transform(*ite.then_case)
 			}
 			else {
-				return self.transform(*expr.else_case)
+				return self.transform(*ite.else_case)
 			}
 		}
 
-		self.transform_assign(&mut expr.then_case);
-		self.transform_assign(&mut expr.else_case);
+		self.transform_assign(&mut ite.then_case);
+		self.transform_assign(&mut ite.else_case);
 
 		// Lower to then-case when both branches are equal.
 		//  - `ite c a a => a`
@@ -513,15 +511,15 @@ impl TransformerImpl for Simplifier {
 		// Note: This could also be checked before traversing through 
 		//       through the branches but was downstreamed in order to
 		//       profit from possible simplifications and normalizations.
-		if expr.then_case == expr.else_case {
-			return expr.then_case.into_variant()
+		if ite.then_case == ite.else_case {
+			return ite.then_case.into_variant()
 		}
 
-		expr.into_variant()
+		ite.into_variant()
 	}
 
-	fn transform_symbol(&mut self, expr: Symbol) -> Expr {
-		expr.into_variant()
+	fn transform_symbol(&mut self, symbol: Symbol) -> Expr {
+		symbol.into_variant()
 	}
 
 }
