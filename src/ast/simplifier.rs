@@ -394,6 +394,28 @@ mod tests {
 		assert_eq!(simplified, expected);
 	}
 
+	#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+	enum Sign {
+		Signed,
+		Unsigned
+	}
+	use self::Sign::{Signed, Unsigned};
+
+	impl NaiveExprFactory {
+		/// Dispatches to either `bvudiv` or `bvsdiv` based on the given `sign`.
+		/// 
+		/// This is mainly used to improve test code for the simplifier.
+		fn bvdiv<X, Y>(&self, sign: Sign, dividend: X, divisor: Y) -> Result<Expr>
+			where X: Into<Result<Expr>>,
+			      Y: Into<Result<Expr>>
+		{
+			match sign {
+				Signed   => self.bvsdiv(dividend, divisor),
+				Unsigned => self.bvudiv(dividend, divisor)
+			}
+		}
+	}
+
 	mod neg {
 		use super::*;
 
@@ -832,17 +854,17 @@ mod tests {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.bvmul(
-					f.bitvec("a", Bits(32)),
+					f.bitvec("x", Bits(32)),
 					f.bvconst(Bits(32), 1)
 				),
-				f.bitvec("a", Bits(32))
+				f.bitvec("x", Bits(32))
 			);
 			assert_simplified(
 				f.bvmul(
 					f.bvconst(Bits(32), 1),
-					f.bitvec("a", Bits(32))
+					f.bitvec("x", Bits(32))
 				),
-				f.bitvec("a", Bits(32))
+				f.bitvec("x", Bits(32))
 			);
 		}
 
@@ -852,7 +874,7 @@ mod tests {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.bvmul(
-					f.bitvec("a", Bits(32)),
+					f.bitvec("x", Bits(32)),
 					f.bvconst(Bits(32), 0)
 				),
 				f.bvconst(Bits(32), 0)
@@ -860,7 +882,7 @@ mod tests {
 			assert_simplified(
 				f.bvmul(
 					f.bvconst(Bits(32), 0),
-					f.bitvec("a", Bits(32))
+					f.bitvec("x", Bits(32))
 				),
 				f.bvconst(Bits(32), 0)
 			);
@@ -909,49 +931,31 @@ mod tests {
 		#[test]
 		#[ignore]
 		fn inverse_elimination() {
-			let f = NaiveExprFactory::new();
-			// UNSIGNED DIV
-			assert_simplified(
-				f.bvmul(
-					f.bitvec("x", Bits(32)),
-					f.bvudiv(
-						f.bvconst(Bits(32), 1),
-						f.bitvec("x", Bits(32))
-					)
-				),
-				f.bvconst(Bits(32), 1)
-			);
-			assert_simplified(
-				f.bvmul(
-					f.bvudiv(
-						f.bvconst(Bits(32), 1),
+			fn inverse_elimination_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvmul(
+						f.bitvec("x", Bits(32)),
+						f.bvdiv(sign,
+							f.bvconst(Bits(32), 1),
+							f.bitvec("x", Bits(32))
+						)
+					),
+					f.bvconst(Bits(32), 1)
+				);
+				assert_simplified(
+					f.bvmul(
+						f.bvdiv(sign,
+							f.bvconst(Bits(32), 1),
+							f.bitvec("x", Bits(32))
+						),
 						f.bitvec("x", Bits(32))
 					),
-					f.bitvec("x", Bits(32))
-				),
-				f.bvconst(Bits(32), 1)
-			);
-			// SIGNED DIV
-			assert_simplified(
-				f.bvmul(
-					f.bitvec("x", Bits(32)),
-					f.bvsdiv(
-						f.bvconst(Bits(32), 1),
-						f.bitvec("x", Bits(32))
-					)
-				),
-				f.bvconst(Bits(32), 1)
-			);
-			assert_simplified(
-				f.bvmul(
-					f.bvsdiv(
-						f.bvconst(Bits(32), 1),
-						f.bitvec("x", Bits(32))
-					),
-					f.bitvec("x", Bits(32))
-				),
-				f.bvconst(Bits(32), 1)
-			);
+					f.bvconst(Bits(32), 1)
+				);
+			}
+			inverse_elimination_impl(Signed);
+			inverse_elimination_impl(Unsigned);
 		}
 
 		#[test]
@@ -992,28 +996,6 @@ mod tests {
 
 	mod div {
 		use super::*;
-
-		#[derive(Debug, Copy, Clone, PartialEq, Eq)]
-		enum Sign {
-			Signed,
-			Unsigned
-		}
-		use self::Sign::{Signed, Unsigned};
-
-		impl NaiveExprFactory {
-			/// Dispatches to either `bvudiv` or `bvsdiv` based on the given `sign`.
-			/// 
-			/// This is mainly used to improve test code for the simplifier.
-			fn bvdiv<X, Y>(&self, sign: Sign, dividend: X, divisor: Y) -> Result<Expr>
-				where X: Into<Result<Expr>>,
-				      Y: Into<Result<Expr>>
-			{
-				match sign {
-					Signed   => self.bvsdiv(dividend, divisor),
-					Unsigned => self.bvudiv(dividend, divisor)
-				}
-			}
-		}
 
 		#[test]
 		#[ignore]
@@ -1146,7 +1128,7 @@ mod tests {
 				let f = NaiveExprFactory::new();
 				assert_simplified(
 					f.bvdiv(sign,
-						f.bitvec("a", Bits(32)),
+						f.bitvec("x", Bits(32)),
 						f.bvconst(Bits(32), 0)
 					),
 					f.undefined(DivisionByZero)
