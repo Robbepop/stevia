@@ -813,6 +813,173 @@ mod tests {
 		}
 	}
 
+	mod mul {
+		use super::*;
+
+		#[test]
+		#[ignore]
+		fn neutral_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvmul(
+					f.bitvec("a", Bits(32)),
+					f.bvconst(Bits(32), 1)
+				),
+				f.bitvec("a", Bits(32))
+			);
+			assert_simplified(
+				f.bvmul(
+					f.bvconst(Bits(32), 1),
+					f.bitvec("a", Bits(32))
+				),
+				f.bitvec("a", Bits(32))
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn null_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvmul(
+					f.bitvec("a", Bits(32)),
+					f.bvconst(Bits(32), 0)
+				),
+				f.bvconst(Bits(32), 0)
+			);
+			assert_simplified(
+				f.bvmul(
+					f.bvconst(Bits(32), 0),
+					f.bitvec("a", Bits(32))
+				),
+				f.bvconst(Bits(32), 0)
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn negation_pulling() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvmul(
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvneg(
+					f.bvmul(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				)
+			);
+			assert_simplified(
+				f.bvmul(
+					f.bitvec("x", Bits(32)),
+					f.bvneg(f.bitvec("y", Bits(32)))
+				),
+				f.bvneg(
+					f.bvmul(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				)
+			);
+			assert_simplified(
+				f.bvmul(
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bvneg(f.bitvec("y", Bits(32)))
+				),
+				f.bvmul(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn inverse_elimination() {
+			let f = NaiveExprFactory::new();
+			// UNSIGNED DIV
+			assert_simplified(
+				f.bvmul(
+					f.bitvec("x", Bits(32)),
+					f.bvudiv(
+						f.bvconst(Bits(32), 1),
+						f.bitvec("x", Bits(32))
+					)
+				),
+				f.bvconst(Bits(32), 1)
+			);
+			assert_simplified(
+				f.bvmul(
+					f.bvudiv(
+						f.bvconst(Bits(32), 1),
+						f.bitvec("x", Bits(32))
+					),
+					f.bitvec("x", Bits(32))
+				),
+				f.bvconst(Bits(32), 1)
+			);
+			// SIGNED DIV
+			assert_simplified(
+				f.bvmul(
+					f.bitvec("x", Bits(32)),
+					f.bvsdiv(
+						f.bvconst(Bits(32), 1),
+						f.bitvec("x", Bits(32))
+					)
+				),
+				f.bvconst(Bits(32), 1)
+			);
+			assert_simplified(
+				f.bvmul(
+					f.bvsdiv(
+						f.bvconst(Bits(32), 1),
+						f.bitvec("x", Bits(32))
+					),
+					f.bitvec("x", Bits(32))
+				),
+				f.bvconst(Bits(32), 1)
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn flattening() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvmul(
+					f.bvmul(
+						f.bitvec("x1", Bits(32)),
+						f.bitvec("y1", Bits(32))
+					),
+					f.bvmul(
+						f.bitvec("x2", Bits(32)),
+						f.bitvec("y2", Bits(32))
+					)
+				),
+
+				// f.bvprod(vec![
+				// 	f.bitvec("x1", Bits(32)),
+				// 	f.bitvec("y1", Bits(32)),
+				// 	f.bitvec("x2", Bits(32)),
+				// 	f.bitvec("y2", Bits(32))
+				// ])
+
+				Ok(Mul{
+					factors: vec![
+						Expr::Symbol(Symbol{ name: SymName(0), ty: Type::BitVec(32) }),
+						Expr::Symbol(Symbol{ name: SymName(1), ty: Type::BitVec(32) }),
+						Expr::Symbol(Symbol{ name: SymName(2), ty: Type::BitVec(32) }),
+						Expr::Symbol(Symbol{ name: SymName(3), ty: Type::BitVec(32) }),
+					],
+					ty: Type::BitVec(32)
+				}.into_variant())
+			);
+		}
+	}
+
 	#[test]
 	fn integration_01() {
 		let f = NaiveExprFactory::new();
