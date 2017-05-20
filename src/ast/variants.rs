@@ -264,4 +264,15 @@ impl Expr {
 			ty   : bits.into()
 		})
 	}
+
+	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool
+		where T: Into<::BitVec>
+	{
+		if let Expr::BitVecConst(ref bvconst) = *self {
+			bvconst.value == expected.into()
+		}
+		else {
+			false
+		}
+	}
 }

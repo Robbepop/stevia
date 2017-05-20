@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use ast::prelude::*;
 use ast::expr::*;
 
@@ -44,8 +46,8 @@ impl TransformerImpl for Simplifier {
 	// BITVEC ARITHMETIC
 	//=========================================================================
 
-	fn transform_bvneg(&mut self, mut expr: Neg) -> Expr {
-		match *expr.inner {
+	fn transform_bvneg(&mut self, mut neg: Neg) -> Expr {
+		match *neg.inner {
 			Expr::Neg(negneg) => {
 				self.transform(*negneg.inner)
 			}
@@ -53,14 +55,63 @@ impl TransformerImpl for Simplifier {
 				Expr::bvconst(ty.bits().unwrap(), 0)
 			}
 			_ => {
-				self.transform_assign(&mut expr.inner);
-				expr.into_variant()
+				self.transform_assign(&mut neg.inner);
+				neg.into_variant()
 			}
 		}
 	}
 
-	fn transform_bvadd(&mut self, expr: Add) -> Expr {
-		expr.into_variant()
+	fn transform_bvadd(&mut self, mut add: Add) -> Expr {
+		add.childs_mut().foreach(|child| self.transform_assign(child));
+
+		// Neutral element elimination.
+		add.terms.retain(|child| !child.is_bvconst_with_value(0));
+
+		// Flattening of nested adds.
+		// TODO: Decide if it is useful to also pull-into negated-adds.
+		//       Note: This requires to negate all pulled-in childs!
+		use std::mem;
+		for child in mem::replace(&mut add.terms, vec![]) {
+			match child {
+				Expr::Add(subadd) => {
+					for subchild in subadd.terms {
+						add.terms.push(subchild)
+					}
+				}
+				_ => {
+					add.terms.push(child)
+				}
+			}
+		}
+
+		if add.terms.iter().all(|child| child.kind() == ExprKind::Neg) {
+			// Negation pulling
+			// TODO: Decide if this is really needed.
+			//       The oposite of this simplification would be great for flattening!
+		}
+		else if add.terms.iter().any(|child| child.kind() == ExprKind::Neg) {
+			// Not all but some are neg -> inverse elimination possible
+			// 
+			// Inverse-Elimination:
+			// 
+			// out <- childs, non-neg (moved)
+			// out-neg <- childs, neg (moved)
+			// assert: childs is empty
+			// iter through out, check if there is direct inverse in out-neg
+			//     if true : pop both inverses in out and out-neg, goto next
+			//     if false: move into childs again
+			// done
+		}
+
+		add.terms.sort();
+		add.terms.dedup();
+
+		if add.terms.len() == 1 {
+			add.terms.pop().unwrap()
+		}
+		else {
+			add.into_variant()
+		}
 	}
 
 	fn transform_bvmul(&mut self, expr: Mul) -> Expr {
@@ -766,7 +817,6 @@ mod tests {
 		use super::*;
 
 		#[test]
-		#[ignore]
 		fn neutral_element() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
@@ -824,7 +874,6 @@ mod tests {
 		}
 
 		#[test]
-		#[ignore]
 		fn flattening() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(

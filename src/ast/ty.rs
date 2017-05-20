@@ -63,7 +63,7 @@ impl Type {
 	/// Returns the bitwidth of the given type encapsulated within the `Bits` wrapper.
 	/// Returns an appropriate error, otherwise.
 	pub fn bits(self) -> Result<Bits> {
-		self.bitwidth().map(|bitwidth| Bits(bitwidth))
+		self.bitwidth().map(Bits)
 	}
 
 	/// Returns the bitwidths of the given type if it is a bitvector type.
