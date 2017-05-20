@@ -114,8 +114,9 @@ impl TransformerImpl for Simplifier {
 		}
 	}
 
-	fn transform_bvmul(&mut self, expr: Mul) -> Expr {
-		expr.into_variant()
+	fn transform_bvmul(&mut self, mut mul: Mul) -> Expr {
+		mul.childs_mut().foreach(|child| self.transform_assign(child));
+		mul.into_variant()
 	}
 
 	fn transform_bvsub(&mut self, mut sub: Sub) -> Expr {
