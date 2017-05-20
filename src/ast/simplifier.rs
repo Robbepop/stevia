@@ -980,6 +980,135 @@ mod tests {
 		}
 	}
 
+	mod div {
+		use super::*;
+
+		#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+		enum Sign {
+			Signed,
+			Unsigned
+		}
+		use self::Sign::{Signed, Unsigned};
+
+		impl NaiveExprFactory {
+			/// Dispatches to either `bvudiv` or `bvsdiv` based on the given `sign`.
+			/// 
+			/// This is mainly used to improve test code for the simplifier.
+			fn bvdiv<X, Y>(&self, sign: Sign, dividend: X, divisor: Y) -> Result<Expr>
+				where X: Into<Result<Expr>>,
+				      Y: Into<Result<Expr>>
+			{
+				match sign {
+					Signed   => self.bvsdiv(dividend, divisor),
+					Unsigned => self.bvudiv(dividend, divisor)
+				}
+			}
+		}
+
+		#[test]
+		#[ignore]
+		fn neutral_element() {
+			fn neutral_element_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bitvec("x", Bits(32)),
+						f.bvconst(Bits(32), 1)
+					),
+					f.bitvec("x", Bits(32))
+				);
+			}
+			neutral_element_impl(Signed);
+			neutral_element_impl(Unsigned);
+		}
+
+		#[test]
+		#[ignore]
+		fn div_by_self() {
+			fn div_by_self_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bitvec("x", Bits(32)),
+						f.bitvec("x", Bits(32))
+					),
+					f.bvconst(Bits(32), 1)
+				);
+			}
+			div_by_self_impl(Signed);
+			div_by_self_impl(Unsigned);
+		}
+
+		// TODO: What to do if divisor is maybe zero?
+		#[test]
+		#[ignore]
+		fn zero_division() {
+			fn zero_division_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bvconst(Bits(32), 0),
+						f.bitvec("x", Bits(32))
+					),
+					f.bvconst(Bits(32), 0)
+				);
+			}
+			zero_division_impl(Signed);
+			zero_division_impl(Unsigned);
+		}
+
+		#[test]
+		#[ignore]
+		fn negation_pulling() {
+			fn negation_pulling_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				// Unsigned
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bvneg(f.bitvec("x", Bits(32))),
+						f.bitvec("y", Bits(32))
+					),
+					f.bvneg(
+						f.bvdiv(sign,
+							f.bitvec("x", Bits(32)),
+							f.bitvec("y", Bits(32))
+						)
+					)
+				);
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bitvec("x", Bits(32)),
+						f.bvneg(f.bitvec("y", Bits(32)))
+					),
+					f.bvneg(
+						f.bvdiv(sign,
+							f.bitvec("x", Bits(32)),
+							f.bitvec("y", Bits(32))
+						)
+					)
+				);
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bvneg(f.bitvec("x", Bits(32))),
+						f.bvneg(f.bitvec("y", Bits(32)))
+					),
+					f.bvdiv(sign,
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				);
+			}
+			negation_pulling_impl(Signed);
+			negation_pulling_impl(Unsigned);
+		}
+
+		// TODO:
+		//  - division_by_zero
+		//  - trivial_const_eval
+		//  - lower_to_mul
+		//  - lower_to_shift
+	}
+
 	#[test]
 	fn integration_01() {
 		let f = NaiveExprFactory::new();
