@@ -22,6 +22,10 @@ pub enum ErrorKind {
 	TooFewChildren{given: usize, expected_min: usize},
 	InvalidIdentifier{var: String, invalid_ident: String},
 	ZeroBitwidthType,
+
+	/// Experimental error kind.
+	/// We have yet to see whether this is useful.
+	DivisionByZero
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -53,7 +57,9 @@ impl error::Error for AstError {
 
 			TooFewChildren{..}            => "expression has too few child expressions",
 			InvalidIdentifier{..}         => "invalid identifier for symbol",
-			ZeroBitwidthType              => "found bitvector type specification with an invalid bit-width of 0"
+			ZeroBitwidthType              => "found bitvector type specification with an invalid bit-width of 0",
+
+			DivisionByZero => "division by zero is undefined"
 		}
 	}
 }

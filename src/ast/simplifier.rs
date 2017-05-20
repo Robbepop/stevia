@@ -398,7 +398,7 @@ mod tests {
 		use super::*;
 
 		#[test]
-		fn negneg_even() {
+		fn involution_even() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.bvneg(
@@ -411,7 +411,7 @@ mod tests {
 		}
 
 		#[test]
-		fn negneg_odd() {
+		fn involution_odd() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.bvneg(
@@ -424,13 +424,23 @@ mod tests {
 				f.bvneg(f.bitvec("x", Bits(32)))
 			);
 		}
+
+		#[test]
+		#[ignore]
+		fn neutral_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvneg(f.bvconst(Bits(32), 0)),
+				f.bvconst(Bits(32), 0)
+			);
+		}
 	}
 
 	mod not {
 		use super::*;
 
 		#[test]
-		fn notnot_even() {
+		fn involution_even() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.not(f.not(f.boolean("a"))),
@@ -439,7 +449,7 @@ mod tests {
 		}
 
 		#[test]
-		fn notnot_odd() {
+		fn involution_odd() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.not(
@@ -1042,8 +1052,8 @@ mod tests {
 		// TODO: What to do if divisor is maybe zero?
 		#[test]
 		#[ignore]
-		fn zero_division() {
-			fn zero_division_impl(sign: Sign) {
+		fn division_of_zero() {
+			fn division_of_zero_impl(sign: Sign) {
 				let f = NaiveExprFactory::new();
 				assert_simplified(
 					f.bvdiv(sign,
@@ -1053,8 +1063,8 @@ mod tests {
 					f.bvconst(Bits(32), 0)
 				);
 			}
-			zero_division_impl(Signed);
-			zero_division_impl(Unsigned);
+			division_of_zero_impl(Signed);
+			division_of_zero_impl(Unsigned);
 		}
 
 		#[test]
@@ -1102,9 +1112,65 @@ mod tests {
 			negation_pulling_impl(Unsigned);
 		}
 
+		/// The reason why an undefined expression is undefined.
+		/// 
+		/// This may be deprecated in future versions and should be
+		/// seen as a stub implementation as long as this feature is not implemented.
+		enum ReasonUndefined {
+			DivisionByZero
+		}
+		use self::ReasonUndefined::DivisionByZero;
+
+		impl NaiveExprFactory {
+			/// It has yet to be decided if an expression factory should support creation of
+			/// expressions that represent an undefined state.
+			/// 
+			/// This is useful to model scenarios such as division by zero.
+			/// However, there is currently no solution as to how such scenarios
+			/// should be handled within the solver.
+			/// 
+			/// This may be deprecated in future versions and should be
+			/// seen as a stub implementation as long as this feature is not implemented.
+			fn undefined(&self, reason: ReasonUndefined) -> Result<Expr> {
+				Err(::ast::errors::AstError(::ast::errors::ErrorKind::DivisionByZero))
+			}
+		}
+
+		#[test]
+		#[ignore]
+		fn division_by_zero() {
+			fn division_by_zero_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bitvec("a", Bits(32)),
+						f.bvconst(Bits(32), 0)
+					),
+					f.undefined(DivisionByZero)
+				);
+			}
+			division_by_zero_impl(Signed);
+			division_by_zero_impl(Unsigned);
+		}
+
+		#[test]
+		#[ignore]
+		fn trivial_const_eval() {
+			fn trivial_const_eval_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvdiv(sign,
+						f.bvconst(Bits(32),   42), // this is smaller
+						f.bvconst(Bits(32), 1337)  // than this
+					),
+					f.bvconst(Bits(32), 0) // so it can be easily lowered to zero
+				);
+			}
+			trivial_const_eval_impl(Signed);
+			trivial_const_eval_impl(Unsigned);
+		}
+
 		// TODO:
-		//  - division_by_zero
-		//  - trivial_const_eval
 		//  - lower_to_mul
 		//  - lower_to_shift
 	}
