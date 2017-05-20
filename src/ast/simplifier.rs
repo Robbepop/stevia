@@ -1116,6 +1116,7 @@ mod tests {
 		/// 
 		/// This may be deprecated in future versions and should be
 		/// seen as a stub implementation as long as this feature is not implemented.
+		#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 		enum ReasonUndefined {
 			DivisionByZero
 		}
@@ -1132,7 +1133,9 @@ mod tests {
 			/// This may be deprecated in future versions and should be
 			/// seen as a stub implementation as long as this feature is not implemented.
 			fn undefined(&self, reason: ReasonUndefined) -> Result<Expr> {
-				Err(::ast::errors::AstError(::ast::errors::ErrorKind::DivisionByZero))
+				match reason {
+					DivisionByZero => Err(::ast::errors::AstError(::ast::errors::ErrorKind::DivisionByZero))
+				}
 			}
 		}
 
@@ -1156,18 +1159,33 @@ mod tests {
 		#[test]
 		#[ignore]
 		fn trivial_const_eval() {
-			fn trivial_const_eval_impl(sign: Sign) {
+			fn trivial_const_eval_impl(sign: Sign, dividend: u64, divisor: u64) {
 				let f = NaiveExprFactory::new();
 				assert_simplified(
 					f.bvdiv(sign,
-						f.bvconst(Bits(32),   42), // this is smaller
-						f.bvconst(Bits(32), 1337)  // than this
+						f.bvconst(Bits(32), dividend), // this is smaller
+						f.bvconst(Bits(32), divisor)  // than this
 					),
-					f.bvconst(Bits(32), 0) // so it can be easily lowered to zero
+					if dividend < divisor {
+						f.bvconst(Bits(32), 0) // so it can be easily lowered to zero
+					}
+					else if dividend == divisor {
+						f.bvconst(Bits(32), 1) // or 1 if both are equal
+					}
+					else { // nothing happenes: Handled by `ConstEvaluator`
+						f.bvdiv(sign,
+							f.bvconst(Bits(32), dividend),
+							f.bvconst(Bits(32), divisor)
+						)
+					}
 				);
 			}
-			trivial_const_eval_impl(Signed);
-			trivial_const_eval_impl(Unsigned);
+			let candidates: [u64; 6] = [1, 2, 42, 100, 420, 1337];
+			use itertools::Itertools;
+			for (&dividend, &divisor) in candidates.iter().cartesian_product(candidates.iter()) {
+				trivial_const_eval_impl(Signed, dividend, divisor);
+				trivial_const_eval_impl(Unsigned, dividend, divisor);
+			}
 		}
 
 		// TODO:
