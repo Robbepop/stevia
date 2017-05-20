@@ -1,4 +1,8 @@
 use std::ops::Range;
+use std::collections::HashMap;
+use std::cell::RefCell;
+
+use string_interner::StringInterner;
 
 use bitvec::BitVec;
 
@@ -9,12 +13,18 @@ use ast::factory::ExprFactoryImpl;
 
 #[derive(Debug, Clone)]
 pub struct NaiveExprFactory {
-	// TODO: ctx: Context
+	/// Used to intern and cache symbol names.
+	symbols: RefCell<StringInterner<SymName>>,
+	/// Stores a type for every symbol to enforce symbol type-safety.
+	types: RefCell<HashMap<SymName, Type>>
 }
 
 impl NaiveExprFactory {
 	pub fn new() -> NaiveExprFactory {
-		NaiveExprFactory{}
+		NaiveExprFactory{
+			symbols: RefCell::new(StringInterner::new()),
+			types: RefCell::new(HashMap::new())
+		}
 	}
 }
 
@@ -454,10 +464,15 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		}))
 	}
 
-	/// TODO: Handle `SymName` generation and check for type conflicts with previously
-	///       defined symbols referencing the same name.
 	fn symbol_impl(&self, name: &str, ty: Type) -> Result<Expr> {
-		Ok(Expr::Symbol(expr::Symbol{name: SymName(0), ty}))
+		let sym = self.symbols.borrow_mut().get_or_intern(name);
+		if let Some(assoc_ty) = self.types.borrow_mut().insert(sym, ty) {
+			if ty != assoc_ty {
+				return Type::common_of(ty, assoc_ty)
+					.map(|_| Expr::Symbol(expr::Symbol{name: sym, ty}))
+			}
+		}
+		Ok(Expr::Symbol(expr::Symbol{name: sym, ty}))
 	}
 
 	fn boolean_impl(&self, name: &str) -> Result<Expr> {

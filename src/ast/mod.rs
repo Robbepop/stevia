@@ -1,4 +1,3 @@
-
 mod ty;
 mod errors;
 pub mod expr;
@@ -15,6 +14,9 @@ pub mod prelude;
 #[macro_use]
 mod transformer;
 mod simplifier;
+
+use string_interner::Symbol as InternerSymbol;
+// use string_interner::{Symbol, StringInterner};
 
 pub use self::ty::{Bits, Type, TypeKind};
 pub use self::variants::{Expr, ExprKind};
@@ -38,8 +40,15 @@ impl From<Expr> for Result<Expr> {
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct SymName(usize);
+
+impl InternerSymbol for SymName {
+	#[inline]
+	fn to_usize(self) -> usize { self.0 }
+	#[inline]
+	fn from_usize(val: usize) -> SymName { SymName(val) }
+}
 
 // smt_cmd! {
 // 	(set-logic QF_LIA)

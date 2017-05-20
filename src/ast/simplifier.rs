@@ -553,7 +553,7 @@ mod tests {
 			assert_simplified(
 				f.eq(
 					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
+					f.bitvec("x", Bits(32))
 				),
 				f.boolconst(true)
 			);
