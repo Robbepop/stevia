@@ -12,6 +12,14 @@ impl BitVec {
 	pub fn to_u64(&self) -> u64 {
 		self.value
 	}
+
+	pub fn is_one(&self) -> bool {
+		self.value == 1
+	}
+
+	pub fn is_zero(&self) -> bool {
+		self.value == 0
+	}
 }
 
 impl From<u64> for BitVec {

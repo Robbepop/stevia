@@ -258,7 +258,7 @@ impl Expr {
 		Expr::BoolConst(expr::BoolConst{value: flag})
 	}
 
-	pub fn bvconst<T: Into<::BitVec>>(&self, bits: Bits, value: T) -> Expr {
+	pub fn bvconst<T: Into<::BitVec>>(bits: Bits, value: T) -> Expr {
 		Expr::BitVecConst(expr::BitVecConst{
 			value: value.into(),
 			ty   : bits.into()

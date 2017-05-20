@@ -44,10 +44,18 @@ impl TransformerImpl for Simplifier {
 	// BITVEC ARITHMETIC
 	//=========================================================================
 
-	fn transform_bvneg(&mut self, expr: Neg) -> Expr {
+	fn transform_bvneg(&mut self, mut expr: Neg) -> Expr {
 		match *expr.inner {
-			Expr::Neg(negneg) => self.transform(*negneg.inner),
-			_ => expr.into_variant()
+			Expr::Neg(negneg) => {
+				self.transform(*negneg.inner)
+			}
+			Expr::BitVecConst(BitVecConst{ref value, ty}) if value.is_zero() => {
+				Expr::bvconst(ty.bits().unwrap(), 0)
+			}
+			_ => {
+				self.transform_assign(&mut expr.inner);
+				expr.into_variant()
+			}
 		}
 	}
 
@@ -448,7 +456,6 @@ mod tests {
 		}
 
 		#[test]
-		#[ignore]
 		fn neutral_element() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
