@@ -723,6 +723,96 @@ mod tests {
 		}
 	}
 
+	mod add {
+		use super::*;
+
+		#[test]
+		#[ignore]
+		fn neutral_element() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvadd(
+					f.bitvec("x", Bits(32)),
+					f.bvconst(Bits(32), 0)
+				),
+				f.bitvec("x", Bits(32))
+			);
+			assert_simplified(
+				f.bvadd(
+					f.bvconst(Bits(32), 0),
+					f.bitvec("x", Bits(32))
+				),
+				f.bitvec("x", Bits(32))
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn inserse_elimination() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvadd(
+					f.bitvec("x", Bits(32)),
+					f.bvneg(f.bitvec("x", Bits(32)))
+				),
+				f.bvconst(Bits(32), 0)
+			);
+			assert_simplified(
+				f.bvadd(
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bitvec("x", Bits(32))
+				),
+				f.bvconst(Bits(32), 0)
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn negation_pulling() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvadd(
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bvneg(f.bitvec("y", Bits(32)))
+				),
+				f.bvneg(
+					f.bvadd(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				)
+			);
+		}
+
+		#[test]
+		#[ignore]
+		fn flattening() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvadd(
+					f.bvadd(
+						f.bitvec("x1", Bits(32)),
+						f.bitvec("y1", Bits(32))
+					),
+					f.bvadd(
+						f.bitvec("x2", Bits(32)),
+						f.bitvec("y2", Bits(32))
+					)
+				),
+
+				Ok(Add{
+					terms: vec![
+						Expr::Symbol(Symbol{ name: SymName(0), ty: Type::BitVec(32) }),
+						Expr::Symbol(Symbol{ name: SymName(1), ty: Type::BitVec(32) }),
+						Expr::Symbol(Symbol{ name: SymName(2), ty: Type::BitVec(32) }),
+						Expr::Symbol(Symbol{ name: SymName(3), ty: Type::BitVec(32) }),
+					],
+					ty: Type::BitVec(32)
+				}.into_variant())
+			);
+		}
+	}
+
 	#[test]
 	fn integration_01() {
 		let f = NaiveExprFactory::new();
