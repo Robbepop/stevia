@@ -23,28 +23,24 @@ An early example of what is possible now:
 
 ```lisp
 (=
-	(=
-		(= true true)
-		(= (bvconst :32 42) (bvconst :32 42) )
-	)
-	(=
-		(= true true )
-		(=
-			(= true true )
-			(= true (= true false ) )
-		)
-	)
+  (=
+    (=
+      false
+      (= (_ :32  42) (_ :32 1337) )
+    )
+    (= (_ :32 42) (_ :32 42) )
+  )
+  (=
+    (= (not true) (= true (not true) ) )
+    (= ; Here is the break: true is not false!
+      (and true true)
+      (= (_ :64 100) (-(-(_ :64 100))) )
+    )
+  )
 )
 ```
 
-Gets flattened to the following structure in an initial simplification step:
-
-```lisp
-(= true true (= (bvconst :32 42) (bvconst :32 42)) true true true true true true false )
-
-```
-
-And finally simplified to this:
+Is getting simplified to this:
 
 ```lisp
 false
