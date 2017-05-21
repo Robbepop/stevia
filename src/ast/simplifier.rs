@@ -91,22 +91,56 @@ impl TransformerImpl for Simplifier {
 		}
 		else if add.terms.iter().any(|child| child.kind() == ExprKind::Neg) {
 			// Not all but some are neg -> inverse elimination possible
+
+			// This piece of code does the following:
 			// 
-			// Inverse-Elimination:
+			// In case of an expression with a structure as:
+			//  (a + b + (-c) + (-b))
+			// or in terms of SMTLib: (Lisp-like)
+			//  (+ a b (-c) (-b))
 			// 
-			// out <- childs, non-neg (moved)
-			// out-neg <- childs, neg (moved)
-			// assert: childs is empty
-			// iter through out, check if there is direct inverse in out-neg
-			//     if true : pop both inverses in out and out-neg, goto next
-			//     if false: move into childs again
-			// done
+			// This checks for additive inverses and eliminates them.
+			// So given the input from above the expected output is this:
+			//  (+ a (-c))
+			// 
+			// Hopefully this can be rewritten to be less ugly.
+			// Maybe based on intelligent sorting and deduplication?
+			let (negs, nonnegs): (Vec<_>, Vec<_>) = mem::replace(&mut add.terms, vec![])
+				.into_iter()
+				.partition(|child| if let Expr::Neg(_) = *child { true } else { false });
+			// This mapping is only done to make the following transformations less ugly.
+			let mut negs: Vec<Neg> = negs
+				.into_iter()
+				.map(|neg| match neg {
+					Expr::Neg(n) => n, // <- this is safe to do here since we already filtered above!
+					_            => panic!("Internal Error: Expected a bvneg expression!")
+				})
+				.collect();
+			// Partition into non-eliminated and eliminated to further 
+			// enhance elimination for the other partition: The negations!
+			let (mut nonnegs, eliminated): (Vec<_>, Vec<_>) = nonnegs
+				.into_iter()
+				.partition(|nonneg| negs.iter().find(|neg| &*neg.inner == nonneg).is_none());
+			negs.retain(|neg| {
+				eliminated.iter().find(|nonneg| *neg.inner == **nonneg).is_none()
+			});
+			// This basically only filters out all previously eliminated negs accordingly.
+			let mut negs: Vec<Expr> = negs
+				.into_iter()
+				.map(|neg| neg.into_variant())
+				.collect();
+			// Re-insert non-eliminated expressions into the original vector.
+			add.terms.append(&mut nonnegs);
+			add.terms.append(&mut negs);
 		}
 
 		add.terms.sort();
 		add.terms.dedup();
 
-		if add.terms.len() == 1 {
+		if add.terms.is_empty() {
+			Expr::bvconst(add.ty().bits().unwrap(), 0)
+		}
+		else if add.terms.len() == 1 {
 			add.terms.pop().unwrap()
 		}
 		else {
@@ -952,7 +986,7 @@ mod tests {
 		}
 
 		#[test]
-		#[ignore]
+		// #[ignore]
 		fn inserse_elimination() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
