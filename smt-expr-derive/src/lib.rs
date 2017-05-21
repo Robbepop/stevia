@@ -1,4 +1,4 @@
-#![recursion_limit="64"]
+#![recursion_limit="96"]
 
 extern crate proc_macro;
 extern crate syn;
@@ -23,6 +23,7 @@ pub fn smt_expr(input: TokenStream) -> TokenStream {
 }
 
 struct ChildsIterTokens {
+	arity      : quote::Tokens,
 	childs     : quote::Tokens,
 	childs_mut : quote::Tokens,
 	into_childs: quote::Tokens
@@ -38,6 +39,7 @@ fn unpack_field_ident(field: &syn::Field) -> &syn::Ident {
 impl ChildsIterTokens {
 	fn leaf() -> ChildsIterTokens {
 		ChildsIterTokens{
+			arity      : quote!{ 0 },
 			childs     : quote!{ Childs::none() },
 			childs_mut : quote!{ ChildsMut::none() },
 			into_childs: quote!{ IntoChilds::none() }
@@ -47,6 +49,7 @@ impl ChildsIterTokens {
 	fn unary(inner: &syn::Field) -> ChildsIterTokens {
 		let inner_name = unpack_field_ident(inner);
 		ChildsIterTokens{
+			arity      : quote!{ 1 },
 			childs     : quote!{ Childs::unary(&self.#inner_name) },
 			childs_mut : quote!{ ChildsMut::unary(&mut self.#inner_name) },
 			into_childs: quote!{ IntoChilds::unary(*self.#inner_name) }
@@ -57,6 +60,7 @@ impl ChildsIterTokens {
 		let left_name = unpack_field_ident(left);
 		let right_name = unpack_field_ident(right);
 		ChildsIterTokens{
+			arity      : quote!{ 2 },
 			childs     : quote!{ Childs::binary(&self.#left_name, &self.#right_name) },
 			childs_mut : quote!{ ChildsMut::binary(&mut self.#left_name, &mut self.#right_name) },
 			into_childs: quote!{ IntoChilds::binary(*self.#left_name, *self.#right_name) }
@@ -68,6 +72,7 @@ impl ChildsIterTokens {
 		let snd_name = unpack_field_ident(snd);
 		let trd_name = unpack_field_ident(trd);
 		ChildsIterTokens{
+			arity      : quote!{ 3 },
 			childs     : quote!{ Childs::ternary(&self.#fst_name, &self.#snd_name, &self.#trd_name) },
 			childs_mut : quote!{ ChildsMut::ternary(&mut self.#fst_name, &mut self.#snd_name, &mut self.#trd_name) },
 			into_childs: quote!{ IntoChilds::ternary(*self.#fst_name, *self.#snd_name, *self.#trd_name) }
@@ -77,6 +82,7 @@ impl ChildsIterTokens {
 	fn nary(compound: &syn::Field) -> ChildsIterTokens {
 		let compound_name = unpack_field_ident(compound);
 		ChildsIterTokens{
+			arity      : quote!{ self.#compound_name.len() },
 			childs     : quote!{ Childs::nary(self.#compound_name.as_slice()) },
 			childs_mut : quote!{ ChildsMut::nary(self.#compound_name.as_mut_slice()) },
 			into_childs: quote!{ IntoChilds::nary(self.#compound_name) }
@@ -139,22 +145,49 @@ fn extract_type_getter_components(fields: &[syn::Field]) -> TyGetterTokens {
 }
 
 fn gen_final_code(name: &syn::Ident, fields: &[syn::Field]) -> quote::Tokens {
-	let ChildsIterTokens{childs, childs_mut, into_childs} = extract_iterator_components(fields);
+	let ChildsIterTokens{arity, childs, childs_mut, into_childs} = extract_iterator_components(fields);
 	let TyGetterTokens(ty_body) = extract_type_getter_components(fields);
 	quote! {
 		impl ExprTrait for #name {
+
+			/// Returns the kind of this expression.
+			#[inline]
 			fn kind(&self) -> ExprKind { ExprKind::#name }
+
+			/// Returns the type of this expression.
+			#[inline]
 			fn ty(&self) -> Type { #ty_body }
+
+			/// Returns the arity of this expression.
+			/// 
+			/// Note: The arity is the number of child expressions.
+			#[inline]
+			fn arity(&self) -> usize {
+				#arity
+			}
+
+			/// Returns an iterator over the child expressions.
+			#[inline]
 			fn childs<'e>(&'e self) -> Childs<'e> {
 				#childs
 			}
+
+			/// Returns a mutable iterator over the child expressions.
+			#[inline]
 			fn childs_mut<'e>(&'e mut self) -> ChildsMut<'e> {
 				#childs_mut
 			}
+
+			/// Consumes this expression to return a move iterator over the child expressions.
+			#[inline]
 			fn into_childs(self) -> IntoChilds {
 				#into_childs
 			}
+
+			/// Wraps this expression into its variant type.
+			#[inline]
 			fn into_variant(self) -> Expr { Expr::#name(self) }
+
 		}
 	}
 }
