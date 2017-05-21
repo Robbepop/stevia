@@ -503,6 +503,19 @@ impl TransformerImpl for Simplifier {
 			}
 		}
 
+		{
+			let ite_ty = ite.ty();
+			if let Expr::Not(Not{inner}) = *ite.cond {
+
+				return self.transform_ite(IfThenElse{
+					ty: ite_ty,
+					cond: inner,
+					then_case: ite.else_case,
+					else_case: ite.then_case
+				})
+			}
+		}
+
 		self.transform_assign(&mut ite.then_case);
 		self.transform_assign(&mut ite.else_case);
 
@@ -708,6 +721,23 @@ mod tests {
 				),
 				f.bitvec("x", Bits(32))
 			);
+		}
+
+		#[test]
+		fn not_elimination() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.ite(
+					f.not(f.boolean("a")),
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.ite(
+					f.boolean("a"),
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			)
 		}
 	}
 
