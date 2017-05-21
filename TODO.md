@@ -2,6 +2,14 @@
 
 ## Critical
 
+- Implement default traversal routine for AST transformers.
+	- It turned out that default traversal is useful for architectures with many different transformers such as 
+		- Normalization
+		- Lowering
+		- ConstEvaluator
+		- SymbolicSimplifier
+		- IfConstraintPropagator
+		- etc...
 - Implement simplifier based on generic, recursive AST transformer.
 	- [ ] Symbolic Simplifier
 	- [ ] Const Evaluator
