@@ -3,7 +3,7 @@
 /// This is an initial dummy implementation.
 /// A real, general and efficient implementation will replace this
 /// dummy implementation in a future version of this crate.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BitVec {
 	value: u64
 }
