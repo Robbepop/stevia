@@ -231,6 +231,25 @@ impl Ord for Expr {
 			(&BitNot(ref left), &BitNot(ref right))
 				=> left.inner.cmp(&right.inner),
 
+			// sort expressions of the same kind generically
+			(ref left, ref right) if left.kind() == right.kind() => {
+				use std::cmp::Ordering;
+				match left.arity().cmp(&right.arity()) {
+					Ordering::Less    => Ordering::Less,
+					Ordering::Greater => Ordering::Greater,
+					Ordering::Equal   => {
+						for (lchild, rchild) in left.childs().zip(right.childs()) {
+							match lchild.cmp(rchild) {
+								Ordering::Less    => return Ordering::Less,
+								Ordering::Greater => return Ordering::Greater,
+								Ordering::Equal   => continue
+							}
+						}
+						Ordering::Equal
+					}
+				}
+			}
+
 			// different expression kinds are sorted by their kind based priority
 			_ => self.kind().priority().cmp(&other.kind().priority())
 		}
