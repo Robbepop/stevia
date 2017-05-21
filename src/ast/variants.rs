@@ -205,7 +205,35 @@ impl PartialOrd for Expr {
 
 impl Ord for Expr {
 	fn cmp(&self, other: &Expr) -> Ordering {
-		self.kind().priority().cmp(&other.kind().priority())
+		use self::Expr::*;
+		match (self, other) {
+			// sort symbols by their name identifier
+			(&Symbol(ref left), &Symbol(ref right))
+				=> left.name.cmp(&right.name),
+
+			// sort bool constants by bool comparison
+			(&BoolConst(ref left), &BoolConst(ref right))
+				=> left.value.cmp(&right.value),
+
+			// sort bitvec constants by comparing their value
+			(&BitVecConst(ref left), &BitVecConst(ref right))
+				=> left.value.cmp(&right.value),
+
+			// sort not by forwarding to inner
+			(&Not(ref left), &Not(ref right))
+				=> left.inner.cmp(&right.inner),
+
+			// sort neg by forwarding to inner
+			(&Neg(ref left), &Neg(ref right))
+				=> left.inner.cmp(&right.inner),
+
+			// sort bitnot by forwarding to inner
+			(&BitNot(ref left), &BitNot(ref right))
+				=> left.inner.cmp(&right.inner),
+
+			// different expression kinds are sorted by their kind based priority
+			_ => self.kind().priority().cmp(&other.kind().priority())
+		}
 	}
 }
 
@@ -225,6 +253,11 @@ macro_rules! impl_into_childs {
 }
 
 impl ExprTrait for Expr {
+	#[inline]
+	fn arity(&self) -> usize {
+		self.as_trait().arity()
+	}
+
 	#[inline]
 	fn childs(&self) -> Childs {
 		self.as_trait().childs()

@@ -11,6 +11,10 @@ pub trait ExprTrait {
 	/// 
 	/// Types are cached mainly for performance reasons to check for type safety.
 	fn ty(&self) -> Type;
+	/// Returns the arity of this expression.
+	/// 
+	/// The arity is the number of child expressions of this expression.
+	fn arity(&self) -> usize;
 	/// Returns an iterator over read-only child expressions (if any) of this expression.
 	fn childs(&self) -> Childs;
 	/// Returns an iterator over mutable child expressions (if any) of this expression.
