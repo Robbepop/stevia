@@ -232,7 +232,7 @@ impl Ord for Expr {
 				=> left.inner.cmp(&right.inner),
 
 			// sort expressions of the same kind generically
-			(ref left, ref right) if left.kind() == right.kind() => {
+			(left, right) if left.kind() == right.kind() => {
 				use std::cmp::Ordering;
 				match left.arity().cmp(&right.arity()) {
 					Ordering::Less    => Ordering::Less,
