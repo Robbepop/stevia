@@ -22,7 +22,7 @@ pub trait ExprFactoryImpl {
 	fn bvsum_impl(&self, terms: Vec<Expr>) -> Result<Expr>;
 
 	fn bvmul_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
-	// fn bvprod_impl(&self, terms: Vec<Expr>) -> Result<Expr>;
+	fn bvprod_impl(&self, terms: Vec<Expr>) -> Result<Expr>;
 
 	fn bvsub_impl(&self, minuend: Expr, subtrahend: Expr) -> Result<Expr>;
 	fn bvudiv_impl(&self, dividend: Expr, divisor: Expr) -> Result<Expr>;
@@ -84,10 +84,10 @@ pub trait ExprFactoryImpl {
 	fn not_impl(&self, inner: Expr) -> Result<Expr>;
 
 	fn and_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
-	// fn conjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr>;
+	fn conjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr>;
 
 	fn or_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
-	// fn disjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr>;
+	fn disjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr>;
 
 	fn xor_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
 	fn iff_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
@@ -129,15 +129,16 @@ pub trait ExprFactory {
 	fn bvadd<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
-	fn bvsum<Ts, T>(&self, terms: Ts) -> Result<Expr>
-		where Ts: IntoIterator<Item=T>,
+	fn bvsum<V, T>(&self, terms: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
 		      T: Into<Result<Expr>>;
 
 	fn bvmul<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
-	// fn bvprod<T>(&self, terms: Vec<T>) -> Result<Expr>
-	// 	where T: Into<Result<Expr>>;
+	fn bvprod<V, T>(&self, terms: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>;
 
 	fn bvsub<L, R>(&self, minuend: L, subtrahend: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -262,14 +263,18 @@ pub trait ExprFactory {
 	fn and<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
-	// fn conjunction<E>(&self, formulas: Vec<E>) -> Result<Expr>
-	// 	where E: Into<Result<E>>;
+
+	fn conjunction<V, T>(&self, formulas: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>;
 
 	fn or<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
-	// fn disjunction<E>(&self, formulas: Vec<E>) -> Result<Expr>
-	// 	where E: Into<Result<E>>;
+
+	fn disjunction<V, T>(&self, formulas: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>;
 
 	fn xor<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -348,7 +353,6 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 			.collect::<Result<Vec<Expr>>>()?)
 	}
 
-
 	fn bvmul<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>
@@ -356,12 +360,15 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.bvmul_impl(left.into()?, right.into()?)
 	}
 
-	// fn bvprod<T>(&self, terms: Vec<T>) -> Result<Expr>
-	// 	where T: Into<Result<Expr>>
-	// {
-		
-	// }
-
+	fn bvprod<V, T>(&self, terms: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>
+	{
+		self.bvprod_impl(terms
+			.into_iter()
+			.map(|res| res.into())
+			.collect::<Result<Vec<Expr>>>()?)
+	}
 
 	fn bvsub<L, R>(&self, minuend: L, subtrahend: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -590,7 +597,6 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.write_impl(array.into()?, index.into()?, new_val.into()?)
 	}
 
-
 	//=========================================================================
 	// FORMULA EXPRESSIONS
 	//=========================================================================
@@ -600,13 +606,11 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.boolconst_impl(value)
 	}
 
-
 	fn not<E>(&self, inner: E) -> Result<Expr>
 		where E: Into<Result<Expr>>
 	{
 		self.not_impl(inner.into()?)
 	}
-
 
 	fn and<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -615,12 +619,15 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.and_impl(left.into()?, right.into()?)
 	}
 
-	// fn conjunction<E>(&self, formulas: Vec<E>) -> Result<Expr>
-	// 	where E: Into<Result<E>>
-	// {
-		
-	// }
-
+	fn conjunction<V, T>(&self, formulas: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>
+	{
+		self.conjunction_impl(formulas
+			.into_iter()
+			.map(|res| res.into())
+			.collect::<Result<Vec<Expr>>>()?)
+	}
 
 	fn or<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -629,12 +636,15 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.or_impl(left.into()?, right.into()?)
 	}
 
-	// fn disjunction<E>(&self, formulas: Vec<E>) -> Result<Expr>
-	// 	where E: Into<Result<E>>
-	// {
-		
-	// }
-
+	fn disjunction<V, T>(&self, formulas: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>
+	{
+		self.disjunction_impl(formulas
+			.into_iter()
+			.map(|res| res.into())
+			.collect::<Result<Vec<Expr>>>()?)
+	}
 
 	fn xor<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -657,14 +667,12 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.implies_impl(left.into()?, right.into()?)
 	}
 
-
 	fn parambool<L, R>(&self, bool_var: L, parameter: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>
 	{
 		self.parambool_impl(bool_var.into()?, parameter.into()?)
 	}
-
 
 	//=========================================================================
 	// GENERIC EXPRESSIONS

@@ -68,9 +68,13 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		}))
 	}
 
-	// fn bvprod_impl(&self, terms: Vec<Expr>) -> Result<Expr> {
-	// 	Ok(Expr::BoolConst(BoolConst{value: true}))
-	// }
+	fn bvprod_impl(&self, terms: Vec<Expr>) -> Result<Expr> {
+		use ast::CommonBitVec;
+		Ok(Expr::Mul(expr::Mul{
+			ty     : terms.iter().map(|e| e.ty()).common_bitvec()?,
+			factors: terms
+		}))
+	}
 
 	fn bvsub_impl(&self, minuend: Expr, subtrahend: Expr) -> Result<Expr> {
 		let common = Type::common_bitwidth(minuend.ty(), subtrahend.ty())?;
@@ -376,9 +380,12 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		}))
 	}
 
-	// fn conjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
-	// 	Ok(Expr::BoolConst(BoolConst{value: true}))
-	// }
+	fn conjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
+		for formula in formulas.iter() {
+			formula.ty().expect(Type::Boolean)?;
+		}
+		Ok(Expr::And(expr::And{formulas}))
+	}
 
 	fn or_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
 		left.ty().expect(Type::Boolean)?;
@@ -388,9 +395,12 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		}))
 	}
 
-	// fn disjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
-	// 	Ok(Expr::BoolConst(BoolConst{value: true}))
-	// }
+	fn disjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
+		for formula in formulas.iter() {
+			formula.ty().expect(Type::Boolean)?;
+		}
+		Ok(Expr::Or(expr::Or{formulas}))
+	}
 
 	fn xor_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
 		left.ty().expect(Type::Boolean)?;
@@ -497,11 +507,78 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn make_sum() {
+	fn bvsum() {
 		let f = NaiveExprFactory::new();
-		f.bvsum(vec![
-			f.bitvec("x", Bits(32)),
-			f.bvconst(Bits(32), 42)
-		]).unwrap();
+		{
+			let valid = f.bvsum(vec![
+				f.bitvec("x", Bits(32)),
+				f.bvconst(Bits(32), 42)
+			]);
+			assert!(valid.is_ok());
+		}
+		{
+			let invalid = f.bvsum(vec![
+				f.bitvec("x", Bits(32)),
+				f.boolconst(true)
+			]);
+			assert!(invalid.is_err());
+		}
+	}
+
+	#[test]
+	fn bvprod() {
+		let f = NaiveExprFactory::new();
+		{
+			let valid = f.bvprod(vec![
+				f.bitvec("x", Bits(32)),
+				f.bvconst(Bits(32), 42)
+			]);
+			assert!(valid.is_ok());
+		}
+		{
+			let invalid = f.bvprod(vec![
+				f.bitvec("x", Bits(32)),
+				f.boolconst(true)
+			]);
+			assert!(invalid.is_err());
+		}
+	}
+
+	#[test]
+	fn conjunction() {
+		let f = NaiveExprFactory::new();
+		{
+			let valid = f.conjunction(vec![
+				f.boolean("a"),
+				f.boolconst(true)
+			]);
+			assert!(valid.is_ok());
+		}
+		{
+			let invalid = f.conjunction(vec![
+				f.boolean("a"),
+				f.bvconst(Bits(32), 1337)
+			]);
+			assert!(invalid.is_err());
+		}
+	}
+
+	#[test]
+	fn disjunction() {
+		let f = NaiveExprFactory::new();
+		{
+			let valid = f.disjunction(vec![
+				f.boolean("a"),
+				f.boolconst(true)
+			]);
+			assert!(valid.is_ok());
+		}
+		{
+			let invalid = f.disjunction(vec![
+				f.boolean("a"),
+				f.bvconst(Bits(32), 1337)
+			]);
+			assert!(invalid.is_err());
+		}
 	}
 }
