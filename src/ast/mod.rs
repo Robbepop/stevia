@@ -18,7 +18,7 @@ mod simplifier;
 use string_interner::Symbol as InternerSymbol;
 // use string_interner::{Symbol, StringInterner};
 
-pub use self::ty::{Bits, Type, TypeKind, Typed, CommonBitwidth, CommonBitVec};
+pub use self::ty::{Bits, Type, TypeKind, Typed, CommonBitwidth, CommonBitVec, CommonType};
 pub use self::variants::{Expr, ExprKind};
 pub use self::traits::ExprTrait;
 pub use self::iterators::{Childs, ChildsMut, IntoChilds};

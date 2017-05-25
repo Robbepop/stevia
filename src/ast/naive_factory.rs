@@ -451,17 +451,13 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		self.not(eq)
 	}
 
-	// fn equality_impl(&self, exprs: Vec<Expr>) -> Result<Expr> {
-	// 	if let Some((fst, tail)) = exprs.split_first() {
-	// 		for expr in exprs.iter() { expr.ty().expect(fst.ty())?; }
-	// 	}
-	// 	else {
-	// 		return Err(expr::errors::AstError(expr::errors::ErrorKind::TooFewChildren{
-	// 			given: 0, expected_min: 1
-	// 		}));
-	// 	}
-	// 	Ok(Expr::Equals(expr::Equals{exprs: exprs}))
-	// }
+	fn equality_impl(&self, exprs: Vec<Expr>) -> Result<Expr> {
+		use ast::CommonType;
+		Ok(Expr::Equals(expr::Equals{
+			inner_ty: exprs.iter().map(|e| e.ty()).common_type()?,
+			exprs   : exprs
+		}))
+	}
 
 	/// Creates an if-then-else expression.
 	/// 
@@ -577,6 +573,39 @@ mod tests {
 			let invalid = f.disjunction(vec![
 				f.boolean("a"),
 				f.bvconst(Bits(32), 1337)
+			]);
+			assert!(invalid.is_err());
+		}
+	}
+
+	#[test]
+	fn equality() {
+		let f = NaiveExprFactory::new();
+		{
+			let valid = f.equality(vec![
+				f.boolean("a"),
+				f.boolconst(true)
+			]);
+			assert!(valid.is_ok());
+		}
+		{
+			let invalid = f.equality(vec![
+				f.boolean("a"),
+				f.bvconst(Bits(32), 1337)
+			]);
+			assert!(invalid.is_err());
+		}
+		{
+			let valid = f.equality(vec![
+				f.bitvec("x", Bits(32)),
+				f.bvconst(Bits(32), 42)
+			]);
+			assert!(valid.is_ok());
+		}
+		{
+			let invalid = f.equality(vec![
+				f.bitvec("x", Bits(32)),
+				f.boolconst(true)
 			]);
 			assert!(invalid.is_err());
 		}

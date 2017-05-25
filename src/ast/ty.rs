@@ -168,6 +168,10 @@ pub trait CommonBitVec<T> {
 	fn common_bitvec(self) -> Result<Type>;
 }
 
+pub trait CommonType<T> {
+	fn common_type(self) -> Result<Type>;
+}
+
 impl<T, E> CommonBitwidth<T> for T
 	where T: Iterator<Item=E>,
 	      E: Typed
@@ -192,5 +196,24 @@ impl<T, E> CommonBitwidth<T> for T
 impl<T> CommonBitVec<T> for T where T: CommonBitwidth<T> {
 	fn common_bitvec(self) -> Result<Type> {
 		Ok(Type::BitVec(self.common_bitwidth()?))
+	}
+}
+
+impl<T, E> CommonType<T> for T
+	where T: Iterator<Item=E>,
+	      E: Typed
+{
+	fn common_type(mut self) -> Result<Type> {
+		if let Some(first) = self.next() {
+			let mut common = first.ty();
+			for ty in self {
+				common = Type::common_of(common, ty.ty())?;
+			}
+			Ok(common)
+		}
+		else {
+			// Cannot know the target bitwidth so this should fail!
+			Err(AstError(TooFewChildren{given: 0, expected_min: 1}))
+		}
 	}
 }

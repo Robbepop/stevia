@@ -102,7 +102,7 @@ pub trait ExprFactoryImpl {
 	fn eq_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
 	fn ne_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
 
-	// fn equality_impl(&self, formulas: Vec<Expr>) -> Result<Expr>;
+	fn equality_impl(&self, formulas: Vec<Expr>) -> Result<Expr>;
 
 	fn ite_impl(&self, cond: Expr, then_case: Expr, else_case: Expr) -> Result<Expr>;
 
@@ -301,8 +301,9 @@ pub trait ExprFactory {
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
 
-	// fn equality<E>(&self, formulas: Vec<E>) -> Result<Expr>
-	// 	where E: Into<Result<Expr>>;
+	fn equality<V, T>(&self, formulas: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>;
 
 	fn ite<C, T, E>(&self, cond: C, then_case: T, else_case: E) -> Result<Expr>
 		where C: Into<Result<Expr>>,
@@ -692,13 +693,15 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.ne_impl(left.into()?, right.into()?)
 	}
 
-
-	// fn equality<E>(&self, formulas: Vec<E>) -> Result<Expr>
-	// 	where E: Into<Result<Expr>>
-	// {
-		
-	// }
-
+	fn equality<V, T>(&self, formulas: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>
+	{
+		self.equality_impl(formulas
+			.into_iter()
+			.map(|res| res.into())
+			.collect::<Result<Vec<Expr>>>()?)
+	}
 
 	fn ite<C, T, E>(&self, cond: C, then_case: T, else_case: E) -> Result<Expr>
 		where C: Into<Result<Expr>>,
@@ -707,7 +710,6 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 	{
 		self.ite_impl(cond.into()?, then_case.into()?, else_case.into()?)
 	}
-
 
 	fn symbol(&self, name: &str, ty: Type) -> Result<Expr>
 	{
