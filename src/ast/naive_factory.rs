@@ -52,9 +52,13 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		}))
 	}
 
-	// fn bvsum_impl(&self, terms: Vec<Expr>) -> Result<Expr> {
-	// 	Ok(Expr::BoolConst(BoolConst{value: true}))
-	// }
+	fn bvsum_impl(&self, terms: Vec<Expr>) -> Result<Expr> {
+		use ast::CommonBitVec;
+		Ok(Expr::Add(expr::Add{
+			ty   : terms.iter().map(|e| e.ty()).common_bitvec()?,
+			terms: terms
+		}))
+	}
 
 	fn bvmul_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
 		let common = Type::common_bitwidth(left.ty(), right.ty())?;
@@ -485,5 +489,19 @@ impl ExprFactoryImpl for NaiveExprFactory {
 
 	fn array_impl(&self, name: &str, idx_width: Bits, val_width: Bits) -> Result<Expr> {
 		self.symbol(name, Type::from((idx_width, val_width)))
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn make_sum() {
+		let f = NaiveExprFactory::new();
+		f.bvsum(vec![
+			f.bitvec("x", Bits(32)),
+			f.bvconst(Bits(32), 42)
+		]).unwrap();
 	}
 }

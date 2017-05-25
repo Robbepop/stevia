@@ -135,7 +135,7 @@ impl TransformerImpl for Simplifier {
 		}
 
 		add.terms.sort();
-		add.terms.dedup();
+		// add.terms.dedup();
 
 		if add.terms.is_empty() {
 			Expr::bvconst(add.ty().bits().unwrap(), 0)

@@ -19,7 +19,7 @@ pub trait ExprFactoryImpl {
 	fn bvneg_impl(&self, inner: Expr) -> Result<Expr>;
 
 	fn bvadd_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
-	// fn bvsum_impl(&self, terms: Vec<Expr>) -> Result<Expr>;
+	fn bvsum_impl(&self, terms: Vec<Expr>) -> Result<Expr>;
 
 	fn bvmul_impl(&self, left: Expr, right: Expr) -> Result<Expr>;
 	// fn bvprod_impl(&self, terms: Vec<Expr>) -> Result<Expr>;
@@ -129,8 +129,9 @@ pub trait ExprFactory {
 	fn bvadd<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
 		      R: Into<Result<Expr>>;
-	// fn bvsum<T>(&self, terms: Vec<T>) -> Result<Expr>
-	// 	where T: Into<Result<Expr>>;
+	fn bvsum<Ts, T>(&self, terms: Ts) -> Result<Expr>
+		where Ts: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>;
 
 	fn bvmul<L, R>(&self, left: L, right: R) -> Result<Expr>
 		where L: Into<Result<Expr>>,
@@ -337,11 +338,15 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 		self.bvadd_impl(left.into()?, right.into()?)
 	}
 
-	// fn bvsum<T>(&self, terms: Vec<T>) -> Result<Expr>
-	// 	where T: Into<Result<Expr>>
-	// {
-	// 	// TODO
-	// }
+	fn bvsum<V, T>(&self, terms: V) -> Result<Expr>
+		where V: IntoIterator<Item=T>,
+		      T: Into<Result<Expr>>
+	{
+		self.bvsum_impl(terms
+			.into_iter()
+			.map(|res| res.into())
+			.collect::<Result<Vec<Expr>>>()?)
+	}
 
 
 	fn bvmul<L, R>(&self, left: L, right: R) -> Result<Expr>
