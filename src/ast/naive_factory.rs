@@ -23,7 +23,7 @@ impl NaiveExprFactory {
 	pub fn new() -> NaiveExprFactory {
 		NaiveExprFactory{
 			symbols: RefCell::new(StringInterner::new()),
-			types: RefCell::new(HashMap::new())
+			types  : RefCell::new(HashMap::new())
 		}
 	}
 }
