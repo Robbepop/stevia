@@ -334,11 +334,11 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	fn read_impl(&self, array: Expr, index: Expr) -> Result<Expr> {
 		if let Type::Array(idx_width, val_width) = array.ty() {
 			index.ty().expect(Type::BitVec(idx_width))?;
-			Ok(Expr::Read(expr::Read{
-				array: Box::new(array),
-				index: Box::new(index),
-				ty   : Type::Array(idx_width, val_width)
-			}))
+			Ok(Expr::read(
+				Type::Array(idx_width, val_width),
+				Box::new(array),
+				Box::new(index)
+			))
 		}
 		else {
 			Err(AstError(ErrorKind::ExpectedArrayTypeKind{found_kind: array.ty().kind()}))
@@ -349,12 +349,12 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		if let Type::Array(idx_width, val_width) = array.ty() {
 			index.ty().expect(Type::BitVec(idx_width))?;
 			new_val.ty().expect(Type::BitVec(val_width))?;
-			Ok(Expr::Write(expr::Write{
-				array  : Box::new(array),
-				index  : Box::new(index),
-				new_val: Box::new(new_val),
-				ty     : Type::Array(idx_width, val_width)
-			}))
+			Ok(Expr::write(
+				Type::Array(idx_width, val_width),
+				Box::new(array),
+				Box::new(index),
+				Box::new(new_val)
+			))
 		}
 		else {
 			Err(AstError(ErrorKind::ExpectedArrayTypeKind{found_kind: array.ty().kind()}))
@@ -362,101 +362,72 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn boolconst_impl(&self, value: bool) -> Result<Expr> {
-		Ok(Expr::BoolConst(expr::BoolConst{value}))
+		Ok(Expr::boolconst(value))
 	}
 
 	fn not_impl(&self, inner: Expr) -> Result<Expr> {
 		inner.ty().expect(Type::Boolean)?;
-		Ok(Expr::Not(expr::Not{
-			inner: Box::new(inner)
-		}))
+		Ok(Expr::not(Box::new(inner)))
 	}
 
 	fn and_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
-		left.ty().expect(Type::Boolean)?;
-		right.ty().expect(Type::Boolean)?;
-		Ok(Expr::And(expr::And{
-			formulas: vec![left, right]
-		}))
+		self.conjunction_impl(vec![left, right])
 	}
 
 	fn conjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
 		for formula in formulas.iter() {
 			formula.ty().expect(Type::Boolean)?;
 		}
-		Ok(Expr::And(expr::And{formulas}))
+		Ok(Expr::conjunction(formulas))
 	}
 
 	fn or_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
-		left.ty().expect(Type::Boolean)?;
-		right.ty().expect(Type::Boolean)?;
-		Ok(Expr::Or(expr::Or{
-			formulas: vec![left, right]
-		}))
+		self.disjunction_impl(vec![left, right])
 	}
 
 	fn disjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
 		for formula in formulas.iter() {
 			formula.ty().expect(Type::Boolean)?;
 		}
-		Ok(Expr::Or(expr::Or{formulas}))
+		Ok(Expr::disjunction(formulas))
 	}
 
 	fn xor_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
 		left.ty().expect(Type::Boolean)?;
 		right.ty().expect(Type::Boolean)?;
-		Ok(Expr::Xor(expr::Xor{
-			left : Box::new(left),
-			right: Box::new(right)
-		}))
+		Ok(Expr::xor(Box::new(left), Box::new(right)))
 	}
 
 	fn iff_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
 		left.ty().expect(Type::Boolean)?;
 		right.ty().expect(Type::Boolean)?;
-		Ok(Expr::Iff(expr::Iff{
-			left : Box::new(left),
-			right: Box::new(right)
-		}))
+		Ok(Expr::iff(Box::new(left), Box::new(right)))
 	}
 
 	fn implies_impl(&self, assumption: Expr, implication: Expr) -> Result<Expr> {
 		assumption.ty().expect(Type::Boolean)?;
 		implication.ty().expect(Type::Boolean)?;
-		Ok(Expr::Implies(expr::Implies{
-			assumption : Box::new(assumption),
-			implication: Box::new(implication)
-		}))
+		Ok(Expr::implies(Box::new(assumption), Box::new(implication)))
 	}
 
 	fn parambool_impl(&self, bool_var: Expr, parameter: Expr) -> Result<Expr> {
 		bool_var.ty().expect(Type::Boolean)?;
 		parameter.ty().expect(Type::Boolean)?;
-		Ok(Expr::ParamBool(expr::ParamBool{
-			bool_var: Box::new(bool_var),
-			param   : Box::new(parameter)
-		}))
+		Ok(Expr::parambool(Box::new(bool_var), Box::new(parameter)))
 	}
 
 	fn eq_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
-		let common_ty = Type::common_of(left.ty(), right.ty())?;
-		Ok(Expr::Equals(expr::Equals{
-			exprs   : vec![left, right],
-			inner_ty: common_ty
-		}))
+		self.equality_impl(vec![left, right])
 	}
 
 	fn ne_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
-		let eq = self.eq(left, right);
-		self.not(eq)
+		self.not(self.eq(left, right))
 	}
 
 	fn equality_impl(&self, exprs: Vec<Expr>) -> Result<Expr> {
 		use ast::CommonType;
-		Ok(Expr::Equals(expr::Equals{
-			inner_ty: exprs.iter().map(|e| e.ty()).common_type()?,
-			exprs   : exprs
-		}))
+		let inner_ty = exprs.iter().map(|e| e.ty()).common_type()?;
+		Ok(Expr::equality(inner_ty, exprs))
 	}
 
 	/// Creates an if-then-else expression.
@@ -482,7 +453,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 					.map(|_| Expr::Symbol(expr::Symbol{name: sym, ty}))
 			}
 		}
-		Ok(Expr::Symbol(expr::Symbol{name: sym, ty}))
+		Ok(Expr::symbol(sym, ty))
 	}
 
 	fn boolean_impl(&self, name: &str) -> Result<Expr> {
