@@ -1,5 +1,7 @@
+use std::ops::Range;
+
 use ast::expr;
-use ast::{Bits, Type};
+use ast::{SymName, P, Bits, Type};
 use ast::traits::ExprTrait;
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
@@ -306,15 +308,228 @@ impl ExprTrait for Expr {
 }
 
 impl Expr {
-	pub fn boolconst(flag: bool) -> Expr {
-		Expr::BoolConst(expr::BoolConst{value: flag})
-	}
+	//=========================================================================
+	// TERM EXPRESSIONS
+	//=========================================================================
+
+	// ARITHMETHIC EXPRESSIONS
+	//-------------------------------------------------------------------------
 
 	pub fn bvconst<T: Into<::BitVec>>(bits: Bits, value: T) -> Expr {
 		Expr::BitVecConst(expr::BitVecConst{
 			value: value.into(),
 			ty   : bits.into()
 		})
+	}
+
+	pub fn bvneg(inner: P<Expr>) -> Expr {
+		Expr::Neg(expr::Neg{ty: inner.ty(), inner})
+	}
+
+	pub fn bvsum(ty: Type, terms: Vec<Expr>) -> Expr {
+		Expr::Add(expr::Add{ty, terms})
+	}
+
+	pub fn bvprod(ty: Type, factors: Vec<Expr>) -> Expr {
+		Expr::Mul(expr::Mul{ty, factors})
+	}
+
+	pub fn bvsub(ty: Type, minuend: P<Expr>, subtrahend: P<Expr>) -> Expr {
+		Expr::Sub(expr::Sub{ty, minuend, subtrahend})
+	}
+
+	pub fn bvudiv(ty: Type, dividend: P<Expr>, divisor: P<Expr>) -> Expr {
+		Expr::Div(expr::Div{ty, dividend, divisor})
+	}
+
+	pub fn bvumod(ty: Type, dividend: P<Expr>, divisor: P<Expr>) -> Expr {
+		Expr::Mod(expr::Mod{ty, dividend, divisor})
+	}
+
+	pub fn bvsdiv(ty: Type, dividend: P<Expr>, divisor: P<Expr>) -> Expr {
+		Expr::SignedDiv(expr::SignedDiv{ty, dividend, divisor})
+	}
+
+	pub fn bvsmod(ty: Type, dividend: P<Expr>, divisor: P<Expr>) -> Expr {
+		Expr::SignedMod(expr::SignedMod{ty, dividend, divisor})
+	}
+
+	pub fn bvsrem(ty: Type, dividend: P<Expr>, divisor: P<Expr>) -> Expr {
+		Expr::SignedRem(expr::SignedRem{ty, dividend, divisor})
+	}
+
+	// BITWISE EXPRESSIONS
+	//-------------------------------------------------------------------------
+
+	pub fn bvnot(ty: Type, inner: P<Expr>) -> Expr {
+		Expr::BitNot(expr::BitNot{ty, inner})
+	}
+
+	pub fn bvand(ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::BitAnd(expr::BitAnd{ty, left, right})
+	}
+
+	pub fn bvor(ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::BitOr(expr::BitOr{ty, left, right})
+	}
+
+	pub fn bvxor(ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::BitXor(expr::BitXor{ty, left, right})
+	}
+
+	pub fn bvnand(ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::BitNand(expr::BitNand{ty, left, right})
+	}
+
+	pub fn bvnor(ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::BitNor(expr::BitNor{ty, left, right})
+	}
+
+	pub fn bvxnor(ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::BitXnor(expr::BitXnor{ty, left, right})
+	}
+
+	// ORDER COMPARE EXPRESSIONS
+	//-------------------------------------------------------------------------
+
+	pub fn bvult(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::Lt(expr::Lt{inner_ty, left, right})
+	}
+
+	pub fn bvule(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::Le(expr::Le{inner_ty, left, right})
+	}
+
+	pub fn bvugt(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::Gt(expr::Gt{inner_ty, left, right})
+	}
+
+	pub fn bvuge(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::Ge(expr::Ge{inner_ty, left, right})
+	}
+
+	pub fn bvslt(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::SignedLt(expr::SignedLt{inner_ty, left, right})
+	}
+
+	pub fn bvsle(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::SignedLe(expr::SignedLe{inner_ty, left, right})
+	}
+
+	pub fn bvsgt(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::SignedGt(expr::SignedGt{inner_ty, left, right})
+	}
+
+	pub fn bvsge(inner_ty: Type, left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::SignedGe(expr::SignedGe{inner_ty, left, right})
+	}
+
+	// SHIFT EXPRESSIONS
+	//-------------------------------------------------------------------------
+
+	pub fn bvushl(ty: Type, shifted: P<Expr>, shift_amount: P<Expr>) -> Expr {
+		Expr::Shl(expr::Shl{ty, shifted, shift_amount})
+	}
+
+	pub fn bvushr(ty: Type, shifted: P<Expr>, shift_amount: P<Expr>) -> Expr {
+		Expr::Shr(expr::Shr{ty, shifted, shift_amount})
+	}
+
+	pub fn bvsshr(ty: Type, shifted: P<Expr>, shift_amount: P<Expr>) -> Expr {
+		Expr::SignedShr(expr::SignedShr{ty, shifted, shift_amount})
+	}
+
+	// EXTEND & TRUNCATE EXPRESSIONS
+	//-------------------------------------------------------------------------
+
+	pub fn concat(ty: Type, hi: P<Expr>, lo: P<Expr>) -> Expr {
+		Expr::Concat(expr::Concat{ty, hi, lo})
+	}
+
+	pub fn extract(ty: Type, source: P<Expr>, range: Range<usize>) -> Expr {
+		Expr::Extract(expr::Extract{ty, source, range})
+	}
+
+	pub fn uextend(ty: Type, source: P<Expr>, extension: usize) -> Expr {
+		Expr::Extend(expr::Extend{ty, source, extension})
+	}
+
+	pub fn sextend(ty: Type, source: P<Expr>, extension: usize) -> Expr {
+		Expr::SignedExtend(expr::SignedExtend{ty, source, extension})
+	}
+
+	// ARRAY EXPRESSIONS
+	//-------------------------------------------------------------------------
+
+	pub fn read(ty: Type, array: P<Expr>, index: P<Expr>) -> Expr {
+		Expr::Read(expr::Read{ty, array, index})
+	}
+
+	pub fn write(ty: Type, array: P<Expr>, index: P<Expr>, new_val: P<Expr>) -> Expr {
+		Expr::Write(expr::Write{ty, array, index, new_val})
+	}
+
+	//=========================================================================
+	// FORMULA EXPRESSIONS
+	//=========================================================================
+	pub fn boolconst(flag: bool) -> Expr {
+		Expr::BoolConst(expr::BoolConst{value: flag})
+	}
+
+	pub fn not(inner: P<Expr>) -> Expr {
+		Expr::Not(expr::Not{inner})
+	}
+
+	pub fn conjunction(formulas: Vec<Expr>) -> Expr {
+		Expr::And(expr::And{formulas})
+	}
+
+	pub fn disjunction(formulas: Vec<Expr>) -> Expr {
+		Expr::Or(expr::Or{formulas})
+	}
+
+	pub fn xor(left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::Xor(expr::Xor{left, right})
+	}
+
+	pub fn iff(left: P<Expr>, right: P<Expr>) -> Expr {
+		Expr::Iff(expr::Iff{left, right})
+	}
+
+	pub fn implies(assumption: P<Expr>, implication: P<Expr>) -> Expr {
+		Expr::Implies(expr::Implies{assumption, implication})
+	}
+
+	pub fn parambool(bool_var: P<Expr>, param: P<Expr>) -> Expr {
+		Expr::ParamBool(expr::ParamBool{bool_var, param})
+	}
+
+	//=========================================================================
+	// GENERIC EXPRESSIONS
+	//=========================================================================
+
+	pub fn equality(inner_ty: Type, exprs: Vec<Expr>) -> Expr {
+		Expr::Equals(expr::Equals{inner_ty, exprs})
+	}
+
+	pub fn ite(ty: Type, cond: P<Expr>, then_case: P<Expr>, else_case: P<Expr>) -> Expr {
+		Expr::IfThenElse(expr::IfThenElse{ty, cond, then_case, else_case})
+	}
+
+	pub fn symbol(name: SymName, ty: Type) -> Expr {
+		Expr::Symbol(expr::Symbol{ty, name})
+	}
+
+	pub fn boolean(name: SymName) -> Expr {
+		Expr::Symbol(expr::Symbol{ty: Type::Boolean, name})
+	}
+
+	pub fn bitvec(name: SymName, bitwidth: Bits) -> Expr {
+		Expr::Symbol(expr::Symbol{ty: Type::BitVec(bitwidth.0), name})
+	}
+
+	pub fn array(name: SymName, idx_width: Bits, val_width: Bits) -> Expr {
+		Expr::Symbol(expr::Symbol{ty: Type::Array(idx_width.0, val_width.0), name})
 	}
 
 	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool

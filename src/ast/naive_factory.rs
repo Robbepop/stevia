@@ -197,7 +197,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::Lt(expr::Lt{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -206,7 +206,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::Le(expr::Le{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -215,7 +215,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::Gt(expr::Gt{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -224,7 +224,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::Ge(expr::Ge{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -233,7 +233,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::SignedLt(expr::SignedLt{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -242,7 +242,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::SignedLe(expr::SignedLe{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -251,7 +251,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::SignedGt(expr::SignedGt{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 
@@ -260,7 +260,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 		Ok(Expr::SignedGe(expr::SignedGe{
 			left : Box::new(left),
 			right: Box::new(right),
-			ty   : Type::BitVec(common)
+			inner_ty: Type::BitVec(common)
 		}))
 	}
 

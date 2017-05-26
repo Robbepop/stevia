@@ -154,64 +154,64 @@ pub struct BitXnor{
 pub struct Lt{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Le{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Gt{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct Ge{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct SignedLt{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct SignedLe{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct SignedGt{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct SignedGe{
 	pub left: P<Expr>,
 	pub right: P<Expr>,
-	/// The bitvec type of this expression.
-	pub ty: Type
+	/// The bitvec type that is shared among child expressions.
+	pub inner_ty: Type
 }
 
 //=============================================================================

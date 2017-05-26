@@ -287,12 +287,12 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_bvugt(&mut self, ugt: Gt) -> Expr {
 		self.transform_bvult(
-			Lt{left: ugt.right, right: ugt.left, ty: ugt.ty})
+			Lt{left: ugt.right, right: ugt.left, inner_ty: ugt.inner_ty})
 	}
 
 	fn transform_bvuge(&mut self, uge: Ge) -> Expr {
 		self.transform_bvule(
-			Le{left: uge.right, right: uge.left, ty: uge.ty})
+			Le{left: uge.right, right: uge.left, inner_ty: uge.inner_ty})
 	}
 
 	fn transform_bvslt(&mut self, mut slt: SignedLt) -> Expr {
@@ -309,12 +309,12 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_bvsgt(&mut self, sgt: SignedGt) -> Expr {
 		self.transform_bvslt(
-			SignedLt{left: sgt.right, right: sgt.left, ty: sgt.ty})
+			SignedLt{left: sgt.right, right: sgt.left, inner_ty: sgt.inner_ty})
 	}
 
 	fn transform_bvsge(&mut self, sge: SignedGe) -> Expr {
 		self.transform_bvsle(
-			SignedLe{left: sge.right, right: sge.left, ty: sge.ty})
+			SignedLe{left: sge.right, right: sge.left, inner_ty: sge.inner_ty})
 	}
 
 	//=========================================================================
@@ -948,17 +948,12 @@ mod tests {
 					)
 				),
 
-				Ok(
-					Equals{
-						exprs: vec![
-							Expr::Symbol(Symbol{ name: SymName(0), ty: Type::Boolean }),
-							Expr::Symbol(Symbol{ name: SymName(1), ty: Type::Boolean }),
-							Expr::Symbol(Symbol{ name: SymName(2), ty: Type::Boolean }),
-							Expr::Symbol(Symbol{ name: SymName(3), ty: Type::Boolean }),
-						],
-						inner_ty: Type::Boolean
-					}.into_variant()
-				)
+				f.equality(vec![
+					f.boolean("a"),
+					f.boolean("b"),
+					f.boolean("c"),
+					f.boolean("d")
+				])
 			);
 		}
 	}
@@ -1038,15 +1033,12 @@ mod tests {
 					)
 				),
 
-				Ok(Add{
-					terms: vec![
-						Expr::Symbol(Symbol{ name: SymName(0), ty: Type::BitVec(32) }),
-						Expr::Symbol(Symbol{ name: SymName(1), ty: Type::BitVec(32) }),
-						Expr::Symbol(Symbol{ name: SymName(2), ty: Type::BitVec(32) }),
-						Expr::Symbol(Symbol{ name: SymName(3), ty: Type::BitVec(32) }),
-					],
-					ty: Type::BitVec(32)
-				}.into_variant())
+				f.bvsum(vec![
+					f.bitvec("x1", Bits(32)),
+					f.bitvec("y1", Bits(32)),
+					f.bitvec("x2", Bits(32)),
+					f.bitvec("y2", Bits(32))
+				])
 			);
 		}
 	}
@@ -1180,22 +1172,12 @@ mod tests {
 					)
 				),
 
-				// f.bvprod(vec![
-				// 	f.bitvec("x1", Bits(32)),
-				// 	f.bitvec("y1", Bits(32)),
-				// 	f.bitvec("x2", Bits(32)),
-				// 	f.bitvec("y2", Bits(32))
-				// ])
-
-				Ok(Mul{
-					factors: vec![
-						Expr::Symbol(Symbol{ name: SymName(0), ty: Type::BitVec(32) }),
-						Expr::Symbol(Symbol{ name: SymName(1), ty: Type::BitVec(32) }),
-						Expr::Symbol(Symbol{ name: SymName(2), ty: Type::BitVec(32) }),
-						Expr::Symbol(Symbol{ name: SymName(3), ty: Type::BitVec(32) }),
-					],
-					ty: Type::BitVec(32)
-				}.into_variant())
+				f.bvprod(vec![
+					f.bitvec("x1", Bits(32)),
+					f.bitvec("y1", Bits(32)),
+					f.bitvec("x2", Bits(32)),
+					f.bitvec("y2", Bits(32))
+				])
 			);
 		}
 	}
