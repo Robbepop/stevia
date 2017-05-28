@@ -442,20 +442,26 @@ impl Expr {
 	// EXTEND & TRUNCATE EXPRESSIONS
 	//-------------------------------------------------------------------------
 
-	pub fn concat(ty: Type, hi: P<Expr>, lo: P<Expr>) -> Expr {
-		Expr::Concat(expr::Concat{ty, hi, lo})
+	pub fn concat(hi: P<Expr>, lo: P<Expr>) -> Expr {
+		let hi_bits = Type::bitwidth(hi.ty()).unwrap();
+		let lo_bits = Type::bitwidth(hi.ty()).unwrap();
+		Expr::Concat(expr::Concat{
+			ty: Type::BitVec(hi_bits + lo_bits), hi, lo})
 	}
 
-	pub fn extract(ty: Type, source: P<Expr>, range: Range<usize>) -> Expr {
-		Expr::Extract(expr::Extract{ty, source, range})
+	pub fn extract(source: P<Expr>, range: Range<usize>) -> Expr {
+		Expr::Extract(expr::Extract{
+			ty: Type::BitVec(range.end - range.start), source, range})
 	}
 
-	pub fn uextend(ty: Type, source: P<Expr>, extension: usize) -> Expr {
-		Expr::Extend(expr::Extend{ty, source, extension})
+	pub fn uextend(source: P<Expr>, extension: usize) -> Expr {
+		Expr::Extend(expr::Extend{
+			ty: Type::BitVec(extension), source, extension})
 	}
 
-	pub fn sextend(ty: Type, source: P<Expr>, extension: usize) -> Expr {
-		Expr::SignedExtend(expr::SignedExtend{ty, source, extension})
+	pub fn sextend(source: P<Expr>, extension: usize) -> Expr {
+		Expr::SignedExtend(expr::SignedExtend{
+			ty: Type::BitVec(extension), source, extension})
 	}
 
 	// ARRAY EXPRESSIONS

@@ -8,7 +8,7 @@ use bitvec::BitVec;
 
 use ast::expr;
 use ast::prelude::*;
-use ast::{AstError, ErrorKind};
+use ast::{AstError, ErrorKind, CommonBitVec};
 use ast::factory::ExprFactoryImpl;
 
 #[derive(Debug, Clone)]
@@ -37,27 +37,17 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn bvneg_impl(&self, inner: Expr) -> Result<Expr> {
-		let bits = inner.ty().bitwidth()?;
-		Ok(Expr::Neg(expr::Neg{
-			inner: Box::new(inner),
-			ty   : Type::BitVec(bits)
-		}))
+		inner.ty().kind().expect(TypeKind::BitVec)?;
+		Ok(Expr::bvneg(Box::new(inner)))
 	}
 
 	fn bvadd_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
-		let common = Type::common_bitwidth(left.ty(), right.ty())?;
-		Ok(Expr::Add(expr::Add{
-			terms: vec![left, right],
-			ty   : Type::BitVec(common)
-		}))
+		self.bvsum_impl(vec![left, right])
 	}
 
 	fn bvsum_impl(&self, terms: Vec<Expr>) -> Result<Expr> {
-		use ast::CommonBitVec;
-		Ok(Expr::Add(expr::Add{
-			ty   : terms.iter().map(|e| e.ty()).common_bitvec()?,
-			terms: terms
-		}))
+		let common_ty = terms.iter().map(|e| e.ty()).common_bitvec()?;
+		Ok(Expr::bvsum(common_ty, terms))
 	}
 
 	fn bvmul_impl(&self, left: Expr, right: Expr) -> Result<Expr> {
@@ -69,7 +59,6 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn bvprod_impl(&self, terms: Vec<Expr>) -> Result<Expr> {
-		use ast::CommonBitVec;
 		Ok(Expr::Mul(expr::Mul{
 			ty     : terms.iter().map(|e| e.ty()).common_bitvec()?,
 			factors: terms
@@ -295,13 +284,9 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn concat_impl(&self, hi: Expr, lo: Expr) -> Result<Expr> {
-		let hi_bits = Type::bitwidth(hi.ty())?;
-		let lo_bits = Type::bitwidth(hi.ty())?;
-		Ok(Expr::Concat(expr::Concat{
-			hi: Box::new(hi),
-			lo: Box::new(lo),
-			ty: Type::BitVec(hi_bits + lo_bits)
-		}))
+		hi.ty().kind().expect(TypeKind::BitVec)?;
+		lo.ty().kind().expect(TypeKind::BitVec)?;
+		Ok(Expr::concat(Box::new(hi), Box::new(lo)))
 	}
 
 	fn extract_impl(&self, source: Expr, range: Range<usize>) -> Result<Expr> {
@@ -315,20 +300,12 @@ impl ExprFactoryImpl for NaiveExprFactory {
 
 	fn uextend_impl(&self, source: Expr, extension: usize) -> Result<Expr> {
 		source.ty().kind().expect(TypeKind::BitVec)?;
-		Ok(Expr::Extend(expr::Extend{
-			source   : Box::new(source),
-			extension: extension,
-			ty       : Type::BitVec(extension)
-		}))
+		Ok(Expr::uextend(Box::new(source), extension))
 	}
 
 	fn sextend_impl(&self, source: Expr, extension: usize) -> Result<Expr> {
 		source.ty().kind().expect(TypeKind::BitVec)?;
-		Ok(Expr::SignedExtend(expr::SignedExtend{
-			source   : Box::new(source),
-			extension: extension,
-			ty       : Type::BitVec(extension)
-		}))
+		Ok(Expr::sextend(Box::new(source), extension))
 	}
 
 	fn read_impl(&self, array: Expr, index: Expr) -> Result<Expr> {
@@ -375,7 +352,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn conjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
-		for formula in formulas.iter() {
+		for formula in &formulas {
 			formula.ty().expect(Type::Boolean)?;
 		}
 		Ok(Expr::conjunction(formulas))
@@ -386,7 +363,7 @@ impl ExprFactoryImpl for NaiveExprFactory {
 	}
 
 	fn disjunction_impl(&self, formulas: Vec<Expr>) -> Result<Expr> {
-		for formula in formulas.iter() {
+		for formula in &formulas {
 			formula.ty().expect(Type::Boolean)?;
 		}
 		Ok(Expr::disjunction(formulas))
