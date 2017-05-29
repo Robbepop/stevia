@@ -150,7 +150,26 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_bvmul(&mut self, mut mul: Mul) -> Expr {
 		mul.childs_mut().foreach(|child| self.transform_assign(child));
-		mul.into_variant()
+
+		// Normalization
+		mul.factors.sort();
+
+		// Neutral element: `(* a 1)` to `(* a)`
+		mul.factors.retain(|x| !x.is_bvconst_with_value(1));
+
+		// Null element: `(* a 0)` to `0`
+		if mul.factors.iter().any(|x| x.is_bvconst_with_value(0)) {
+			return Expr::bvconst(mul.ty.bits().unwrap(), 0)
+		}
+
+		match mul.arity() {
+			// No more elements left -> simply return 0
+			0 => Expr::bvconst(mul.ty.bits().unwrap(), 0),
+			// One element left, e.g. when it was `(* a 1)`, so return `a`
+			1 => mul.factors.pop().unwrap(),
+			// Else nothing special happens
+			_ => mul.into_variant()
+		}
 	}
 
 	fn transform_bvsub(&mut self, mut sub: Sub) -> Expr {
@@ -1047,7 +1066,7 @@ mod tests {
 		use super::*;
 
 		#[test]
-		#[ignore]
+		// #[ignore]
 		fn neutral_element() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
@@ -1067,7 +1086,7 @@ mod tests {
 		}
 
 		#[test]
-		#[ignore]
+		// #[ignore]
 		fn null_element() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
