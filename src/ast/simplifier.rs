@@ -1000,7 +1000,6 @@ mod tests {
 		}
 
 		#[test]
-		// #[ignore]
 		fn inserse_elimination() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
@@ -1066,7 +1065,6 @@ mod tests {
 		use super::*;
 
 		#[test]
-		// #[ignore]
 		fn neutral_element() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
@@ -1086,7 +1084,6 @@ mod tests {
 		}
 
 		#[test]
-		// #[ignore]
 		fn null_element() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
