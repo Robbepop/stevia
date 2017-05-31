@@ -12,8 +12,14 @@ use ast::{Transformer, TransformerImpl};
 /// 
 /// Note to self: Do not call this from inside the `Simplifier` since this would 
 /// lead to distinct evaluation contexts and thus worsen optimizations.
-pub fn simplify(expr: Expr) -> Expr {
-	Simplifier::new().transform(expr)
+/// 
+/// TODO: Currently we do three iterations since we do not track if something
+///       got simplified to detect a fix-point. This is bad and should be changed
+///       in a future version!
+pub fn simplify(mut expr: Expr) -> Expr {
+	let mut simplifier = Simplifier::new();
+	for _ in 0..5 { simplifier.transform_assign(&mut expr) }
+	expr
 }
 
 struct Simplifier {
@@ -50,6 +56,21 @@ impl TransformerImpl for Simplifier {
 		match *neg.inner {
 			Expr::Neg(negneg) => {
 				self.transform(*negneg.inner)
+			}
+			Expr::Add(mut add) => {
+				add.terms = add.terms
+					.into_iter()
+					.map(|t| Expr::bvneg(Box::new(t)))
+					.collect();
+				self.transform_bvadd(add)
+			}
+			Expr::Mul(mut mul) => {
+				let negated = mul.factors
+					.pop()
+					.map(|e| Expr::bvneg(Box::new(e)))
+					.expect("expected mul to be in a valid state");
+				mul.factors.push(negated);
+				self.transform_bvmul(mul)
 			}
 			Expr::BitVecConst(BitVecConst{ref value, ty}) if value.is_zero() => {
 				Expr::bvconst(ty.bits().unwrap(), 0)
@@ -192,21 +213,30 @@ impl TransformerImpl for Simplifier {
 			return *sub.minuend // already simplified (see above!)
 		}
 
-		// Lowering to `Add`
-		if let Expr::Neg(negation) = *sub.subtrahend {
-			// maybe this constructor possibility would be nicer?
-			// Expr::bvadd(negation.ty(), *sub.minuend, *negation.inner)
-			Expr::Add(Add{
-				ty: negation.ty(),
-				terms: vec![
-					*sub.minuend,
-					*negation.inner
-				]
-			})
-		}
-		else {
-			sub.into_variant()
-		}
+		// Lower to `Add`
+		Expr::bvsum(
+			sub.ty(),
+			vec![
+				self.transform_bvneg(Neg{ ty: sub.ty(), inner: sub.subtrahend }),
+				*sub.minuend
+			]
+		)
+
+		// // Lowering to `Add`
+		// if let Expr::Neg(negation) = *sub.subtrahend {
+		// 	// maybe this constructor possibility would be nicer?
+		// 	// Expr::bvadd(negation.ty(), *sub.minuend, *negation.inner)
+		// 	Expr::Add(Add{
+		// 		ty: negation.ty(),
+		// 		terms: vec![
+		// 			*sub.minuend,
+		// 			*negation.inner
+		// 		]
+		// 	})
+		// }
+		// else {
+		// 	sub.into_variant()
+		// }
 	}
 
 	fn transform_bvudiv(&mut self, mut udiv: Div) -> Expr {
@@ -666,6 +696,61 @@ mod tests {
 				f.bvconst(Bits(32), 0)
 			);
 		}
+
+		#[test]
+		fn propagate_add() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvneg(
+					f.bvsum(vec![
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32)),
+						f.bvneg(f.bitvec("z", Bits(32)))
+					])
+				),
+				f.bvsum(vec![
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bvneg(f.bitvec("y", Bits(32))),
+					f.bitvec("z", Bits(32))
+				])
+			);
+		}
+
+		#[test]
+		fn propagate_mul() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvneg(
+					f.bvprod(vec![
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32)),
+						f.bitvec("z", Bits(32))
+					])
+				),
+				f.bvprod(vec![
+					f.bvneg(f.bitvec("z", Bits(32))), // moved to front because of normalization!
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				])
+			);
+		}
+	}
+
+	#[test]
+	fn integration_neg_sub() {
+		let f = NaiveExprFactory::new();
+		assert_simplified(
+			f.bvneg(
+				f.bvsub(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			),
+			f.bvadd(
+				f.bvneg(f.bitvec("x", Bits(32))),
+				f.bitvec("y", Bits(32))
+			)
+		);
 	}
 
 	mod not {
