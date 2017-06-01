@@ -547,6 +547,16 @@ impl Expr {
 		}
 	}
 
+	pub fn is_bool_contradiction(&self, other: &Expr) -> bool {
+		debug_assert!(self.ty() == Type::Boolean);
+		debug_assert!(other.ty() == Type::Boolean);
+		match (self, other) {
+			(a, &Expr::Not(ref not_a)) if &*not_a.inner == a => true,
+			(&Expr::Not(ref not_a), a) if &*not_a.inner == a => true,
+			_ => false
+		}
+	}
+
 	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool
 		where T: Into<::BitVec>
 	{

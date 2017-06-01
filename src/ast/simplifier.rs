@@ -445,12 +445,30 @@ impl TransformerImpl for Simplifier {
 		and.formulas.sort();
 		and.formulas.dedup();
 
+		// Case: `and ... false ...` to `false`
 		if and.formulas.iter().any(|f| f.is_boolconst_with_value(false)) {
 			return Expr::boolconst(false)
 		}
 
+		// Case: `and true true ...` to `true`
 		if and.formulas.iter().all(|f| f.is_boolconst_with_value(true)) {
 			return Expr::boolconst(true)
+		}
+
+		// Case: `and a (not a)` to `false`
+		{
+			let idns = and.formulas
+				.iter()
+				.filter(|f| f.kind() != ExprKind::Not);
+			let negs = and.formulas
+				.iter()
+				.filter(|f| f.kind() == ExprKind::Not)
+				.collect::<Vec<_>>();
+			for (idn, neg) in idns.cartesian_product(negs.iter()) {
+				if idn.is_bool_contradiction(neg) {
+					return Expr::boolconst(false)
+				}
+			}
 		}
 
 		// TODO: flatten-nested ands
@@ -1543,7 +1561,7 @@ mod tests {
 		use super::*;
 
 		#[test]
-		fn const_tautology_detection() {
+		fn const_tautology() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.and(
@@ -1555,7 +1573,7 @@ mod tests {
 		}
 
 		#[test]
-		fn const_contradiction_detection() {
+		fn const_contradiction() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
 				f.and(
@@ -1575,6 +1593,18 @@ mod tests {
 					f.boolean("a")
 				),
 				f.boolconst(true)
+			);
+		}
+
+		#[test]
+		fn symbolic_contradiction() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.and(
+					f.boolean("a"),
+					f.not(f.boolean("a"))
+				),
+				f.boolconst(false)
 			);
 		}
 	}

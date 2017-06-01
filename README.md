@@ -1,11 +1,11 @@
-| **Linux** | [![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia) |
-|:-:|:-:|
-| **Windows** | [![Build Status](https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true)](https://ci.appveyor.com/project/Robbepop/stevia/branch/master) |
+# Stevia - Satisfiability Modulo Theories (SMT) Solver
+
+| **Linux** | [![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia)
+| **Windows** | [![Build Status](https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true)](https://ci.appveyor.com/project/Robbepop/stevia/branch/master)
 | **Licence** | [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) |
+|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
 
 ---
-
-# Stevia - Satisfiability Modulo Theories (SMT) Solver
 
 This is a brave attempt to write a simple [SMT](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories) solver in the [Rust](https://www.rust-lang.org/) ([github](https://github.com/rust-lang/rust)) programming language based on the design of [STP](http://stp.github.io/) ([github](https://github.com/stp/stp)).  
 
