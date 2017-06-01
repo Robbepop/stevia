@@ -441,10 +441,26 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_and(&mut self, mut and: And) -> Expr {
 		and.childs_mut().foreach(|child| self.transform_assign(child));
+
+		and.formulas.sort();
+		and.formulas.dedup();
+
+		if and.formulas.iter().any(|f| f.is_boolconst_with_value(false)) {
+			return Expr::boolconst(false)
+		}
+
+		if and.formulas.iter().all(|f| f.is_boolconst_with_value(true)) {
+			return Expr::boolconst(true)
+		}
+
 		// TODO: flatten-nested ands
 		// TODO: evalute to false if detecting const false expression
 		// TODO: sort expression list (needed for some other optimizations that require normalization)
-		and.into_variant()
+		match and.arity() {
+			1 => Expr::boolconst(true),
+			_ => and.into_variant()
+		}
+		// and.into_variant()
 	}
 
 	fn transform_or(&mut self, mut or: Or) -> Expr {
@@ -1563,6 +1579,8 @@ mod tests {
 		let expected   = f.boolconst(false).unwrap();
 		assert_eq!(simplified, expected);
 	}
+
+	
 
 	#[test]
 	fn integration_02() {

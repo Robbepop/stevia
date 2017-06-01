@@ -538,6 +538,15 @@ impl Expr {
 		Expr::Symbol(expr::Symbol{ty: Type::Array(idx_width.0, val_width.0), name})
 	}
 
+	pub fn is_boolconst_with_value(&self, expected: bool) -> bool {
+		if let Expr::BoolConst(ref val) = *self {
+			val.value == expected
+		}
+		else {
+			false
+		}
+	}
+
 	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool
 		where T: Into<::BitVec>
 	{

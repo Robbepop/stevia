@@ -9,7 +9,7 @@
 
 This is a brave attempt to write a simple [SMT](https://en.wikipedia.org/wiki/Satisfiability_modulo_theories) solver in the [Rust](https://www.rust-lang.org/) ([github](https://github.com/rust-lang/rust)) programming language based on the design of [STP](http://stp.github.io/) ([github](https://github.com/stp/stp)).  
 
-Currently the solver is in very early development.
+Currently the solver is in very early development phase.
 
 ## Very future goals are
 - Support for [SMTLib 2.6](http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-draft-3.pdf).
