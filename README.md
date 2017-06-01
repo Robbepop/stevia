@@ -1,6 +1,9 @@
-[![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia)
-[![Build Status](https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true)](https://ci.appveyor.com/project/Robbepop/stevia/branch/master)
-[![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+| **Linux** | [![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia) |
+|:-:|:-:|
+| **Windows** | [![Build Status](https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true)](https://ci.appveyor.com/project/Robbepop/stevia/branch/master) |
+| **Licence** | [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) |
+
+---
 
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
@@ -13,8 +16,6 @@ This is a brave attempt to write an [SMT](https://en.wikipedia.org/wiki/Satisfia
 - Eventually be able to keep up with other SMT solvers like STP.
 - C API to enable bindings for other languages.
 - Use an efficient SAT solver, like [candy-kingdom](https://github.com/Udopia/candy-kingdom).
-
-<!-- Use incremental SMT solving of hard problem instances via [ipasir](http://baldur.iti.kit.edu/sat-competition-2016/downloads/ipasir.h) interface. -->
 
 ## Simplifications
 
