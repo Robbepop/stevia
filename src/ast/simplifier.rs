@@ -1539,6 +1539,46 @@ mod tests {
 		}
 	}
 
+	mod and {
+		use super::*;
+
+		#[test]
+		fn const_tautology_detection() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.and(
+					f.boolconst(true),
+					f.boolconst(true)
+				),
+				f.boolconst(true)
+			);
+		}
+
+		#[test]
+		fn const_contradiction_detection() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.and(
+					f.boolconst(true),
+					f.boolconst(false)
+				),
+				f.boolconst(false)
+			);
+		}
+
+		#[test]
+		fn symbolic_dedup() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.and(
+					f.boolean("a"),
+					f.boolean("a")
+				),
+				f.boolconst(true)
+			);
+		}
+	}
+
 	#[test]
 	fn integration_01() {
 		let f = NaiveExprFactory::new();
@@ -1579,8 +1619,6 @@ mod tests {
 		let expected   = f.boolconst(false).unwrap();
 		assert_eq!(simplified, expected);
 	}
-
-	
 
 	#[test]
 	fn integration_02() {
