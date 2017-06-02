@@ -156,7 +156,6 @@ impl TransformerImpl for Simplifier {
 		}
 
 		add.terms.sort();
-		// add.terms.dedup();
 
 		if add.terms.is_empty() {
 			Expr::bvconst(add.ty().bits().unwrap(), 0)
@@ -434,7 +433,7 @@ impl TransformerImpl for Simplifier {
 		self.transform_assign(&mut not.inner);
 		match *not.inner {
 			Expr::Not(notnot) => self.transform(*notnot.inner),
-			Expr::BoolConst(BoolConst{value}) => Expr::boolconst(!value),
+			Expr::BoolConst(constant) => Expr::boolconst(!constant.value),
 			_ => not.into_variant()
 		}
 	}
@@ -447,9 +446,7 @@ impl TransformerImpl for Simplifier {
 		for child in mem::replace(&mut and.formulas, vec![]) {
 			match child {
 				Expr::And(suband) => {
-					for subchild in suband.formulas {
-						and.formulas.push(subchild)
-					}
+					suband.into_childs().foreach(|f| and.formulas.push(f))
 				}
 				_ => {
 					and.formulas.push(child)
@@ -508,9 +505,7 @@ impl TransformerImpl for Simplifier {
 		for child in mem::replace(&mut or.formulas, vec![]) {
 			match child {
 				Expr::Or(subor) => {
-					for subchild in subor.formulas {
-						or.formulas.push(subchild)
-					}
+					subor.into_childs().foreach(|f| or.formulas.push(f))
 				}
 				_ => {
 					or.formulas.push(child)
@@ -570,10 +565,9 @@ impl TransformerImpl for Simplifier {
 		iff.into_variant()
 	}
 
-	fn transform_implies(&mut self, mut implies: Implies) -> Expr {
-		self.transform_assign(&mut implies.assumption);
-		self.transform_assign(&mut implies.implication);
-		implies.into_variant()
+	fn transform_implies(&mut self, implies: Implies) -> Expr {
+		self.transform_or(
+			Or{formulas: vec![Expr::not(implies.assumption), *implies.implication]})
 	}
 
 	fn transform_param_bool(&mut self, mut parambool: ParamBool) -> Expr {
@@ -586,37 +580,16 @@ impl TransformerImpl for Simplifier {
 		assert!(equals.exprs.len() >= 2,
 			"Internal Solver Error: Simplifier::transform_equals: Equality requires at minimum 2 child expressions!");
 
-		// // Flattens equality child expressions -> this strengthens the following unique-elemination procedure.
-		// fn flattening(child: Expr, eq: &mut Equals) {
-		// 	if let Expr::Equals(subeq) = child {
-		// 		if subeq.inner_ty == eq.inner_ty {
-		// 			for subchild in subeq.exprs {
-		// 				flattening(subchild, eq)
-		// 			}
-		// 		}
-		// 		else {
-		// 			eq.exprs.push(subeq.into_variant())
-		// 		}
-		// 	}
-		// 	else {
-		// 		eq.exprs.push(child)
-		// 	}
-		// };
-		// use std::mem;
-		// for child in mem::replace(&mut equals.exprs, vec![]) {
-		// 	flattening(child, &mut equals)
-		// }
-
 		// Simplify child expressions.
 		equals.childs_mut().foreach(|child| self.transform_assign(child));
 
 		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
 		equals.exprs.sort();
-		equals.exprs.dedup();
 
 		// After deduplication: Find equal childs tautology:
 		//  - `(= a ... a) => true`
-		if equals.exprs.len() == 1 {
+		equals.exprs.dedup();
+		if equals.arity() == 1 {
 			return Expr::boolconst(true)
 		}
 
@@ -661,11 +634,6 @@ impl TransformerImpl for Simplifier {
 				return Expr::boolconst(false)
 			}
 		}
-
-		// // Simplify child expressions.
-		// for child in equals.childs_mut() {
-		// 	self.transform_assign(child);
-		// }
 
 		// Finally check for constant tautology evaluation.
 		//  - `= 42 42 42 => true`
@@ -1776,6 +1744,25 @@ mod tests {
 					f.boolean("d")
 				])
 			);
+		}
+	}
+
+	mod implies {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.implies(
+					f.boolean("a"),
+					f.boolean("b")
+				),
+				f.or(
+					f.not(f.boolean("a")),
+					f.boolean("b")
+				)
+			)
 		}
 	}
 
