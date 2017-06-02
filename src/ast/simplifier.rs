@@ -442,17 +442,41 @@ impl TransformerImpl for Simplifier {
 	fn transform_and(&mut self, mut and: And) -> Expr {
 		and.childs_mut().foreach(|child| self.transform_assign(child));
 
+		// Flatten nested ands.
+		use std::mem;
+		for child in mem::replace(&mut and.formulas, vec![]) {
+			match child {
+				Expr::And(suband) => {
+					for subchild in suband.formulas {
+						and.formulas.push(subchild)
+					}
+				}
+				_ => {
+					and.formulas.push(child)
+				}
+			}
+		}
+
+		// Deduplicate multiple unnecesary symbolically equal formulas
+		// Also explicitely remove needless constant true booleans.
+		and.formulas.retain(|f| !f.is_boolconst_with_value(true));
+		match and.arity() {
+			0 => return Expr::boolconst(true),
+			1 => return and.formulas.pop().unwrap(),
+			_ => ()
+		}
+
+		// Normalize & Deduplicate: `and a a` to `true`
 		and.formulas.sort();
 		and.formulas.dedup();
+		if and.arity() == 1 {
+			return Expr::boolconst(true);
+		}
+
 
 		// Case: `and ... false ...` to `false`
 		if and.formulas.iter().any(|f| f.is_boolconst_with_value(false)) {
 			return Expr::boolconst(false)
-		}
-
-		// Case: `and true true ...` to `true`
-		if and.formulas.iter().all(|f| f.is_boolconst_with_value(true)) {
-			return Expr::boolconst(true)
 		}
 
 		// Case: `and a (not a)` to `false`
@@ -460,29 +484,77 @@ impl TransformerImpl for Simplifier {
 			let idns = and.formulas
 				.iter()
 				.filter(|f| f.kind() != ExprKind::Not);
-			let negs = and.formulas
+			let nots = and.formulas
 				.iter()
 				.filter(|f| f.kind() == ExprKind::Not)
-				.collect::<Vec<_>>();
-			for (idn, neg) in idns.cartesian_product(negs.iter()) {
-				if idn.is_bool_contradiction(neg) {
+				.collect::<Vec<_>>(); // TODO: Replace collect with proper iteration.
+			for (idn, not) in idns.cartesian_product(nots.iter()) {
+				if idn.is_bool_contradiction(not) {
 					return Expr::boolconst(false)
 				}
 			}
 		}
 
-		// TODO: flatten-nested ands
-		// TODO: evalute to false if detecting const false expression
-		// TODO: sort expression list (needed for some other optimizations that require normalization)
-		match and.arity() {
-			1 => Expr::boolconst(true),
-			_ => and.into_variant()
-		}
-		// and.into_variant()
+		and.into_variant()
 	}
 
 	fn transform_or(&mut self, mut or: Or) -> Expr {
+		debug_assert!(or.arity() >= 2);
+
 		or.childs_mut().foreach(|child| self.transform_assign(child));
+
+		// Flatten nested ors.
+		use std::mem;
+		for child in mem::replace(&mut or.formulas, vec![]) {
+			match child {
+				Expr::And(subor) => {
+					for subchild in subor.formulas {
+						or.formulas.push(subchild)
+					}
+				}
+				_ => {
+					or.formulas.push(child)
+				}
+			}
+		}
+
+		// Deduplicate multiple unnecesary symbolically equal formulas
+		// Also explicitely remove needless constant false booleans.
+		or.formulas.retain(|f| !f.is_boolconst_with_value(false));
+		match or.arity() {
+			0 => return Expr::boolconst(false),
+			1 => return or.formulas.pop().unwrap(),
+			_ => ()
+		}
+
+		// Normalize & Deduplicate: `or a a` to `true`
+		or.formulas.sort();
+		or.formulas.dedup();
+		if or.arity() == 1 {
+			return Expr::boolconst(true);
+		}
+
+		// Case: `or ... true ...` to `true`
+		if or.formulas.iter().any(|f| f.is_boolconst_with_value(true)) {
+			return Expr::boolconst(true)
+		}
+
+		// Case: `or a (not a)` to `true`
+		{
+			let idns = or.formulas
+				.iter()
+				.filter(|f| f.kind() != ExprKind::Not);
+			let nots = or.formulas
+				.iter()
+				.filter(|f| f.kind() == ExprKind::Not)
+				.collect::<Vec<_>>(); // TODO: Replace collect with proper iteration.
+			for (idn, not) in idns.cartesian_product(nots.iter()) {
+				if idn.is_bool_contradiction(not) {
+					return Expr::boolconst(true)
+				}
+			}
+		}
+
 		or.into_variant()
 	}
 
@@ -1605,6 +1677,29 @@ mod tests {
 					f.not(f.boolean("a"))
 				),
 				f.boolconst(false)
+			);
+		}
+
+		#[test]
+		fn flatten() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.and(
+					f.and(
+						f.boolean("a"),
+						f.boolean("b")
+					),
+					f.and(
+						f.boolean("c"),
+						f.boolean("d")
+					)
+				),
+				f.conjunction(vec![
+					f.boolean("a"),
+					f.boolean("b"),
+					f.boolean("c"),
+					f.boolean("d")
+				])
 			);
 		}
 	}
