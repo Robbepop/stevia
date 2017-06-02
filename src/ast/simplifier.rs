@@ -559,8 +559,8 @@ impl TransformerImpl for Simplifier {
 	}
 
 	fn transform_xor(&mut self, mut xor: Xor) -> Expr {
-		xor.left  = self.boxed_transform(xor.left);
-		xor.right = self.boxed_transform(xor.right);
+		self.transform_assign(&mut xor.left);
+		self.transform_assign(&mut xor.right);
 		xor.into_variant()
 	}
 
