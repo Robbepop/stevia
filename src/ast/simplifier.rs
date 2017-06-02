@@ -507,7 +507,7 @@ impl TransformerImpl for Simplifier {
 		use std::mem;
 		for child in mem::replace(&mut or.formulas, vec![]) {
 			match child {
-				Expr::And(subor) => {
+				Expr::Or(subor) => {
 					for subchild in subor.formulas {
 						or.formulas.push(subchild)
 					}
@@ -1695,6 +1695,81 @@ mod tests {
 					)
 				),
 				f.conjunction(vec![
+					f.boolean("a"),
+					f.boolean("b"),
+					f.boolean("c"),
+					f.boolean("d")
+				])
+			);
+		}
+	}
+
+	mod or {
+		use super::*;
+
+		#[test]
+		fn const_tautology() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.or(
+					f.boolconst(false),
+					f.boolconst(true)
+				),
+				f.boolconst(true)
+			);
+		}
+
+		#[test]
+		fn const_contradiction() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.or(
+					f.boolconst(false),
+					f.boolconst(false)
+				),
+				f.boolconst(false)
+			);
+		}
+
+		#[test]
+		fn symbolic_dedup() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.or(
+					f.boolean("a"),
+					f.boolean("a")
+				),
+				f.boolconst(true)
+			);
+		}
+
+		#[test]
+		fn symbolic_contradiction() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.or(
+					f.boolean("a"),
+					f.not(f.boolean("a"))
+				),
+				f.boolconst(true)
+			);
+		}
+
+		#[test]
+		fn flatten() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.or(
+					f.or(
+						f.boolean("a"),
+						f.boolean("b")
+					),
+					f.or(
+						f.boolean("c"),
+						f.boolean("d")
+					)
+				),
+				f.disjunction(vec![
 					f.boolean("a"),
 					f.boolean("b"),
 					f.boolean("c"),
