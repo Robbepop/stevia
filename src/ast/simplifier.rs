@@ -556,6 +556,22 @@ impl TransformerImpl for Simplifier {
 	fn transform_xor(&mut self, mut xor: Xor) -> Expr {
 		self.transform_assign(&mut xor.left);
 		self.transform_assign(&mut xor.right);
+
+		// Normalize by sorting (allowed through Commutativity)
+		if !(xor.left <= xor.right) {
+			::std::mem::swap(&mut xor.left, &mut xor.right);
+		}
+
+		// Symbolic tautology `xor a (not a)` to `true`
+		if xor.left.is_bool_contradiction(&xor.right) {
+			return Expr::boolconst(true)
+		}
+
+		// Symbolic contradiction `xor a a` to `false`
+		if xor.left == xor.right {
+			return Expr::boolconst(false)
+		}
+
 		xor.into_variant()
 	}
 
@@ -1772,6 +1788,52 @@ mod tests {
 					f.not(f.boolean("a")),
 					f.boolean("b")
 				)
+			)
+		}
+	}
+
+	mod xor {
+		use super::*;
+
+		#[test]
+		fn normalization() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.eq(
+					f.xor(
+						f.boolean("a"),
+						f.boolean("b")
+					),
+					f.xor(
+						f.boolean("b"),
+						f.boolean("a")
+					)
+				),
+				f.boolconst(true)
+			)
+		}
+
+		#[test]
+		fn symbolic_tautology() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.xor(
+					f.boolean("a"),
+					f.not(f.boolean("a"))
+				),
+				f.boolconst(true)
+			)
+		}
+
+		#[test]
+		fn symbolic_contradiction() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.xor(
+					f.boolean("a"),
+					f.boolean("a")
+				),
+				f.boolconst(false)
 			)
 		}
 	}
