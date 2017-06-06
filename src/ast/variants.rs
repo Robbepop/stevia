@@ -308,6 +308,63 @@ impl ExprTrait for Expr {
 }
 
 impl Expr {
+	/// Returns true if self is a constant boolean expression 
+	/// with the given `expected` boolean representation.
+	/// 
+	/// Note: This is a convenience method.
+	pub fn is_boolconst_with_value(&self, expected: bool) -> bool {
+		if let Expr::BoolConst(ref val) = *self {
+			val.value == expected
+		}
+		else {
+			false
+		}
+	}
+
+	/// Returns true if self is a constant bitvector expression
+	/// with the given `expected` bitvector representation.
+	/// 
+	/// Note: This is a convenience method.
+	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool
+		where T: Into<::BitVec>
+	{
+		if let Expr::BitVecConst(ref bvconst) = *self {
+			bvconst.value == expected.into()
+		}
+		else {
+			false
+		}
+	}
+
+	/// Returns true if the given `other` boolean expression contradicts
+	/// self as boolean expression symbolically.
+	/// 
+	/// I.e. for `a` and `(not a)`
+	pub fn is_bool_contradiction(&self, other: &Expr) -> bool {
+		debug_assert!(self.ty() == Type::Boolean);
+		debug_assert!(other.ty() == Type::Boolean);
+		match (self, other) {
+			(a, &Expr::Not(ref not_a)) if &*not_a.inner == a => true,
+			(&Expr::Not(ref not_a), a) if &*not_a.inner == a => true,
+			_ => false
+		}
+	}
+
+	/// Returns true if the given `other` boolean expression contradicts
+	/// self as boolean expression symbolically.
+	/// 
+	/// I.e. for `a` and `(not a)`
+	pub fn is_bitvec_contradiction(&self, other: &Expr) -> bool {
+		debug_assert!(Type::common_bitwidth(self.ty(), other.ty()).is_ok());
+		match (self, other) {
+			(a, &Expr::Neg(ref neg_a)) if &*neg_a.inner == a => true,
+			(&Expr::Neg(ref neg_a), a) if &*neg_a.inner == a => true,
+			_ => false
+		}
+	}
+}
+
+impl Expr {
 	//=========================================================================
 	// TERM EXPRESSIONS
 	//=========================================================================
@@ -536,35 +593,5 @@ impl Expr {
 
 	pub fn array(name: SymName, idx_width: Bits, val_width: Bits) -> Expr {
 		Expr::Symbol(expr::Symbol{ty: Type::Array(idx_width.0, val_width.0), name})
-	}
-
-	pub fn is_boolconst_with_value(&self, expected: bool) -> bool {
-		if let Expr::BoolConst(ref val) = *self {
-			val.value == expected
-		}
-		else {
-			false
-		}
-	}
-
-	pub fn is_bool_contradiction(&self, other: &Expr) -> bool {
-		debug_assert!(self.ty() == Type::Boolean);
-		debug_assert!(other.ty() == Type::Boolean);
-		match (self, other) {
-			(a, &Expr::Not(ref not_a)) if &*not_a.inner == a => true,
-			(&Expr::Not(ref not_a), a) if &*not_a.inner == a => true,
-			_ => false
-		}
-	}
-
-	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool
-		where T: Into<::BitVec>
-	{
-		if let Expr::BitVecConst(ref bvconst) = *self {
-			bvconst.value == expected.into()
-		}
-		else {
-			false
-		}
 	}
 }

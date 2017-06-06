@@ -651,7 +651,17 @@ impl TransformerImpl for Simplifier {
 	fn transform_ite(&mut self, mut ite: IfThenElse) -> Expr {
 		self.transform_assign(&mut ite.cond);
 
-		if let Expr::BoolConst(BoolConst{value}) = *ite.cond {
+		// Return then case if condition is tautology.
+		if ite.cond.is_boolconst_with_value(true) {
+			return self.transform(*ite.then_case)
+		}
+
+		// Returns else case if condition is contradiction.
+		if ite.cond.is_boolconst_with_value(false) {
+			return self.transform(*ite.else_case)
+		}
+
+		if let &Expr::BoolConst(BoolConst{value}) = &*ite.cond {
 			if value {
 				return self.transform(*ite.then_case)
 			}
