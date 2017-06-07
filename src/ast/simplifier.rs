@@ -153,14 +153,9 @@ impl TransformerImpl for Simplifier {
 			negs.retain(|neg| {
 				eliminated.iter().find(|nonneg| *neg.inner == **nonneg).is_none()
 			});
-			// This basically only filters out all previously eliminated negs accordingly.
-			let mut negs: Vec<Expr> = negs
-				.into_iter()
-				.map(|neg| neg.into_variant())
-				.collect();
 			// Re-insert non-eliminated expressions into the original vector.
 			add.terms.append(&mut nonnegs);
-			add.terms.append(&mut negs);
+			add.terms.extend(negs.into_iter().map(|f| f.into_variant()));
 		}
 
 		add.terms.sort();
@@ -263,22 +258,6 @@ impl TransformerImpl for Simplifier {
 				*sub.minuend
 			]
 		)
-
-		// // Lowering to `Add`
-		// if let Expr::Neg(negation) = *sub.subtrahend {
-		// 	// maybe this constructor possibility would be nicer?
-		// 	// Expr::bvadd(negation.ty(), *sub.minuend, *negation.inner)
-		// 	Expr::Add(Add{
-		// 		ty: negation.ty(),
-		// 		terms: vec![
-		// 			*sub.minuend,
-		// 			*negation.inner
-		// 		]
-		// 	})
-		// }
-		// else {
-		// 	sub.into_variant()
-		// }
 	}
 
 	fn transform_bvudiv(&mut self, mut udiv: Div) -> Expr {
