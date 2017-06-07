@@ -1,3 +1,4 @@
+use num::Integer;
 use itertools::Itertools;
 
 use ast::prelude::*;
@@ -54,9 +55,12 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_bvneg(&mut self, mut neg: Neg) -> Expr {
 		match *neg.inner {
+			// Involution
 			Expr::Neg(negneg) => {
 				self.transform(*negneg.inner)
 			}
+
+			// Distribute negates through summands.
 			Expr::Add(mut add) => {
 				add.terms = add.terms
 					.into_iter()
@@ -64,17 +68,20 @@ impl TransformerImpl for Simplifier {
 					.collect();
 				self.transform_bvadd(add)
 			}
+
+			// Distribute negates though factors.
 			Expr::Mul(mut mul) => {
-				let negated = mul.factors
-					.pop()
-					.map(|e| Expr::bvneg(Box::new(e)))
-					.expect("expected mul to be in a valid state");
-				mul.factors.push(negated);
+				mul.childs_mut().foreach(|f| f.assign_fn(Expr::unwrap_neg));
+				mul.factors.last_mut().map(|f| f.assign_fn(Expr::wrap_with_neg));
 				self.transform_bvmul(mul)
 			}
+
+			// Neutral element
 			Expr::BitVecConst(BitVecConst{ref value, ty}) if value.is_zero() => {
 				Expr::bvconst(ty.bits().unwrap(), 0)
 			}
+
+			// No rule was applicable
 			_ => {
 				self.transform_assign(&mut neg.inner);
 				neg.into_variant()
@@ -95,15 +102,16 @@ impl TransformerImpl for Simplifier {
 		for child in mem::replace(&mut add.terms, vec![]) {
 			match child {
 				Expr::Add(subadd) => {
-					for subchild in subadd.terms {
-						add.terms.push(subchild)
-					}
+					add.terms.extend(subadd.into_childs())
 				}
 				_ => {
 					add.terms.push(child)
 				}
 			}
 		}
+
+		// Dissolve multiplicities: `(add a b a a)` to `(add (mul 3 a) b)`
+		// TODO:
 
 		if add.terms.iter().all(|child| child.kind() == ExprKind::Neg) {
 			// Negation pulling
@@ -171,8 +179,43 @@ impl TransformerImpl for Simplifier {
 	fn transform_bvmul(&mut self, mut mul: Mul) -> Expr {
 		mul.childs_mut().foreach(|child| self.transform_assign(child));
 
+		// Flattening of nested muls.
+		use std::mem;
+		for child in mem::replace(&mut mul.factors, vec![]) {
+			match child {
+				Expr::Mul(submul) => {
+					mul.factors.extend(submul.into_childs())
+				}
+				_ => {
+					mul.factors.push(child)
+				}
+			}
+		}
+
 		// Normalization
 		mul.factors.sort();
+
+		// Negation normalization
+		{
+			// Count negations.
+			let num_negs = mul.factors
+				.iter()
+				.filter(|e| e.kind() == ExprKind::Neg)
+				.count();
+			// Remove all negations within this multiplication.
+			mul.childs_mut().foreach(|f| f.assign_fn(Expr::unwrap_neg));
+			// Normalize again without negations.
+			mul.factors.sort();
+			// If there were an odd number of negations we
+			// need to put a negation back again.
+			if num_negs.is_odd() {
+				mul.factors
+					.last_mut()
+					.map(|f| f.assign_fn(Expr::wrap_with_neg));
+			}
+			// Normalize again with maybe single-negation.
+			mul.factors.sort();
+		}
 
 		// Neutral element: `(* a 1)` to `(* a)`
 		mul.factors.retain(|x| !x.is_bvconst_with_value(1));
@@ -446,7 +489,7 @@ impl TransformerImpl for Simplifier {
 		for child in mem::replace(&mut and.formulas, vec![]) {
 			match child {
 				Expr::And(suband) => {
-					suband.into_childs().foreach(|f| and.formulas.push(f))
+					and.formulas.extend(suband.into_childs())
 				}
 				_ => {
 					and.formulas.push(child)
@@ -505,7 +548,7 @@ impl TransformerImpl for Simplifier {
 		for child in mem::replace(&mut or.formulas, vec![]) {
 			match child {
 				Expr::Or(subor) => {
-					subor.into_childs().foreach(|f| or.formulas.push(f))
+					or.formulas.extend(subor.into_childs())
 				}
 				_ => {
 					or.formulas.push(child)
@@ -602,50 +645,50 @@ impl TransformerImpl for Simplifier {
 		// Normalize child expressions and eleminate duplicates `a = b = a` => `a = b`
 		equals.exprs.sort();
 
-		// After deduplication: Find equal childs tautology:
-		//  - `(= a ... a) => true`
+		// After deduplication: Find equal childs tautology: `(= a ... a)` to `true`
 		equals.exprs.dedup();
 		if equals.arity() == 1 {
 			return Expr::boolconst(true)
 		}
 
-		// Find const constradiction pairs:
+		use itertools::Itertools;
+
+		// Find const constradicting pairs:
 		//  - `(= 42 1337)    => false`
 		//  - `(= false true) => false`
-		use itertools::Itertools;
-		// TODO: Optimization: Filter for `BitVecConst` and `BoolConst`.
+		// TODO: Optimization by filtering for `BitVecConst` and `BoolConst`.
 		{
-			let has_const_contradicting_pair = equals.exprs.iter().cartesian_product(&equals.exprs).any(|(l,r)| {
-				match (l, r) {
-					(&Expr::BitVecConst(BitVecConst{value: ref v1, ..}),
-					 &Expr::BitVecConst(BitVecConst{value: ref v2, ..})) => {
-						v1 != v2
-					},
-					(&Expr::BoolConst(BoolConst{value: ref v1, ..}),
-					 &Expr::BoolConst(BoolConst{value: ref v2, ..})) => {
-						v1 != v2
-					},
-					_ => false
+			let has_const_contradicting_pair = equals.exprs
+				.iter()
+				.cartesian_product(&equals.exprs)
+				.any(|(l,r)| {
+					match (l, r) {
+						(&Expr::BitVecConst(ref l), &Expr::BitVecConst(ref r)) => l.value != r.value,
+						(&Expr::BoolConst(ref l)  , &Expr::BoolConst(ref r)  ) => l.value != r.value,
+						_ => false
+					}
 				}
-			});
+			);
 			if has_const_contradicting_pair {
 				return Expr::boolconst(false)
 			}
 		}
 
-		// Find contradiction pairs:
+		// Find symbolically contradicting pairs:
 		//  - `(= a not(a)) => false`
 		//  - `(= x (-x))   => false`
 		{
-			let has_symbolic_contradicting_pair = equals.exprs.iter().cartesian_product(&equals.exprs).any(|(l, r)| {
-				match (l, r) {
-					(non_negated, &Expr::Not(Not{inner: ref negated    })) |
-					(non_negated, &Expr::Neg(Neg{inner: ref negated, ..})) => {
-						&**negated == non_negated
-					},
-					_ => false
+			let has_symbolic_contradicting_pair = equals.exprs
+				.iter()
+				.cartesian_product(&equals.exprs)
+				.any(|(l, r)| {
+					match (l, r) {
+						(l, r) if l.is_bool_contradiction(r)   => true,
+						(l, r) if l.is_bitvec_contradiction(r) => true,
+						_ => false
+					}
 				}
-			});
+			);
 			if has_symbolic_contradicting_pair {
 				return Expr::boolconst(false)
 			}
@@ -1358,7 +1401,39 @@ mod tests {
 		}
 
 		#[test]
-		#[ignore]
+		fn dissolve_negs() {
+			let f = NaiveExprFactory::new();
+			// even
+			assert_simplified(
+				f.bvprod(vec![
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bitvec("y", Bits(32)),
+					f.bvneg(f.bitvec("z", Bits(32)))
+				]),
+				f.bvprod(vec![
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32)),
+					f.bitvec("z", Bits(32))
+				])
+			);
+			// odd
+			assert_simplified(
+				f.bvprod(vec![
+					f.bitvec("x1", Bits(32)),
+					f.bvneg(f.bitvec("x2", Bits(32))),
+					f.bvneg(f.bitvec("x3", Bits(32))),
+					f.bvneg(f.bitvec("x4", Bits(32)))
+				]),
+				f.bvprod(vec![
+					f.bvneg(f.bitvec("x4", Bits(32))), // moved to front due to normalization
+					f.bitvec("x1", Bits(32)),
+					f.bitvec("x2", Bits(32)),
+					f.bitvec("x3", Bits(32))
+				])
+			)
+		}
+
+		#[test]
 		fn flattening() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(

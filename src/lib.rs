@@ -1,3 +1,4 @@
+extern crate num;
 extern crate smallvec;
 extern crate unreachable;
 extern crate itertools;

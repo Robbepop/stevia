@@ -341,8 +341,7 @@ impl Expr {
 	/// 
 	/// I.e. for `a` and `(not a)`
 	pub fn is_bool_contradiction(&self, other: &Expr) -> bool {
-		debug_assert!(self.ty() == Type::Boolean);
-		debug_assert!(other.ty() == Type::Boolean);
+		if self.ty() != Type::Boolean || other.ty() != Type::Boolean { return false }
 		match (self, other) {
 			(a, &Expr::Not(ref not_a)) if &*not_a.inner == a => true,
 			(&Expr::Not(ref not_a), a) if &*not_a.inner == a => true,
@@ -355,12 +354,65 @@ impl Expr {
 	/// 
 	/// I.e. for `a` and `(not a)`
 	pub fn is_bitvec_contradiction(&self, other: &Expr) -> bool {
-		debug_assert!(Type::common_bitwidth(self.ty(), other.ty()).is_ok());
+		if Type::common_bitwidth(self.ty(), other.ty()).is_err() { return false }
 		match (self, other) {
 			(a, &Expr::Neg(ref neg_a)) if &*neg_a.inner == a => true,
 			(&Expr::Neg(ref neg_a), a) if &*neg_a.inner == a => true,
 			_ => false
 		}
+	}
+
+	// Wraps the given `Expr` within a `Neg` expression.
+	// 
+	// Does some minor simplification to avoid involution allocations.
+	pub fn wrap_with_neg(self) -> Expr {
+		match self {
+			Expr::Neg(neg) => *neg.inner,
+			_ => Expr::bvneg(Box::new(self))
+		}
+	}
+
+	// Unwraps the given `Neg` expression.
+	// 
+	// Does nothing if the given expression is not a `Neg` expression.
+	pub fn unwrap_neg(self) -> Expr {
+		match self {
+			Expr::Neg(neg) => *neg.inner,
+			f => f
+		}
+	}
+
+	// Wraps the given `Expr` within a `Not` expression.
+	// 
+	// Does some minor simplification to avoid involution allocations.
+	pub fn wrap_with_not(self) -> Expr {
+		match self {
+			Expr::Not(not) => *not.inner,
+			_ => Expr::not(Box::new(self))
+		}
+	}
+
+	// Unwraps the given `Not` expression.
+	// 
+	// Does nothing if the given expression is not a `Not` expression.
+	pub fn unwrap_not(self) -> Expr {
+		match self {
+			Expr::Not(not) => *not.inner,
+			f => f
+		}
+	}
+
+	// Generic convenience function applying the given by-value receiver
+	// to the given expression, operating inplace and self-assign the result.
+	// 
+	// This allows usage of all consuming functions by references to mutables.
+	pub fn assign_fn<F>(&mut self, f: F)
+		where F: FnOnce(Expr) -> Expr
+	{
+		use std::mem;
+		let extracted = mem::replace(self, Expr::boolconst(false));
+		let morphed   = f(extracted);
+		mem::replace(self, morphed);
 	}
 }
 
