@@ -699,8 +699,8 @@ impl TransformerImpl for Simplifier {
 			return self.transform(*ite.else_case)
 		}
 
-		if let &Expr::BoolConst(BoolConst{value}) = &*ite.cond {
-			if value {
+		if let Expr::BoolConst(constant) = *ite.cond {
+			if constant.value {
 				return self.transform(*ite.then_case)
 			}
 			else {
