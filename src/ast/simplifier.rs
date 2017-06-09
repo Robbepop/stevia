@@ -594,6 +594,22 @@ impl TransformerImpl for Simplifier {
 			return Expr::boolconst(false)
 		}
 
+		// Const tautology lowering
+		// - `(xor a true)` to `(not a)`
+		// - `(xor true true)` to `(not true)` to `false`
+		// - `(xor false true)` to `(not false)` to `true`
+		if xor.left.is_boolconst_with_value(true) {
+			return self.transform_not(Not{inner: xor.right})
+		}
+
+		// Const contradiction lowering
+		// - `(xor a false)` to `a`
+		// - `(xor true false)` to `true`
+		// - `(xor false false)` to `false`
+		if xor.left.is_boolconst_with_value(false) {
+			return self.transform(*xor.right)
+		}
+
 		xor.into_variant()
 	}
 
@@ -604,8 +620,11 @@ impl TransformerImpl for Simplifier {
 	}
 
 	fn transform_implies(&mut self, implies: Implies) -> Expr {
-		self.transform_or(
-			Or{formulas: vec![Expr::not(implies.assumption), *implies.implication]})
+		self.transform_or(Or{
+			formulas: vec![
+				Expr::not(implies.assumption), *implies.implication
+			]
+		})
 	}
 
 	fn transform_param_bool(&mut self, mut parambool: ParamBool) -> Expr {
@@ -699,26 +718,16 @@ impl TransformerImpl for Simplifier {
 			return self.transform(*ite.else_case)
 		}
 
-		if let Expr::BoolConst(constant) = *ite.cond {
-			if constant.value {
-				return self.transform(*ite.then_case)
-			}
-			else {
-				return self.transform(*ite.else_case)
-			}
-		}
-
-		{
-			let ite_ty = ite.ty();
-			if let Expr::Not(Not{inner}) = *ite.cond {
-
-				return self.transform_ite(IfThenElse{
-					ty: ite_ty,
-					cond: inner,
-					then_case: ite.else_case,
-					else_case: ite.then_case
-				})
-			}
+		// Switch if-arms on negated condition.
+		if let Expr::Not(not) = *ite.cond {
+			return self.transform_ite(IfThenElse{
+				// It should have been already ensured that 
+				// both if-arms must have the same type.
+				ty: ite.then_case.ty(),
+				cond: not.inner,
+				then_case: ite.else_case,
+				else_case: ite.then_case
+			})
 		}
 
 		self.transform_assign(&mut ite.then_case);
@@ -1889,6 +1898,48 @@ mod tests {
 				),
 				f.boolconst(false)
 			)
+		}
+
+		#[test]
+		fn not_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.xor(
+					f.boolean("a"),
+					f.boolconst(true)
+				),
+				f.not(f.boolean("a"))
+			);
+		}
+
+		#[test]
+		fn identity_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.xor(
+					f.boolean("a"),
+					f.boolconst(false)
+				),
+				f.boolean("a")
+			)
+		}
+
+		#[test]
+		fn const_eval() {
+			fn not_lowering_impl(a: bool, b: bool) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.xor(
+						f.boolconst(a),
+						f.boolconst(b)
+					),
+					f.boolconst((!a && b) || (a && !b))
+				)
+			}
+			not_lowering_impl(false, false);
+			not_lowering_impl(false, true );
+			not_lowering_impl(true , false);
+			not_lowering_impl(true , true );
 		}
 	}
 
