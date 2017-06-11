@@ -1007,6 +1007,143 @@ mod tests {
 			simplify_not_const_impl(true);
 			simplify_not_const_impl(false);
 		}
+
+		#[test]
+		fn not_uge_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvuge(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvult(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_sge_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvsge(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvslt(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_ugt_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvugt(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvule(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_sgt_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvsgt(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvsle(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_ule_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvule(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvult(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_sle_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvsle(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvslt(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_ult_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvult(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvule(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			)
+		}
+
+		#[test]
+		fn not_slt_lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.not(
+					f.bvslt(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
+				),
+				f.bvsle(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			)
+		}
+
 	}
 
 	mod ite {
