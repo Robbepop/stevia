@@ -61,6 +61,7 @@ impl Simplifier {
 	/// 
 	/// This must be called whenever a transformation to any part
 	/// of the simplification input occured.
+	#[allow(dead_code)]
 	fn unreach_fixpoint(&mut self) {
 		self.fixpoint_reached = false
 	}
