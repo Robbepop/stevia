@@ -18,19 +18,57 @@ use ast::{Transformer, TransformerImpl};
 ///       got simplified to detect a fix-point. This is bad and should be changed
 ///       in a future version!
 pub fn simplify(mut expr: Expr) -> Expr {
-	let mut simplifier = Simplifier::new();
-	for _ in 0..5 { simplifier.transform_assign(&mut expr) }
+	Simplifier::new().simplify_to_fixpoint(&mut expr);
 	expr
 }
 
 struct Simplifier {
 	// TODO: Add evaluation context for evaluated expressions.
 	//       This may require expressions to implement `Hash`.
+	fixpoint_reached: bool
 }
 
 impl Simplifier {
+	/// Creates a new simplifier.
 	fn new() -> Simplifier {
-		Simplifier{}
+		Simplifier{
+			fixpoint_reached: false
+		}
+	}
+
+	/// Simplifies the given expression until the fixpoint has been reached.
+	fn simplify_to_fixpoint(&mut self, expr: &mut Expr) {
+		self.transform_assign(expr); // FIXME: Remove when fixpoint detection is working, finally.
+		self.transform_assign(expr); // FIXME: Remove when fixpoint detection is working, finally.
+		self.transform_assign(expr); // FIXME: Remove when fixpoint detection is working, finally.
+		assert!(!self.is_fixpoint_reached());
+		while !self.is_fixpoint_reached() {
+			self.reset_fixpoint();
+			self.transform_assign(expr);
+		}
+	}
+
+	/// Resets the fixpoint detection mechanis.
+	/// 
+	/// This should be used only internally before every
+	/// simplification iteration within the simplify procedure.
+	fn reset_fixpoint(&mut self) {
+		self.fixpoint_reached = true
+	}
+
+	/// Tells the fixpoint detection that the fixpoint was not
+	/// reached within the current iteration.
+	/// 
+	/// This must be called whenever a transformation to any part
+	/// of the simplification input occured.
+	fn unreach_fixpoint(&mut self) {
+		self.fixpoint_reached = false
+	}
+
+	/// Returns true if the fixpoint was reached after a successful
+	/// run through all possible simplification steps.
+	fn is_fixpoint_reached(&self) -> bool {
+		self.fixpoint_reached
 	}
 }
 
@@ -62,10 +100,7 @@ impl TransformerImpl for Simplifier {
 
 			// Distribute negates through summands.
 			Expr::Add(mut add) => {
-				add.terms = add.terms
-					.into_iter()
-					.map(|t| Expr::bvneg(Box::new(t)))
-					.collect();
+				add.childs_mut().foreach(|t| t.assign_fn(Expr::wrap_with_neg));
 				self.transform_bvadd(add)
 			}
 
@@ -453,9 +488,59 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_not(&mut self, mut not: Not) -> Expr {
 		self.transform_assign(&mut not.inner);
+
 		match *not.inner {
-			Expr::Not(notnot) => self.transform(*notnot.inner),
-			Expr::BoolConst(constant) => Expr::boolconst(!constant.value),
+			// `(not (not a))` to `a`
+			Expr::Not(notnot) => {
+				self.transform(*notnot.inner)
+			}
+
+			// `(not true)` to `false`
+			// `(not false)` to `true`
+			Expr::BoolConst(constant) => {
+				Expr::boolconst(!constant.value)
+			}
+
+			// `(not (uge a b))` to `(ult a b)`
+			Expr::Ge(uge) => {
+				Expr::bvult(uge.inner_ty, uge.left, uge.right)
+			}
+
+			// `(not (sge a b))` to `(slt a b)`
+			Expr::SignedGe(sge) => {
+				Expr::bvslt(sge.inner_ty, sge.left, sge.right)
+			}
+
+			// `(not (ugt a b))` to `(ule a b)`
+			Expr::Gt(ugt) => {
+				Expr::bvule(ugt.inner_ty, ugt.left, ugt.right)
+			}
+
+			// `(not (sgt a b))` to `(sle a b)`
+			Expr::SignedGt(sgt) => {
+				Expr::bvsle(sgt.inner_ty, sgt.left, sgt.right)
+			}
+
+			// `(not (ule a b))` (to `ugt a b`) to `ult b a`
+			Expr::Le(ule) => {
+				Expr::bvult(ule.inner_ty, ule.right, ule.left)
+			}
+
+			// `(not (sle a b))` (to `sgt a b`) to `slt b a`
+			Expr::SignedLe(sle) => {
+				Expr::bvslt(sle.inner_ty, sle.right, sle.left)
+			}
+
+			// `(not (ult a b))` to `ule b a`
+			Expr::Lt(ult) => {
+				Expr::bvule(ult.inner_ty, ult.right, ult.left)
+			}
+
+			// `(not (slt a b))` to `sle b a`
+			Expr::SignedLt(slt) => {
+				Expr::bvsle(slt.inner_ty, slt.right, slt.left)
+			}
+
 			_ => not.into_variant()
 		}
 	}
@@ -1940,6 +2025,82 @@ mod tests {
 			not_lowering_impl(false, true );
 			not_lowering_impl(true , false);
 			not_lowering_impl(true , true );
+		}
+	}
+
+	mod ugt {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvugt(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvult(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
+		}
+	}
+
+	mod uge {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvuge(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvule(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
+		}
+	}
+
+	mod sgt {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvsgt(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvslt(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
+		}
+	}
+
+	mod sge {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvsge(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvsle(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
 		}
 	}
 
