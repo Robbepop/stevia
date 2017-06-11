@@ -17,7 +17,7 @@ Currently the solver is in very early development phase.
 - Comprehensive documentation for all important parts of the code.
 - Eventually be able to keep up with other SMT solvers like STP.
 - C API to enable bindings for other languages.
-- Use an efficient SAT solver, like [candy-kingdom](https://github.com/Udopia/candy-kingdom).
+- Use an efficient SAT solver, like [candy](https://github.com/Udopia/candy-kingdom).
 
 ## Simplifications
 
