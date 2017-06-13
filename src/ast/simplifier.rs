@@ -85,7 +85,7 @@ impl Simplifier {
 
 impl TransformerImpl for Simplifier {
 	fn transform_bvconst(&mut self, expr: BitVecConst) -> Expr {
-		expr.into_variant()
+		expr.into_expr()
 	}
 
 	//=========================================================================
@@ -120,7 +120,7 @@ impl TransformerImpl for Simplifier {
 			// No rule was applicable
 			_ => {
 				self.transform_assign(&mut neg.inner);
-				neg.into_variant()
+				neg.into_expr()
 			}
 		}
 	}
@@ -191,7 +191,7 @@ impl TransformerImpl for Simplifier {
 			});
 			// Re-insert non-eliminated expressions into the original vector.
 			add.terms.append(&mut nonnegs);
-			add.terms.extend(negs.into_iter().map(|f| f.into_variant()));
+			add.terms.extend(negs.into_iter().map(|f| f.into_expr()));
 		}
 
 		add.terms.sort();
@@ -203,7 +203,7 @@ impl TransformerImpl for Simplifier {
 			add.terms.pop().unwrap()
 		}
 		else {
-			add.into_variant()
+			add.into_expr()
 		}
 	}
 
@@ -262,7 +262,7 @@ impl TransformerImpl for Simplifier {
 			// One element left, e.g. when it was `(* a 1)`, so return `a`
 			1 => mul.factors.pop().unwrap(),
 			// Else nothing special happens
-			_ => mul.into_variant()
+			_ => mul.into_expr()
 		}
 	}
 
@@ -299,31 +299,31 @@ impl TransformerImpl for Simplifier {
 	fn transform_bvudiv(&mut self, mut udiv: Div) -> Expr {
 		self.transform_assign(&mut udiv.dividend);
 		self.transform_assign(&mut udiv.divisor);
-		udiv.into_variant()
+		udiv.into_expr()
 	}
 
 	fn transform_bvumod(&mut self, mut umod: Mod) -> Expr {
 		self.transform_assign(&mut umod.dividend);
 		self.transform_assign(&mut umod.divisor);
-		umod.into_variant()
+		umod.into_expr()
 	}
 
 	fn transform_bvsdiv(&mut self, mut sdiv: SignedDiv) -> Expr {
 		self.transform_assign(&mut sdiv.dividend);
 		self.transform_assign(&mut sdiv.divisor);
-		sdiv.into_variant()
+		sdiv.into_expr()
 	}
 
 	fn transform_bvsmod(&mut self, mut smod: SignedMod) -> Expr {
 		self.transform_assign(&mut smod.dividend);
 		self.transform_assign(&mut smod.divisor);
-		smod.into_variant()
+		smod.into_expr()
 	}
 
 	fn transform_bvsrem(&mut self, mut srem: SignedRem) -> Expr {
 		self.transform_assign(&mut srem.dividend);
 		self.transform_assign(&mut srem.divisor);
-		srem.into_variant()
+		srem.into_expr()
 	}
 
 	//=========================================================================
@@ -332,43 +332,43 @@ impl TransformerImpl for Simplifier {
 
 	fn transform_bvnot(&mut self, mut bvnot: BitNot) -> Expr {
 		self.transform_assign(&mut bvnot.inner);
-		bvnot.into_variant()
+		bvnot.into_expr()
 	}
 
 	fn transform_bvand(&mut self, mut bvand: BitAnd) -> Expr {
 		self.transform_assign(&mut bvand.left);
 		self.transform_assign(&mut bvand.right);
-		bvand.into_variant()
+		bvand.into_expr()
 	}
 
 	fn transform_bvor(&mut self, mut bvor: BitOr) -> Expr {
 		self.transform_assign(&mut bvor.left);
 		self.transform_assign(&mut bvor.right);
-		bvor.into_variant()
+		bvor.into_expr()
 	}
 
 	fn transform_bvxor(&mut self, mut bvxor: BitXor) -> Expr {
 		self.transform_assign(&mut bvxor.left);
 		self.transform_assign(&mut bvxor.right);
-		bvxor.into_variant()
+		bvxor.into_expr()
 	}
 
 	fn transform_bvnand(&mut self, mut bvnand: BitNand) -> Expr {
 		self.transform_assign(&mut bvnand.left);
 		self.transform_assign(&mut bvnand.right);
-		bvnand.into_variant()
+		bvnand.into_expr()
 	}
 
 	fn transform_bvnor(&mut self, mut bvnor: BitNor) -> Expr {
 		self.transform_assign(&mut bvnor.left);
 		self.transform_assign(&mut bvnor.right);
-		bvnor.into_variant()
+		bvnor.into_expr()
 	}
 
 	fn transform_bvxnor(&mut self, mut bvxnor: BitXnor) -> Expr {
 		self.transform_assign(&mut bvxnor.left);
 		self.transform_assign(&mut bvxnor.right);
-		bvxnor.into_variant()
+		bvxnor.into_expr()
 	}
 
 	//=========================================================================
@@ -380,7 +380,7 @@ impl TransformerImpl for Simplifier {
 		self.transform_assign(&mut ult.right);
 		// TODO: `x < y where x < y and x,y consteval => true`
 		// TODO: `x < y where not(x < y) and x,y consteval => false`
-		ult.into_variant()
+		ult.into_expr()
 	}
 
 	fn transform_bvule(&mut self, mut ule: Le) -> Expr {
@@ -388,7 +388,7 @@ impl TransformerImpl for Simplifier {
 		self.transform_assign(&mut ule.right);
 		// TODO: Convert `left =< right` to `not(left > right)` to `not(right < left)`
 		//       Lower to `not` and `lt` only.
-		ule.into_variant()
+		ule.into_expr()
 	}
 
 	fn transform_bvugt(&mut self, ugt: Gt) -> Expr {
@@ -404,13 +404,13 @@ impl TransformerImpl for Simplifier {
 	fn transform_bvslt(&mut self, mut slt: SignedLt) -> Expr {
 		self.transform_assign(&mut slt.left);
 		self.transform_assign(&mut slt.right);
-		slt.into_variant()
+		slt.into_expr()
 	}
 
 	fn transform_bvsle(&mut self, mut sle: SignedLe) -> Expr {
 		self.transform_assign(&mut sle.left);
 		self.transform_assign(&mut sle.right);
-		sle.into_variant()
+		sle.into_expr()
 	}
 
 	fn transform_bvsgt(&mut self, sgt: SignedGt) -> Expr {
@@ -430,19 +430,19 @@ impl TransformerImpl for Simplifier {
 	fn transform_bvushl(&mut self, mut ushl: Shl) -> Expr {
 		self.transform_assign(&mut ushl.shifted);
 		self.transform_assign(&mut ushl.shift_amount);
-		ushl.into_variant()
+		ushl.into_expr()
 	}
 
 	fn transform_bvushr(&mut self, mut ushr: Shr) -> Expr {
 		self.transform_assign(&mut ushr.shifted);
 		self.transform_assign(&mut ushr.shift_amount);
-		ushr.into_variant()
+		ushr.into_expr()
 	}
 
 	fn transform_bvsshr(&mut self, mut sshr: SignedShr) -> Expr {
 		self.transform_assign(&mut sshr.shifted);
 		self.transform_assign(&mut sshr.shift_amount);
-		sshr.into_variant()
+		sshr.into_expr()
 	}
 
 	//=========================================================================
@@ -452,39 +452,39 @@ impl TransformerImpl for Simplifier {
 	fn transform_concat(&mut self, mut concat: Concat) -> Expr {
 		self.transform_assign(&mut concat.hi);
 		self.transform_assign(&mut concat.lo);
-		concat.into_variant()
+		concat.into_expr()
 	}
 
 	fn transform_extract(&mut self, mut extract: Extract) -> Expr {
 		self.transform_assign(&mut extract.source);
-		extract.into_variant()
+		extract.into_expr()
 	}
 
 	fn transform_uextend(&mut self, mut zext: Extend) -> Expr {
 		self.transform_assign(&mut zext.source);
-		zext.into_variant()
+		zext.into_expr()
 	}
 
 	fn transform_sextend(&mut self, mut sext: SignedExtend) -> Expr {
 		self.transform_assign(&mut sext.source);
-		sext.into_variant()
+		sext.into_expr()
 	}
 
 	fn transform_read(&mut self, mut read: Read) -> Expr {
 		self.transform_assign(&mut read.array);
 		self.transform_assign(&mut read.index);
-		read.into_variant()
+		read.into_expr()
 	}
 
 	fn transform_write(&mut self, mut write: Write) -> Expr {
 		self.transform_assign(&mut write.array);
 		self.transform_assign(&mut write.index);
 		self.transform_assign(&mut write.new_val);
-		write.into_variant()
+		write.into_expr()
 	}
 
 	fn transform_boolconst(&mut self, boolconst: BoolConst) -> Expr {
-		boolconst.into_variant() // Nothing to do here!
+		boolconst.into_expr() // Nothing to do here!
 	}
 
 	fn transform_not(&mut self, mut not: Not) -> Expr {
@@ -542,7 +542,7 @@ impl TransformerImpl for Simplifier {
 				Expr::bvsle(slt.inner_ty, slt.right, slt.left)
 			}
 
-			_ => not.into_variant()
+			_ => not.into_expr()
 		}
 	}
 
@@ -600,7 +600,7 @@ impl TransformerImpl for Simplifier {
 			}
 		}
 
-		and.into_variant()
+		and.into_expr()
 	}
 
 	fn transform_or(&mut self, mut or: Or) -> Expr {
@@ -658,7 +658,7 @@ impl TransformerImpl for Simplifier {
 			}
 		}
 
-		or.into_variant()
+		or.into_expr()
 	}
 
 	fn transform_xor(&mut self, mut xor: Xor) -> Expr {
@@ -696,13 +696,13 @@ impl TransformerImpl for Simplifier {
 			return self.transform(*xor.right)
 		}
 
-		xor.into_variant()
+		xor.into_expr()
 	}
 
 	fn transform_iff(&mut self, mut iff: Iff) -> Expr {
 		self.transform_assign(&mut iff.left);
 		self.transform_assign(&mut iff.right);
-		iff.into_variant()
+		iff.into_expr()
 	}
 
 	fn transform_implies(&mut self, implies: Implies) -> Expr {
@@ -716,7 +716,7 @@ impl TransformerImpl for Simplifier {
 	fn transform_param_bool(&mut self, mut parambool: ParamBool) -> Expr {
 		self.transform_assign(&mut parambool.bool_var);
 		self.transform_assign(&mut parambool.param);
-		parambool.into_variant()
+		parambool.into_expr()
 	}
 
 	fn transform_equals(&mut self, mut equals: Equals) -> Expr {
@@ -788,7 +788,7 @@ impl TransformerImpl for Simplifier {
 			}
 		}
 
-		equals.into_variant()
+		equals.into_expr()
 	}
 
 	fn transform_ite(&mut self, mut ite: IfThenElse) -> Expr {
@@ -826,14 +826,14 @@ impl TransformerImpl for Simplifier {
 		//       through the branches but was downstreamed in order to
 		//       profit from possible simplifications and normalizations.
 		if ite.then_case == ite.else_case {
-			return ite.then_case.into_variant()
+			return ite.then_case.into_expr()
 		}
 
-		ite.into_variant()
+		ite.into_expr()
 	}
 
 	fn transform_symbol(&mut self, symbol: Symbol) -> Expr {
-		symbol.into_variant()
+		symbol.into_expr()
 	}
 
 }

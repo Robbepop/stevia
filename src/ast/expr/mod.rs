@@ -8,7 +8,6 @@ pub use self::terms::*;
 
 use ast::prelude::*;
 use ast::traits::{
-	ExprTrait,
 	GenericExpr,
 	ChildsIter,
 	Kinded,

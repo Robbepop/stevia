@@ -11,6 +11,7 @@ mod naive_factory;
 mod visitor;
 mod pretty_printer;
 pub mod prelude;
+
 #[macro_use]
 mod transformer;
 mod simplifier;
@@ -20,11 +21,11 @@ use string_interner::Symbol as InternerSymbol;
 pub use self::ty::{Bits, Type, TypeKind, CommonBitwidth, CommonBitVec, CommonType};
 pub use self::variants::{Expr, ExprKind};
 pub use self::traits::{
-	ExprTrait,
-	// GenericExpr,
-	// ChildsIter,
-	// Kinded,
-	// Typed
+	GenericExpr,
+	ChildsIter,
+	Kinded,
+	Typed,
+	IntoExpr
 };
 pub use self::iterators::{Childs, ChildsMut, IntoChilds};
 pub use self::errors::{Result, AstError, ErrorKind};

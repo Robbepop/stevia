@@ -1,6 +1,5 @@
 use ast::{P, Type};
 use ast::traits::{
-	ExprTrait,
 	GenericExpr,
 	ChildsIter,
 	Kinded,

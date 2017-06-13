@@ -148,47 +148,6 @@ fn gen_final_code(name: &syn::Ident, fields: &[syn::Field]) -> quote::Tokens {
 	let ChildsIterTokens{arity, childs, childs_mut, into_childs} = extract_iterator_components(fields);
 	let TyGetterTokens(ty_body) = extract_type_getter_components(fields);
 	quote! {
-		impl ExprTrait for #name {
-
-			/// Returns the kind of this expression.
-			#[inline]
-			fn kind(&self) -> ExprKind { ExprKind::#name }
-
-			/// Returns the type of this expression.
-			#[inline]
-			fn ty(&self) -> Type { #ty_body }
-
-			/// Returns the arity of this expression.
-			/// 
-			/// Note: The arity is the number of child expressions.
-			#[inline]
-			fn arity(&self) -> usize {
-				#arity
-			}
-
-			/// Returns an iterator over the child expressions.
-			#[inline]
-			fn childs<'e>(&'e self) -> Childs<'e> {
-				#childs
-			}
-
-			/// Returns a mutable iterator over the child expressions.
-			#[inline]
-			fn childs_mut<'e>(&'e mut self) -> ChildsMut<'e> {
-				#childs_mut
-			}
-
-			/// Consumes this expression to return a move iterator over the child expressions.
-			#[inline]
-			fn into_childs(self) -> IntoChilds {
-				#into_childs
-			}
-
-			/// Wraps this expression into its variant type.
-			#[inline]
-			fn into_variant(self) -> Expr { Expr::#name(self) }
-
-		}
 
 		impl Kinded for #name {
 			#[inline]
