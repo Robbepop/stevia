@@ -1,6 +1,7 @@
 use ast::prelude::*;
 use ast::AstError;
 use ast::ErrorKind::*;
+use ast::traits::Typed;
 
 /// Acts as documentation and thin abstraction over bits 
 /// that are given as argument to functions like `bvconst`
@@ -144,9 +145,9 @@ impl TypeKind {
 	}
 }
 
-pub trait Typed {
-	fn ty(&self) -> Type;
-}
+// pub trait Typed {
+// 	fn ty(&self) -> Type;
+// }
 
 impl Typed for Type {
 	fn ty(&self) -> Type {
@@ -154,11 +155,11 @@ impl Typed for Type {
 	}
 }
 
-impl<E> Typed for E where E: ExprTrait {
-	fn ty(&self) -> Type {
-		<Self as ExprTrait>::ty(self)
-	}
-}
+// impl<E> Typed for E where E: ExprTrait {
+// 	fn ty(&self) -> Type {
+// 		<Self as ExprTrait>::ty(self)
+// 	}
+// }
 
 pub trait CommonBitwidth<T> {
 	fn common_bitwidth(self) -> Result<usize>;
