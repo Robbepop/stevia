@@ -2,7 +2,13 @@ use std::ops::Range;
 
 use ast::expr;
 use ast::{SymName, P, Bits, Type};
-use ast::traits::ExprTrait;
+use ast::traits::{
+	ChildsIter,
+	Kinded,
+	Typed,
+	IntoExpr,
+	GenericExpr
+};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
 macro_rules! forall_expr_kinds {
@@ -91,14 +97,14 @@ macro_rules! impl_expr_kinds {
 		}
 
 		impl Expr {
-			pub fn as_trait(&self) -> &ExprTrait {
+			pub fn as_trait(&self) -> &GenericExpr {
 				use self::Expr::*;
 				match *self {
 					$($names(ref expr) => expr),*
 				}
 			}
 
-			pub fn as_trait_mut(&mut self) -> &mut ExprTrait {
+			pub fn as_trait_mut(&mut self) -> &mut GenericExpr {
 				use self::Expr::*;
 				match *self {
 					$($names(ref mut expr) => expr),*
@@ -273,12 +279,7 @@ macro_rules! impl_into_childs {
     }
 }
 
-impl ExprTrait for Expr {
-	#[inline]
-	fn arity(&self) -> usize {
-		self.as_trait().arity()
-	}
-
+impl ChildsIter for Expr {
 	#[inline]
 	fn childs(&self) -> Childs {
 		self.as_trait().childs()
@@ -290,20 +291,33 @@ impl ExprTrait for Expr {
 	}
 
 	forall_expr_kinds!(impl_into_childs);
+}
 
+impl Kinded for Expr {
 	#[inline]
 	fn kind(&self) -> ExprKind {
 		self.as_trait().kind()
 	}
+}
 
+impl Typed for Expr {
 	#[inline]
 	fn ty(&self) -> Type {
 		self.as_trait().ty()
 	}
+}
 
+impl IntoExpr for Expr {
 	#[inline]
-	fn into_variant(self) -> Expr {
+	fn into_expr(self) -> Expr {
 		self
+	}
+}
+
+impl GenericExpr for Expr {
+	#[inline]
+	fn arity(&self) -> usize {
+		self.as_trait().arity()
 	}
 }
 

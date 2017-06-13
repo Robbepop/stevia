@@ -145,21 +145,11 @@ impl TypeKind {
 	}
 }
 
-// pub trait Typed {
-// 	fn ty(&self) -> Type;
-// }
-
 impl Typed for Type {
 	fn ty(&self) -> Type {
 		*self
 	}
 }
-
-// impl<E> Typed for E where E: ExprTrait {
-// 	fn ty(&self) -> Type {
-// 		<Self as ExprTrait>::ty(self)
-// 	}
-// }
 
 pub trait CommonBitwidth<T> {
 	fn common_bitwidth(self) -> Result<usize>;
