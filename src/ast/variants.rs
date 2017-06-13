@@ -97,14 +97,14 @@ macro_rules! impl_expr_kinds {
 		}
 
 		impl Expr {
-			pub fn as_trait(&self) -> &GenericExpr {
+			pub fn as_generic(&self) -> &GenericExpr {
 				use self::Expr::*;
 				match *self {
 					$($names(ref expr) => expr),*
 				}
 			}
 
-			pub fn as_trait_mut(&mut self) -> &mut GenericExpr {
+			pub fn as_generic_mut(&mut self) -> &mut GenericExpr {
 				use self::Expr::*;
 				match *self {
 					$($names(ref mut expr) => expr),*
@@ -282,12 +282,12 @@ macro_rules! impl_into_childs {
 impl ChildsIter for Expr {
 	#[inline]
 	fn childs(&self) -> Childs {
-		self.as_trait().childs()
+		self.as_generic().childs()
 	}
 
 	#[inline]
 	fn childs_mut(&mut self) -> ChildsMut {
-		self.as_trait_mut().childs_mut()
+		self.as_generic_mut().childs_mut()
 	}
 
 	forall_expr_kinds!(impl_into_childs);
@@ -296,14 +296,14 @@ impl ChildsIter for Expr {
 impl Kinded for Expr {
 	#[inline]
 	fn kind(&self) -> ExprKind {
-		self.as_trait().kind()
+		self.as_generic().kind()
 	}
 }
 
 impl Typed for Expr {
 	#[inline]
 	fn ty(&self) -> Type {
-		self.as_trait().ty()
+		self.as_generic().ty()
 	}
 }
 
@@ -317,7 +317,7 @@ impl IntoExpr for Expr {
 impl GenericExpr for Expr {
 	#[inline]
 	fn arity(&self) -> usize {
-		self.as_trait().arity()
+		self.as_generic().arity()
 	}
 }
 
