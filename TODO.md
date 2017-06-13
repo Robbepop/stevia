@@ -2,6 +2,8 @@
 
 ## Critical
 
+- Refactor ty.rs implementation somehow. (Just make it better ... somehow.)
+
 - Implement default traversal routine for AST transformers.
 	- It turned out that default traversal is useful for architectures with many different transformers such as 
 		- Normalization
@@ -34,9 +36,7 @@
 - Think about trade-offs by replacing generic `Equals` with bool- and bitvector specific alternatives:
 	- Bitvec: `BitvecEq` and `BitvecNe` or `BitEq` and `BitNe` or `BvEq` and `BvNe`
 	- Boolean: `Iff` and `Xor`
-- Rename `ExprTrait` to `IExpr`.
 - Do not add an attribute to `SmtExpr` proc macro to set the expression type explicitely since apparently `BitVecConst` doesn't really need it.
-- Maybe remove `into_variant` from `ExprTrait` and put it into `IntoVariant` as new trait and make it possible to auto `impl From<T: IntoVariant> for ExprVariant { .. }`. Or maybe remove it if it is not needed at all.
 
 ## Open Questions
 
