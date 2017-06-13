@@ -1,5 +1,12 @@
 use ast::{P, Type};
-use ast::traits::ExprTrait;
+use ast::traits::{
+	ExprTrait,
+	GenericExpr,
+	ChildsIter,
+	Kinded,
+	Typed,
+	IntoExpr
+};
 use ast::variants::{Expr, ExprKind};
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 

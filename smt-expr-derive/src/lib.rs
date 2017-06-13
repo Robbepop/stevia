@@ -189,6 +189,46 @@ fn gen_final_code(name: &syn::Ident, fields: &[syn::Field]) -> quote::Tokens {
 			fn into_variant(self) -> Expr { Expr::#name(self) }
 
 		}
+
+		impl Kinded for #name {
+			#[inline]
+			fn kind(&self) -> ExprKind { ExprKind::#name }
+		}
+
+		impl Typed for #name {
+			#[inline]
+			fn ty(&self) -> Type { #ty_body }
+		}
+
+		impl ChildsIter for #name {
+			#[inline]
+			fn childs<'e>(&'e self) -> Childs<'e> {
+				#childs
+			}
+
+			#[inline]
+			fn childs_mut<'e>(&'e mut self) -> ChildsMut<'e> {
+				#childs_mut
+			}
+
+			#[inline]
+			fn into_childs(self) -> IntoChilds {
+				#into_childs
+			}
+		}
+
+		impl IntoExpr for #name {
+			fn into_expr(self) -> Expr {
+				Expr::#name(self)
+			}
+		}
+
+		impl GenericExpr for #name {
+			fn arity(&self) -> usize {
+				#arity
+			}
+		}
+
 	}
 }
 

@@ -7,6 +7,14 @@ pub use self::formulas::*;
 pub use self::terms::*;
 
 use ast::prelude::*;
+use ast::traits::{
+	ExprTrait,
+	GenericExpr,
+	ChildsIter,
+	Kinded,
+	Typed,
+	IntoExpr
+};
 use ast::P;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]

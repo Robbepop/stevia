@@ -56,25 +56,11 @@ pub trait Kinded {
 	fn kind(&self) -> ExprKind;
 }
 
-impl<T> Kinded for T where T: ExprTrait {
-	#[inline]
-	fn kind(&self) -> ExprKind {
-		<Self as ExprTrait>::kind(self)
-	}
-}
-
 pub trait Typed {
 	/// Returns the cached type of this expression.
 	/// 
 	/// Types are cached mainly for performance reasons to check for type safety.
 	fn ty(&self) -> Type;
-}
-
-impl<T> Typed for T where T: ExprTrait {
-	#[inline]
-	fn ty(&self) -> Type {
-		<Self as ExprTrait>::ty(self)
-	}
 }
 
 pub trait IntoExpr {
@@ -85,11 +71,4 @@ pub trait IntoExpr {
 	/// 
 	/// Note: Maybe remove this trait method again in favor of `impl From<impl ExprTrait> for Expr`.
 	fn into_expr(self) -> Expr;
-}
-
-impl<T> IntoExpr for T where T: ExprTrait {
-	#[inline]
-	fn into_expr(self) -> Expr {
-		<Self as ExprTrait>::into_variant(self)
-	}
 }
