@@ -435,7 +435,43 @@ impl TransformerImpl for Simplifier {
 	fn transform_bvslt(&mut self, mut slt: SignedLt) -> Expr {
 		self.transform_assign(&mut slt.left);
 		self.transform_assign(&mut slt.right);
-		slt.into_expr()
+
+		// Symbolic contradiction: `(< x x)` to `false`
+		if slt.left == slt.right {
+			return Expr::boolconst(false)
+		}
+
+		use ast::expr::SignedLt;
+		match slt {
+
+			// - `(< (-x) (-y))` to `(< x y)`
+			SignedLt{inner_ty, left: box Expr::Neg(left), right: box Expr::Neg(right)} => {
+				self.transform(
+					Expr::bvslt(inner_ty, left.inner, right.inner))
+			}
+
+			// - `(< x (-y))` to `(< y x)`
+			SignedLt{inner_ty, left, right: box Expr::Neg(right)} => {
+				self.transform(
+					Expr::bvslt(inner_ty, right.inner, left))
+			}
+
+			// - `(< (-x) y)` to `(< y x)`
+			SignedLt{inner_ty, left: box Expr::Neg(left), right} => {
+				self.transform(
+					Expr::bvslt(inner_ty, right, left.inner))
+			}
+
+			// Constant evaluation
+			// SignedLt{inner_ty, left: box Expr::BitVecConst(left), right: box Expr::BitVecConst(right)} => {
+			// 	// TODO
+			// }
+
+			// Do nothing since no simplification pattern matches
+			_ => {
+				slt.into_expr()
+			}
+		}
 	}
 
 	fn transform_bvsle(&mut self, sle: SignedLe) -> Expr {
@@ -880,6 +916,46 @@ mod tests {
 			match sign {
 				Signed   => self.bvsdiv(dividend, divisor),
 				Unsigned => self.bvudiv(dividend, divisor)
+			}
+		}
+
+		fn bvlt<L, R>(&self, sign: Sign, left: L, right: R) -> Result<Expr>
+			where L: Into<Result<Expr>>,
+			      R: Into<Result<Expr>>
+		{
+			match sign {
+				Unsigned => self.bvult(left, right),
+				Signed   => self.bvslt(left, right)
+			}
+		}
+
+		fn bvle<L, R>(&self, sign: Sign, left: L, right: R) -> Result<Expr>
+			where L: Into<Result<Expr>>,
+			      R: Into<Result<Expr>>
+		{
+			match sign {
+				Unsigned => self.bvule(left, right),
+				Signed   => self.bvsle(left, right)
+			}
+		}
+
+		fn bvgt<L, R>(&self, sign: Sign, left: L, right: R) -> Result<Expr>
+			where L: Into<Result<Expr>>,
+			      R: Into<Result<Expr>>
+		{
+			match sign {
+				Unsigned => self.bvugt(left, right),
+				Signed   => self.bvsgt(left, right)
+			}
+		}
+
+		fn bvge<L, R>(&self, sign: Sign, left: L, right: R) -> Result<Expr>
+			where L: Into<Result<Expr>>,
+			      R: Into<Result<Expr>>
+		{
+			match sign {
+				Unsigned => self.bvuge(left, right),
+				Signed   => self.bvsge(left, right)
 			}
 		}
 	}
@@ -2107,153 +2183,135 @@ mod tests {
 		}
 	}
 
-	mod ult {
+	mod lt {
 		use super::*;
 
 		#[test]
 		fn symbolic_contradiction() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvult(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("x", Bits(32))
-				),
-				f.boolconst(false)
-			)
+			fn symbolic_contradiction_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvlt(sign,
+						f.bitvec("x", Bits(32)),
+						f.bitvec("x", Bits(32))
+					),
+					f.boolconst(false)
+				)
+			}
+			symbolic_contradiction_impl(Signed);
+			symbolic_contradiction_impl(Unsigned);
 		}
 
 		#[test]
 		fn negation_elimination() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvult(
-					f.bvneg(f.bitvec("x", Bits(32))),
-					f.bitvec("y", Bits(32))
-				),
-				f.bvult(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			);
-			assert_simplified(
-				f.bvult(
-					f.bitvec("x", Bits(32)),
-					f.bvneg(f.bitvec("y", Bits(32)))
-				),
-				f.bvult(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			);
-			assert_simplified(
-				f.bvult(
-					f.bvneg(f.bitvec("x", Bits(32))),
-					f.bvneg(f.bitvec("y", Bits(32)))
-				),
-				f.bvult(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				)
-			);
-		}
-	}
-
-	mod ule {
-		use super::*;
-
-		#[test]
-		fn lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvule(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				),
-				f.not(
-					f.bvult(
+			fn negation_elimination_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvlt(sign,
+						f.bvneg(f.bitvec("x", Bits(32))),
+						f.bitvec("y", Bits(32))
+					),
+					f.bvlt(sign,
 						f.bitvec("y", Bits(32)),
 						f.bitvec("x", Bits(32))
 					)
-				)
-			)
-		}
-	}
-
-	mod ugt {
-		use super::*;
-
-		#[test]
-		fn lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvugt(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				),
-				f.bvult(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			);
-		}
-	}
-
-	mod uge {
-		use super::*;
-
-		#[test]
-		fn lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvuge(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				),
-				f.not(
-					f.bvult(
+				);
+				assert_simplified(
+					f.bvlt(sign,
+						f.bitvec("x", Bits(32)),
+						f.bvneg(f.bitvec("y", Bits(32)))
+					),
+					f.bvlt(sign,
+						f.bitvec("y", Bits(32)),
+						f.bitvec("x", Bits(32))
+					)
+				);
+				assert_simplified(
+					f.bvlt(sign,
+						f.bvneg(f.bitvec("x", Bits(32))),
+						f.bvneg(f.bitvec("y", Bits(32)))
+					),
+					f.bvlt(sign,
 						f.bitvec("x", Bits(32)),
 						f.bitvec("y", Bits(32))
 					)
-				)
-			);
+				);
+			}
+			negation_elimination_impl(Signed);
+			negation_elimination_impl(Unsigned);
 		}
 	}
 
-	mod sgt {
+	mod le {
 		use super::*;
 
 		#[test]
 		fn lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvsgt(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				),
-				f.bvslt(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
+			fn lowering_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvle(sign,
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					),
+					f.not(
+						f.bvlt(sign,
+							f.bitvec("y", Bits(32)),
+							f.bitvec("x", Bits(32))
+						)
+					)
 				)
-			);
+			}
+			lowering_impl(Signed);
+			lowering_impl(Unsigned);
 		}
 	}
 
-	mod sge {
+	mod gt {
 		use super::*;
 
 		#[test]
 		fn lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvsge(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				),
-				f.bvsle(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			);
+			fn lowering_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvgt(sign,
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					),
+					f.bvlt(sign,
+						f.bitvec("y", Bits(32)),
+						f.bitvec("x", Bits(32))
+					)
+				);
+			}
+			lowering_impl(Signed);
+			lowering_impl(Unsigned);
+		}
+	}
+
+	mod ge {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			fn lowering_impl(sign: Sign) {
+				let f = NaiveExprFactory::new();
+				assert_simplified(
+					f.bvge(sign,
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					),
+					f.not(
+						f.bvlt(sign,
+							f.bitvec("x", Bits(32)),
+							f.bitvec("y", Bits(32))
+						)
+					)
+				);
+			}
+			lowering_impl(Signed);
+			lowering_impl(Unsigned);
 		}
 	}
 
