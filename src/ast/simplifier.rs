@@ -438,10 +438,9 @@ impl TransformerImpl for Simplifier {
 		slt.into_expr()
 	}
 
-	fn transform_bvsle(&mut self, mut sle: SignedLe) -> Expr {
-		self.transform_assign(&mut sle.left);
-		self.transform_assign(&mut sle.right);
-		sle.into_expr()
+	fn transform_bvsle(&mut self, sle: SignedLe) -> Expr {
+		self.transform(
+			Expr::bvslt(sle.inner_ty, sle.right, sle.left).wrap_with_not())
 	}
 
 	fn transform_bvsgt(&mut self, sgt: SignedGt) -> Expr {
