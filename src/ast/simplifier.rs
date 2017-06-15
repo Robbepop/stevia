@@ -400,7 +400,6 @@ impl TransformerImpl for Simplifier {
 			// - `(< (-x) y)` to `(< y x)`
 			Lt{inner_ty, left: box Expr::Neg(left), right} => {
 				Expr::bvult(inner_ty, right, left.inner)
-
 			}
 
 			// Constant evaluation
