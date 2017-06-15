@@ -378,9 +378,41 @@ impl TransformerImpl for Simplifier {
 	fn transform_bvult(&mut self, mut ult: Lt) -> Expr {
 		self.transform_assign(&mut ult.left);
 		self.transform_assign(&mut ult.right);
-		// TODO: `x < y where x < y and x,y consteval => true`
-		// TODO: `x < y where not(x < y) and x,y consteval => false`
-		ult.into_expr()
+
+		// Symbolic contradiction: `(< x x)` to `false`
+		if ult.left == ult.right {
+			return Expr::boolconst(false)
+		}
+
+		use ast::expr::Lt;
+		match ult {
+
+			// - `(< (-x) (-y))` to `(< x y)`
+			Lt{inner_ty, left: box Expr::Neg(left), right: box Expr::Neg(right)} => {
+				Expr::bvult(inner_ty, left.inner, right.inner)
+			}
+
+			// - `(< x (-y))` to `(< y x)`
+			Lt{inner_ty, left, right: box Expr::Neg(right)} => {
+				Expr::bvult(inner_ty, right.inner, left)
+			}
+
+			// - `(< (-x) y)` to `(< y x)`
+			Lt{inner_ty, left: box Expr::Neg(left), right} => {
+				Expr::bvult(inner_ty, right, left.inner)
+
+			}
+
+			// Constant evaluation
+			// Lt{inner_ty, left: box Expr::BitVecConst(left), right: box Expr::BitVecConst(right)} => {
+			// 	// TODO
+			// }
+
+			// Do nothing since no simplification pattern matches
+			_ => {
+				ult.into_expr()
+			}
+		}
 	}
 
 	fn transform_bvule(&mut self, mut ule: Le) -> Expr {
@@ -2180,6 +2212,45 @@ mod tests {
 				f.bvult(
 					f.bitvec("y", Bits(32)),
 					f.bitvec("x", Bits(32))
+				)
+			);
+		}
+	}
+
+	mod ult {
+		use super::*;
+
+		#[test]
+		fn negation_elimination() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvult(
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvult(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
+			assert_simplified(
+				f.bvult(
+					f.bitvec("x", Bits(32)),
+					f.bvneg(f.bitvec("y", Bits(32)))
+				),
+				f.bvult(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
+			assert_simplified(
+				f.bvult(
+					f.bvneg(f.bitvec("x", Bits(32))),
+					f.bvneg(f.bitvec("y", Bits(32)))
+				),
+				f.bvult(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
 				)
 			);
 		}

@@ -1,3 +1,5 @@
+#![feature(box_patterns)]
+
 extern crate num;
 extern crate smallvec;
 extern crate unreachable;

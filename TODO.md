@@ -32,6 +32,7 @@
 
 ## Considerations
 
+- Refactor binary nodes with two `P<Expr>` fields into a single `Box<[Expr;2]>` field. This allows for easier sorting and iterating. Think about more beautiful access to inner childs like `a.left` instead of `a.childs[0]`. This change may also lead to less `Box` allocations during simplification steps and would lead to better memory compaction and thus to better cache efficiency.
 - Think about trade-offs by adding `Nand`, `Nor` and `Xnor` as new formula types.
 - Think about trade-offs by replacing generic `Equals` with bool- and bitvector specific alternatives:
 	- Bitvec: `BitvecEq` and `BitvecNe` or `BitEq` and `BitNe` or `BvEq` and `BvNe`
