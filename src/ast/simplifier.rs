@@ -389,17 +389,20 @@ impl TransformerImpl for Simplifier {
 
 			// - `(< (-x) (-y))` to `(< x y)`
 			Lt{inner_ty, left: box Expr::Neg(left), right: box Expr::Neg(right)} => {
-				Expr::bvult(inner_ty, left.inner, right.inner)
+				self.transform(
+					Expr::bvult(inner_ty, left.inner, right.inner))
 			}
 
 			// - `(< x (-y))` to `(< y x)`
 			Lt{inner_ty, left, right: box Expr::Neg(right)} => {
-				Expr::bvult(inner_ty, right.inner, left)
+				self.transform(
+					Expr::bvult(inner_ty, right.inner, left))
 			}
 
 			// - `(< (-x) y)` to `(< y x)`
 			Lt{inner_ty, left: box Expr::Neg(left), right} => {
-				Expr::bvult(inner_ty, right, left.inner)
+				self.transform(
+					Expr::bvult(inner_ty, right, left.inner))
 			}
 
 			// Constant evaluation
@@ -414,12 +417,9 @@ impl TransformerImpl for Simplifier {
 		}
 	}
 
-	fn transform_bvule(&mut self, mut ule: Le) -> Expr {
-		self.transform_assign(&mut ule.left);
-		self.transform_assign(&mut ule.right);
-		// TODO: Convert `left =< right` to `not(left > right)` to `not(right < left)`
-		//       Lower to `not` and `lt` only.
-		ule.into_expr()
+	fn transform_bvule(&mut self, ule: Le) -> Expr {
+		self.transform(
+			Expr::bvult(ule.inner_ty, ule.right, ule.left).wrap_with_not())
 	}
 
 	fn transform_bvugt(&mut self, ugt: Gt) -> Expr {
@@ -543,34 +543,14 @@ impl TransformerImpl for Simplifier {
 				Expr::bvslt(sge.inner_ty, sge.left, sge.right)
 			}
 
-			// `(not (ugt a b))` to `(ule a b)`
-			Expr::Gt(ugt) => {
-				Expr::bvule(ugt.inner_ty, ugt.left, ugt.right)
-			}
-
-			// `(not (sgt a b))` to `(sle a b)`
-			Expr::SignedGt(sgt) => {
-				Expr::bvsle(sgt.inner_ty, sgt.left, sgt.right)
-			}
-
-			// `(not (ule a b))` (to `ugt a b`) to `ult b a`
+			// `(not (ule a b))` to `ult b a`
 			Expr::Le(ule) => {
 				Expr::bvult(ule.inner_ty, ule.right, ule.left)
 			}
 
-			// `(not (sle a b))` (to `sgt a b`) to `slt b a`
+			// `(not (sle a b))` to `slt b a`
 			Expr::SignedLe(sle) => {
 				Expr::bvslt(sle.inner_ty, sle.right, sle.left)
-			}
-
-			// `(not (ult a b))` to `ule b a`
-			Expr::Lt(ult) => {
-				Expr::bvule(ult.inner_ty, ult.right, ult.left)
-			}
-
-			// `(not (slt a b))` to `sle b a`
-			Expr::SignedLt(slt) => {
-				Expr::bvsle(slt.inner_ty, slt.right, slt.left)
 			}
 
 			_ => not.into_expr()
@@ -1075,40 +1055,6 @@ mod tests {
 		}
 
 		#[test]
-		fn not_ugt_lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.not(
-					f.bvugt(
-						f.bitvec("x", Bits(32)),
-						f.bitvec("y", Bits(32))
-					)
-				),
-				f.bvule(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				)
-			)
-		}
-
-		#[test]
-		fn not_sgt_lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.not(
-					f.bvsgt(
-						f.bitvec("x", Bits(32)),
-						f.bitvec("y", Bits(32))
-					)
-				),
-				f.bvsle(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				)
-			)
-		}
-
-		#[test]
 		fn not_ule_lowering() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
@@ -1141,41 +1087,6 @@ mod tests {
 				)
 			)
 		}
-
-		#[test]
-		fn not_ult_lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.not(
-					f.bvult(
-						f.bitvec("x", Bits(32)),
-						f.bitvec("y", Bits(32))
-					)
-				),
-				f.bvule(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			)
-		}
-
-		#[test]
-		fn not_slt_lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.not(
-					f.bvslt(
-						f.bitvec("x", Bits(32)),
-						f.bitvec("y", Bits(32))
-					)
-				),
-				f.bvsle(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			)
-		}
-
 	}
 
 	mod ite {
@@ -2197,25 +2108,6 @@ mod tests {
 		}
 	}
 
-	mod ugt {
-		use super::*;
-
-		#[test]
-		fn lowering() {
-			let f = NaiveExprFactory::new();
-			assert_simplified(
-				f.bvugt(
-					f.bitvec("x", Bits(32)),
-					f.bitvec("y", Bits(32))
-				),
-				f.bvult(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
-				)
-			);
-		}
-	}
-
 	mod ult {
 		use super::*;
 
@@ -2267,6 +2159,46 @@ mod tests {
 		}
 	}
 
+	mod ule {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvule(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.not(
+					f.bvult(
+						f.bitvec("y", Bits(32)),
+						f.bitvec("x", Bits(32))
+					)
+				)
+			)
+		}
+	}
+
+	mod ugt {
+		use super::*;
+
+		#[test]
+		fn lowering() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvugt(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("y", Bits(32))
+				),
+				f.bvult(
+					f.bitvec("y", Bits(32)),
+					f.bitvec("x", Bits(32))
+				)
+			);
+		}
+	}
+
 	mod uge {
 		use super::*;
 
@@ -2278,9 +2210,11 @@ mod tests {
 					f.bitvec("x", Bits(32)),
 					f.bitvec("y", Bits(32))
 				),
-				f.bvule(
-					f.bitvec("y", Bits(32)),
-					f.bitvec("x", Bits(32))
+				f.not(
+					f.bvult(
+						f.bitvec("x", Bits(32)),
+						f.bitvec("y", Bits(32))
+					)
 				)
 			);
 		}
