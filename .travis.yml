@@ -9,9 +9,8 @@ rust:
 
 matrix:
   allow_failures:
-    - rust:
-      - stable
-      - beta
+    - rust: stable
+    - rust: beta
 
 addons:
   apt:
