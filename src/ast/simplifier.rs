@@ -2221,6 +2221,18 @@ mod tests {
 		use super::*;
 
 		#[test]
+		fn symbolic_contradiction() {
+			let f = NaiveExprFactory::new();
+			assert_simplified(
+				f.bvult(
+					f.bitvec("x", Bits(32)),
+					f.bitvec("x", Bits(32))
+				),
+				f.boolconst(false)
+			)
+		}
+
+		#[test]
 		fn negation_elimination() {
 			let f = NaiveExprFactory::new();
 			assert_simplified(
