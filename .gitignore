@@ -9,6 +9,8 @@
 # More information here http://doc.crates.io/guide.html#cargotoml-vs-cargolock
 Cargo.lock
 
-# Remove all default ignored files from smt-expr-derive sub-library.
+# Remove all default ignored files from all sub-libraries.
+/bitvec/target/
+/bitvec/Cargo.lock
 /smt-expr-derive/target/
 /smt-expr-derive/Cargo.lock
