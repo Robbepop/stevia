@@ -4,6 +4,10 @@
 #![allow(dead_code)]
 #![allow(unused_variables)]
 
+extern crate num;
+
+use num::Integer;
+
 use std::ptr::Unique;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -209,32 +213,92 @@ impl BitVec {
 
 	/// Returns true if this bitvector represents an undefined state.
 	pub fn is_undef(&self) -> bool {
-		unimplemented!();
+		self.bits == 0
 	}
 
 	/// Returns true if this bitvector represents a poison value.
 	pub fn is_poison(&self) -> bool {
-		unimplemented!();
+		(self.bits & 0xA000_0000) != 0
 	}
 
 	/// Returns true if all bits of this bitvector are zero.
 	pub fn is_zeroes(&self) -> bool {
-		unimplemented!();
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl == 0}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 	/// Returns true if all bits of this bitvector are one.
 	pub fn is_ones(&self) -> bool {
-		unimplemented!();
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl == 0xFFFF_FFFF_FFFF_FFFF}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 	/// Returns true if this bitvector represents the number zero (`0`).
 	pub fn is_zero(&self) -> bool {
-		unimplemented!();
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl == 0}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 	/// Returns true if this bitvector represents the number one (`1`).
 	pub fn is_one(&self) -> bool {
-		unimplemented!();
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl.is_one()}
+		}
+		else {
+			unimplemented!();
+		}
+	}
+
+	/// Returns true if this bitvector represents an even number.
+	pub fn is_even(&self) -> bool {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl.is_even()}
+		}
+		else {
+			unimplemented!();
+		}
+	}
+
+	/// Returns true if this bitvector represents an odd number-
+	pub fn is_odd(&self) -> bool {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl.is_odd()}
+		}
+		else {
+			unimplemented!();
+		}
+	}
+
+	/// Returns true if this bitvector may represent a positive number in twos complement.
+	pub fn is_positive(&self) -> bool {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.sinl.is_positive()}
+		}
+		else {
+			unimplemented!();
+		}
+	}
+
+	/// Returns true if this bitvector may represent a negative number in twos complement.
+	pub fn is_negative(&self) -> bool {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.sinl.is_negative()}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 }
@@ -246,7 +310,12 @@ impl BitVec {
 
 	/// Returns `true` if the bit at the `n`th position is set, else `false`.
 	pub fn get(&self, n: usize) -> bool {
-		unimplemented!();
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.uinl >> n == 1}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 	/// Sets the bit at the `n`th position to `1`.
