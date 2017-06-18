@@ -36,8 +36,8 @@ use Bits::*;
 impl From<u32> for Bits {
 	fn from(val: u32) -> Bits {
 		match val {
-			0 => Bits::Undef,
-			0xFFFF_FFFF => Bits::Poison,
+			UNDEF_MARKER => Bits::Undef,
+			mask if mask & POISON_MARKER != 0 => Bits::Poison,
 			n => Bits::N(n)
 		}
 	}
@@ -116,6 +116,18 @@ impl BitVec {
 	#[inline]
 	pub fn from_u64(val: u64) -> BitVec {
 		BitVec{bits: 64, data: BitVecData{inl: Block::from_u64(val)}}
+	}
+
+	/// Creates a new bitvector from the given `i32`.
+	#[inline]
+	pub fn from_i32(val: i32) -> BitVec {
+		BitVec{bits: 32, data: BitVecData{inl: Block::from_i64(val as i64)}}
+	}
+
+	/// Creates a new bitvector from the given `i64`.
+	#[inline]
+	pub fn from_i64(val: i64) -> BitVec {
+		BitVec{bits: 64, data: BitVecData{inl: Block::from_i64(val)}}
 	}
 
 	/// Creates a bitvector with `bits` bits that are all set to `0`.
@@ -243,7 +255,7 @@ impl BitVec {
 
 	/// Returns true if all bits of this bitvector are zero.
 	pub fn is_zeroes(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u == 0}
 		}
 		else {
@@ -253,7 +265,7 @@ impl BitVec {
 
 	/// Returns true if all bits of this bitvector are one.
 	pub fn is_ones(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u == 0xFFFF_FFFF_FFFF_FFFF}
 		}
 		else {
@@ -263,7 +275,7 @@ impl BitVec {
 
 	/// Returns true if this bitvector represents the number zero (`0`).
 	pub fn is_zero(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u == 0}
 		}
 		else {
@@ -273,7 +285,7 @@ impl BitVec {
 
 	/// Returns true if this bitvector represents the number one (`1`).
 	pub fn is_one(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u == 1}
 		}
 		else {
@@ -283,7 +295,7 @@ impl BitVec {
 
 	/// Returns true if this bitvector represents an even number.
 	pub fn is_even(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u.is_even()}
 		}
 		else {
@@ -293,7 +305,7 @@ impl BitVec {
 
 	/// Returns true if this bitvector represents an odd number-
 	pub fn is_odd(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u.is_odd()}
 		}
 		else {
@@ -303,7 +315,7 @@ impl BitVec {
 
 	/// Returns true if this bitvector may represent a positive number in twos complement.
 	pub fn is_positive(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.s.is_positive()}
 		}
 		else {
@@ -313,7 +325,7 @@ impl BitVec {
 
 	/// Returns true if this bitvector may represent a negative number in twos complement.
 	pub fn is_negative(&self) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.s.is_negative()}
 		}
 		else {
@@ -330,7 +342,7 @@ impl BitVec {
 
 	/// Returns `true` if the bit at the `n`th position is set, else `false`.
 	pub fn get(&self, n: usize) -> bool {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{((self.data.inl.u >> n) & 0x01) == 1}
 		}
 		else {
@@ -342,7 +354,7 @@ impl BitVec {
 	/// 
 	/// Returns the value of the bit before this operation.
 	pub fn set(&mut self, n: usize) {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u |= 0x01 << n}
 		}
 		else {
@@ -352,7 +364,7 @@ impl BitVec {
 
 	/// Unsets the bit at the `n`th position to `0`.
 	pub fn unset(&mut self, n: usize) {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u &= !(0x01 << n)}
 		}
 		else {
@@ -362,7 +374,7 @@ impl BitVec {
 
 	/// Flips the bit at the `n`th position.
 	pub fn flip(&mut self, n: usize) {
-		if self.bits < INLINE_BITS {
+		if self.bits <= INLINE_BITS {
 			unsafe{self.data.inl.u ^= 0x01 << n}
 		}
 		else {
@@ -379,42 +391,86 @@ impl BitVec {
 
 	/// Unsigned less-than comparison with the other bitvec.
 	pub fn ult(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		match (self.bits, other.bits) {
+
+			// both inline
+			(l, r) if l <= INLINE_BITS && r <= INLINE_BITS => {
+				unsafe{self.data.inl.u < other.data.inl.u}
+			}
+
+			// left inline, right extern
+			(l, r) if l <= INLINE_BITS && r >  INLINE_BITS => {
+				unimplemented!();
+			}
+
+			// left extern, right inline
+			(l, r) if l >  INLINE_BITS && r <= INLINE_BITS => {
+				unimplemented!();
+			}
+
+			// both extern
+			_ => {
+				unimplemented!();
+			}
+
+		}
 	}
 
 	/// Unsigned less-than-or-equals comparison with the other bitvec.
 	pub fn ule(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		!(other.ult(self))
 	}
 
 	/// Unsigned greater-than comparison with the other bitvec.
 	pub fn ugt(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		other.ult(self)
 	}
 
 	/// Unsigned greater-than-or-equals comparison with the other bitvec.
 	pub fn uge(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		!(self.ult(other))
 	}
 
 	/// Signed less-than comparison with the other bitvec.
 	pub fn slt(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		match (self.bits, other.bits) {
+
+			// both inline
+			(l, r) if l <= INLINE_BITS && r <= INLINE_BITS => {
+				unsafe{self.data.inl.s < other.data.inl.s}
+			}
+
+			// left inline, right extern
+			(l, r) if l <= INLINE_BITS && r >  INLINE_BITS => {
+				unimplemented!();
+			}
+
+			// left extern, right inline
+			(l, r) if l >  INLINE_BITS && r <= INLINE_BITS => {
+				unimplemented!();
+			}
+
+			// both extern
+			_ => {
+				unimplemented!();
+			}
+
+		}
 	}
 
 	/// Signed less-than-or-equals comparison with the other bitvec.
 	pub fn sle(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		!(other.slt(self))
 	}
 
 	/// Signed greater-than comparison with the other bitvec.
 	pub fn sgt(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		other.slt(self)
 	}
 
 	/// Signed greater-than-or-equals comparison with the other bitvec.
 	pub fn sge(&self, other: &BitVec) -> bool {
-		unimplemented!();
+		!(self.slt(other))
 	}
 
 }
