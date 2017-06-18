@@ -68,14 +68,31 @@ pub struct BitVec {
 }
 
 union BitVecData {
-	/// Inline, unsigned native operations on the bitvector.
-	uinl: u64,
-	/// Inline, signed native operations on the bitvector.
-	sinl: i64,
-	/// Extern, unsigned operations on the bitvector.
-	uext: Unique<u64>,
-	/// Extern, signed operations on the bitvector.
-	sext: Unique<i64>
+	/// Inline, on-stack data when bits in bitvector is less than `INLINE_BITS`
+	inl: Block,
+	/// Inline, on-heap data for any sizes of bits in bitvector
+	ext: Unique<Block>
+}
+
+union Block {
+	/// Signed variant for native signed operations
+	s: i64,
+	/// Unsigned variant for native unsigned operations
+	u: u64
+}
+
+impl Block {
+	/// Creates a new block from the given `i64`.
+	#[inline]
+	pub fn from_i64(val: i64) -> Block {
+		Block{s: val}
+	}
+
+	/// Creates a new block from the given `u64`.
+	#[inline]
+	pub fn from_u64(val: u64) -> Block {
+		Block{u: val}
+	}
 }
 
 //  =======================================================================
@@ -86,25 +103,19 @@ impl BitVec {
 	/// Creates a new bitvector that represents an undefined state.
 	#[inline]
 	pub fn undef() -> BitVec {
-		BitVec{bits: UNDEF_MARKER, data: BitVecData{uinl: 0}}
-	}
-
-	/// Creates a new bitvector that represents a poison value.
-	#[inline]
-	pub fn poison() -> BitVec {
-		BitVec{bits: POISON_MARKER, data: BitVecData{uinl: 0}}
+		BitVec{bits: UNDEF_MARKER, data: BitVecData{inl: Block::from_u64(0)}}
 	}
 
 	/// Creates a new bitvector from the given `u32`.
 	#[inline]
 	pub fn from_u32(val: u32) -> BitVec {
-		BitVec{bits: 32, data: BitVecData{uinl: val as u64}}
+		BitVec{bits: 32, data: BitVecData{inl: Block::from_u64(val as u64)}}
 	}
 
 	/// Creates a new bitvector from the given `u64`.
 	#[inline]
 	pub fn from_u64(val: u64) -> BitVec {
-		BitVec{bits: 64, data: BitVecData{uinl: val}}
+		BitVec{bits: 64, data: BitVecData{inl: Block::from_u64(val)}}
 	}
 
 	/// Creates a bitvector with `bits` bits that are all set to `0`.
@@ -211,20 +222,29 @@ impl BitVec {
 /// =======================================================================
 impl BitVec {
 
+	/// Returns the number of bits of this bitvector.
+	pub fn len(&self) -> usize {
+		self.bits() as usize
+	}
+
+	pub fn bits(&self) -> u32 {
+		self.bits & 0xA000_0000
+	}
+
 	/// Returns true if this bitvector represents an undefined state.
 	pub fn is_undef(&self) -> bool {
-		self.bits == 0
+		self.bits == UNDEF_MARKER
 	}
 
 	/// Returns true if this bitvector represents a poison value.
 	pub fn is_poison(&self) -> bool {
-		(self.bits & 0xA000_0000) != 0
+		(self.bits & POISON_MARKER) != 0
 	}
 
 	/// Returns true if all bits of this bitvector are zero.
 	pub fn is_zeroes(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl == 0}
+			unsafe{self.data.inl.u == 0}
 		}
 		else {
 			unimplemented!();
@@ -234,7 +254,7 @@ impl BitVec {
 	/// Returns true if all bits of this bitvector are one.
 	pub fn is_ones(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl == 0xFFFF_FFFF_FFFF_FFFF}
+			unsafe{self.data.inl.u == 0xFFFF_FFFF_FFFF_FFFF}
 		}
 		else {
 			unimplemented!();
@@ -244,7 +264,7 @@ impl BitVec {
 	/// Returns true if this bitvector represents the number zero (`0`).
 	pub fn is_zero(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl == 0}
+			unsafe{self.data.inl.u == 0}
 		}
 		else {
 			unimplemented!();
@@ -254,7 +274,7 @@ impl BitVec {
 	/// Returns true if this bitvector represents the number one (`1`).
 	pub fn is_one(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl.is_one()}
+			unsafe{self.data.inl.u == 1}
 		}
 		else {
 			unimplemented!();
@@ -264,7 +284,7 @@ impl BitVec {
 	/// Returns true if this bitvector represents an even number.
 	pub fn is_even(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl.is_even()}
+			unsafe{self.data.inl.u.is_even()}
 		}
 		else {
 			unimplemented!();
@@ -274,7 +294,7 @@ impl BitVec {
 	/// Returns true if this bitvector represents an odd number-
 	pub fn is_odd(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl.is_odd()}
+			unsafe{self.data.inl.u.is_odd()}
 		}
 		else {
 			unimplemented!();
@@ -284,7 +304,7 @@ impl BitVec {
 	/// Returns true if this bitvector may represent a positive number in twos complement.
 	pub fn is_positive(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.sinl.is_positive()}
+			unsafe{self.data.inl.s.is_positive()}
 		}
 		else {
 			unimplemented!();
@@ -294,7 +314,7 @@ impl BitVec {
 	/// Returns true if this bitvector may represent a negative number in twos complement.
 	pub fn is_negative(&self) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.sinl.is_negative()}
+			unsafe{self.data.inl.s.is_negative()}
 		}
 		else {
 			unimplemented!();
@@ -311,7 +331,7 @@ impl BitVec {
 	/// Returns `true` if the bit at the `n`th position is set, else `false`.
 	pub fn get(&self, n: usize) -> bool {
 		if self.bits < INLINE_BITS {
-			unsafe{self.data.uinl >> n == 1}
+			unsafe{((self.data.inl.u >> n) & 0x01) == 1}
 		}
 		else {
 			unimplemented!();
@@ -321,18 +341,33 @@ impl BitVec {
 	/// Sets the bit at the `n`th position to `1`.
 	/// 
 	/// Returns the value of the bit before this operation.
-	pub fn set(&mut self, n: usize) -> bool {
-		unimplemented!();
+	pub fn set(&mut self, n: usize) {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.inl.u |= 0x01 << n}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 	/// Unsets the bit at the `n`th position to `0`.
-	pub fn unset(&mut self, n: usize) -> bool {
-		unimplemented!();
+	pub fn unset(&mut self, n: usize) {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.inl.u &= !(0x01 << n)}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 	/// Flips the bit at the `n`th position.
-	pub fn flip(&mut self, n: usize) -> bool {
-		unimplemented!();
+	pub fn flip(&mut self, n: usize) {
+		if self.bits < INLINE_BITS {
+			unsafe{self.data.inl.u ^= 0x01 << n}
+		}
+		else {
+			unimplemented!();
+		}
 	}
 
 }
