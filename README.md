@@ -1,9 +1,8 @@
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
-| **Linux** | [![Build Status](https://travis-ci.org/Robbepop/stevia.svg?branch=master)](https://travis-ci.org/Robbepop/stevia)
-| **Windows** | [![Build Status](https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true)](https://ci.appveyor.com/project/Robbepop/stevia/branch/master)
-| **Licence** | [![MIT licensed](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) |
-|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| **Linux**    | [![Build Status][travis badge]][travis link]          | | **Windows**  | [![Build Status][appveyor badge]][appveyor link]      |
+|:------------:|:------------------------------------------------------|-|:------------:|:------------------------------------------------------|
+| **Coverage** | [![Coverage Status][coveralls badge]][coveralls link] | | **Licence**  | [![MIT Licenced][licence badge]](./LICENCE)           |
 
 ---
 
@@ -50,3 +49,12 @@ false
 ```
 
 Keep in mind that this is still a pretty naive simplification. More to come in future versions of Stevia!
+
+
+[travis badge]: https://travis-ci.org/Robbepop/stevia.svg?branch=master
+[travis link]: https://travis-ci.org/Robbepop/stevia
+[appveyor badge]: https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true
+[appveyor link]: https://ci.appveyor.com/project/Robbepop/stevia/branch/master
+[coveralls badge]: https://coveralls.io/repos/github/Robbepop/stevia/badge.svg?branch=master
+[coveralls link]: https://coveralls.io/github/Robbepop/stevia?branch=master
+[licence badge]: https://img.shields.io/badge/license-MIT-blue.svg
