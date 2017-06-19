@@ -29,11 +29,11 @@ Currently the solver is in very early development phase.
 
 ## Very future goals are
 - Support for [SMTLib 2.6][smtlib-home].
-- Theories of Bitvectors and Arrays.
+- Theories of quantifier-free bitvectors and arrays: `QF_ABV`
 - Comprehensive documentation for all important parts of the code.
 - Eventually be able to keep up with other SMT solvers like STP.
 - C API to enable bindings for other languages.
-- Use an efficient SAT solver, like [candy][candy-repo].
+- Use an efficient SAT solver under the hood, like [candy][candy-repo].
 
 ## Simplifications
 
