@@ -40,9 +40,17 @@ pub enum ErrorKind {
 	InvalidDecimalStr(String),
 	InvalidHexStr(String),
 	UnmatchingBitwidth(u32, u32),
-	InvalidBitWidthArgument(u32)
+	InvalidZeroBitWidth,
+	InvalidBitWidthArgument(u32),
+	InvalidUndefOperation(Operation)
 }
 use ErrorKind::*;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Operation {
+	UnsignedLessThan,
+	SignedLessThan
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Error(ErrorKind);
@@ -50,47 +58,111 @@ pub struct Error(ErrorKind);
 pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Bits {
-	Undef,
-	Poison,
-	N(u32)
+pub enum Storage {
+	/// The value is stored inline on the stack within the bitvec.
+	Inline,
+	/// The value is stored on the heap outside the bitvec.
+	Extern
 }
-use Bits::*;
+use Storage::*;
 
-impl From<u32> for Bits {
-	fn from(val: u32) -> Bits {
+/// A representant used to controle the behaviour of bitvectors.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Repr {
+	/// Representant for an undefined value.
+	Undef,
+	/// Representant for a poisoned value with bits.
+	Poison(u32),
+	/// Representant for a normal value with bits.
+	Normal(u32)
+}
+use Repr::*;
+
+impl Repr {
+	/// Returns true if this `Repr` represents undefinedness.
+	#[inline]
+	fn is_undef(self) -> bool {
+		match self {
+			Repr::Undef => true,
+			_           => false
+		}
+	}
+
+	/// Returns true if this `Repr` represents a poisoned value.
+	#[inline]
+	fn is_poison(self) -> bool {
+		match self {
+			Repr::Poison(_) => true,
+			_               => false
+		}
+	}
+
+	/// Returns true if this `Repr` represents a normal value.
+	#[inline]
+	fn is_normal(self) -> bool {
+		match self {
+			Repr::Normal(_) => true,
+			_               => false
+		}
+	}
+
+	/// Returns true if this `Repr` represents a bitvec that stores its data inplace on the stack.
+	#[inline]
+	fn is_small(self) -> bool {
+		self.bits() <= INLINE_BITS
+	}
+
+	/// Returns the storage properties of this representant.
+	#[inline]
+	fn storage(self) -> Storage {
+		match self.is_small() {
+			true  => Inline,
+			false => Extern
+		}
+	}
+
+	/// Returns the number of bits that are associated with this `Repr`.
+	#[inline]
+	fn bits(self) -> u32 {
+		match self {
+			Repr::Undef        => UNDEF_BITS,
+			Repr::Poison(bits) => bits,
+			Repr::Normal(bits) => bits
+		}
+	}
+
+	/// Creates a `Repr` from a given number of bits.
+	#[inline]
+	fn from_u32(val: u32) -> Self {
 		match val {
-			UNDEF_MARKER => Bits::Undef,
-			mask if mask & POISON_MARKER != 0 => Bits::Poison,
-			n => Bits::N(n)
+			0 => Repr::Undef,
+			n if n >= POISON_MARKER => Repr::Poison(n - POISON_MARKER),
+			n => Repr::Normal(n)
 		}
 	}
 }
 
-impl From<Bits> for u32 {
-	fn from(bits: Bits) -> u32 {
-		match bits {
-			Undef => 0,
-			Poison => 0xFFFF_FFFF,
-			N(n) => n
-		}
+impl From<u32> for Repr {
+	fn from(val: u32) -> Repr {
+		Repr::from_u32(val)
 	}
 }
 
 const INLINE_BITS  : u32 = 64;
 
-const UNDEF_MARKER : u32 = 0;
+const UNDEF_BITS : u32 = 0;
 const POISON_MARKER: u32 = 0xA000_0000;
 
 pub struct BitVec {
 	/// Number of bits used by this bitvector.
 	/// 
 	/// Note that the actual memory consumption may be larger.
-	bits: u32,
+	repr: Repr,
 	/// The bits for this bitvector.
 	data: BitVecData
 }
 
+/// A bitvec data that either stores a single block on the stack or a contiguous sequence of blocks on the heap.
 union BitVecData {
 	/// Inline, on-stack data when bits in bitvector is less than `INLINE_BITS`
 	inl: Block,
@@ -98,6 +170,7 @@ union BitVecData {
 	ext: Unique<Block>
 }
 
+/// A block that is either a signed or an unsigned 64-bit integer.
 union Block {
 	/// Signed variant for native signed operations
 	s: i64,
@@ -127,46 +200,44 @@ impl BitVec {
 	/// Creates a new bitvector that represents an undefined state.
 	#[inline]
 	pub fn undef() -> BitVec {
-		BitVec{bits: UNDEF_MARKER, data: BitVecData{inl: Block::from_u64(0)}}
+		BitVec{repr: Repr::Undef, data: BitVecData{inl: Block::from_u64(0)}}
 	}
 
 	/// Creates a new bitvector from the given `u32`.
 	#[inline]
 	pub fn from_u32(val: u32) -> BitVec {
-		BitVec{bits: 32, data: BitVecData{inl: Block::from_u64(val as u64)}}
+		BitVec{repr: Repr::Normal(32), data: BitVecData{inl: Block::from_u64(val as u64)}}
 	}
 
 	/// Creates a new bitvector from the given `u64`.
 	#[inline]
 	pub fn from_u64(val: u64) -> BitVec {
-		BitVec{bits: 64, data: BitVecData{inl: Block::from_u64(val)}}
+		BitVec{repr: Repr::Normal(64), data: BitVecData{inl: Block::from_u64(val)}}
 	}
 
 	/// Creates a new bitvector from the given `i32`.
 	#[inline]
 	pub fn from_i32(val: i32) -> BitVec {
-		BitVec{bits: 32, data: BitVecData{inl: Block::from_i64(val as i64)}}
+		BitVec{repr: Repr::Normal(32), data: BitVecData{inl: Block::from_i64(val as i64)}}
 	}
 
 	/// Creates a new bitvector from the given `i64`.
 	#[inline]
 	pub fn from_i64(val: i64) -> BitVec {
-		BitVec{bits: 64, data: BitVecData{inl: Block::from_i64(val)}}
+		BitVec{repr: Repr::Normal(64), data: BitVecData{inl: Block::from_i64(val)}}
 	}
 
 	/// Creates a bitvector with `bits` bits that are all set to `0`.
 	#[inline]
-	pub fn zeroes<B>(bits: B) -> Result<BitVec>
-		where B: Into<Bits> + Copy
-	{
-		match bits.into() {
-			Undef | Poison => {
-				Err(Error(InvalidBitWidthArgument(bits.into().into())))
+	pub fn zeroes<B>(bits: u32) -> Result<BitVec> {
+		match Repr::from_u32(bits) {
+			Undef => {
+				Err(Error(InvalidZeroBitWidth))
 			}
-			N(n) if n <= INLINE_BITS => {
+			repr if repr.is_small() => {
 				Ok(BitVec::from_u64(0x0000_0000_0000_0000))
 			}
-			N(_) => {
+			Poison(bits) | Normal(bits) => {
 				unimplemented!()
 			}
 		}
@@ -174,34 +245,32 @@ impl BitVec {
 
 	/// Creates a bitvector with `bits` bits that are all set to `1`.
 	#[inline]
-	pub fn ones<B>(bits: B) -> Result<BitVec>
-		where B: Into<Bits> + Copy
-	{
-		match bits.into() {
-			Undef | Poison => {
-				Err(Error(InvalidBitWidthArgument(bits.into().into())))
+	pub fn ones<B>(bits: u32) -> Result<BitVec> {
+		match Repr::from_u32(bits) {
+			Undef => {
+				Err(Error(InvalidZeroBitWidth))
 			}
-			N(n) if n <= INLINE_BITS => {
+			repr if repr.is_small() => {
 				Ok(BitVec::from_u64(0xFFFF_FFFF_FFFF_FFFF))
 			}
-			N(_) => {
+			Poison(bits) | Normal(bits) => {
 				unimplemented!()
 			}
 		}
 	}
 
 	/// Creates a bitvector with `bits` bits and fills it with the given bit-pattern.
-	pub fn from_pattern<B>(bits: B, pattern: u64) -> Result<BitVec>
-		where B: Into<Bits> + Copy
+	pub fn from_pattern<T>(repr: T, pattern: u64) -> Result<BitVec>
+		where T: Into<Repr>
 	{
-		match bits.into() {
-			Undef | Poison => {
-				Err(Error(InvalidBitWidthArgument(bits.into().into())))
+		match repr.into() {
+			Undef => {
+				Err(Error(InvalidZeroBitWidth))
 			}
-			N(n) if n <= INLINE_BITS => {
+			repr if repr.is_small() => {
 				Ok(BitVec::from_u64(pattern))
 			}
-			N(_) => {
+			Poison(bits) | Normal(bits) => {
 				unimplemented!()
 			}
 		}
@@ -264,96 +333,138 @@ impl BitVec {
 	}
 
 	pub fn bits(&self) -> u32 {
-		self.bits & 0xA000_0000
+		self.repr.bits()
 	}
 
 	/// Returns true if this bitvector represents an undefined state.
 	pub fn is_undef(&self) -> bool {
-		self.bits == UNDEF_MARKER
+		self.repr.is_undef()
 	}
 
 	/// Returns true if this bitvector represents a poison value.
 	pub fn is_poison(&self) -> bool {
-		(self.bits & POISON_MARKER) != 0
+		self.repr.is_poison()
 	}
 
 	/// Returns true if all bits of this bitvector are zero.
+	/// 
+	/// Panics if this bitvec represents an undefined value.
 	pub fn is_zeroes(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u == 0}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_zeroes(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u == 0}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if all bits of this bitvector are one.
 	pub fn is_ones(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u == 0xFFFF_FFFF_FFFF_FFFF}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_ones(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u == 0xFFFF_FFFF_FFFF_FFFF}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if this bitvector represents the number zero (`0`).
 	pub fn is_zero(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u == 0}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_zero(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u == 0}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if this bitvector represents the number one (`1`).
 	pub fn is_one(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u == 1}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_one(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u == 1}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if this bitvector represents an even number.
 	pub fn is_even(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u.is_even()}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_even(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u.is_even()}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if this bitvector represents an odd number-
 	pub fn is_odd(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u.is_odd()}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_odd(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u.is_odd()}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if this bitvector may represent a positive number in twos complement.
 	pub fn is_positive(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.s.is_positive()}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_positive(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.s.is_positive()}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Returns true if this bitvector may represent a negative number in twos complement.
 	pub fn is_negative(&self) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.s.is_negative()}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_negative(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.s.is_negative()}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
@@ -366,11 +477,16 @@ impl BitVec {
 
 	/// Returns `true` if the bit at the `n`th position is set, else `false`.
 	pub fn get(&self, n: usize) -> bool {
-		if self.bits <= INLINE_BITS {
-			unsafe{((self.data.inl.u >> n) & 0x01) == 1}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::is_negative(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{((self.data.inl.u >> n) & 0x01) == 1}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
@@ -378,31 +494,46 @@ impl BitVec {
 	/// 
 	/// Returns the value of the bit before this operation.
 	pub fn set(&mut self, n: usize) {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u |= 0x01 << n}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::set(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u |= 0x01 << n}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Unsets the bit at the `n`th position to `0`.
 	pub fn unset(&mut self, n: usize) {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u &= !(0x01 << n)}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::unset(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u &= !(0x01 << n)}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
 	/// Flips the bit at the `n`th position.
 	pub fn flip(&mut self, n: usize) {
-		if self.bits <= INLINE_BITS {
-			unsafe{self.data.inl.u ^= 0x01 << n}
-		}
-		else {
-			unimplemented!();
+		match self.repr {
+			Undef => {
+				panic!("BitVec::flip(): Cannot decide this information on undefined representant!")
+			}
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.u ^= 0x01 << n}
+			}
+			_ => {
+				unimplemented!()
+			}
 		}
 	}
 
@@ -415,28 +546,31 @@ impl BitVec {
 
 	/// Unsigned less-than comparison with the other bitvec.
 	pub fn ult(&self, other: &BitVec) -> bool {
-		match (self.bits, other.bits) {
+		match (self.repr, other.repr) {
 
-			// both inline
-			(l, r) if l <= INLINE_BITS && r <= INLINE_BITS => {
-				unsafe{self.data.inl.u < other.data.inl.u}
+			// one of them is undef
+			(Undef, _) | (_, Undef) => {
+				panic!("BitVec::ult(): Cannot decide this information on undefined representant!")
 			}
 
-			// left inline, right extern
-			(l, r) if l <= INLINE_BITS && r >  INLINE_BITS => {
-				unimplemented!();
+			// non-undefs
+			(l, r) => {
+				// match for storage properties
+				match (l.storage(), r.storage()) {
+					(Inline, Inline) => {
+						unsafe{self.data.inl.u < other.data.inl.u}
+					}
+					(Inline, Extern) => {
+						unimplemented!()
+					}
+					(Extern, Inline) => {
+						unimplemented!()
+					}
+					(Extern, Extern) => {
+						unimplemented!()
+					}
+				}
 			}
-
-			// left extern, right inline
-			(l, r) if l >  INLINE_BITS && r <= INLINE_BITS => {
-				unimplemented!();
-			}
-
-			// both extern
-			_ => {
-				unimplemented!();
-			}
-
 		}
 	}
 
@@ -457,28 +591,31 @@ impl BitVec {
 
 	/// Signed less-than comparison with the other bitvec.
 	pub fn slt(&self, other: &BitVec) -> bool {
-		match (self.bits, other.bits) {
+		match (self.repr, other.repr) {
 
-			// both inline
-			(l, r) if l <= INLINE_BITS && r <= INLINE_BITS => {
-				unsafe{self.data.inl.s < other.data.inl.s}
+			// one of them is undef
+			(Undef, _) | (_, Undef) => {
+				panic!("BitVec::slt(): Cannot decide this information on undefined representant!")
 			}
 
-			// left inline, right extern
-			(l, r) if l <= INLINE_BITS && r >  INLINE_BITS => {
-				unimplemented!();
+			// non-undefs
+			(l, r) => {
+				// match for storage properties
+				match (l.storage(), r.storage()) {
+					(Inline, Inline) => {
+						unsafe{self.data.inl.s < other.data.inl.s}
+					}
+					(Inline, Extern) => {
+						unimplemented!()
+					}
+					(Extern, Inline) => {
+						unimplemented!()
+					}
+					(Extern, Extern) => {
+						unimplemented!()
+					}
+				}
 			}
-
-			// left extern, right inline
-			(l, r) if l >  INLINE_BITS && r <= INLINE_BITS => {
-				unimplemented!();
-			}
-
-			// both extern
-			_ => {
-				unimplemented!();
-			}
-
 		}
 	}
 
@@ -504,24 +641,104 @@ impl BitVec {
 /// =======================================================================
 impl BitVec {
 
-	/// Creates a new bitvec that represents the negation of the given bitvector.
-	pub fn neg(&self) -> BitVec {
-		unimplemented!();
+	/// Consumes this bitvec and returns a bitvec that represents the negation of the original bitvec.
+	/// 
+	/// Mote: This clones the bitvector.
+	pub fn neg(self) -> BitVec {
+		match self.repr {
+			Undef => {
+				self
+			}
+			repr if repr.is_small() => {
+				let mut this = self;
+				this.neg_assign();
+				this
+			}
+			_ => {
+				unimplemented!()
+			}
+		}
 	}
 
 	/// Negates the given bitvector.
 	pub fn neg_assign(&mut self) {
-		unimplemented!();
+		match self.repr {
+			Undef => (),
+			repr if repr.is_small() => {
+				unsafe{self.data.inl.s = -self.data.inl.s}
+			}
+			_ => {
+				unimplemented!()
+			}
+		}
 	}
 
 	/// Creates a new bitvec that represents the signed addition of both given bitvectors.
 	pub fn sadd(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
+		match (self.repr, other.repr) {
+
+			// one of them is undef
+			(Undef, _) | (_, Undef) => {
+				panic!("BitVec::slt(): Cannot decide this information on undefined representant!")
+			}
+
+			// non-undefs
+			(l, r) => {
+				// match for storage properties
+				match (l.storage(), r.storage()) {
+					(Inline, Inline) => {
+						let lval = unsafe{ self.data.inl.u};
+						let rval = unsafe{other.data.inl.u};
+						match lval.overflowing_add(rval) {
+							(res, false) => BitVec::from_pattern(self.bits(), res).unwrap(),
+							(res, true ) => BitVec::from_pattern(self.bits(), res).unwrap()
+						}
+					}
+					(Inline, Extern) => {
+						unimplemented!()
+					}
+					(Extern, Inline) => {
+						unimplemented!()
+					}
+					(Extern, Extern) => {
+						unimplemented!()
+					}
+				}
+			}
+		}
 	}
 
 	/// Creates a new bitvec that represents the unsigned addition of both given bitvectors.
 	pub fn uadd(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
+		match (self.repr, other.repr) {
+
+			// one of them is undef
+			(Undef, _) | (_, Undef) => {
+				panic!("BitVec::uadd(): Cannot decide this information on undefined representant!")
+				// BitVec::undef()
+			}
+
+			// non-undefs
+			(l, r) => {
+				// match for storage properties
+				match (l.storage(), r.storage()) {
+					(Inline, Inline) => {
+						let lval = unsafe{ self.data.inl.u};
+						let rval = unsafe{other.data.inl.u};
+						BitVec::from_pattern(self.repr, lval.wrapping_add(rval)).unwrap()
+					}
+					(Inline, Extern) => {
+						unimplemented!()
+					}
+					(Extern, Inline) => {
+						unimplemented!()
+					}
+					(Extern, Extern) => {
+						unimplemented!()
+					}
+				}
+			}
+		}
 	}
 
 	/// Creates a new bitvec that represents the signed subtraction of both given bitvectors.
