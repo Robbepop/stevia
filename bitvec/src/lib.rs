@@ -30,6 +30,8 @@
 
 extern crate num;
 
+mod flexint;
+
 use num::Integer;
 
 use std::ptr::Unique;
