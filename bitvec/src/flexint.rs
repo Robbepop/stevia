@@ -1,6 +1,23 @@
+use std::result;
 use std::fmt;
 use std::ptr::Unique;
 use std::hash::{Hash, Hasher};
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ErrorKind {
+	InvalidBinaryStr(String),
+	InvalidDecimalStr(String),
+	InvalidHexStr(String),
+	UnmatchingBitwidth(u32, u32),
+	InvalidZeroBitWidth,
+	InvalidBitWidthArgument(u32)
+}
+// use self::ErrorKind::*;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Error(ErrorKind);
+
+pub type Result<T> = result::Result<T, Error>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 struct FlexInt {
@@ -25,13 +42,29 @@ struct DynFlexInt {
 
 impl Clone for DynFlexInt {
 	fn clone(&self) -> Self {
-		unimplemented!() // TODO
+		match self.storage() {
+			Storage::Inl => {
+				DynFlexInt{bits: self.bits, data: BlockChain{inl: unsafe{self.data.inl}}}
+			}
+			Storage::Ext => {
+				let block_size = 32;
+				let req_blocks = ((self.bits - 1) / block_size) + 1;
+				let mut buffer = Vec::with_capacity(req_blocks as usize);
+				let src: *const Block = unsafe{self.data.ext.as_ptr()};
+				let dst: *mut   Block = buffer.as_mut_ptr();
+				unsafe{::std::ptr::copy_nonoverlapping(src, dst, req_blocks as usize);}
+				::std::mem::forget(buffer);
+				DynFlexInt{bits: self.bits, data: BlockChain{ext: unsafe{Unique::new(dst)}}}
+			}
+		}
 	}
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum Storage {
+	/// Indicating on stack and inplace memory usage.
 	Inl,
+	/// Indicating on heap and external memory usage.
 	Ext
 }
 
@@ -92,6 +125,14 @@ impl Hash for DynFlexInt {
 	}
 }
 
+impl Drop for DynFlexInt {
+	fn drop(&mut self) {
+		if self.storage() == Storage::Ext {
+			::std::mem::drop(unsafe{self.data.ext})
+		}
+	}
+}
+
 union BlockChain {
 	inl: [Block; 2],
 	ext: Unique<Block>
@@ -121,7 +162,9 @@ impl Hash for Block {
 	}
 }
 
-/// Constructors for `FlexInt`.
+//  =======================================================================
+///  Constructors for `FlexInt`.
+/// =======================================================================
 impl FlexInt {
 	/// Creates a new `FlexInt` from a given `bool` value with a bit-width of 1.
 	#[inline]
@@ -205,6 +248,34 @@ impl FlexInt {
 		}
 	}
 
+	/// Creates a new `FlexInt` with the given bit-width that has all bits set.
+	#[inline]
+	fn zeroes(bits: u32) -> FlexInt {
+		match bits {
+			0  => panic!("FlexInt::zero(0): Cannot be called with 0 bits."),
+			1  => FlexInt::from_bool(false),
+			8  => FlexInt::from_u8(0x00),
+			16 => FlexInt::from_u16(0x0000),
+			32 => FlexInt::from_u32(0x0000_0000),
+			64 => FlexInt::from_u64(0x0000_0000_0000_0000),
+			n  => unimplemented!()
+		}
+	}
+
+	/// Creates a new `FlexInt` with the given bit-width that has all bits set.
+	#[inline]
+	fn ones(bits: u32) -> FlexInt {
+		match bits {
+			0  => panic!("FlexInt::zero(0): Cannot be called with 0 bits."),
+			1  => FlexInt::from_bool(true),
+			8  => FlexInt::from_u8(0xFF),
+			16 => FlexInt::from_u16(0xFFFF),
+			32 => FlexInt::from_u32(0xFFFF_FFFF),
+			64 => FlexInt::from_u64(0xFFFF_FFFF_FFFF_FFFF),
+			n  => unimplemented!()
+		}
+	}
+
 	/// Creates a new `FlexInt` with the given bit-width and sets all bits to the
 	/// given pattern which is repeated until all bits are set.
 	/// 
@@ -217,19 +288,42 @@ impl FlexInt {
 			bits if bits < 64 => {
 				let pattern = pattern.into();
 				assert!(pattern.bits() <= bits);
-				let dynflex = DynFlexInt{
-					bits: bits,
-					data: BlockChain{
-						inl: unimplemented!()
-					}
-				};
-				FlexInt{data: FlexIntKind::Dyn(dynflex)}
+				unimplemented!()
+				// let dynflex = DynFlexInt{
+				// 	bits: bits,
+					// data: BlockChain{
+					// 	inl: unimplemented!()
+					// }
+				// };
+				// FlexInt{data: FlexIntKind::Dyn(dynflex)}
 			}
 			_ => {
 				unimplemented!()
 			}
 		}
 	}
+}
+
+//  =======================================================================
+///  Deserialization
+/// =======================================================================
+impl FlexInt {
+
+	/// Creates a new bitvector from the given binary string representation.
+	pub fn from_bin_str(binary_str: &str) -> Result<FlexInt> {
+		unimplemented!();
+	}
+
+	/// Creates a new bitvector from the given binary string representation.
+	pub fn from_dec_str(dec_str: &str) -> Result<FlexInt> {
+		unimplemented!();
+	}
+
+	/// Creates a new bitvector from the given binary string representation.
+	pub fn from_hex_str(hex_str: &str) -> Result<FlexInt> {
+		unimplemented!();
+	}
+
 }
 
 /// Utility and informational getter methods.
