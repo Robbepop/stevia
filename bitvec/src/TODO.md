@@ -7,3 +7,4 @@ TODOs for `BitVec` (deprecated) and `FlexInt`
 	- `impl<'a> Add<FlexInt> for &'a FlexInt {}`
 	- `impl<'a> Add<&'a FlexInt> for FlexInt {}`
 	- `impl<'a, 'b> Add<&'a FlexInt> for &'b FlexInt {}`
+- Implement `From<T> for FlexInt` for `T: {bool, u8, i8, u16,...,u64, i64}`
