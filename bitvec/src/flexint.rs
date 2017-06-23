@@ -539,3 +539,54 @@ impl FlexInt {
 		unimplemented!()
 	}
 }
+
+//  =======================================================================
+///  Bit-level getters and setters
+/// =======================================================================
+impl FlexInt {
+
+	/// Returns `true` if the bit at the `n`th position is set, else `false`.
+	pub fn get(&self, n: usize) -> bool {
+		unimplemented!()
+	}
+
+	/// Sets the bit at the `n`th position to `1`.
+	/// 
+	/// Returns the value of the bit before this operation.
+	pub fn set(&mut self, n: usize) {
+		unimplemented!()
+	}
+
+	/// Unsets the bit at the `n`th position to `0`.
+	pub fn unset(&mut self, n: usize) {
+		unimplemented!()
+	}
+
+	/// Flips the bit at the `n`th position.
+	pub fn flip(&mut self, n: usize) {
+		unimplemented!()
+	}
+
+}
+
+//  =======================================================================
+///  Extend & Truncate Operations
+/// =======================================================================
+impl FlexInt {
+
+	/// Creates a new `FlexInt` that represents the truncation of this `FlexInt` to the given bits.
+	pub fn trunc(&self, bits: usize) -> Self {
+		unimplemented!();
+	}
+
+	/// Creates a new `FlexInt` that represents the zero-extension of this `FlexInt` to the given bits.
+	pub fn zext(&self, bits: usize) -> Self {
+		unimplemented!();
+	}
+
+	/// Creates a new `FlexInt` that represents the sign-extension of this `FlexInt` to the given bits.
+	pub fn sext(&self, bits: usize) -> Self {
+		unimplemented!();
+	}
+
+}
