@@ -30,7 +30,7 @@
 
 extern crate num;
 
-mod flexint;
+pub mod flexint;
 
 use num::Integer;
 
