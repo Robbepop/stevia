@@ -698,6 +698,105 @@ impl FlexInt {
 }
 
 //  =======================================================================
+///  Relational Operations
+/// =======================================================================
+impl FlexInt {
+
+	/// Unsigned less-than comparison with the other bitvec.
+	pub fn ult(&self, other: &FlexInt) -> bool {
+		unimplemented!()
+		// match (self.repr, other.repr) {
+
+		// 	// one of them is undef
+		// 	(Undef, _) | (_, Undef) => {
+		// 		panic!("FlexInt::ult(): Cannot decide this information on undefined representant!")
+		// 	}
+
+		// 	// non-undefs
+		// 	(l, r) => {
+		// 		// match for storage properties
+		// 		match (l.storage(), r.storage()) {
+		// 			(Inline, Inline) => {
+		// 				unsafe{self.data.inl.u < other.data.inl.u}
+		// 			}
+		// 			(Inline, Extern) => {
+		// 				unimplemented!()
+		// 			}
+		// 			(Extern, Inline) => {
+		// 				unimplemented!()
+		// 			}
+		// 			(Extern, Extern) => {
+		// 				unimplemented!()
+		// 			}
+		// 		}
+		// 	}
+		// }
+	}
+
+	/// Unsigned less-than-or-equals comparison with the other bitvec.
+	pub fn ule(&self, other: &FlexInt) -> bool {
+		!(other.ult(self))
+	}
+
+	/// Unsigned greater-than comparison with the other bitvec.
+	pub fn ugt(&self, other: &FlexInt) -> bool {
+		other.ult(self)
+	}
+
+	/// Unsigned greater-than-or-equals comparison with the other bitvec.
+	pub fn uge(&self, other: &FlexInt) -> bool {
+		!(self.ult(other))
+	}
+
+	/// Signed less-than comparison with the other bitvec.
+	pub fn slt(&self, other: &FlexInt) -> bool {
+		unimplemented!()
+		// match (self.repr, other.repr) {
+
+		// 	// one of them is undef
+		// 	(Undef, _) | (_, Undef) => {
+		// 		panic!("FlexInt::slt(): Cannot decide this information on undefined representant!")
+		// 	}
+
+		// 	// non-undefs
+		// 	(l, r) => {
+		// 		// match for storage properties
+		// 		match (l.storage(), r.storage()) {
+		// 			(Inline, Inline) => {
+		// 				unsafe{self.data.inl.s < other.data.inl.s}
+		// 			}
+		// 			(Inline, Extern) => {
+		// 				unimplemented!()
+		// 			}
+		// 			(Extern, Inline) => {
+		// 				unimplemented!()
+		// 			}
+		// 			(Extern, Extern) => {
+		// 				unimplemented!()
+		// 			}
+		// 		}
+		// 	}
+		// }
+	}
+
+	/// Signed less-than-or-equals comparison with the other bitvec.
+	pub fn sle(&self, other: &FlexInt) -> bool {
+		!(other.slt(self))
+	}
+
+	/// Signed greater-than comparison with the other bitvec.
+	pub fn sgt(&self, other: &FlexInt) -> bool {
+		other.slt(self)
+	}
+
+	/// Signed greater-than-or-equals comparison with the other bitvec.
+	pub fn sge(&self, other: &FlexInt) -> bool {
+		!(self.slt(other))
+	}
+
+}
+
+//  =======================================================================
 ///  Extend & Truncate Operations
 /// =======================================================================
 impl FlexInt {
