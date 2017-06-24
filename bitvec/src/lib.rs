@@ -30,11 +30,10 @@
 
 extern crate num;
 
-pub mod flexint;
-
-use num::Integer;
-
+use std::result;
+use std::fmt;
 use std::ptr::Unique;
+use std::hash::{Hash, Hasher};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ErrorKind {
@@ -43,260 +42,409 @@ pub enum ErrorKind {
 	InvalidHexStr(String),
 	UnmatchingBitwidth(u32, u32),
 	InvalidZeroBitWidth,
-	InvalidBitWidthArgument(u32),
-	InvalidUndefOperation(Operation)
+	InvalidBitWidthArgument(u32)
 }
-use ErrorKind::*;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Operation {
-	UnsignedLessThan,
-	SignedLessThan
-}
+use self::ErrorKind::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Error(ErrorKind);
 
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = result::Result<T, Error>;
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct FlexInt {
+	data: FlexIntKind
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+enum FlexIntKind {
+	_1(bool),
+	_8(u8),
+	_16(u16),
+	_32(u32),
+	_64(u64),
+	Dyn(DynFlexInt)
+}
+use self::FlexIntKind::*;
+
+struct DynFlexInt {
+	bits: u32,
+	data: BlockChain
+}
+
+impl DynFlexInt {
+	fn len_blocks(&self) -> usize {
+		((self.bits as usize - 1) / BLOCK_SIZE) + 1
+	}
+}
+
+impl Clone for DynFlexInt {
+	fn clone(&self) -> Self {
+		match self.storage() {
+			Storage::Inl => {
+				DynFlexInt{bits: self.bits, data: BlockChain{inl: unsafe{self.data.inl}}}
+			}
+			Storage::Ext => {
+				let req_blocks = self.len_blocks();
+				let mut buffer = Vec::with_capacity(req_blocks);
+				let src: *const Block = unsafe{self.data.ext.as_ptr()};
+				let dst: *mut   Block = buffer.as_mut_ptr();
+				unsafe{::std::ptr::copy_nonoverlapping(src, dst, req_blocks);}
+				::std::mem::forget(buffer);
+				DynFlexInt{bits: self.bits, data: BlockChain{ext: unsafe{Unique::new(dst)}}}
+			}
+		}
+	}
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Storage {
-	/// The value is stored inline on the stack within the bitvec.
-	Inline,
-	/// The value is stored on the heap outside the bitvec.
-	Extern
+enum Storage {
+	/// Indicating on stack and inplace memory usage.
+	Inl,
+	/// Indicating on heap and external memory usage.
+	Ext
 }
-use Storage::*;
 
-/// A representant used to controle the behaviour of bitvectors.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Repr {
-	/// Representant for an undefined value.
-	Undef,
-	/// Representant for a poisoned value with bits.
-	Poison(u32),
-	/// Representant for a normal value with bits.
-	Normal(u32)
-}
-use Repr::*;
+/// The maximum bit-width value that is memory-inlined on the stack.
+const MAX_INLINED_SIZE: usize = 64;
 
-impl Repr {
-	/// Returns true if this `Repr` represents undefinedness.
+impl DynFlexInt {
 	#[inline]
-	fn is_undef(self) -> bool {
-		match self {
-			Repr::Undef => true,
-			_           => false
-		}
+	fn bits(&self) -> u32 {
+		self.bits
 	}
 
-	/// Returns true if this `Repr` represents a poisoned value.
+	/// Returns `Storage::Inl` when the representant is stored 
+	/// inline (on the stack) and `Storage::Ext` otherwise.
 	#[inline]
-	fn is_poison(self) -> bool {
-		match self {
-			Repr::Poison(_) => true,
-			_               => false
-		}
-	}
-
-	/// Returns true if this `Repr` represents a normal value.
-	#[inline]
-	fn is_normal(self) -> bool {
-		match self {
-			Repr::Normal(_) => true,
-			_               => false
-		}
-	}
-
-	/// Returns true if this `Repr` represents a bitvec that stores its data inplace on the stack.
-	#[inline]
-	fn is_small(self) -> bool {
-		self.bits() <= INLINE_BITS
-	}
-
-	/// Returns the storage properties of this representant.
-	#[inline]
-	fn storage(self) -> Storage {
-		match self.is_small() {
-			true  => Inline,
-			false => Extern
-		}
-	}
-
-	/// Returns the number of bits that are associated with this `Repr`.
-	#[inline]
-	fn bits(self) -> u32 {
-		match self {
-			Repr::Undef        => UNDEF_BITS,
-			Repr::Poison(bits) => bits,
-			Repr::Normal(bits) => bits
-		}
-	}
-
-	/// Creates a `Repr` from a given number of bits.
-	#[inline]
-	fn from_u32(val: u32) -> Self {
-		match val {
-			0 => Repr::Undef,
-			n if n >= POISON_MARKER => Repr::Poison(n - POISON_MARKER),
-			n => Repr::Normal(n)
+	fn storage(&self) -> Storage {
+		match self.bits as usize {
+			n if n <= MAX_INLINED_SIZE => Storage::Inl,
+			_                          => Storage::Ext
 		}
 	}
 }
 
-impl From<u32> for Repr {
-	fn from(val: u32) -> Repr {
-		Repr::from_u32(val)
+impl fmt::Debug for DynFlexInt {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		Ok(()) // TODO
 	}
 }
 
-const INLINE_BITS  : u32 = 64;
-
-const UNDEF_BITS : u32 = 0;
-const POISON_MARKER: u32 = 0xA000_0000;
-
-pub struct BitVec {
-	/// Number of bits used by this bitvector.
-	/// 
-	/// Note that the actual memory consumption may be larger.
-	repr: Repr,
-	/// The bits for this bitvector.
-	data: BitVecData
+impl PartialEq for DynFlexInt {
+	fn eq(&self, other: &DynFlexInt) -> bool {
+		if self.bits != other.bits {
+			return false;
+		}
+		match self.storage() {
+			Storage::Inl => {
+				let ldat = unsafe{self.data.inl};
+				let rdat = unsafe{other.data.inl};
+				ldat == rdat
+			}
+			Storage::Ext => {
+				unimplemented!()
+			}
+		}
+	}
 }
 
-/// A bitvec data that either stores a single block on the stack or a contiguous sequence of blocks on the heap.
-union BitVecData {
-	/// Inline, on-stack data when bits in bitvector is less than `INLINE_BITS`
-	inl: Block,
-	/// Inline, on-heap data for any sizes of bits in bitvector
+impl Eq for DynFlexInt {}
+
+impl Hash for DynFlexInt {
+	fn hash<H: Hasher>(&self, h: &mut H) {
+		self.bits.hash(h);
+		match self.storage() {
+			Storage::Inl => {
+				unsafe{self.data.inl.hash(h)}
+			}
+			Storage::Ext => {
+				unimplemented!()
+			}
+		}
+	}
+}
+
+impl Drop for DynFlexInt {
+	fn drop(&mut self) {
+		if self.storage() == Storage::Ext {
+			::std::mem::drop(unsafe{self.data.ext})
+		}
+	}
+}
+
+#[derive(Copy, Clone, Eq)]
+union Block {
+	u: u32,
+	s: i32
+}
+
+/// The number of bits of a single block.
+const BLOCK_SIZE: usize = 32;
+
+union BlockChain {
+	inl: [Block; 2],
 	ext: Unique<Block>
 }
 
-/// A block that is either a signed or an unsigned 64-bit integer.
-union Block {
-	/// Signed variant for native signed operations
-	s: i64,
-	/// Unsigned variant for native unsigned operations
-	u: u64
+impl fmt::Debug for Block {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		Ok(()) // TODO
+	}
 }
 
-impl Block {
-	/// Creates a new block from the given `i64`.
-	#[inline]
-	pub fn from_i64(val: i64) -> Block {
-		Block{s: val}
+impl PartialEq for Block {
+	fn eq(&self, other: &Block) -> bool {
+		(unsafe{self.u} < unsafe{other.u})
 	}
+}
 
-	/// Creates a new block from the given `u64`.
-	#[inline]
-	pub fn from_u64(val: u64) -> Block {
-		Block{u: val}
+impl Hash for Block {
+	fn hash<H: Hasher>(&self, h: &mut H) {
+		unsafe{self.u.hash(h)}
 	}
 }
 
 //  =======================================================================
 ///  Constructors
 /// =======================================================================
-impl BitVec {
-
-	/// Creates a new bitvector that represents an undefined state.
+impl FlexInt {
+	/// Creates a new `FlexInt` from a given `bool` value with a bit-width of 1.
 	#[inline]
-	pub fn undef() -> BitVec {
-		BitVec{repr: Repr::Undef, data: BitVecData{inl: Block::from_u64(0)}}
+	pub fn from_bool(val: bool) -> FlexInt {
+		FlexInt{data: FlexIntKind::_1(val)}
 	}
 
-	/// Creates a new bitvector from the given `u32`.
+	/// Creates a new `FlexInt` from a given `i8` value with a bit-width of 8.
 	#[inline]
-	pub fn from_u32(val: u32) -> BitVec {
-		BitVec{repr: Repr::Normal(32), data: BitVecData{inl: Block::from_u64(val as u64)}}
+	pub fn from_i8(val: i8) -> FlexInt {
+		FlexInt{data: FlexIntKind::_8(val as u8)}
 	}
 
-	/// Creates a new bitvector from the given `u64`.
+	/// Creates a new `FlexInt` from a given `i8` value with a bit-width of 8.
 	#[inline]
-	pub fn from_u64(val: u64) -> BitVec {
-		BitVec{repr: Repr::Normal(64), data: BitVecData{inl: Block::from_u64(val)}}
+	pub fn from_u8(val: u8) -> FlexInt {
+		FlexInt{data: FlexIntKind::_8(val)}
 	}
 
-	/// Creates a new bitvector from the given `i32`.
+	/// Creates a new `FlexInt` from a given `i16` value with a bit-width of 16.
 	#[inline]
-	pub fn from_i32(val: i32) -> BitVec {
-		BitVec{repr: Repr::Normal(32), data: BitVecData{inl: Block::from_i64(val as i64)}}
+	pub fn from_i16(val: i16) -> FlexInt {
+		FlexInt{data: FlexIntKind::_16(val as u16)}
 	}
 
-	/// Creates a new bitvector from the given `i64`.
+	/// Creates a new `FlexInt` from a given `i16` value with a bit-width of 16.
 	#[inline]
-	pub fn from_i64(val: i64) -> BitVec {
-		BitVec{repr: Repr::Normal(64), data: BitVecData{inl: Block::from_i64(val)}}
+	pub fn from_u16(val: u16) -> FlexInt {
+		FlexInt{data: FlexIntKind::_16(val)}
 	}
 
-	/// Creates a bitvector with `bits` bits that are all set to `0`.
+	/// Creates a new `FlexInt` from a given `i32` value with a bit-width of 32.
 	#[inline]
-	pub fn zeroes<B>(bits: u32) -> Result<BitVec> {
-		match Repr::from_u32(bits) {
-			Undef => {
-				Err(Error(InvalidZeroBitWidth))
-			}
-			repr if repr.is_small() => {
-				Ok(BitVec::from_u64(0x0000_0000_0000_0000))
-			}
-			Poison(bits) | Normal(bits) => {
-				unimplemented!()
-			}
+	pub fn from_i32(val: i32) -> FlexInt {
+		FlexInt{data: FlexIntKind::_32(val as u32)}
+	}
+
+	/// Creates a new `FlexInt` from a given `i32` value with a bit-width of 32.
+	#[inline]
+	pub fn from_u32(val: u32) -> FlexInt {
+		FlexInt{data: FlexIntKind::_32(val)}
+	}
+
+	/// Creates a new `FlexInt` from a given `i64` value with a bit-width of 64.
+	#[inline]
+	pub fn from_i64(val: i64) -> FlexInt {
+		FlexInt{data: FlexIntKind::_64(val as u64)}
+	}
+
+	/// Creates a new `FlexInt` from a given `i64` value with a bit-width of 64.
+	#[inline]
+	pub fn from_u64(val: u64) -> FlexInt {
+		FlexInt{data: FlexIntKind::_64(val)}
+	}
+
+	/// Creates a new `FlexInt` with the given bit-width that represents zero.
+	///
+	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
+	#[inline]
+	pub fn zero(bits: u32) -> Result<FlexInt> {
+		match bits {
+			0  => Err(Error(InvalidZeroBitWidth)),
+			1  => Ok(FlexInt::from_bool(false)),
+			8  => Ok(FlexInt::from_u8(0)),
+			16 => Ok(FlexInt::from_u16(0)),
+			32 => Ok(FlexInt::from_u32(0)),
+			64 => Ok(FlexInt::from_u64(0)),
+			n  => unimplemented!()
 		}
 	}
 
-	/// Creates a bitvector with `bits` bits that are all set to `1`.
+	/// Creates a new `FlexInt` with the given bit-width that represents one.
+	///
+	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
 	#[inline]
-	pub fn ones<B>(bits: u32) -> Result<BitVec> {
-		match Repr::from_u32(bits) {
-			Undef => {
-				Err(Error(InvalidZeroBitWidth))
-			}
-			repr if repr.is_small() => {
-				Ok(BitVec::from_u64(0xFFFF_FFFF_FFFF_FFFF))
-			}
-			Poison(bits) | Normal(bits) => {
-				unimplemented!()
-			}
+	pub fn one(bits: u32) -> Result<FlexInt> {
+		match bits {
+			0  => Err(Error(InvalidZeroBitWidth)),
+			1  => Ok(FlexInt::from_bool(true)),
+			8  => Ok(FlexInt::from_u8(1)),
+			16 => Ok(FlexInt::from_u16(1)),
+			32 => Ok(FlexInt::from_u32(1)),
+			64 => Ok(FlexInt::from_u64(1)),
+			n  => unimplemented!()
 		}
 	}
 
-	/// Creates a bitvector with `bits` bits and fills it with the given bit-pattern.
-	pub fn from_pattern<T>(repr: T, pattern: u64) -> Result<BitVec>
-		where T: Into<Repr>
-	{
-		match repr.into() {
-			Undef => {
-				Err(Error(InvalidZeroBitWidth))
-			}
-			repr if repr.is_small() => {
-				Ok(BitVec::from_u64(pattern))
-			}
-			Poison(bits) | Normal(bits) => {
-				unimplemented!()
-			}
+	/// Creates a new `FlexInt` with the given bit-width that has all bits set.
+	///
+	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
+	#[inline]
+	pub fn zeroes(bits: u32) -> Result<FlexInt> {
+		match bits {
+			0  => Err(Error(InvalidZeroBitWidth)),
+			1  => Ok(FlexInt::from_bool(false)),
+			8  => Ok(FlexInt::from_u8(0x00)),
+			16 => Ok(FlexInt::from_u16(0x0000)),
+			32 => Ok(FlexInt::from_u32(0x0000_0000)),
+			64 => Ok(FlexInt::from_u64(0x0000_0000_0000_0000)),
+			n  => unimplemented!()
+		}
+	}
+
+	/// Creates a new `FlexInt` with the given bit-width that has all bits set.
+	///
+	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
+	#[inline]
+	pub fn ones(bits: u32) -> Result<FlexInt> {
+		match bits {
+			0  => Err(Error(InvalidZeroBitWidth)),
+			1  => Ok(FlexInt::from_bool(true)),
+			8  => Ok(FlexInt::from_u8(0xFF)),
+			16 => Ok(FlexInt::from_u16(0xFFFF)),
+			32 => Ok(FlexInt::from_u32(0xFFFF_FFFF)),
+			64 => Ok(FlexInt::from_u64(0xFFFF_FFFF_FFFF_FFFF)),
+			n  => unimplemented!()
 		}
 	}
 
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum TargetBitWidth {
+	/// Tells methods to try to infer the resulting bit-width from the input.
+	Infer,
+	/// Tells methods to use the given fixed bit-width as resulting bit-width.
+	Fixed(u32)
+}
+// use self::TargetBitWidth::*;
+
 //  =======================================================================
 ///  Deserialization
 /// =======================================================================
-impl BitVec {
+impl FlexInt {
 
 	/// Creates a new bitvector from the given binary string representation.
-	pub fn from_bin_str(binary_str: &str) -> Result<BitVec> {
+	/// 
+	/// Using the first parameter `bitwidth` the user can either let the method infer the resulting bit-width
+	/// or set it explicitely.
+	/// 
+	/// The format of the binary string must follow some rules.
+	///  - The only allowed characters are digits `'0'`, `'1'` and the digit-separator `'_'` (underscore).
+	///  - The input string must contain at least a single `'0'` or `'1'` character.
+	/// 
+	/// In any other case the implementation will return an error.
+	/// 
+	/// # Good Examples
+	/// 
+	/// - `"0101"`
+	/// - `"0111_0010_0000_1110"`
+	/// - `"11__00"`
+	/// - `"__0__"`
+	/// 
+	/// # Bad Examples
+	/// 
+	/// - `"0102"`
+	/// - `"01'0001"`
+	/// - `"foo"`
+	/// - `"-1001"`
+	/// 
+	/// # Note
+	/// 
+	/// - The most significant bit (MSB) is on the left.
+	/// - The bitwidth of the resulting `FlexInt` is infered from the number of valid digits in the input.
+	/// - Input may start with `'0'` which may influence the bit-width of the resulting `FlexInt`.
+	pub fn from_bin_str(bitwidth: TargetBitWidth, binary_str: &str) -> Result<FlexInt> {
 		unimplemented!();
 	}
 
-	/// Creates a new bitvector from the given binary string representation.
-	pub fn from_dec_str(dec_str: &str) -> Result<BitVec> {
+	/// Creates a new bitvector from the given decimal string representation.
+	/// 
+	/// Using the first parameter `bitwidth` the user can either let the method infer the resulting bit-width
+	/// or set it explicitely.
+	/// 
+	/// The format of the decimal string must follow some rules.
+	///  - The only allowed characters are digits `'0'`, `'1'`,..,`'9'` and the digit-separator `'_'` (underscore).
+	///  - The input string must contain at least a single valid digit character.
+	/// 
+	/// In any other case the implementation will return an error.
+	/// 
+	/// # Good Examples
+	/// 
+	/// - `"3497"`
+	/// - `"0323_0321_9876_5432"`
+	/// - `"85__132"`
+	/// - `"__9__"`
+	/// - `"000075"`
+	/// 
+	/// # Bad Examples
+	/// 
+	/// - `"0A5C"`
+	/// - `"13'8273"`
+	/// - `"bar"`
+	/// - `"-1337"`
+	/// 
+	/// # Note
+	/// 
+	/// - The most significant digit is on the left.
+	/// - The bitwidth of the resulting `FlexInt` is infered from the number of valid digits in the input.
+	/// - Input may start with `'0'` which may influence the bit-width of the resulting `FlexInt`.
+	pub fn from_dec_str(bitwidth: TargetBitWidth, dec_str: &str) -> Result<FlexInt> {
 		unimplemented!();
 	}
 
-	/// Creates a new bitvector from the given binary string representation.
-	pub fn from_hex_str(hex_str: &str) -> Result<BitVec> {
+	/// Creates a new bitvector from the given hexa-decimal string representation.
+	/// 
+	/// Using the first parameter `bitwidth` the user can either let the method infer the resulting bit-width
+	/// or set it explicitely.
+	/// 
+	/// The format of the decimal string must follow some rules.
+	///  - The only allowed characters are the digits `'0'`, `'1'`,..,`'9'` the alphas `'A'`,`'B'`,..,`'F'` and the digit-separator `'_'` (underscore).
+	///  - The input string must contain at least a single valid alpha-numeric character.
+	/// 
+	/// In any other case the implementation will return an error.
+	/// 
+	/// # Good Examples
+	/// 
+	/// - `"AC08"`
+	/// - `"03B8_A30D_EEE2_007"`
+	/// - `"FF__A00"`
+	/// - `"__E__"`
+	/// - `"B008CE"`
+	/// 
+	/// # Bad Examples
+	/// 
+	/// - `"ffcc0"`: no small letters!
+	/// - `"0K5X"`
+	/// - `"13'8273"`
+	/// - `"foobar"`
+	/// - `"-MCLVII"`
+	/// 
+	/// # Note
+	/// 
+	/// - The most significant quad is on the left.
+	/// - The bitwidth of the resulting `FlexInt` is infered from the number of valid digits in the input.
+	/// - Input may start with `'0'` which may influence the bit-width of the resulting `FlexInt`.
+	pub fn from_hex_str(bitwidth: TargetBitWidth, hex_str: &str) -> Result<FlexInt> {
 		unimplemented!();
 	}
 
@@ -305,7 +453,7 @@ impl BitVec {
 //  =======================================================================
 ///  Serialization
 /// =======================================================================
-impl BitVec {
+impl FlexInt {
 
 	/// Returns a string representation of the binary encoded bitvector.
 	pub fn to_bin_string(&self) -> String {
@@ -325,541 +473,226 @@ impl BitVec {
 }
 
 //  =======================================================================
-///  Utility methods
+///  Utility and informational getter methods.
 /// =======================================================================
-impl BitVec {
+impl FlexInt {
+	/// Returns the bit-width of this `FlexInt`.
+	#[inline]
+	pub fn bits(&self) -> u32 {
+		match self.data {
+			_1(_)  => 1,
+			_8(_)  => 8,
+			_16(_) => 16,
+			_32(_) => 32,
+			_64(_) => 64,
+			Dyn(ref i) => i.bits()
+		}
+	}
 
-	/// Returns the number of bits of this bitvector.
-	pub fn len(&self) -> usize {
+	/// Returns the bit-width of this `FlexInt` as `usize`.
+	#[inline]
+	pub fn len_bits(&self) -> usize {
 		self.bits() as usize
 	}
 
-	pub fn bits(&self) -> u32 {
-		self.repr.bits()
-	}
-
-	/// Returns true if this bitvector represents an undefined state.
-	pub fn is_undef(&self) -> bool {
-		self.repr.is_undef()
-	}
-
-	/// Returns true if this bitvector represents a poison value.
-	pub fn is_poison(&self) -> bool {
-		self.repr.is_poison()
-	}
-
-	/// Returns true if all bits of this bitvector are zero.
+	/// Returns the number of bit-blocks used internally for value representation.
 	/// 
-	/// Panics if this bitvec represents an undefined value.
-	pub fn is_zeroes(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_zeroes(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u == 0}
-			}
-			_ => {
-				unimplemented!()
-			}
+	/// Note:
+	/// 
+	/// - This method should not be part of the public interface.
+	/// - The returned values are valid for bit-block sizes of 32 bit.
+	fn len_blocks(&self) -> usize {
+		match self.data {
+			_1(_)  => 1,
+			_8(_)  => 1,
+			_16(_) => 1,
+			_32(_) => 1,
+			_64(_) => 2,
+			Dyn(ref i) => i.len_blocks()
 		}
 	}
 
-	/// Returns true if all bits of this bitvector are one.
-	pub fn is_ones(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_ones(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u == 0xFFFF_FFFF_FFFF_FFFF}
-			}
-			_ => {
-				unimplemented!()
-			}
-		}
-	}
-
-	/// Returns true if this bitvector represents the number zero (`0`).
+	/// Returns true if this `FlexInt` represents the zero (0) value.
+	#[inline]
 	pub fn is_zero(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_zero(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u == 0}
-			}
-			_ => {
-				unimplemented!()
-			}
+		use num::Zero;
+		match self.data {
+			_1(v)  => v == false,
+			_8(v)  => v.is_zero(),
+			_16(v) => v.is_zero(),
+			_32(v) => v.is_zero(),
+			_64(v) => v.is_zero(),
+			Dyn(ref v) => unimplemented!()
 		}
 	}
 
-	/// Returns true if this bitvector represents the number one (`1`).
+	/// Returns true if this `FlexInt` represents the one (1) value.
+	#[inline]
 	pub fn is_one(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_one(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u == 1}
-			}
-			_ => {
-				unimplemented!()
-			}
+		match self.data {
+			_1(v)  => v == true,
+			_8(v)  => v == 1,
+			_16(v) => v == 1,
+			_32(v) => v == 1,
+			_64(v) => v == 1,
+			Dyn(ref n) => unimplemented!()
 		}
 	}
 
-	/// Returns true if this bitvector represents an even number.
-	pub fn is_even(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_even(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u.is_even()}
-			}
-			_ => {
-				unimplemented!()
-			}
+	/// Returns true if all bits of this `FlexInt` are `1` (one).
+	#[inline]
+	pub fn is_ones(&self) -> bool {
+		match self.data {
+			_1(v)  => v == true,
+			_8(v)  => v == 0xFF,
+			_16(v) => v == 0xFFFF,
+			_32(v) => v == 0xFFFF_FFFF,
+			_64(v) => v == 0xFFFF_FFFF_FFFF_FFFF,
+			Dyn(ref v) => unimplemented!()
 		}
 	}
 
-	/// Returns true if this bitvector represents an odd number-
-	pub fn is_odd(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_odd(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u.is_odd()}
-			}
-			_ => {
-				unimplemented!()
-			}
+	/// Returns true if no bits of this `FlexInt` are `0` (zero).
+	#[inline]
+	pub fn is_zeros(&self) -> bool {
+		self.is_zero()
+	}
+
+	/// Returns the number of ones in the binary representation of this `FlexInt`.
+	pub fn count_ones(&self) -> usize {
+		match self.data {
+			_1(v)  => if v { 1 } else { 0 },
+			_8(v)  => v.count_ones() as usize,
+			_16(v) => v.count_ones() as usize,
+			_32(v) => v.count_ones() as usize,
+			_64(v) => v.count_ones() as usize,
+			Dyn(ref v) => unimplemented!()
 		}
 	}
 
-	/// Returns true if this bitvector may represent a positive number in twos complement.
-	pub fn is_positive(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_positive(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.s.is_positive()}
-			}
-			_ => {
-				unimplemented!()
-			}
+	/// Returns the number of zeroes in the binary representation of this `FlexInt`.
+	pub fn count_zeros(&self) -> usize {
+		match self.data {
+			_1(v)  => if v { 0 } else { 1 },
+			_8(v)  => v.count_zeros() as usize,
+			_16(v) => v.count_zeros() as usize,
+			_32(v) => v.count_zeros() as usize,
+			_64(v) => v.count_zeros() as usize,
+			Dyn(ref v) => unimplemented!()
 		}
 	}
 
-	/// Returns true if this bitvector may represent a negative number in twos complement.
-	pub fn is_negative(&self) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_negative(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.s.is_negative()}
-			}
-			_ => {
-				unimplemented!()
-			}
+	/// Returns the number of leading zeroes in the binary representation of this `FlexInt`.
+	pub fn leading_zeros(&self) -> usize {
+		match self.data {
+			_1(v)  => if v { 0 } else { 1 },
+			_8(v)  => v.leading_zeros() as usize,
+			_16(v) => v.leading_zeros() as usize,
+			_32(v) => v.leading_zeros() as usize,
+			_64(v) => v.leading_zeros() as usize,
+			Dyn(ref v) => unimplemented!()
 		}
 	}
 
+	/// Returns the number of trailing zeroes in the binary representation of this `FlexInt`.
+	pub fn trailing_zeroes(&self) -> usize {
+		match self.data {
+			_1(v)  => if v { 0 } else { 1 },
+			_8(v)  => v.trailing_zeros() as usize,
+			_16(v) => v.trailing_zeros() as usize,
+			_32(v) => v.trailing_zeros() as usize,
+			_64(v) => v.trailing_zeros() as usize,
+			Dyn(ref v) => unimplemented!()
+		}
+	}
+
+	/// Returns `true` if and only if `self == 2^k` for some `k`.
+	pub fn is_power_of_two(&self) -> usize {
+		unimplemented!()
+	}
 }
 
 //  =======================================================================
 ///  Bit-level getters and setters
 /// =======================================================================
-impl BitVec {
+impl FlexInt {
 
 	/// Returns `true` if the bit at the `n`th position is set, else `false`.
+	/// 
+	/// #Panics
+	/// 
+	/// If `n` is out of bounds.
 	pub fn get(&self, n: usize) -> bool {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::is_negative(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{((self.data.inl.u >> n) & 0x01) == 1}
-			}
-			_ => {
-				unimplemented!()
-			}
+		if n >= self.len_bits() {
+			panic!("FlexInt::get({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
+		}
+		match self.data {
+			_1(v)  => v,
+			_8(v)  => ((v >> n) & 0x01) == 1,
+			_16(v) => ((v >> n) & 0x01) == 1,
+			_32(v) => ((v >> n) & 0x01) == 1,
+			_64(v) => ((v >> n) & 0x01) == 1,
+			Dyn(ref v) => unimplemented!()
 		}
 	}
 
 	/// Sets the bit at the `n`th position to `1`.
 	/// 
 	/// Returns the value of the bit before this operation.
+	/// 
+	/// #Panics
+	/// 
+	/// If `n` is out of bounds.
 	pub fn set(&mut self, n: usize) {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::set(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u |= 0x01 << n}
-			}
-			_ => {
-				unimplemented!()
-			}
+		if n >= self.len_bits() {
+			panic!("FlexInt::set({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
+		}
+		match self.data {
+			_1(ref mut v)  => *v  = true,
+			_8(ref mut v)  => *v |= 0x01 << n,
+			_16(ref mut v) => *v |= 0x01 << n,
+			_32(ref mut v) => *v |= 0x01 << n,
+			_64(ref mut v) => *v |= 0x01 << n,
+			Dyn(ref mut v) => unimplemented!()
 		}
 	}
 
 	/// Unsets the bit at the `n`th position to `0`.
+	/// 
+	/// #Panics
+	/// 
+	/// If `n` is out of bounds.
 	pub fn unset(&mut self, n: usize) {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::unset(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u &= !(0x01 << n)}
-			}
-			_ => {
-				unimplemented!()
-			}
+		if n >= self.len_bits() {
+			panic!("FlexInt::unset({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
+		}
+		match self.data {
+			_1(ref mut v)  => *v  = false,
+			_8(ref mut v)  => *v &= !(0x01 << n),
+			_16(ref mut v) => *v &= !(0x01 << n),
+			_32(ref mut v) => *v &= !(0x01 << n),
+			_64(ref mut v) => *v &= !(0x01 << n),
+			Dyn(ref mut v) => unimplemented!()
 		}
 	}
 
 	/// Flips the bit at the `n`th position.
-	pub fn flip(&mut self, n: usize) {
-		match self.repr {
-			Undef => {
-				panic!("BitVec::flip(): Cannot decide this information on undefined representant!")
-			}
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.u ^= 0x01 << n}
-			}
-			_ => {
-				unimplemented!()
-			}
-		}
-	}
-
-}
-
-//  =======================================================================
-///  Relational Operations
-/// =======================================================================
-impl BitVec {
-
-	/// Unsigned less-than comparison with the other bitvec.
-	pub fn ult(&self, other: &BitVec) -> bool {
-		match (self.repr, other.repr) {
-
-			// one of them is undef
-			(Undef, _) | (_, Undef) => {
-				panic!("BitVec::ult(): Cannot decide this information on undefined representant!")
-			}
-
-			// non-undefs
-			(l, r) => {
-				// match for storage properties
-				match (l.storage(), r.storage()) {
-					(Inline, Inline) => {
-						unsafe{self.data.inl.u < other.data.inl.u}
-					}
-					(Inline, Extern) => {
-						unimplemented!()
-					}
-					(Extern, Inline) => {
-						unimplemented!()
-					}
-					(Extern, Extern) => {
-						unimplemented!()
-					}
-				}
-			}
-		}
-	}
-
-	/// Unsigned less-than-or-equals comparison with the other bitvec.
-	pub fn ule(&self, other: &BitVec) -> bool {
-		!(other.ult(self))
-	}
-
-	/// Unsigned greater-than comparison with the other bitvec.
-	pub fn ugt(&self, other: &BitVec) -> bool {
-		other.ult(self)
-	}
-
-	/// Unsigned greater-than-or-equals comparison with the other bitvec.
-	pub fn uge(&self, other: &BitVec) -> bool {
-		!(self.ult(other))
-	}
-
-	/// Signed less-than comparison with the other bitvec.
-	pub fn slt(&self, other: &BitVec) -> bool {
-		match (self.repr, other.repr) {
-
-			// one of them is undef
-			(Undef, _) | (_, Undef) => {
-				panic!("BitVec::slt(): Cannot decide this information on undefined representant!")
-			}
-
-			// non-undefs
-			(l, r) => {
-				// match for storage properties
-				match (l.storage(), r.storage()) {
-					(Inline, Inline) => {
-						unsafe{self.data.inl.s < other.data.inl.s}
-					}
-					(Inline, Extern) => {
-						unimplemented!()
-					}
-					(Extern, Inline) => {
-						unimplemented!()
-					}
-					(Extern, Extern) => {
-						unimplemented!()
-					}
-				}
-			}
-		}
-	}
-
-	/// Signed less-than-or-equals comparison with the other bitvec.
-	pub fn sle(&self, other: &BitVec) -> bool {
-		!(other.slt(self))
-	}
-
-	/// Signed greater-than comparison with the other bitvec.
-	pub fn sgt(&self, other: &BitVec) -> bool {
-		other.slt(self)
-	}
-
-	/// Signed greater-than-or-equals comparison with the other bitvec.
-	pub fn sge(&self, other: &BitVec) -> bool {
-		!(self.slt(other))
-	}
-
-}
-
-//  =======================================================================
-///  Arithmetic Operations
-/// =======================================================================
-impl BitVec {
-
-	/// Consumes this bitvec and returns a bitvec that represents the negation of the original bitvec.
 	/// 
-	/// Mote: This clones the bitvector.
-	pub fn neg(self) -> BitVec {
-		match self.repr {
-			Undef => {
-				self
-			}
-			repr if repr.is_small() => {
-				let mut this = self;
-				this.neg_assign();
-				this
-			}
-			_ => {
-				unimplemented!()
-			}
+	/// #Panics
+	/// 
+	/// If `n` is out of bounds.
+	pub fn flip(&mut self, n: usize) {
+		if n >= self.len_bits() {
+			panic!("FlexInt::flip({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
 		}
-	}
-
-	/// Negates the given bitvector.
-	pub fn neg_assign(&mut self) {
-		match self.repr {
-			Undef => (),
-			repr if repr.is_small() => {
-				unsafe{self.data.inl.s = -self.data.inl.s}
-			}
-			_ => {
-				unimplemented!()
-			}
+		match self.data {
+			_1(ref mut v)  => *v  = !*v,
+			_8(ref mut v)  => *v ^= 0x01 << n,
+			_16(ref mut v) => *v ^= 0x01 << n,
+			_32(ref mut v) => *v ^= 0x01 << n,
+			_64(ref mut v) => *v ^= 0x01 << n,
+			Dyn(ref mut v) => unimplemented!()
 		}
-	}
-
-	/// Creates a new bitvec that represents the signed addition of both given bitvectors.
-	pub fn sadd(&self, other: &BitVec) -> BitVec {
-		match (self.repr, other.repr) {
-
-			// one of them is undef
-			(Undef, _) | (_, Undef) => {
-				panic!("BitVec::slt(): Cannot decide this information on undefined representant!")
-			}
-
-			// non-undefs
-			(l, r) => {
-				// match for storage properties
-				match (l.storage(), r.storage()) {
-					(Inline, Inline) => {
-						let lval = unsafe{ self.data.inl.u};
-						let rval = unsafe{other.data.inl.u};
-						match lval.overflowing_add(rval) {
-							(res, false) => BitVec::from_pattern(self.bits(), res).unwrap(),
-							(res, true ) => BitVec::from_pattern(self.bits(), res).unwrap()
-						}
-					}
-					(Inline, Extern) => {
-						unimplemented!()
-					}
-					(Extern, Inline) => {
-						unimplemented!()
-					}
-					(Extern, Extern) => {
-						unimplemented!()
-					}
-				}
-			}
-		}
-	}
-
-	/// Creates a new bitvec that represents the unsigned addition of both given bitvectors.
-	pub fn uadd(&self, other: &BitVec) -> BitVec {
-		match (self.repr, other.repr) {
-
-			// one of them is undef
-			(Undef, _) | (_, Undef) => {
-				panic!("BitVec::uadd(): Cannot decide this information on undefined representant!")
-				// BitVec::undef()
-			}
-
-			// non-undefs
-			(l, r) => {
-				// match for storage properties
-				match (l.storage(), r.storage()) {
-					(Inline, Inline) => {
-						let lval = unsafe{ self.data.inl.u};
-						let rval = unsafe{other.data.inl.u};
-						BitVec::from_pattern(self.repr, lval.wrapping_add(rval)).unwrap()
-					}
-					(Inline, Extern) => {
-						unimplemented!()
-					}
-					(Extern, Inline) => {
-						unimplemented!()
-					}
-					(Extern, Extern) => {
-						unimplemented!()
-					}
-				}
-			}
-		}
-	}
-
-	/// Creates a new bitvec that represents the signed subtraction of both given bitvectors.
-	pub fn ssub(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the signed subtraction of both given bitvectors.
-	pub fn usub(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the multiplication of both given bitvectors.
-	pub fn mul(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the unsigned multiplication of both given bitvectors.
-	pub fn udiv(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the signed multiplication of both given bitvectors.
-	pub fn sdiv(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the unsigned remainder of both given bitvectors.
-	pub fn urem(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the signed remainder of both given bitvectors.
-	pub fn srem(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-}
-
-//  =======================================================================
-///  Shift Operations
-/// =======================================================================
-impl BitVec {
-
-	/// Creates a new bitvec that represents the result of this bitvector left-shifted by the other one.
-	pub fn shl(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Left-shifts self by other and stores the result back into self.
-	pub fn shl_assign(&mut self, other: &BitVec) {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the result of this bitvector logically right-shifted by the other one.
-	pub fn lshr(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Logically right-shifts self by other and stores the result back into self.
-	pub fn lshr_assign(&mut self, other: &BitVec) {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the result of this bitvector arithmetically right-shifted by the other one.
-	pub fn ashr(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Arthimetically right-shifts self by other and stores the result back into self.
-	pub fn ashr_assign(&mut self, other: &BitVec) {
-		unimplemented!();
-	}
-
-}
-
-//  =======================================================================
-///  Bitwise Operations
-/// =======================================================================
-impl BitVec {
-
-	/// Creates a new bitvev that represents the bitwise-not of the given bitvector.
-	pub fn bitnot(&self) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Flip all bits of the given bitvector inplace.
-	pub fn bitnot_assign(&mut self) {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the bitwise-and of both given bitvectors.
-	pub fn bitand(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Computes bitwise-and of self and other and stores the result in self.
-	pub fn bitand_assign(&mut self, other: &BitVec) {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the bitwise-or of both given bitvectors.
-	pub fn bitor(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Computes bitwise-or of self and other and stores the result in self.
-	pub fn bitor_assign(&mut self, other: &BitVec) {
-		unimplemented!();
-	}
-
-	/// Creates a new bitvec that represents the bitwise-xor of both given bitvectors.
-	pub fn bitxor(&self, other: &BitVec) -> BitVec {
-		unimplemented!();
-	}
-
-	/// Computes bitwise-xor of self and other and stores the result in self.
-	pub fn bitxor_assign(&mut self, other: &BitVec) {
-		unimplemented!();
 	}
 
 }
@@ -867,20 +700,57 @@ impl BitVec {
 //  =======================================================================
 ///  Extend & Truncate Operations
 /// =======================================================================
-impl BitVec {
+impl FlexInt {
 
-	/// Creates a new bitvec that represents the truncation of this bitvector to the given bits.
-	pub fn trunc(&self, bits: usize) -> BitVec {
+	/// Creates a new `FlexInt` that represents this `FlexInt` truncated to 
+	/// the given amount of bits.
+	///
+	/// # Panics
+	/// 
+	/// - If `bits` is greater than the `FlexInt`'s current bit-width.
+	/// - If `bits` is zero (`0`).
+	/// 
+	/// # Note
+	/// 
+	/// Equal to a call to `clone()` if `bits` is equal to this `FlexInt`'s bit-width.
+	pub fn truncate(&self, bits: usize) -> Self {
 		unimplemented!();
 	}
 
-	/// Creates a new bitvec that represents the zero-extension of this bitvector to the given bits.
-	pub fn zext(&self, bits: usize) -> BitVec {
+	/// Creates a new `FlexInt` that represents the zero-extension of this `FlexInt` to the given bits.
+	///
+	/// # Semantics (from LLVM)
+	/// 
+	/// The zext fills the high order bits of the value with zero bits until it reaches the size of the destination bit-width.
+	/// When zero extending from `i1`, the result will always be either `0` or `1`.
+	/// 
+	/// # Panics
+	/// 
+	/// - If `bits` is less than the `FlexInt`'s current bit-width.
+	/// 
+	/// # Note
+	/// 
+	/// Equal to a call to `clone()` if `bits` is equal to this `FlexInt`'s bit-width.
+	pub fn zext(&self, bits: usize) -> Self {
 		unimplemented!();
 	}
 
-	/// Creates a new bitvec that represents the sign-extension of this bitvector to the given bits.
-	pub fn sext(&self, bits: usize) -> BitVec {
+	/// Creates a new `FlexInt` that represents the sign-extension of this `FlexInt` to the given bits.
+	/// 
+	/// 
+	/// # Semantic (from LLVM)
+	/// 
+	/// The ‘sext‘ instruction performs a sign extension by copying the sign bit (highest order bit) of the value until it reaches the target bit-width.
+	/// When sign extending from `i1`, the extension always results in `-1` or `0`.
+	///
+	/// # Panics
+	/// 
+	/// - If `bits` is less than the `FlexInt`'s current bit-width.
+	/// 
+	/// # Note
+	/// 
+	/// Equal to a call to `clone()` if `bits` is equal to this `FlexInt`'s bit-width.
+	pub fn sext(&self, bits: usize) -> Self {
 		unimplemented!();
 	}
 
