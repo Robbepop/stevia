@@ -563,15 +563,14 @@ impl FixInt {
 		if n >= self.len_bits() {
 			panic!("FixInt::get({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
 		}
-		unimplemented!()
-		// match self.data {
-		// 	_1(v)  => v,
-		// 	_8(v)  => ((v >> n) & 0x01) == 1,
-		// 	_16(v) => ((v >> n) & 0x01) == 1,
-		// 	_32(v) => ((v >> n) & 0x01) == 1,
-		// 	_64(v) => ((v >> n) & 0x01) == 1,
-		// 	Dyn(ref v) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8 (v) => ((v >> n) & 0x01) == 1,
+			C16(v) => ((v >> n) & 0x01) == 1,
+			C32(v) => ((v >> n) & 0x01) == 1,
+			C64(v) => ((v >> n) & 0x01) == 1,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Sets the bit at the `n`th position to `1`.
@@ -585,15 +584,14 @@ impl FixInt {
 		if n >= self.len_bits() {
 			panic!("FixInt::set({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
 		}
-		unimplemented!()
-		// match self.data {
-		// 	_1(ref mut v)  => *v  = true,
-		// 	_8(ref mut v)  => *v |= 0x01 << n,
-		// 	_16(ref mut v) => *v |= 0x01 << n,
-		// 	_32(ref mut v) => *v |= 0x01 << n,
-		// 	_64(ref mut v) => *v |= 0x01 << n,
-		// 	Dyn(ref mut v) => unimplemented!()
-		// }
+		use self::FixIntModelMut::*;
+		match self.model_mut() {
+			C8 (v) => *v |= 0x01 << n,
+			C16(v) => *v |= 0x01 << n,
+			C32(v) => *v |= 0x01 << n,
+			C64(v) => *v |= 0x01 << n,
+			Var(ref mut bc) => unimplemented!()
+		}
 	}
 
 	/// Unsets the bit at the `n`th position to `0`.
@@ -605,14 +603,14 @@ impl FixInt {
 		if n >= self.len_bits() {
 			panic!("FixInt::unset({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
 		}
-		// match self.data {
-		// 	_1(ref mut v)  => *v  = false,
-		// 	_8(ref mut v)  => *v &= !(0x01 << n),
-		// 	_16(ref mut v) => *v &= !(0x01 << n),
-		// 	_32(ref mut v) => *v &= !(0x01 << n),
-		// 	_64(ref mut v) => *v &= !(0x01 << n),
-		// 	Dyn(ref mut v) => unimplemented!()
-		// }
+		use self::FixIntModelMut::*;
+		match self.model_mut() {
+			C8 (v) => *v &= !(0x01 << n),
+			C16(v) => *v &= !(0x01 << n),
+			C32(v) => *v &= !(0x01 << n),
+			C64(v) => *v &= !(0x01 << n),
+			Var(ref mut bc) => unimplemented!()
+		}
 	}
 
 	/// Flips the bit at the `n`th position.
@@ -624,14 +622,14 @@ impl FixInt {
 		if n >= self.len_bits() {
 			panic!("FixInt::flip({:?}) is out of bounds of instance with {:?} bits.", n, self.bits())
 		}
-		// match self.data {
-		// 	_1(ref mut v)  => *v  = !*v,
-		// 	_8(ref mut v)  => *v ^= 0x01 << n,
-		// 	_16(ref mut v) => *v ^= 0x01 << n,
-		// 	_32(ref mut v) => *v ^= 0x01 << n,
-		// 	_64(ref mut v) => *v ^= 0x01 << n,
-		// 	Dyn(ref mut v) => unimplemented!()
-		// }
+		use self::FixIntModelMut::*;
+		match self.model_mut() {
+			C8 (v) => *v ^= 0x01 << n,
+			C16(v) => *v ^= 0x01 << n,
+			C32(v) => *v ^= 0x01 << n,
+			C64(v) => *v ^= 0x01 << n,
+			Var(ref mut bc) => unimplemented!()
+		}
 	}
 
 }
