@@ -9,7 +9,7 @@ pub enum ErrorKind {
 	InvalidZeroBitWidth,
 	InvalidBitWidthArgument(u32)
 }
-use self::ErrorKind::*;
+// use self::ErrorKind::*;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Error(ErrorKind);

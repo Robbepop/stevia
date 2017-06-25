@@ -1,5 +1,5 @@
 use ::block::{BLOCK_SIZE, Block};
-use ::errors::{ErrorKind, Error, Result};
+use ::errors::{Error, Result};
 
 use errors::ErrorKind::*;
 
@@ -453,44 +453,40 @@ impl FixInt {
 	/// Returns true if this `FixInt` represents the zero (0) value.
 	#[inline]
 	pub fn is_zero(&self) -> bool {
-		unimplemented!()
-		// use num::Zero;
-		// match self.data {
-		// 	_1(v)  => v == false,
-		// 	_8(v)  => v.is_zero(),
-		// 	_16(v) => v.is_zero(),
-		// 	_32(v) => v.is_zero(),
-		// 	_64(v) => v.is_zero(),
-		// 	Dyn(ref v) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8(n)  => n == 0,
+			C16(n) => n == 0,
+			C32(n) => n == 0,
+			C64(n) => n == 0,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Returns true if this `FixInt` represents the one (1) value.
 	#[inline]
 	pub fn is_one(&self) -> bool {
-		unimplemented!()
-		// match self.data {
-		// 	_1(v)  => v == true,
-		// 	_8(v)  => v == 1,
-		// 	_16(v) => v == 1,
-		// 	_32(v) => v == 1,
-		// 	_64(v) => v == 1,
-		// 	Dyn(ref n) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8(n)  => n == 1,
+			C16(n) => n == 1,
+			C32(n) => n == 1,
+			C64(n) => n == 1,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Returns true if all bits of this `FixInt` are `1` (one).
 	#[inline]
 	pub fn is_ones(&self) -> bool {
-		unimplemented!()
-		// match self.data {
-		// 	_1(v)  => v == true,
-		// 	_8(v)  => v == 0xFF,
-		// 	_16(v) => v == 0xFFFF,
-		// 	_32(v) => v == 0xFFFF_FFFF,
-		// 	_64(v) => v == 0xFFFF_FFFF_FFFF_FFFF,
-		// 	Dyn(ref v) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8(n)  => n == 0xFF,
+			C16(n) => n == 0xFFFF,
+			C32(n) => n == 0xFFFF_FFFF,
+			C64(n) => n == 0xFFFF_FFFF_FFFF_FFFF,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Returns true if no bits of this `FixInt` are `0` (zero).
@@ -501,28 +497,26 @@ impl FixInt {
 
 	/// Returns the number of ones in the binary representation of this `FixInt`.
 	pub fn count_ones(&self) -> usize {
-		unimplemented!()
-		// match self.data {
-		// 	_1(v)  => if v { 1 } else { 0 },
-		// 	_8(v)  => v.count_ones() as usize,
-		// 	_16(v) => v.count_ones() as usize,
-		// 	_32(v) => v.count_ones() as usize,
-		// 	_64(v) => v.count_ones() as usize,
-		// 	Dyn(ref v) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8(n)  => n.count_ones() as usize,
+			C16(n) => n.count_ones() as usize,
+			C32(n) => n.count_ones() as usize,
+			C64(n) => n.count_ones() as usize,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Returns the number of zeroes in the binary representation of this `FixInt`.
 	pub fn count_zeros(&self) -> usize {
-		unimplemented!()
-		// match self.data {
-		// 	_1(v)  => if v { 0 } else { 1 },
-		// 	_8(v)  => v.count_zeros() as usize,
-		// 	_16(v) => v.count_zeros() as usize,
-		// 	_32(v) => v.count_zeros() as usize,
-		// 	_64(v) => v.count_zeros() as usize,
-		// 	Dyn(ref v) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8(n)  => n.count_zeros() as usize,
+			C16(n) => n.count_zeros() as usize,
+			C32(n) => n.count_zeros() as usize,
+			C64(n) => n.count_zeros() as usize,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Returns the number of leading zeroes in the binary representation of this `FixInt`.
@@ -539,20 +533,19 @@ impl FixInt {
 
 	/// Returns the number of trailing zeroes in the binary representation of this `FixInt`.
 	pub fn trailing_zeroes(&self) -> usize {
-		unimplemented!()
-		// match self.data {
-		// 	_1(v)  => if v { 0 } else { 1 },
-		// 	_8(v)  => v.trailing_zeros() as usize,
-		// 	_16(v) => v.trailing_zeros() as usize,
-		// 	_32(v) => v.trailing_zeros() as usize,
-		// 	_64(v) => v.trailing_zeros() as usize,
-		// 	Dyn(ref v) => unimplemented!()
-		// }
+		use self::FixIntModel::*;
+		match self.model() {
+			C8(n)  => n.trailing_zeros() as usize,
+			C16(n) => n.trailing_zeros() as usize,
+			C32(n) => n.trailing_zeros() as usize,
+			C64(n) => n.trailing_zeros() as usize,
+			Var(ref bc) => unimplemented!()
+		}
 	}
 
 	/// Returns `true` if and only if `self == 2^k` for some `k`.
-	pub fn is_power_of_two(&self) -> usize {
-		unimplemented!()
+	pub fn is_power_of_two(&self) -> bool {
+		self.count_ones() == 1
 	}
 }
 
