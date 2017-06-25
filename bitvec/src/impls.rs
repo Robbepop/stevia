@@ -67,6 +67,7 @@ impl Hash for FixInt {
 }
 
 impl Drop for FixInt {
+	#[inline]
 	fn drop(&mut self) {
 		if self.storage() == Storage::Ext {
 			::std::mem::drop(unsafe{self.data.ext})
@@ -96,7 +97,6 @@ impl FixInt {
 		}
 	}
 
-	#[inline]
 	fn model(&self) -> FixIntModel {
 		match self.bits {
 			0  => unreachable!(),
@@ -108,7 +108,6 @@ impl FixInt {
 		}
 	}
 
-	#[inline]
 	fn model_mut(&mut self) -> FixIntModelMut {
 		match self.bits {
 			0  => unreachable!(),
@@ -183,7 +182,6 @@ impl FixInt {
 	/// Creates a new `FixInt` with the given bit-width that represents zero.
 	///
 	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
-	#[inline]
 	pub fn zero(bits: u32) -> Result<FixInt> {
 		match bits {
 			0  => Err(Error::from_kind(InvalidZeroBitWidth)),
@@ -199,7 +197,6 @@ impl FixInt {
 	/// Creates a new `FixInt` with the given bit-width that represents one.
 	///
 	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
-	#[inline]
 	pub fn one(bits: u32) -> Result<FixInt> {
 		match bits {
 			0  => Err(Error::from_kind(InvalidZeroBitWidth)),
@@ -214,7 +211,6 @@ impl FixInt {
 	/// Creates a new `FixInt` with the given bit-width that has all bits set.
 	///
 	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
-	#[inline]
 	pub fn zeroes(bits: u32) -> Result<FixInt> {
 		match bits {
 			0  => Err(Error::from_kind(InvalidZeroBitWidth)),
@@ -230,7 +226,6 @@ impl FixInt {
 	/// Creates a new `FixInt` with the given bit-width that has all bits set.
 	///
 	/// **Error** Returns `InvalidZeroBitWidth` in case of a given target bit-width of zero.
-	#[inline]
 	pub fn ones(bits: u32) -> Result<FixInt> {
 		match bits {
 			0  => Err(Error::from_kind(InvalidZeroBitWidth)),
@@ -509,6 +504,7 @@ impl FixInt {
 	}
 
 	/// Returns `true` if and only if `self == 2^k` for some `k`.
+	#[inline]
 	pub fn is_power_of_two(&self) -> bool {
 		self.count_ones() == 1
 	}
@@ -621,16 +617,19 @@ impl FixInt {
 	}
 
 	/// Unsigned less-than-or-equals comparison with the other bitvec.
+	#[inline]
 	pub fn ule(&self, other: &FixInt) -> bool {
 		!(other.ult(self))
 	}
 
 	/// Unsigned greater-than comparison with the other bitvec.
+	#[inline]
 	pub fn ugt(&self, other: &FixInt) -> bool {
 		other.ult(self)
 	}
 
 	/// Unsigned greater-than-or-equals comparison with the other bitvec.
+	#[inline]
 	pub fn uge(&self, other: &FixInt) -> bool {
 		!(self.ult(other))
 	}
@@ -652,16 +651,19 @@ impl FixInt {
 	}
 
 	/// Signed less-than-or-equals comparison with the other bitvec.
+	#[inline]
 	pub fn sle(&self, other: &FixInt) -> bool {
 		!(other.slt(self))
 	}
 
 	/// Signed greater-than comparison with the other bitvec.
+	#[inline]
 	pub fn sgt(&self, other: &FixInt) -> bool {
 		other.slt(self)
 	}
 
 	/// Signed greater-than-or-equals comparison with the other bitvec.
+	#[inline]
 	pub fn sge(&self, other: &FixInt) -> bool {
 		!(self.slt(other))
 	}
