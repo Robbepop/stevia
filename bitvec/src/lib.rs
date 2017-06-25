@@ -32,7 +32,7 @@ extern crate num;
 
 mod errors;
 mod block;
-mod fixint;
+pub mod fixint;
 
 use block::{Block};
 
@@ -914,4 +914,12 @@ mod tests {
 	// 	assert_eq!(s0 as u32, 4294967096);
 	// }
 
+	#[test]
+	fn test_03() {
+		let s0: i64 = 0xFFFF_FFFF_FFFF;
+		let s1: i16 = s0 as i16;
+		let s2: i64 = s1 as i64;
+		assert_eq!(s1, 0xFFFF_u16 as i16);
+		assert_eq!(s2, 0x0000_0000_0000_FFFF);
+	}
 }

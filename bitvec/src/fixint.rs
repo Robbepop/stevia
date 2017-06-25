@@ -1,4 +1,4 @@
-use ::block::{BLOCK_SIZE, Block};
+// use ::block::{BLOCK_SIZE, Block};
 use ::errors::{Error, Result};
 
 use errors::ErrorKind::*;
@@ -12,14 +12,16 @@ pub struct FixInt {
 	data: FixIntData
 }
 
-const INLINED_BLOCKS: usize = 2;
-const INLINED_BITS  : usize = INLINED_BLOCKS * BLOCK_SIZE;
-
 union FixIntData {
-	opt: u64,
-	inl: [Block; INLINED_BLOCKS],
+	inl: Block,
 	ext: Unique<Block>
 }
+
+const BITS_PER_BLOCK: usize = 64;
+const INLINED_BITS: usize = 64;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+struct Block(u64);
 
 #[derive(Debug, Copy, Clone)]
 struct BlockChain<'a>(&'a [Block]);
@@ -31,7 +33,7 @@ impl Clone for FixInt {
 	fn clone(&self) -> Self {
 		match self.storage() {
 			Storage::Inl => {
-				FixInt{bits: self.bits, data: FixIntData{opt: unsafe{self.data.opt}}}
+				FixInt{bits: self.bits, data: FixIntData{inl: unsafe{self.data.inl}}}
 			}
 			Storage::Ext => {
 				let req_blocks = self.len_blocks();
@@ -77,7 +79,7 @@ impl Hash for FixInt {
 		self.bits.hash(h);
 		match self.storage() {
 			Storage::Inl => {
-				unsafe{self.data.inl.hash(h)}
+				unsafe{self.data.inl}.hash(h)
 			}
 			Storage::Ext => {
 				unimplemented!()
@@ -100,6 +102,17 @@ enum Storage {
 	Inl,
 	/// Indicating on heap and external memory usage.
 	Ext
+}
+
+impl Storage {
+	/// Returns a `Storage` classifier for the given number that may for example represent a bit-width.
+	#[inline]
+	fn from_usize(n: usize) -> Self {
+		match n {
+			n if n <= INLINED_BITS => Storage::Inl,
+			_                      => Storage::Ext
+		}
+	}
 }
 
 #[derive(Debug, Copy, Clone)]
@@ -135,10 +148,10 @@ impl FixInt {
 	fn model(&self) -> FixIntModel {
 		match self.bits {
 			0  => unreachable!(),
-			8  => FixIntModel::C8(unsafe{self.data.opt} as u8),
-			16 => FixIntModel::C16(unsafe{self.data.opt} as u16),
-			32 => FixIntModel::C32(unsafe{self.data.opt} as u32),
-			64 => FixIntModel::C64(unsafe{self.data.opt} as u64),
+			8  => FixIntModel::C8 (unsafe{self.data.inl}.0 as u8),
+			16 => FixIntModel::C16(unsafe{self.data.inl}.0 as u16),
+			32 => FixIntModel::C32(unsafe{self.data.inl}.0 as u32),
+			64 => FixIntModel::C64(unsafe{self.data.inl}.0 as u64),
 			n  => unimplemented!()
 		}
 	}
@@ -147,10 +160,10 @@ impl FixInt {
 	fn model_mut(&mut self) -> FixIntModelMut {
 		match self.bits {
 			0  => unreachable!(),
-			8  => FixIntModelMut::C8(unsafe{&mut self.data.opt}),
-			16 => FixIntModelMut::C16(unsafe{&mut self.data.opt}),
-			32 => FixIntModelMut::C32(unsafe{&mut self.data.opt}),
-			64 => FixIntModelMut::C64(unsafe{&mut self.data.opt}),
+			8  => FixIntModelMut::C8 (unsafe{&mut self.data.inl.0}),
+			16 => FixIntModelMut::C16(unsafe{&mut self.data.inl.0}),
+			32 => FixIntModelMut::C32(unsafe{&mut self.data.inl.0}),
+			64 => FixIntModelMut::C64(unsafe{&mut self.data.inl.0}),
 			n  => unimplemented!()
 		}
 	}
@@ -163,56 +176,56 @@ impl FixInt {
 impl FixInt {
 	/// Creates a new `FixInt` from a given `bool` value with a bit-width of 1.
 	#[inline]
-	pub fn from_bool(val: bool) -> FixInt {
-		FixInt{bits: 1, data: FixIntData{opt: if val { 1 } else { 0 }}}
+	pub fn from_bool(val: bool) -> Self {
+		FixInt{bits: 1, data: FixIntData{inl: if val { Block(1) } else { Block(0) }}}
 	}
 
 	/// Creates a new `FixInt` from a given `i8` value with a bit-width of 8.
 	#[inline]
-	pub fn from_i8(val: i8) -> FixInt {
-		FixInt{bits: 8, data: FixIntData{opt: val as u64}}
+	pub fn from_i8(val: i8) -> Self {
+		FixInt{bits: 8, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i8` value with a bit-width of 8.
 	#[inline]
-	pub fn from_u8(val: u8) -> FixInt {
-		FixInt{bits: 8, data: FixIntData{opt: val as u64}}
+	pub fn from_u8(val: u8) -> Self {
+		FixInt{bits: 8, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i16` value with a bit-width of 16.
 	#[inline]
-	pub fn from_i16(val: i16) -> FixInt {
-		FixInt{bits: 16, data: FixIntData{opt: val as u64}}
+	pub fn from_i16(val: i16) -> Self {
+		FixInt{bits: 16, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i16` value with a bit-width of 16.
 	#[inline]
-	pub fn from_u16(val: u16) -> FixInt {
-		FixInt{bits: 16, data: FixIntData{opt: val as u64}}
+	pub fn from_u16(val: u16) -> Self {
+		FixInt{bits: 16, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i32` value with a bit-width of 32.
 	#[inline]
-	pub fn from_i32(val: i32) -> FixInt {
-		FixInt{bits: 32, data: FixIntData{opt: val as u64}}
+	pub fn from_i32(val: i32) -> Self {
+		FixInt{bits: 32, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i32` value with a bit-width of 32.
 	#[inline]
-	pub fn from_u32(val: u32) -> FixInt {
-		FixInt{bits: 32, data: FixIntData{opt: val as u64}}
+	pub fn from_u32(val: u32) -> Self {
+		FixInt{bits: 32, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i64` value with a bit-width of 64.
 	#[inline]
-	pub fn from_i64(val: i64) -> FixInt {
-		FixInt{bits: 64, data: FixIntData{opt: val as u64}}
+	pub fn from_i64(val: i64) -> Self {
+		FixInt{bits: 64, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` from a given `i64` value with a bit-width of 64.
 	#[inline]
-	pub fn from_u64(val: u64) -> FixInt {
-		FixInt{bits: 64, data: FixIntData{opt: val as u64}}
+	pub fn from_u64(val: u64) -> Self {
+		FixInt{bits: 64, data: FixIntData{inl: Block(val as u64)}}
 	}
 
 	/// Creates a new `FixInt` with the given bit-width that represents zero.
@@ -447,7 +460,7 @@ impl FixInt {
 	/// - The returned values are valid for bit-block sizes of 32 bit.
 	#[inline]
 	fn len_blocks(&self) -> usize {
-		((self.len_bits() - 1) / BLOCK_SIZE) + 1
+		((self.len_bits() - 1) / BITS_PER_BLOCK) + 1
 	}
 
 	/// Returns true if this `FixInt` represents the zero (0) value.
@@ -709,21 +722,46 @@ impl FixInt {
 impl FixInt {
 
 	/// Creates a new `FixInt` that represents this `FixInt` truncated to 
-	/// the given amount of bits.
+	/// the given target bit-width.
 	///
 	/// # Panics
 	/// 
-	/// - If `bits` is greater than the `FixInt`'s current bit-width.
-	/// - If `bits` is zero (`0`).
+	/// - If `target_bitwidth` is greater than the `FixInt`'s current bit-width.
+	/// - If `target_bitwidth` is zero (`0`).
 	/// 
 	/// # Note
 	/// 
-	/// Equal to a call to `clone()` if `bits` is equal to this `FixInt`'s bit-width.
-	pub fn truncate(&self, bits: usize) -> Self {
-		unimplemented!();
+	/// Equal to a call to `clone()` if `target_bitwidth` is equal to this `FixInt`'s bit-width.
+	pub fn truncate(&self, target_bitwidth: usize) -> Self {
+		if target_bitwidth == 0 {
+			panic!("FixInt::truncate({:?}): Cannot truncate to a zero (0) bit-width.")
+		}
+		if target_bitwidth > self.len_bits() {
+			panic!("FixInt::truncate(..): Cannot truncate bit-width of {:?} to {:?} bits.", self.len_bits(), target_bitwidth);
+		}
+		if target_bitwidth == self.len_bits() {
+			return self.clone()
+		}
+		match (Storage::from_usize(target_bitwidth), self.storage()) {
+			(Storage::Inl, Storage::Inl) => {
+				FixInt{
+					bits: target_bitwidth as u32,
+					data: FixIntData{
+						inl: Block(unsafe{self.data.inl.0} & (0xFFFF_FFFF_FFFF_FFFF >> (INLINED_BITS - target_bitwidth)))
+					}
+				}
+			}
+			(Storage::Inl, Storage::Ext) => {
+				unimplemented!()
+			}
+			(Storage::Ext, Storage::Ext) => {
+				unimplemented!()
+			}
+			_ => unreachable!()
+		}
 	}
 
-	/// Creates a new `FixInt` that represents the zero-extension of this `FixInt` to the given bits.
+	/// Creates a new `FixInt` that represents the zero-extension of this `FixInt` to the given target bit-width.
 	///
 	/// # Semantics (from LLVM)
 	/// 
@@ -732,16 +770,16 @@ impl FixInt {
 	/// 
 	/// # Panics
 	/// 
-	/// - If `bits` is less than the `FixInt`'s current bit-width.
+	/// - If `target_bitwidth` is less than the `FixInt`'s current bit-width.
 	/// 
 	/// # Note
 	/// 
-	/// Equal to a call to `clone()` if `bits` is equal to this `FixInt`'s bit-width.
-	pub fn zext(&self, bits: usize) -> Self {
+	/// Equal to a call to `clone()` if `target_bitwidth` is equal to this `FixInt`'s bit-width.
+	pub fn zext(&self, target_bitwidth: usize) -> Self {
 		unimplemented!();
 	}
 
-	/// Creates a new `FixInt` that represents the sign-extension of this `FixInt` to the given bits.
+	/// Creates a new `FixInt` that represents the sign-extension of this `FixInt` to the given target bit-width.
 	/// 
 	/// 
 	/// # Semantic (from LLVM)
@@ -751,12 +789,12 @@ impl FixInt {
 	///
 	/// # Panics
 	/// 
-	/// - If `bits` is less than the `FixInt`'s current bit-width.
+	/// - If `target_bitwidth` is less than the `FixInt`'s current bit-width.
 	/// 
 	/// # Note
 	/// 
-	/// Equal to a call to `clone()` if `bits` is equal to this `FixInt`'s bit-width.
-	pub fn sext(&self, bits: usize) -> Self {
+	/// Equal to a call to `clone()` if `target_bitwidth` is equal to this `FixInt`'s bit-width.
+	pub fn sext(&self, target_bitwidth: usize) -> Self {
 		unimplemented!();
 	}
 
