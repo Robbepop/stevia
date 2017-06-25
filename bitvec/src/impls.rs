@@ -1,33 +1,11 @@
 // use ::block::{BLOCK_SIZE, Block};
-use ::errors::{Error, Result};
-
+use errors::{Error, Result};
 use errors::ErrorKind::*;
+use items::*;
 
 use std::ptr::Unique;
 use std::hash::{Hash, Hasher};
 use std::fmt;
-
-pub struct FixInt {
-	bits: u32,
-	data: FixIntData
-}
-
-union FixIntData {
-	inl: Block,
-	ext: Unique<Block>
-}
-
-const BITS_PER_BLOCK: usize = 64;
-const INLINED_BITS: usize = 64;
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-struct Block(u64);
-
-#[derive(Debug, Copy, Clone)]
-struct BlockChain<'a>(&'a [Block]);
-
-#[derive(Debug)]
-struct BlockChainMut<'a>(&'a mut [Block]);
 
 impl Clone for FixInt {
 	fn clone(&self) -> Self {
@@ -50,7 +28,7 @@ impl Clone for FixInt {
 
 impl fmt::Debug for FixInt {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		Ok(()) // TODO
+		unimplemented!()
 	}
 }
 
@@ -96,14 +74,6 @@ impl Drop for FixInt {
 	}
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-enum Storage {
-	/// Indicating on stack and inplace memory usage.
-	Inl,
-	/// Indicating on heap and external memory usage.
-	Ext
-}
-
 impl Storage {
 	/// Returns a `Storage` classifier for the given number that may for example represent a bit-width.
 	#[inline]
@@ -113,24 +83,6 @@ impl Storage {
 			_                      => Storage::Ext
 		}
 	}
-}
-
-#[derive(Debug, Copy, Clone)]
-enum FixIntModel<'a> {
-	C8(u8),
-	C16(u16),
-	C32(u32),
-	C64(u64),
-	Var(BlockChain<'a>)
-}
-
-#[derive(Debug)]
-enum FixIntModelMut<'a> {
-	C8(&'a mut u64),
-	C16(&'a mut u64),
-	C32(&'a mut u64),
-	C64(&'a mut u64),
-	Var(BlockChainMut<'a>)
 }
 
 impl FixInt {
