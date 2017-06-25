@@ -641,33 +641,18 @@ impl FixInt {
 
 	/// Unsigned less-than comparison with the other bitvec.
 	pub fn ult(&self, other: &FixInt) -> bool {
-		unimplemented!()
-		// match (self.repr, other.repr) {
-
-		// 	// one of them is undef
-		// 	(Undef, _) | (_, Undef) => {
-		// 		panic!("FixInt::ult(): Cannot decide this information on undefined representant!")
-		// 	}
-
-		// 	// non-undefs
-		// 	(l, r) => {
-		// 		// match for storage properties
-		// 		match (l.storage(), r.storage()) {
-		// 			(Inline, Inline) => {
-		// 				unsafe{self.data.inl.u < other.data.inl.u}
-		// 			}
-		// 			(Inline, Extern) => {
-		// 				unimplemented!()
-		// 			}
-		// 			(Extern, Inline) => {
-		// 				unimplemented!()
-		// 			}
-		// 			(Extern, Extern) => {
-		// 				unimplemented!()
-		// 			}
-		// 		}
-		// 	}
-		// }
+		if self.bits() != other.bits() {
+			panic!("FixInt::ult(): Requires given operands to be of equal bit-width.")
+		}
+		use self::FixIntModel::*;
+		match (self.model(), other.model()) {
+			( C8(l),  C8(r)) => l < r,
+			(C16(l), C16(r)) => l < r,
+			(C32(l), C32(r)) => l < r,
+			(C64(l), C64(r)) => l < r,
+			(Var(l), Var(r)) => unimplemented!(),
+			_                => unreachable!()
+		}
 	}
 
 	/// Unsigned less-than-or-equals comparison with the other bitvec.
@@ -687,33 +672,18 @@ impl FixInt {
 
 	/// Signed less-than comparison with the other bitvec.
 	pub fn slt(&self, other: &FixInt) -> bool {
-		unimplemented!()
-		// match (self.repr, other.repr) {
-
-		// 	// one of them is undef
-		// 	(Undef, _) | (_, Undef) => {
-		// 		panic!("FixInt::slt(): Cannot decide this information on undefined representant!")
-		// 	}
-
-		// 	// non-undefs
-		// 	(l, r) => {
-		// 		// match for storage properties
-		// 		match (l.storage(), r.storage()) {
-		// 			(Inline, Inline) => {
-		// 				unsafe{self.data.inl.s < other.data.inl.s}
-		// 			}
-		// 			(Inline, Extern) => {
-		// 				unimplemented!()
-		// 			}
-		// 			(Extern, Inline) => {
-		// 				unimplemented!()
-		// 			}
-		// 			(Extern, Extern) => {
-		// 				unimplemented!()
-		// 			}
-		// 		}
-		// 	}
-		// }
+		if self.bits() != other.bits() {
+			panic!("FixInt::ult(): Requires given operands to be of equal bit-width.")
+		}
+		use self::FixIntModel::*;
+		match (self.model(), other.model()) {
+			( C8(l),  C8(r)) => (l as  i8) < (r as  i8),
+			(C16(l), C16(r)) => (l as i16) < (r as i16),
+			(C32(l), C32(r)) => (l as i32) < (r as i32),
+			(C64(l), C64(r)) => (l as i64) < (r as i64),
+			(Var(l), Var(r)) => unimplemented!(),
+			_                => unreachable!()
+		}
 	}
 
 	/// Signed less-than-or-equals comparison with the other bitvec.
