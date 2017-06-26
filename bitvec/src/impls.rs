@@ -1,4 +1,3 @@
-// use ::block::{BLOCK_SIZE, Block};
 use errors::{Error, Result};
 use errors::ErrorKind::*;
 use items::*;
@@ -116,6 +115,44 @@ impl FixInt {
 			32 => FixIntModelMut::C32(unsafe{&mut self.data.inl.0}),
 			64 => FixIntModelMut::C64(unsafe{&mut self.data.inl.0}),
 			n  => unimplemented!()
+		}
+	}
+
+	/// Returns a slice over the blocks stored within this `FixInt`.
+	/// 
+	/// # Note
+	/// 
+	/// This might be less of a help when implementing algorithms since `Block`
+	/// does not have a proper knowledge of its actually used bits.
+	/// Refer to `ComputeBlocks` instead which is returned by some iterators.
+	fn as_block_slice(&self) -> &[Block] {
+		use std::slice;
+		match self.storage() {
+			Storage::Inl => unsafe {
+				slice::from_raw_parts(&self.data.inl, 1)
+			},
+			Storage::Ext => unsafe {
+				slice::from_raw_parts(self.data.ext.as_ptr() as *const Block, self.len_blocks())
+			}
+		}
+	}
+
+	/// Returns a slice over the mutable blocks stored within this `FixInt`.
+	/// 
+	/// # Note
+	/// 
+	/// This might be less of a help when implementing algorithms since `Block`
+	/// does not have a proper knowledge of its actually used bits.
+	/// Refer to `ComputeBlocks` instead which is returned by some iterators.
+	fn as_block_slice_mut(&mut self) -> &mut [Block] {
+		use std::slice;
+		match self.storage() {
+			Storage::Inl => unsafe {
+				slice::from_raw_parts_mut(&mut self.data.inl, 1)
+			},
+			Storage::Ext => unsafe {
+				slice::from_raw_parts_mut(self.data.ext.as_ptr(), self.len_blocks())
+			}
 		}
 	}
 }
