@@ -74,7 +74,7 @@ impl IntoBlocks {
 impl<'a> Blocks<'a> {
 	/// Returns the bit-width of this `FixInt` as `usize`.
 	#[inline]
-	pub fn len_bits(&self) -> usize {
+	fn len_bits(&self) -> usize {
 		self.bits
 	}
 
