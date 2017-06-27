@@ -164,13 +164,13 @@ impl FixInt {
 impl FixInt {
 	/// Returns an iterator over the immutable blocks of this `FixInt`.
 	#[inline]
-	pub fn iter_blocks(&self) -> Blocks {
+	fn iter_blocks(&self) -> Blocks {
 		Blocks::new(self.len_bits(), self.as_block_slice())
 	}
 
 	/// Returns an iterator over the mutable blocks of this `FixInt`.
 	#[inline]
-	pub fn iter_blocks_mut(&mut self) -> BlocksMut {
+	fn iter_blocks_mut(&mut self) -> BlocksMut {
 		BlocksMut::new(self.len_bits(), self.as_block_slice_mut())
 	}
 
@@ -178,7 +178,7 @@ impl FixInt {
 	/// 
 	/// Transfers ownership into the iterator.
 	#[inline]
-	pub fn into_blocks(self) -> IntoBlocks {
+	fn into_blocks(self) -> IntoBlocks {
 		match self.storage() {
 			Storage::Inl => unimplemented!(),
 			Storage::Ext => IntoBlocks::new(self.len_bits(), unsafe{self.data.ext})
@@ -661,6 +661,122 @@ impl FixInt {
 }
 
 //  =======================================================================
+///  Arithmetic Operations
+/// =======================================================================
+impl FixInt {
+
+	/// Returns the negated representation of this `FixInt`.
+	pub fn neg(self) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the signed addition of both given `FixInt`s.
+	pub fn add(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the signed subtraction of both given `FixInt`s.
+	pub fn sub(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the multiplication of both given `FixInt`s.
+	pub fn mul(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the unsigned multiplication of both given `FixInt`s.
+	pub fn udiv(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the signed multiplication of both given `FixInt`s.
+	pub fn sdiv(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the unsigned remainder of both given `FixInt`s.
+	pub fn urem(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the signed remainder of both given `FixInt`s.
+	pub fn srem(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+}
+
+//  =======================================================================
+///  Shift Operations
+/// =======================================================================
+impl FixInt {
+
+	/// Creates a new `FixInt` that represents the result of this `FixInt` left-shifted by the other one.
+	pub fn shl(self, other: &FixInt) -> FixInt {
+		unimplemented!()
+	}
+
+	/// Creates a new `FixInt` that represents the result of this `FixInt` logically right-shifted by the other one.
+	pub fn lshr(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Creates a new `FixInt` that represents the result of this `FixInt` arithmetically right-shifted by the other one.
+	pub fn ashr(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+}
+
+//  =======================================================================
+///  Bitwise Operations
+/// =======================================================================
+impl FixInt {
+
+	/// Creates a new bitvev that represents the bitwise-not of the given `FixInt`.
+	pub fn bitnot(self) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Flip all bits of the given `FixInt` inplace.
+	pub fn bitnot_assign(&mut self) {
+		unimplemented!();
+	}
+
+	/// Creates a new bitvec that represents the bitwise-and of both given `FixInt`s.
+	pub fn bitand(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Computes bitwise-and of self and other and stores the result in self.
+	pub fn bitand_assign(&mut self, other: &FixInt) {
+		unimplemented!();
+	}
+
+	/// Creates a new bitvec that represents the bitwise-or of both given `FixInt`s.
+	pub fn bitor(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Computes bitwise-or of self and other and stores the result in self.
+	pub fn bitor_assign(&mut self, other: &FixInt) {
+		unimplemented!();
+	}
+
+	/// Creates a new bitvec that represents the bitwise-xor of both given `FixInt`s.
+	pub fn bitxor(self, other: &FixInt) -> FixInt {
+		unimplemented!();
+	}
+
+	/// Computes bitwise-xor of self and other and stores the result in self.
+	pub fn bitxor_assign(&mut self, other: &FixInt) {
+		unimplemented!();
+	}
+
+}
+
+//  =======================================================================
 ///  Relational Operations
 /// =======================================================================
 impl FixInt {
@@ -751,7 +867,7 @@ impl FixInt {
 	/// # Note
 	/// 
 	/// Equal to a call to `clone()` if `target_bitwidth` is equal to this `FixInt`'s bit-width.
-	pub fn truncate(&self, target_bitwidth: usize) -> Self {
+	pub fn truncate(&self, target_bitwidth: usize) -> FixInt {
 		if target_bitwidth == 0 {
 			panic!("FixInt::truncate({:?}): Cannot truncate to a zero (0) bit-width.")
 		}
@@ -794,7 +910,7 @@ impl FixInt {
 	/// # Note
 	/// 
 	/// Equal to a call to `clone()` if `target_bitwidth` is equal to this `FixInt`'s bit-width.
-	pub fn zext(&self, target_bitwidth: usize) -> Self {
+	pub fn zext(&self, target_bitwidth: usize) -> FixInt {
 		unimplemented!();
 	}
 
@@ -813,7 +929,7 @@ impl FixInt {
 	/// # Note
 	/// 
 	/// Equal to a call to `clone()` if `target_bitwidth` is equal to this `FixInt`'s bit-width.
-	pub fn sext(&self, target_bitwidth: usize) -> Self {
+	pub fn sext(&self, target_bitwidth: usize) -> FixInt {
 		unimplemented!();
 	}
 
