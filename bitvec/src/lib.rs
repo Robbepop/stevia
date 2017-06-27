@@ -23,6 +23,7 @@
 //!
 
 #![feature(untagged_unions)]
+#![feature(i128_type)]
 #![feature(unique)]
 
 #![allow(dead_code)]
