@@ -39,5 +39,6 @@ mod impls;
 pub use items::FixInt;
 pub use errors::{
 	Error,
-	ErrorKind
+	ErrorKind,
+	Result
 };
