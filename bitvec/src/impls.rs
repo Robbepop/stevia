@@ -1,6 +1,7 @@
 use errors::{Error, Result};
 use errors::ErrorKind::*;
 use items::*;
+use iterators::{Blocks, BlocksMut, IntoBlocks};
 
 use std::ptr::Unique;
 use std::hash::{Hash, Hasher};
@@ -157,6 +158,33 @@ impl FixInt {
 	}
 }
 
+//  =======================================================================
+///  Iterators
+/// =======================================================================
+impl FixInt {
+	/// Returns an iterator over the immutable blocks of this `FixInt`.
+	#[inline]
+	pub fn iter_blocks(&self) -> Blocks {
+		Blocks::new(self.len_bits(), self.as_block_slice())
+	}
+
+	/// Returns an iterator over the mutable blocks of this `FixInt`.
+	#[inline]
+	pub fn iter_blocks_mut(&mut self) -> BlocksMut {
+		BlocksMut::new(self.len_bits(), self.as_block_slice_mut())
+	}
+
+	/// Returns an iterator over the blocks of this `FixInt`.
+	/// 
+	/// Transfers ownership into the iterator.
+	#[inline]
+	pub fn into_blocks(self) -> IntoBlocks {
+		match self.storage() {
+			Storage::Inl => unimplemented!(),
+			Storage::Ext => IntoBlocks::new(self.len_bits(), unsafe{self.data.ext})
+		}
+	}
+}
 
 //  =======================================================================
 ///  Constructors
