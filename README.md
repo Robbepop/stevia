@@ -1,8 +1,8 @@
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
-|        Linux        |       Windows       |       Coverage       |       Licence      |
-|:-------------------:|:-------------------:|:--------------------:|:------------------:|
-| [![travisCI][1]][2] | [![appveyor][3]][4] | [![coveralls][5]][6] | [![licence][7]][8] |
+|        Linux        |       Windows       |       Coverage       |       Licence      |       Chat       |
+|:-------------------:|:-------------------:|:--------------------:|:------------------:|:----------------:|
+| [![travisCI][1]][2] | [![appveyor][3]][4] | [![coveralls][5]][6] | [![licence][7]][8] | [![chat][9]][10] |
 
 [1]: https://travis-ci.org/Robbepop/stevia.svg?branch=master
 [2]: https://travis-ci.org/Robbepop/stevia
@@ -12,6 +12,8 @@
 [6]: https://coveralls.io/github/Robbepop/stevia?branch=master
 [7]: https://img.shields.io/badge/license-MIT-blue.svg
 [8]: ./LICENCE
+[9]: https://badges.gitter.im/herobird-gh/stevia.svg
+[10]: https://gitter.im/herobird-gh/stevia
 
 [smt-wiki]: https://en.wikipedia.org/wiki/Satisfiability_modulo_theories
 [rust-home]: https://www.rust-lang.org/
