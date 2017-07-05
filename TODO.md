@@ -2,6 +2,17 @@
 
 ## Critical
 
+- Restructure expression nodes from using `{left: Box<Expr>, right: Box<Expr>}` to using `{childs: Box<[Expr;2]>}`
+	- Better cache locality
+	- Smaller object size
+	- Less `malloc` calls
+	- More efficient iteration over children
+	- Less frickeling with `Box` vs no `Box` upon creation
+	- Can be done for expressions like If-Then-Else, too.
+	- Requires additional specialized getters (`mut` and non-`mut`) for similarly well usability.
+		- `fn left_right(&self) -> (&Expr, &Expr) { ... }`
+		- `fn left_right_mut(&mut self) -> (&mut Expr, &mut Expr) { ... }`
+		- `fn cond_then_else(&self) -> (&Expr, &Expr, &Expr) { ... }` and same for `mut` version
 - Refactor ty.rs implementation somehow. (Just make it better ... somehow.)
 
 - Implement default traversal routine for AST transformers.
