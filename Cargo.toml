@@ -5,8 +5,9 @@ authors = ["Robbepop <robbepop@web.de>"]
 
 [dependencies]
 smt-expr-derive = { path = "smt-expr-derive" }
-smallvec = "0.3.3"
+apint = "0.0.0-alpha.1"
+smallvec = "0.3"
 unreachable = "1.0.0"
-itertools = "0.6.0"
-string-interner = "0.4.0"
-num = "0.1.39"
+itertools = "0.7"
+string-interner = "0.6"
+num = "0.1"

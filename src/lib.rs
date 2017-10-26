@@ -9,6 +9,8 @@ extern crate string_interner;
 #[macro_use]
 extern crate smt_expr_derive;
 
+extern crate apint;
+
 mod bitvec;
 pub mod ast;
 
