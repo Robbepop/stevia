@@ -70,3 +70,21 @@ impl From<Equals> for Expr {
         Expr::Equals(equals)
     }
 }
+
+impl Childs for Equals {
+    fn childs(&self) -> ChildsIter {
+        ChildsIter::nary(&self.childs)
+    }
+}
+
+impl ChildsMut for Equals {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        ChildsIterMut::nary(&mut self.childs)
+    }
+}
+
+impl IntoChilds for Equals {
+    fn into_childs(self) -> IntoChildsIter {
+        IntoChildsIter::nary(self.childs)
+    }
+}
