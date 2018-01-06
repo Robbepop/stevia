@@ -6,12 +6,17 @@ pub mod prelude {
     };
 }
 
+/// An `XOR` (either or) formula binary expression.
+/// 
+/// This evaluates to true whenever exactly one of its child
+/// expressions evaluates to `true`.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Xor {
     pub childs: P<BinExprChilds>
 }
 
 impl Xor {
+    /// Returns a new `Xor` formula expression.
     pub fn new(lhs: Expr, rhs: Expr) -> Xor {
         Xor{ childs: BinExprChilds::new_boxed(lhs, rhs) }
     }
