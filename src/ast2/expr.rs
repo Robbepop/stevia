@@ -16,7 +16,8 @@ pub enum Expr {
     Symbol(Symbol),
     Equals(Equals),
 
-    BoolConst(BoolConst)
+    BoolConst(BoolConst),
+    Xor(Xor)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -28,7 +29,9 @@ pub enum ExprKind {
     /// The equality expression kind
     Equals,
     /// The constant boolean expression kind
-    BoolConst
+    BoolConst,
+    /// The xor (either-or) expression kind
+    Xor
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -76,7 +79,8 @@ impl HasType for Expr {
             Symbol(ref symbol) => symbol.ty(),
             Equals(ref equals) => equals.ty(),
 
-            BoolConst(ref bool_const) => bool_const.ty()
+            BoolConst(ref bool_const) => bool_const.ty(),
+            Xor(ref xor) => xor.ty()
         }
     }
 }
@@ -89,7 +93,8 @@ impl HasArity for Expr {
             Symbol(ref symbol) => symbol.arity(),
             Equals(ref equals) => equals.arity(),
 
-            BoolConst(ref bool_const) => bool_const.arity()
+            BoolConst(ref bool_const) => bool_const.arity(),
+            Xor(ref xor) => xor.arity()
         }
     }
 }
