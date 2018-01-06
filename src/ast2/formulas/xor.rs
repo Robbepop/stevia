@@ -58,3 +58,9 @@ impl HasArity for Xor {
         2
     }
 }
+
+impl From<Xor> for Expr {
+    fn from(xor: Xor) -> Expr {
+        Expr::Xor(xor)
+    }
+}

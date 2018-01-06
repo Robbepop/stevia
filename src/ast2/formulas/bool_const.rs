@@ -72,3 +72,9 @@ impl HasArity for BoolConst {
         0
     }
 }
+
+impl From<BoolConst> for Expr {
+    fn from(bool_const: BoolConst) -> Expr {
+        Expr::BoolConst(bool_const)
+    }
+}

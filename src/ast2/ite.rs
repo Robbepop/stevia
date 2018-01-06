@@ -105,3 +105,9 @@ impl HasArity for IfThenElse {
         3
     }
 }
+
+impl From<IfThenElse> for Expr {
+    fn from(ite: IfThenElse) -> Expr {
+        Expr::Ite(ite)
+    }
+}

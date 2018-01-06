@@ -64,3 +64,9 @@ impl HasArity for Equals {
         self.childs.len()
     }
 }
+
+impl From<Equals> for Expr {
+    fn from(equals: Equals) -> Expr {
+        Expr::Equals(equals)
+    }
+}

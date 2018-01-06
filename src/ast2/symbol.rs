@@ -116,3 +116,9 @@ impl HasArity for Symbol {
         0
     }
 }
+
+impl From<Symbol> for Expr {
+    fn from(symbol: Symbol) -> Expr {
+        Expr::Symbol(symbol)
+    }
+}

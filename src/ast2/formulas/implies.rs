@@ -57,3 +57,9 @@ impl HasArity for Implies {
         2
     }
 }
+
+impl From<Implies> for Expr {
+    fn from(implies: Implies) -> Expr {
+        Expr::Implies(implies)
+    }
+}
