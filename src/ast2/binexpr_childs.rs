@@ -14,8 +14,8 @@ pub mod prelude {
 /// child expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinExprChilds {
-    lhs: Expr,
-    rhs: Expr
+    pub lhs: Expr,
+    pub rhs: Expr
 }
 
 impl BinExprChilds {
@@ -58,7 +58,7 @@ impl IntoChilds for BinExprChilds {
     }
 }
 
-impl HasArity for Equals {
+impl HasArity for BinExprChilds {
     #[inline]
     fn arity(&self) -> usize {
         2
