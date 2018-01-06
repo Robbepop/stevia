@@ -1,10 +1,13 @@
 mod child_iters;
+mod binexpr_childs;
 mod ty;
 mod expr;
 mod ite;
 mod symbol;
 mod equals;
 
+pub use self::child_iters::prelude::*;
+pub use self::binexpr_childs::prelude::*;
 pub use self::ty::prelude::*;
 pub use self::expr::prelude::*;
 pub use self::ite::prelude::*;
