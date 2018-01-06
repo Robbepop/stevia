@@ -123,3 +123,48 @@ impl HasKind for Expr {
         }
     }
 }
+
+impl Childs for Expr {
+    fn childs(&self) -> ChildsIter {
+        use self::Expr::*;
+        match *self {
+            Ite(ref ite) => ite.childs(),
+            Symbol(ref symbol) => symbol.childs(),
+            Equals(ref equals) => equals.childs(),
+
+            BoolConst(ref bool_const) => bool_const.childs(),
+            Implies(ref implies) => implies.childs(),
+            Xor(ref xor) => xor.childs()
+        }
+    }
+}
+
+impl ChildsMut for Expr {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        use self::Expr::*;
+        match *self {
+            Ite(ref mut ite) => ite.childs_mut(),
+            Symbol(ref mut symbol) => symbol.childs_mut(),
+            Equals(ref mut equals) => equals.childs_mut(),
+
+            BoolConst(ref mut bool_const) => bool_const.childs_mut(),
+            Implies(ref mut implies) => implies.childs_mut(),
+            Xor(ref mut xor) => xor.childs_mut()
+        }
+    }
+}
+
+impl IntoChilds for Expr {
+    fn into_childs(self) -> IntoChildsIter {
+        use self::Expr::*;
+        match self {
+            Ite(ite) => ite.into_childs(),
+            Symbol(symbol) => symbol.into_childs(),
+            Equals(equals) => equals.into_childs(),
+
+            BoolConst(bool_const) => bool_const.into_childs(),
+            Implies(implies) => implies.into_childs(),
+            Xor(xor) => xor.into_childs()
+        }
+    }
+}
