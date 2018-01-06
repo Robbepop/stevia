@@ -111,3 +111,21 @@ impl From<IfThenElse> for Expr {
         Expr::Ite(ite)
     }
 }
+
+impl Childs for IfThenElse {
+    fn childs(&self) -> ChildsIter {
+        ChildsIter::ternary(&self.childs.cond, &self.childs.then_case, &self.childs.else_case)
+    }
+}
+
+impl ChildsMut for IfThenElse {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        ChildsIterMut::ternary(&mut self.childs.cond, &mut self.childs.then_case, &mut self.childs.else_case)
+    }
+}
+
+impl IntoChilds for IfThenElse {
+    fn into_childs(self) -> IntoChildsIter {
+        IntoChildsIter::ternary(self.childs.cond, self.childs.then_case, self.childs.else_case)
+    }
+}
