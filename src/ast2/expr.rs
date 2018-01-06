@@ -108,3 +108,18 @@ impl HasArity for Expr {
         }
     }
 }
+
+impl HasKind for Expr {
+    fn kind(&self) -> ExprKind {
+        use self::Expr::*;
+        match *self {
+            Ite(ref ite) => ite.kind(),
+            Symbol(ref symbol) => symbol.kind(),
+            Equals(ref equals) => equals.kind(),
+
+            BoolConst(ref bool_const) => bool_const.kind(),
+            Implies(ref implies) => implies.kind(),
+            Xor(ref xor) => xor.kind()
+        }
+    }
+}
