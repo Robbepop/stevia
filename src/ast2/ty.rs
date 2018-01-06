@@ -17,6 +17,7 @@ pub trait HasType {
     fn ty(&self) -> Type;
 }
 
+/// A type of an expression.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Type {
 	/// Boolean type.

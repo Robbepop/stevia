@@ -6,7 +6,7 @@ pub mod prelude {
     };
 }
 
-/// An `XOR` (either or) formula binary expression.
+/// An XOR (either or) formula binary expression.
 /// 
 /// This evaluates to true whenever exactly one of its child
 /// expressions evaluates to `true`.

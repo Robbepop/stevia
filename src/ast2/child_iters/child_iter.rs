@@ -10,6 +10,7 @@ pub mod prelude {
 	};
 }
 
+/// Iterator over immutable child expressions.
 #[derive(Debug, Clone)]
 pub enum ChildsIter<'p> {
     Inl(InlChildsIter<'p>),

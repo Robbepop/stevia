@@ -11,6 +11,7 @@ pub mod prelude {
 	};
 }
 
+/// Iterator over mutable child expressions.
 #[derive(Debug)]
 pub enum ChildsIterMut<'p> {
     Inl(InlChildsIterMut<'p>),

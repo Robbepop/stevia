@@ -10,6 +10,10 @@ pub mod prelude {
     };
 }
 
+/// Any expression.
+/// 
+/// There are different kinds of expressions and `Expr`
+/// represents any one of them.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum Expr {
     Ite(IfThenElse),
@@ -21,6 +25,7 @@ pub enum Expr {
     Xor(Xor)
 }
 
+/// Represents kind of an expression.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ExprKind {
     /// The if-then-else expression kind.

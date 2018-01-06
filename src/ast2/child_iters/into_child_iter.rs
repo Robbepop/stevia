@@ -11,6 +11,9 @@ pub mod prelude {
 	};
 }
 
+/// Consuming iterator over child expressions.
+/// 
+/// Can transform ownership.
 pub struct IntoChildsIter {
 	childs: smallvec::IntoIter<[Expr; 3]>
 }
