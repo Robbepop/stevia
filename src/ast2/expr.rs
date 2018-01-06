@@ -14,7 +14,9 @@ pub mod prelude {
 pub enum Expr {
     Ite(IfThenElse),
     Symbol(Symbol),
-    Equals(Equals)
+    Equals(Equals),
+
+    BoolConst(BoolConst)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -24,7 +26,9 @@ pub enum ExprKind {
     /// The symbol expression kind
     Symbol,
     /// The equality expression kind
-    Equals
+    Equals,
+    /// The constant boolean expression kind
+    BoolConst
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -70,7 +74,9 @@ impl HasType for Expr {
         match *self {
             Ite(ref ite) => ite.ty(),
             Symbol(ref symbol) => symbol.ty(),
-            Equals(ref equals) => equals.ty()
+            Equals(ref equals) => equals.ty(),
+
+            BoolConst(ref bool_const) => bool_const.ty()
         }
     }
 }
@@ -81,7 +87,9 @@ impl HasArity for Expr {
         match *self {
             Ite(ref ite) => ite.arity(),
             Symbol(ref symbol) => symbol.arity(),
-            Equals(ref equals) => equals.arity()
+            Equals(ref equals) => equals.arity(),
+
+            BoolConst(ref bool_const) => bool_const.arity()
         }
     }
 }
