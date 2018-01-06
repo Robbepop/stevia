@@ -99,3 +99,9 @@ impl HasKind for IfThenElse {
         ExprKind::Ite
     }
 }
+
+impl HasArity for IfThenElse {
+    fn arity(&self) -> usize {
+        3
+    }
+}

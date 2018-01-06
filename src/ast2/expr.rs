@@ -5,7 +5,8 @@ pub mod prelude {
     pub use super::{
         Expr,
         ExprKind,
-        HasKind
+        HasKind,
+        HasArity
     };
 }
 
@@ -26,13 +27,35 @@ pub enum ExprKind {
     Equals
 }
 
-/// This trait should be implemented by all structures that represent
-/// an expression kind.
+/// This trait should be implemented by all expressions and structures that
+/// represent an expression kind.
 /// 
 /// This is obviously true for `ExprKind` itself but also for all concrete expression types.
 pub trait HasKind {
     /// Returns the kind of `self`.
     fn kind(&self) -> ExprKind;
+}
+
+/// Types that implement this trait can be queried for their arity.
+/// 
+/// The arity of an expression is equal to the number of its child expressions.
+pub trait HasArity {
+    /// Returns the arity of `self`.
+    /// 
+    /// This is equal to the number of child expressions of `self`.
+    fn arity(&self) -> usize;
+
+    /// Returns `true` if `self` has no child expressions.
+    #[inline]
+    fn is_leaf(&self) -> bool {
+        self.arity() == 0
+    }
+
+    /// Returns `true` if `self` has child expressions.
+    #[inline]
+    fn has_childs(&self) -> bool {
+        self.arity() > 0
+    }
 }
 
 impl HasKind for ExprKind {
@@ -48,6 +71,17 @@ impl HasType for Expr {
             Ite(ref ite) => ite.ty(),
             Symbol(ref symbol) => symbol.ty(),
             Equals(ref equals) => equals.ty()
+        }
+    }
+}
+
+impl HasArity for Expr {
+    fn arity(&self) -> usize {
+        use self::Expr::*;
+        match *self {
+            Ite(ref ite) => ite.arity(),
+            Symbol(ref symbol) => symbol.arity(),
+            Equals(ref equals) => equals.arity()
         }
     }
 }

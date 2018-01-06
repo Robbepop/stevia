@@ -110,3 +110,9 @@ impl HasKind for Symbol {
         ExprKind::Symbol
     }
 }
+
+impl HasArity for Symbol {
+    fn arity(&self) -> usize {
+        0
+    }
+}

@@ -58,3 +58,9 @@ impl HasKind for Equals {
         ExprKind::Equals
     }
 }
+
+impl HasArity for Equals {
+    fn arity(&self) -> usize {
+        self.childs.len()
+    }
+}
