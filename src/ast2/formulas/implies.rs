@@ -2,58 +2,57 @@ use ast2::prelude::*;
 
 pub mod prelude {
     pub use super::{
-        Xor
+        Implies
     };
 }
 
-/// An `XOR` (either or) formula binary expression.
+/// The implies formula binary expression.
 /// 
-/// This evaluates to true whenever exactly one of its child
-/// expressions evaluates to `true`.
+/// This is equal to the implication of the boolean logic.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Xor {
+pub struct Implies {
     /// The two child expressions.
     pub childs: P<BinExprChilds>
 }
 
-impl Xor {
-    /// Returns a new `Xor` formula expression with the given child expressions.
-    pub fn new(lhs: Expr, rhs: Expr) -> Xor {
-        Xor{ childs: BinExprChilds::new_boxed(lhs, rhs) }
+impl Implies {
+    /// Returns a new `Implies` formula expression with the given child expressions.
+    pub fn new(lhs: Expr, rhs: Expr) -> Implies {
+        Implies{ childs: BinExprChilds::new_boxed(lhs, rhs) }
     }
 }
 
-impl Childs for Xor {
+impl Childs for Implies {
     fn childs(&self) -> ChildsIter {
         self.childs.childs()
     }
 }
 
-impl ChildsMut for Xor {
+impl ChildsMut for Implies {
     fn childs_mut(&mut self) -> ChildsIterMut {
         self.childs.childs_mut()
     }
 }
 
-impl IntoChilds for Xor {
+impl IntoChilds for Implies {
     fn into_childs(self) -> IntoChildsIter {
         self.childs.into_childs()
     }
 }
 
-impl HasType for Xor {
+impl HasType for Implies {
     fn ty(&self) -> Type {
         Type::Bool
     }
 }
 
-impl HasKind for Xor {
+impl HasKind for Implies {
     fn kind(&self) -> ExprKind {
-        ExprKind::Xor
+        ExprKind::Implies
     }
 }
 
-impl HasArity for Xor {
+impl HasArity for Implies {
     fn arity(&self) -> usize {
         2
     }

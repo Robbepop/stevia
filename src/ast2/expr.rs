@@ -17,6 +17,7 @@ pub enum Expr {
     Equals(Equals),
 
     BoolConst(BoolConst),
+    Implies(Implies),
     Xor(Xor)
 }
 
@@ -30,6 +31,8 @@ pub enum ExprKind {
     Equals,
     /// The constant boolean expression kind
     BoolConst,
+    /// The implies boolean expression kind
+    Implies,
     /// The xor (either-or) expression kind
     Xor
 }
@@ -80,6 +83,7 @@ impl HasType for Expr {
             Equals(ref equals) => equals.ty(),
 
             BoolConst(ref bool_const) => bool_const.ty(),
+            Implies(ref implies) => implies.ty(),
             Xor(ref xor) => xor.ty()
         }
     }
@@ -94,6 +98,7 @@ impl HasArity for Expr {
             Equals(ref equals) => equals.arity(),
 
             BoolConst(ref bool_const) => bool_const.arity(),
+            Implies(ref implies) => implies.arity(),
             Xor(ref xor) => xor.arity()
         }
     }
