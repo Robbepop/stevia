@@ -88,6 +88,24 @@ impl IfThenElse {
     }
 }
 
+impl Childs for IfThenElseChilds {
+    fn childs(&self) -> ChildsIter {
+        ChildsIter::ternary(&self.cond, &self.then_case, &self.else_case)
+    }
+}
+
+impl ChildsMut for IfThenElseChilds {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        ChildsIterMut::ternary(&mut self.cond, &mut self.then_case, &mut self.else_case)
+    }
+}
+
+impl IntoChilds for IfThenElseChilds {
+    fn into_childs(self) -> IntoChildsIter {
+        IntoChildsIter::ternary(self.cond, self.then_case, self.else_case)
+    }
+}
+
 impl HasType for IfThenElse {
     fn ty(&self) -> Type {
         self.ty
@@ -114,18 +132,18 @@ impl From<IfThenElse> for Expr {
 
 impl Childs for IfThenElse {
     fn childs(&self) -> ChildsIter {
-        ChildsIter::ternary(&self.childs.cond, &self.childs.then_case, &self.childs.else_case)
+        self.childs.childs()
     }
 }
 
 impl ChildsMut for IfThenElse {
     fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::ternary(&mut self.childs.cond, &mut self.childs.then_case, &mut self.childs.else_case)
+        self.childs.childs_mut()
     }
 }
 
 impl IntoChilds for IfThenElse {
     fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::ternary(self.childs.cond, self.childs.then_case, self.childs.else_case)
+        self.childs.into_childs()
     }
 }
