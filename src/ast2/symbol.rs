@@ -122,3 +122,21 @@ impl From<Symbol> for Expr {
         Expr::Symbol(symbol)
     }
 }
+
+impl Childs for Symbol {
+    fn childs(&self) -> ChildsIter {
+        ChildsIter::none()
+    }
+}
+
+impl ChildsMut for Symbol {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        ChildsIterMut::none()
+    }
+}
+
+impl IntoChilds for Symbol {
+    fn into_childs(self) -> IntoChildsIter {
+        IntoChildsIter::none()
+    }
+}
