@@ -2,6 +2,7 @@ mod into_box;
 mod child_iters;
 mod binexpr_childs;
 mod ty;
+mod expr_kind;
 mod expr;
 mod formulas;
 mod ite;
@@ -12,6 +13,7 @@ pub use self::into_box::prelude::*;
 pub use self::child_iters::prelude::*;
 pub use self::binexpr_childs::prelude::*;
 pub use self::ty::prelude::*;
+pub use self::expr_kind::prelude::*;
 pub use self::expr::prelude::*;
 
 pub use self::formulas::prelude::*;

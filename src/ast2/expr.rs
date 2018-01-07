@@ -4,8 +4,6 @@ use ast2::prelude::*;
 pub mod prelude {
     pub use super::{
         Expr,
-        ExprKind,
-        HasKind,
         HasArity
     };
 }
@@ -28,38 +26,6 @@ pub enum Expr {
     Xor(Xor)
 }
 
-/// Represents kind of an expression.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum ExprKind {
-    /// The if-then-else expression kind.
-    Ite,
-    /// The symbol expression kind
-    Symbol,
-    /// The equality expression kind
-    Equals,
-    /// The constant boolean expression kind
-    BoolConst,
-    /// The not boolean expression kind
-    Not,
-    /// The and boolean expression kind
-    And,
-    /// The or boolean expression kind
-    Or,
-    /// The implies boolean expression kind
-    Implies,
-    /// The xor (either-or) expression kind
-    Xor
-}
-
-/// This trait should be implemented by all expressions and structures that
-/// represent an expression kind.
-/// 
-/// This is obviously true for `ExprKind` itself but also for all concrete expression types.
-pub trait HasKind {
-    /// Returns the kind of `self`.
-    fn kind(&self) -> ExprKind;
-}
-
 /// Types that implement this trait can be queried for their arity.
 /// 
 /// The arity of an expression is equal to the number of its child expressions.
@@ -79,12 +45,6 @@ pub trait HasArity {
     #[inline]
     fn has_childs(&self) -> bool {
         self.arity() > 0
-    }
-}
-
-impl HasKind for ExprKind {
-    fn kind(&self) -> ExprKind {
-        *self
     }
 }
 
