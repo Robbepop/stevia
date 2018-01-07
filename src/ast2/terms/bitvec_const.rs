@@ -13,15 +13,15 @@ pub mod prelude {
 pub struct BitvecConst {
     /// The constant bitvec value.
     pub val: ApInt,
-    /// The type and bit width of the const value.
-    pub ty: Type
+    /// The bit width of the const value.
+    pub width: BitWidth
 }
 
 impl From<ApInt> for BitvecConst {
     /// Creates a new `BitvecConst` from the given `ApInt`.
     fn from(apint: ApInt) -> BitvecConst {
         BitvecConst{
-            ty: Type::Bitvec(apint.width()),
+            width: apint.width().into(),
             val: apint
         }
     }
@@ -47,7 +47,7 @@ impl IntoChilds for BitvecConst {
 
 impl HasType for BitvecConst {
     fn ty(&self) -> Type {
-        self.ty
+        self.width.ty()
     }
 }
 

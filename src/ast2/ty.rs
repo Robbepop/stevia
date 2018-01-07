@@ -1,4 +1,4 @@
-use apint::BitWidth;
+use ast2::{BitWidth};
 
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
