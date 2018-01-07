@@ -38,7 +38,7 @@ pub enum TypeKind {
 	/// The boolean type kind.
 	Bool,
 	/// The bitvector type kind.
-	BitVec,
+	Bitvec,
 	/// The array type kind.
 	Array
 }
@@ -48,7 +48,7 @@ impl From<Type> for TypeKind {
 	fn from(ty: Type) -> TypeKind {
 		match ty {
 			Type::Bool => TypeKind::Bool,
-			Type::Bitvec(_) => TypeKind::BitVec,
+			Type::Bitvec(_) => TypeKind::Bitvec,
 			Type::Array(..) => TypeKind::Array
 		}
 	}

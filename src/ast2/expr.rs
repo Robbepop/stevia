@@ -25,7 +25,8 @@ pub enum Expr {
     Implies(Implies),
     Xor(Xor),
 
-    BitvecConst(BitvecConst)
+    BitvecConst(BitvecConst),
+    Neg(Neg)
 }
 
 /// Types that implement this trait can be queried for their arity.
@@ -65,7 +66,8 @@ impl HasType for Expr {
             Implies(ref implies) => implies.ty(),
             Xor(ref xor) => xor.ty(),
 
-            BitvecConst(ref bitvec_const) => bitvec_const.ty()
+            BitvecConst(ref bitvec_const) => bitvec_const.ty(),
+            Neg(ref neg) => neg.ty()
         }
     }
 }
@@ -85,7 +87,8 @@ impl HasArity for Expr {
             Implies(ref implies) => implies.arity(),
             Xor(ref xor) => xor.arity(),
 
-            BitvecConst(ref bitvec_const) => bitvec_const.arity()
+            BitvecConst(ref bitvec_const) => bitvec_const.arity(),
+            Neg(ref neg) => neg.arity()
         }
     }
 }
@@ -105,7 +108,8 @@ impl HasKind for Expr {
             Implies(ref implies) => implies.kind(),
             Xor(ref xor) => xor.kind(),
 
-            BitvecConst(ref bitvec_const) => bitvec_const.kind()
+            BitvecConst(ref bitvec_const) => bitvec_const.kind(),
+            Neg(ref neg) => neg.kind()
         }
     }
 }
@@ -125,7 +129,8 @@ impl Childs for Expr {
             Implies(ref implies) => implies.childs(),
             Xor(ref xor) => xor.childs(),
 
-            BitvecConst(ref bitvec_const) => bitvec_const.childs()
+            BitvecConst(ref bitvec_const) => bitvec_const.childs(),
+            Neg(ref neg) => neg.childs()
         }
     }
 }
@@ -145,7 +150,8 @@ impl ChildsMut for Expr {
             Implies(ref mut implies) => implies.childs_mut(),
             Xor(ref mut xor) => xor.childs_mut(),
 
-            BitvecConst(ref mut bitvec_const) => bitvec_const.childs_mut()
+            BitvecConst(ref mut bitvec_const) => bitvec_const.childs_mut(),
+            Neg(ref mut neg) => neg.childs_mut()
         }
     }
 }
@@ -165,7 +171,8 @@ impl IntoChilds for Expr {
             Implies(implies) => implies.into_childs(),
             Xor(xor) => xor.into_childs(),
 
-            BitvecConst(bitvec_const) => bitvec_const.into_childs()
+            BitvecConst(bitvec_const) => bitvec_const.into_childs(),
+            Neg(neg) => neg.into_childs()
         }
     }
 }
