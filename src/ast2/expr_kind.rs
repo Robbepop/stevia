@@ -36,7 +36,9 @@ pub enum ExprKind {
     /// The bitvec negation term expression kind
     Neg,
     /// The bitvec add term expression kind
-    Add
+    Add,
+    /// The bitvec mul term expression kind
+    Mul
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -96,7 +98,8 @@ impl HasPriority for ExprKind {
 
             BitvecConst => 0 + BASE_PRIORITY_ARITHMETIC,
             Neg         => 1 + BASE_PRIORITY_ARITHMETIC,
-            Add         => 2 + BASE_PRIORITY_ARITHMETIC
+            Add         => 2 + BASE_PRIORITY_ARITHMETIC,
+            Mul         => 3 + BASE_PRIORITY_ARITHMETIC
         };
         Priority(prio_val)
     }
