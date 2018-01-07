@@ -14,6 +14,9 @@ pub struct BitvecConst {
     /// The constant bitvec value.
     pub val: ApInt,
     /// The bit width of the const value.
+    /// 
+    /// Used to verify the integrity of the bit width during
+    /// the lifetime of an expression.
     pub width: BitWidth
 }
 
