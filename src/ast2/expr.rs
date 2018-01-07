@@ -23,7 +23,9 @@ pub enum Expr {
     And(And),
     Or(Or),
     Implies(Implies),
-    Xor(Xor)
+    Xor(Xor),
+
+    BitvecConst(BitvecConst)
 }
 
 /// Types that implement this trait can be queried for their arity.
@@ -61,7 +63,9 @@ impl HasType for Expr {
             And(ref and) => and.ty(),
             Or(ref or) => or.ty(),
             Implies(ref implies) => implies.ty(),
-            Xor(ref xor) => xor.ty()
+            Xor(ref xor) => xor.ty(),
+
+            BitvecConst(ref bitvec_const) => bitvec_const.ty()
         }
     }
 }
@@ -79,7 +83,9 @@ impl HasArity for Expr {
             And(ref and) => and.arity(),
             Or(ref or) => or.arity(),
             Implies(ref implies) => implies.arity(),
-            Xor(ref xor) => xor.arity()
+            Xor(ref xor) => xor.arity(),
+
+            BitvecConst(ref bitvec_const) => bitvec_const.arity()
         }
     }
 }
@@ -97,7 +103,9 @@ impl HasKind for Expr {
             And(ref and) => and.kind(),
             Or(ref or) => or.kind(),
             Implies(ref implies) => implies.kind(),
-            Xor(ref xor) => xor.kind()
+            Xor(ref xor) => xor.kind(),
+
+            BitvecConst(ref bitvec_const) => bitvec_const.kind()
         }
     }
 }
@@ -115,7 +123,9 @@ impl Childs for Expr {
             And(ref and) => and.childs(),
             Or(ref or) => or.childs(),
             Implies(ref implies) => implies.childs(),
-            Xor(ref xor) => xor.childs()
+            Xor(ref xor) => xor.childs(),
+
+            BitvecConst(ref bitvec_const) => bitvec_const.childs()
         }
     }
 }
@@ -133,7 +143,9 @@ impl ChildsMut for Expr {
             And(ref mut and) => and.childs_mut(),
             Or(ref mut or) => or.childs_mut(),
             Implies(ref mut implies) => implies.childs_mut(),
-            Xor(ref mut xor) => xor.childs_mut()
+            Xor(ref mut xor) => xor.childs_mut(),
+
+            BitvecConst(ref mut bitvec_const) => bitvec_const.childs_mut()
         }
     }
 }
@@ -151,7 +163,9 @@ impl IntoChilds for Expr {
             And(and) => and.into_childs(),
             Or(or) => or.into_childs(),
             Implies(implies) => implies.into_childs(),
-            Xor(xor) => xor.into_childs()
+            Xor(xor) => xor.into_childs(),
+
+            BitvecConst(bitvec_const) => bitvec_const.into_childs()
         }
     }
 }

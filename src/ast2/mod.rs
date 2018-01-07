@@ -5,6 +5,7 @@ mod ty;
 mod expr_kind;
 mod expr;
 mod formulas;
+mod terms;
 mod ite;
 mod symbol;
 mod equals;
@@ -17,6 +18,7 @@ pub use self::expr_kind::prelude::*;
 pub use self::expr::prelude::*;
 
 pub use self::formulas::prelude::*;
+pub use self::terms::prelude::*;
 
 pub use self::ite::prelude::*;
 pub use self::symbol::prelude::*;

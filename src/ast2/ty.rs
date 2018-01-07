@@ -24,7 +24,7 @@ pub enum Type {
 	/// Boolean type.
 	Bool,
 	/// Bitvector type with the given bit-width.
-	BitVec(BitWidth),
+	Bitvec(BitWidth),
 	/// Array type with the given index-width and value-width.
 	Array(ArrayTy)
 }
@@ -48,7 +48,7 @@ impl From<Type> for TypeKind {
 	fn from(ty: Type) -> TypeKind {
 		match ty {
 			Type::Bool => TypeKind::Bool,
-			Type::BitVec(_) => TypeKind::BitVec,
+			Type::Bitvec(_) => TypeKind::BitVec,
 			Type::Array(..) => TypeKind::Array
 		}
 	}
@@ -64,7 +64,7 @@ impl Type {
 	/// Returns a `BitVec` type with the given bit width.
 	#[inline]
 	pub fn bitvec(width: BitWidth) -> Type {
-		Type::BitVec(width)
+		Type::Bitvec(width)
 	}
 
 	/// Returns an `Array` type with the given index bit width and
@@ -136,8 +136,8 @@ pub fn common_ty<T1, T2>(lhs: &T1, rhs: &T2) -> Option<Type>
 		(Bool, Bool) => {
 			return Some(Bool)
 		}
-		(BitVec(w1), BitVec(w2)) => if w1 == w2 {
-			return Some(BitVec(w1))
+		(Bitvec(w1), Bitvec(w2)) => if w1 == w2 {
+			return Some(Bitvec(w1))
 		}
 		(Array(a1), Array(a2)) => if a1 == a2 {
 			return Some(Array(a1))

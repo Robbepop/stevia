@@ -17,6 +17,7 @@ pub enum ExprKind {
     Symbol,
     /// The equality expression kind
     Equals,
+
     /// The constant boolean expression kind
     BoolConst,
     /// The not boolean expression kind
@@ -28,7 +29,10 @@ pub enum ExprKind {
     /// The implies boolean expression kind
     Implies,
     /// The xor (either-or) expression kind
-    Xor
+    Xor,
+
+    /// The constant bitvec term expression kind
+    BitvecConst
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -63,7 +67,7 @@ pub trait HasPriority {
 }
 
 const BASE_PRIORITY_FORMULA: u32    = 100;
-// const BASE_PRIORITY_ARITHMETIC: u32 = 200;
+const BASE_PRIORITY_ARITHMETIC: u32 = 200;
 // const BASE_PRIORITY_BITWISE: u32    = 300;
 // const BASE_PRIORITY_COMPARISON: u32 = 400;
 // const BASE_PRIORITY_SHIFT: u32      = 500;
@@ -85,6 +89,8 @@ impl HasPriority for ExprKind {
             Or        => 3 + BASE_PRIORITY_FORMULA,
             Implies   => 4 + BASE_PRIORITY_FORMULA,
             Xor       => 5 + BASE_PRIORITY_FORMULA,
+
+            BitvecConst => 0 + BASE_PRIORITY_ARITHMETIC
         };
         Priority(prio_val)
     }
