@@ -21,6 +21,7 @@ pub enum Expr {
     Equals(Equals),
 
     BoolConst(BoolConst),
+    And(And),
     Implies(Implies),
     Xor(Xor)
 }
@@ -36,6 +37,8 @@ pub enum ExprKind {
     Equals,
     /// The constant boolean expression kind
     BoolConst,
+    /// The and boolean expression kind
+    And,
     /// The implies boolean expression kind
     Implies,
     /// The xor (either-or) expression kind
@@ -88,6 +91,7 @@ impl HasType for Expr {
             Equals(ref equals) => equals.ty(),
 
             BoolConst(ref bool_const) => bool_const.ty(),
+            And(ref and) => and.ty(),
             Implies(ref implies) => implies.ty(),
             Xor(ref xor) => xor.ty()
         }
@@ -103,6 +107,7 @@ impl HasArity for Expr {
             Equals(ref equals) => equals.arity(),
 
             BoolConst(ref bool_const) => bool_const.arity(),
+            And(ref and) => and.arity(),
             Implies(ref implies) => implies.arity(),
             Xor(ref xor) => xor.arity()
         }
@@ -118,6 +123,7 @@ impl HasKind for Expr {
             Equals(ref equals) => equals.kind(),
 
             BoolConst(ref bool_const) => bool_const.kind(),
+            And(ref and) => and.kind(),
             Implies(ref implies) => implies.kind(),
             Xor(ref xor) => xor.kind()
         }
@@ -133,6 +139,7 @@ impl Childs for Expr {
             Equals(ref equals) => equals.childs(),
 
             BoolConst(ref bool_const) => bool_const.childs(),
+            And(ref and) => and.childs(),
             Implies(ref implies) => implies.childs(),
             Xor(ref xor) => xor.childs()
         }
@@ -148,6 +155,7 @@ impl ChildsMut for Expr {
             Equals(ref mut equals) => equals.childs_mut(),
 
             BoolConst(ref mut bool_const) => bool_const.childs_mut(),
+            And(ref mut and) => and.childs_mut(),
             Implies(ref mut implies) => implies.childs_mut(),
             Xor(ref mut xor) => xor.childs_mut()
         }
@@ -163,6 +171,7 @@ impl IntoChilds for Expr {
             Equals(equals) => equals.into_childs(),
 
             BoolConst(bool_const) => bool_const.into_childs(),
+            And(and) => and.into_childs(),
             Implies(implies) => implies.into_childs(),
             Xor(xor) => xor.into_childs()
         }
