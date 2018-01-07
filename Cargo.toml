@@ -18,7 +18,7 @@ smt-expr-derive = { path = "smt-expr-derive" }
 apint = "0.0.0-alpha.8"
 smallvec = "0.6"
 lazy_static = "1.0"
-unreachable = "1.0.0"
+unreachable = "1.0"
 itertools = "0.7"
 string-interner = "0.6"
 num = "0.1"
