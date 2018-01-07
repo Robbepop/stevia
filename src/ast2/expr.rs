@@ -21,6 +21,7 @@ pub enum Expr {
     Equals(Equals),
 
     BoolConst(BoolConst),
+    Not(Not),
     And(And),
     Or(Or),
     Implies(Implies),
@@ -38,6 +39,8 @@ pub enum ExprKind {
     Equals,
     /// The constant boolean expression kind
     BoolConst,
+    /// The not boolean expression kind
+    Not,
     /// The and boolean expression kind
     And,
     /// The or boolean expression kind
@@ -94,6 +97,7 @@ impl HasType for Expr {
             Equals(ref equals) => equals.ty(),
 
             BoolConst(ref bool_const) => bool_const.ty(),
+            Not(ref not) => not.ty(),
             And(ref and) => and.ty(),
             Or(ref or) => or.ty(),
             Implies(ref implies) => implies.ty(),
@@ -111,6 +115,7 @@ impl HasArity for Expr {
             Equals(ref equals) => equals.arity(),
 
             BoolConst(ref bool_const) => bool_const.arity(),
+            Not(ref not) => not.arity(),
             And(ref and) => and.arity(),
             Or(ref or) => or.arity(),
             Implies(ref implies) => implies.arity(),
@@ -128,6 +133,7 @@ impl HasKind for Expr {
             Equals(ref equals) => equals.kind(),
 
             BoolConst(ref bool_const) => bool_const.kind(),
+            Not(ref not) => not.kind(),
             And(ref and) => and.kind(),
             Or(ref or) => or.kind(),
             Implies(ref implies) => implies.kind(),
@@ -145,6 +151,7 @@ impl Childs for Expr {
             Equals(ref equals) => equals.childs(),
 
             BoolConst(ref bool_const) => bool_const.childs(),
+            Not(ref not) => not.childs(),
             And(ref and) => and.childs(),
             Or(ref or) => or.childs(),
             Implies(ref implies) => implies.childs(),
@@ -162,6 +169,7 @@ impl ChildsMut for Expr {
             Equals(ref mut equals) => equals.childs_mut(),
 
             BoolConst(ref mut bool_const) => bool_const.childs_mut(),
+            Not(ref mut not) => not.childs_mut(),
             And(ref mut and) => and.childs_mut(),
             Or(ref mut or) => or.childs_mut(),
             Implies(ref mut implies) => implies.childs_mut(),
@@ -179,6 +187,7 @@ impl IntoChilds for Expr {
             Equals(equals) => equals.into_childs(),
 
             BoolConst(bool_const) => bool_const.into_childs(),
+            Not(not) => not.into_childs(),
             And(and) => and.into_childs(),
             Or(or) => or.into_childs(),
             Implies(implies) => implies.into_childs(),
