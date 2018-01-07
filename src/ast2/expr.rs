@@ -28,7 +28,8 @@ pub enum Expr {
     BitvecConst(BitvecConst),
     Neg(Neg),
     Add(Add),
-    Mul(Mul)
+    Mul(Mul),
+    Sub(Sub)
 }
 
 /// Types that implement this trait can be queried for their arity.
@@ -71,7 +72,8 @@ impl HasType for Expr {
             BitvecConst(ref bitvec_const) => bitvec_const.ty(),
             Neg(ref neg) => neg.ty(),
             Add(ref add) => add.ty(),
-            Mul(ref mul) => mul.ty()
+            Mul(ref mul) => mul.ty(),
+            Sub(ref sub) => sub.ty()
         }
     }
 }
@@ -94,7 +96,8 @@ impl HasArity for Expr {
             BitvecConst(ref bitvec_const) => bitvec_const.arity(),
             Neg(ref neg) => neg.arity(),
             Add(ref add) => add.arity(),
-            Mul(ref mul) => mul.arity()
+            Mul(ref mul) => mul.arity(),
+            Sub(ref sub) => sub.arity()
         }
     }
 }
@@ -117,7 +120,8 @@ impl HasKind for Expr {
             BitvecConst(ref bitvec_const) => bitvec_const.kind(),
             Neg(ref neg) => neg.kind(),
             Add(ref add) => add.kind(),
-            Mul(ref mul) => mul.kind()
+            Mul(ref mul) => mul.kind(),
+            Sub(ref sub) => sub.kind()
         }
     }
 }
@@ -140,7 +144,8 @@ impl Childs for Expr {
             BitvecConst(ref bitvec_const) => bitvec_const.childs(),
             Neg(ref neg) => neg.childs(),
             Add(ref add) => add.childs(),
-            Mul(ref mul) => mul.childs()
+            Mul(ref mul) => mul.childs(),
+            Sub(ref sub) => sub.childs()
         }
     }
 }
@@ -163,7 +168,8 @@ impl ChildsMut for Expr {
             BitvecConst(ref mut bitvec_const) => bitvec_const.childs_mut(),
             Neg(ref mut neg) => neg.childs_mut(),
             Add(ref mut add) => add.childs_mut(),
-            Mul(ref mut mul) => mul.childs_mut()
+            Mul(ref mut mul) => mul.childs_mut(),
+            Sub(ref mut sub) => sub.childs_mut()
         }
     }
 }
@@ -186,7 +192,8 @@ impl IntoChilds for Expr {
             BitvecConst(bitvec_const) => bitvec_const.into_childs(),
             Neg(neg) => neg.into_childs(),
             Add(add) => add.into_childs(),
-            Mul(mul) => mul.into_childs()
+            Mul(mul) => mul.into_childs(),
+            Sub(sub) => sub.into_childs()
         }
     }
 }

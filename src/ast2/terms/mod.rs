@@ -4,6 +4,7 @@ mod bitvec_const;
 mod neg;
 mod add;
 mod mul;
+mod sub;
 
 pub mod prelude {
     pub use super::{
@@ -11,7 +12,8 @@ pub mod prelude {
         BitvecConst,
         Neg,
         Add,
-        Mul
+        Mul,
+        Sub
     };
 }
 
@@ -20,3 +22,4 @@ pub use self::bitvec_const::prelude::*;
 pub use self::neg::prelude::*;
 pub use self::add::prelude::*;
 pub use self::mul::prelude::*;
+pub use self::sub::prelude::*;
