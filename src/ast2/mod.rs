@@ -1,3 +1,4 @@
+mod into_box;
 mod child_iters;
 mod binexpr_childs;
 mod ty;
@@ -7,6 +8,7 @@ mod ite;
 mod symbol;
 mod equals;
 
+pub use self::into_box::prelude::*;
 pub use self::child_iters::prelude::*;
 pub use self::binexpr_childs::prelude::*;
 pub use self::ty::prelude::*;
