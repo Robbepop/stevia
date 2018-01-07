@@ -7,6 +7,8 @@ pub mod prelude {
 }
 
 /// N-ary And formula expression.
+/// 
+/// This does a boolean conjunction for all child formula expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct And {
     /// The child formula expressions.
