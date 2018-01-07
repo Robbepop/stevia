@@ -10,7 +10,7 @@ pub mod prelude {
 
 /// Add term expression for adding a number of bitvector expressions.
 /// 
-/// This is an n-ary term expression.
+/// Arithmetically sums up all child term expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Add {
     /// The child bitvector expressions.
