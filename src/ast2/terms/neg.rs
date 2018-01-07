@@ -1,4 +1,5 @@
 use ast2::prelude::*;
+use ast2::terms::checks;
 
 pub mod prelude {
     pub use super::{
@@ -28,17 +29,13 @@ impl Neg {
         where E: IntoBoxExpr
     {
         let child = child.into_box_expr();
-        match child.ty() {
-            Type::Bitvec(act_width) => {
-                if act_width != width {
-                    Err("Required inner bitvec to have the same bitwidth as specified.".into())
-                }
-                else {
-                    Ok(Neg{width, child})
-                }
-            }
-            _ => Err("Requires inner expression to be of bitvec type for Neg term expression.".into())
+        let bvw = checks::expect_bitvec_ty(&*child)
+            .map_err(|_| String::from(
+                "Requires inner expression to be of bitvec type for Neg term expression."))?;
+        if bvw != width {
+            return Err("Required inner bitvec to have the same bitwidth as specified.".into())
         }
+        Ok(Neg{width, child})
     }
 }
 

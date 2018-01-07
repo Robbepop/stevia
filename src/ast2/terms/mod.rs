@@ -1,3 +1,4 @@
+mod checks;
 mod bit_width;
 mod bitvec_const;
 mod neg;
@@ -9,6 +10,8 @@ pub mod prelude {
         Neg
     };
 }
+
+use self::checks::prelude::*;
 
 pub use self::bit_width::prelude::*;
 pub use self::bitvec_const::prelude::*;
