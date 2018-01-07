@@ -29,6 +29,10 @@ pub enum Type {
 	Array(ArrayTy)
 }
 
+/// The kind of a type.
+/// 
+/// This unifies all bitvector types and all array types
+/// without respecting their bit widths.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum TypeKind {
 	/// The boolean type kind.
