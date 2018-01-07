@@ -22,7 +22,7 @@ pub struct Sub {
 }
 
 impl Sub {
-    /// Returns a new `Sub` formula expression with the given child term expressions.
+    /// Returns a new `Sub` term expression with the given child term expressions.
     /// 
     /// # Errors
     /// 
