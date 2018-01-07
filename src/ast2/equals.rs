@@ -21,8 +21,8 @@ pub mod prelude {
 pub struct Equals {
     /// The child expressions.
     childs: Vec<Expr>,
-    /// The type of this expression.
-    ty: Type
+    /// The type of the childs expression.
+    childs_ty: Type
 }
 
 impl Equals {
@@ -43,13 +43,13 @@ impl Equals {
         if childs.iter().any(|e| e.ty() != common_ty) {
             return Err("Requires all child expressions to have the same type to create a new Equals expression".into())
         }
-        Ok(Equals{ty: common_ty, childs})
+        Ok(Equals{childs_ty: common_ty, childs})
     }
 }
 
 impl HasType for Equals {
     fn ty(&self) -> Type {
-        self.ty
+        Type::Bool
     }
 }
 
