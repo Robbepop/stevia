@@ -2,6 +2,16 @@
 name = "stevia"
 version = "0.1.0"
 authors = ["Robbepop <robbepop@web.de>"]
+license = "MIT/Apache-2.0"
+readme  = "README.md"
+
+# Attributes for crates.io.
+categories = ["science"]
+keywords   = ["smt", "solver", "formal methods"]
+description = """Simple SMT solver."""
+
+repository = "https://github.com/robbepop/stevia"
+# documentation = "https://docs.rs/stevia"
 
 [dependencies]
 smt-expr-derive = { path = "smt-expr-derive" }
@@ -12,3 +22,7 @@ unreachable = "1.0.0"
 itertools = "0.7"
 string-interner = "0.6"
 num = "0.1"
+
+[badges]
+travis-ci = { repository = "Robbepop/stevia" }
+appveyor = { repository = "Robbepop/stevia", branch = "master", service = "github" }

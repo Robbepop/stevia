@@ -1,27 +1,8 @@
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
-|        Linux        |       Windows       |       Coverage       |       Licence      |       Chat       |
-|:-------------------:|:-------------------:|:--------------------:|:------------------:|:----------------:|
-| [![travisCI][1]][2] | [![appveyor][3]][4] | [![coveralls][5]][6] | [![licence][7]][8] | [![chat][9]][10] |
-
-[1]: https://travis-ci.org/Robbepop/stevia.svg?branch=master
-[2]: https://travis-ci.org/Robbepop/stevia
-[3]: https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true
-[4]: https://ci.appveyor.com/project/Robbepop/stevia/branch/master
-[5]: https://coveralls.io/repos/github/Robbepop/stevia/badge.svg?branch=master
-[6]: https://coveralls.io/github/Robbepop/stevia?branch=master
-[7]: https://img.shields.io/badge/license-MIT-blue.svg
-[8]: ./LICENCE
-[9]: https://badges.gitter.im/herobird-gh/stevia.svg
-[10]: https://gitter.im/herobird-gh/stevia
-
-[smt-wiki]: https://en.wikipedia.org/wiki/Satisfiability_modulo_theories
-[rust-home]: https://www.rust-lang.org/
-[rust-repo]: https://github.com/rust-lang/rust
-[stp-home]: http://stp.github.io/
-[stp-repo]: https://github.com/stp/stp
-[smtlib-home]: http://smtlib.cs.uiowa.edu/index.shtml
-[candy-repo]: https://github.com/Udopia/candy-kingdom
+|       Linux       |       Windows       |      Coveralls       |      Codecov       |
+|:-----------------:|:-------------------:|:--------------------:|:------------------:|
+| [![travis][0]][1] | [![appveyor][2]][3] | [![coveralls][4]][5] | [![licence][6]][7] |
 
 ---
 
@@ -30,6 +11,7 @@ This is a brave attempt to write a simple [SMT][smt-wiki] solver in the [Rust][r
 Currently the solver is in very early development phase.
 
 ## Very future goals are
+
 - Support for [SMTLib 2.6][smtlib-home].
 - Theories of quantifier-free bitvectors and arrays: `QF_ABV`
 - Comprehensive documentation for all important parts of the code.
@@ -68,3 +50,53 @@ false
 ```
 
 Keep in mind that this is still a pretty naive simplification. More to come in future versions of Stevia!
+
+## Unstable Features Used
+
+These features need to be stabilized before this crate can be used on the stable channel.
+
+- [`#![feature(box_patterns)]`][unstable-box-patterns]
+
+## License
+
+Licensed under either of
+
+ * Apache license, Version 2.0, ([LICENSE-APACHE](LICENSE-APACHE) or http://www.apache.org/licenses/LICENSE-2.0)
+ * MIT license ([LICENSE-MIT](LICENSE-MIT) or http://opensource.org/licenses/MIT)
+
+at your option.
+
+### Dual licence: [![badge][license-mit-badge]](LICENSE-MIT) [![badge][license-apache-badge]](LICENSE-APACHE)
+
+### Contribution
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
+additional terms or conditions.
+
+
+
+[0]: https://travis-ci.org/Robbepop/stevia.svg?branch=master
+[1]: https://travis-ci.org/Robbepop/stevia
+
+[2]: https://ci.appveyor.com/api/projects/status/16fc9l6rtroo4xqd?svg=true
+[3]: https://ci.appveyor.com/project/Robbepop/stevia/branch/master
+
+[4]: https://coveralls.io/repos/github/Robbepop/stevia/badge.svg?branch=master
+[5]: https://coveralls.io/github/Robbepop/stevia?branch=master
+
+[6]: https://codecov.io/gh/Robbepop/stevia/branch/master/graph/badge.svg
+[7]: https://codecov.io/gh/Robbepop/stevia/branch/master
+
+[license-mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
+[license-apache-badge]: https://img.shields.io/badge/license-APACHE-orange.svg
+
+[smt-wiki]: https://en.wikipedia.org/wiki/Satisfiability_modulo_theories
+[rust-home]: https://www.rust-lang.org/
+[rust-repo]: https://github.com/rust-lang/rust
+[stp-home]: http://stp.github.io/
+[stp-repo]: https://github.com/stp/stp
+[smtlib-home]: http://smtlib.cs.uiowa.edu/index.shtml
+[candy-repo]: https://github.com/Udopia/candy-kingdom
+
+[unstable-box-patterns]: https://github.com/rust-lang/rust/issues/29641
