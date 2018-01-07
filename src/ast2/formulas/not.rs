@@ -11,7 +11,8 @@ pub mod prelude {
 /// This negate the inner boolean expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Not {
-    child: P<Expr>
+    /// The inner child formula expression.
+    pub child: P<Expr>
 }
 
 impl Not {
