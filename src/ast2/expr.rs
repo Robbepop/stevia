@@ -22,6 +22,7 @@ pub enum Expr {
 
     BoolConst(BoolConst),
     And(And),
+    Or(Or),
     Implies(Implies),
     Xor(Xor)
 }
@@ -39,6 +40,8 @@ pub enum ExprKind {
     BoolConst,
     /// The and boolean expression kind
     And,
+    /// The or boolean expression kind
+    Or,
     /// The implies boolean expression kind
     Implies,
     /// The xor (either-or) expression kind
@@ -92,6 +95,7 @@ impl HasType for Expr {
 
             BoolConst(ref bool_const) => bool_const.ty(),
             And(ref and) => and.ty(),
+            Or(ref or) => or.ty(),
             Implies(ref implies) => implies.ty(),
             Xor(ref xor) => xor.ty()
         }
@@ -108,6 +112,7 @@ impl HasArity for Expr {
 
             BoolConst(ref bool_const) => bool_const.arity(),
             And(ref and) => and.arity(),
+            Or(ref or) => or.arity(),
             Implies(ref implies) => implies.arity(),
             Xor(ref xor) => xor.arity()
         }
@@ -124,6 +129,7 @@ impl HasKind for Expr {
 
             BoolConst(ref bool_const) => bool_const.kind(),
             And(ref and) => and.kind(),
+            Or(ref or) => or.kind(),
             Implies(ref implies) => implies.kind(),
             Xor(ref xor) => xor.kind()
         }
@@ -140,6 +146,7 @@ impl Childs for Expr {
 
             BoolConst(ref bool_const) => bool_const.childs(),
             And(ref and) => and.childs(),
+            Or(ref or) => or.childs(),
             Implies(ref implies) => implies.childs(),
             Xor(ref xor) => xor.childs()
         }
@@ -156,6 +163,7 @@ impl ChildsMut for Expr {
 
             BoolConst(ref mut bool_const) => bool_const.childs_mut(),
             And(ref mut and) => and.childs_mut(),
+            Or(ref mut or) => or.childs_mut(),
             Implies(ref mut implies) => implies.childs_mut(),
             Xor(ref mut xor) => xor.childs_mut()
         }
@@ -172,6 +180,7 @@ impl IntoChilds for Expr {
 
             BoolConst(bool_const) => bool_const.into_childs(),
             And(and) => and.into_childs(),
+            Or(or) => or.into_childs(),
             Implies(implies) => implies.into_childs(),
             Xor(xor) => xor.into_childs()
         }
