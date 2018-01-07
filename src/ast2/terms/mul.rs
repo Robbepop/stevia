@@ -8,7 +8,7 @@ pub mod prelude {
     };
 }
 
-/// N-ary Mul formula expression.
+/// N-ary Mul term expression.
 /// 
 /// Arithmetically multiplies all child term expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -63,7 +63,7 @@ impl IntoChilds for Mul {
 
 impl HasType for Mul {
     fn ty(&self) -> Type {
-        Type::Bool
+        self.width.ty()
     }
 }
 
