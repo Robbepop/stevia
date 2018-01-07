@@ -26,7 +26,8 @@ pub enum Expr {
     Xor(Xor),
 
     BitvecConst(BitvecConst),
-    Neg(Neg)
+    Neg(Neg),
+    Add(Add)
 }
 
 /// Types that implement this trait can be queried for their arity.
@@ -67,7 +68,8 @@ impl HasType for Expr {
             Xor(ref xor) => xor.ty(),
 
             BitvecConst(ref bitvec_const) => bitvec_const.ty(),
-            Neg(ref neg) => neg.ty()
+            Neg(ref neg) => neg.ty(),
+            Add(ref add) => add.ty()
         }
     }
 }
@@ -88,7 +90,8 @@ impl HasArity for Expr {
             Xor(ref xor) => xor.arity(),
 
             BitvecConst(ref bitvec_const) => bitvec_const.arity(),
-            Neg(ref neg) => neg.arity()
+            Neg(ref neg) => neg.arity(),
+            Add(ref add) => add.arity()
         }
     }
 }
@@ -109,7 +112,8 @@ impl HasKind for Expr {
             Xor(ref xor) => xor.kind(),
 
             BitvecConst(ref bitvec_const) => bitvec_const.kind(),
-            Neg(ref neg) => neg.kind()
+            Neg(ref neg) => neg.kind(),
+            Add(ref add) => add.kind()
         }
     }
 }
@@ -130,7 +134,8 @@ impl Childs for Expr {
             Xor(ref xor) => xor.childs(),
 
             BitvecConst(ref bitvec_const) => bitvec_const.childs(),
-            Neg(ref neg) => neg.childs()
+            Neg(ref neg) => neg.childs(),
+            Add(ref add) => add.childs()
         }
     }
 }
@@ -151,7 +156,8 @@ impl ChildsMut for Expr {
             Xor(ref mut xor) => xor.childs_mut(),
 
             BitvecConst(ref mut bitvec_const) => bitvec_const.childs_mut(),
-            Neg(ref mut neg) => neg.childs_mut()
+            Neg(ref mut neg) => neg.childs_mut(),
+            Add(ref mut add) => add.childs_mut()
         }
     }
 }
@@ -172,7 +178,8 @@ impl IntoChilds for Expr {
             Xor(xor) => xor.into_childs(),
 
             BitvecConst(bitvec_const) => bitvec_const.into_childs(),
-            Neg(neg) => neg.into_childs()
+            Neg(neg) => neg.into_childs(),
+            Add(add) => add.into_childs()
         }
     }
 }
