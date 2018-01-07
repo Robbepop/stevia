@@ -5,6 +5,8 @@ mod neg;
 mod add;
 mod mul;
 mod sub;
+mod udiv;
+mod sdiv;
 
 pub mod prelude {
     pub use super::{
@@ -13,7 +15,9 @@ pub mod prelude {
         Neg,
         Add,
         Mul,
-        Sub
+        Sub,
+        Udiv,
+        Sdiv
     };
 }
 
@@ -23,3 +27,5 @@ pub use self::neg::prelude::*;
 pub use self::add::prelude::*;
 pub use self::mul::prelude::*;
 pub use self::sub::prelude::*;
+pub use self::udiv::prelude::*;
+pub use self::sdiv::prelude::*;

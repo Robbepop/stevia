@@ -40,7 +40,11 @@ pub enum ExprKind {
     /// The bitvec mul term expression kind
     Mul,
     /// The bitvec sub term expression kind
-    Sub
+    Sub,
+    /// The bitvec udiv (unsigned division) term expression kind
+    Udiv,
+    /// The bitvec sdiv (signed division) term expression kind
+    Sdiv
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -102,7 +106,9 @@ impl HasPriority for ExprKind {
             Neg         => 1 + BASE_PRIORITY_ARITHMETIC,
             Add         => 2 + BASE_PRIORITY_ARITHMETIC,
             Mul         => 3 + BASE_PRIORITY_ARITHMETIC,
-            Sub         => 4 + BASE_PRIORITY_ARITHMETIC
+            Sub         => 4 + BASE_PRIORITY_ARITHMETIC,
+            Udiv        => 5 + BASE_PRIORITY_ARITHMETIC,
+            Sdiv        => 6 + BASE_PRIORITY_ARITHMETIC
         };
         Priority(prio_val)
     }

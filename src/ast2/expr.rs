@@ -29,7 +29,9 @@ pub enum Expr {
     Neg(Neg),
     Add(Add),
     Mul(Mul),
-    Sub(Sub)
+    Sub(Sub),
+    Udiv(Udiv),
+    Sdiv(Sdiv)
 }
 
 /// Types that implement this trait can be queried for their arity.
@@ -73,7 +75,9 @@ impl HasType for Expr {
             Neg(ref neg) => neg.ty(),
             Add(ref add) => add.ty(),
             Mul(ref mul) => mul.ty(),
-            Sub(ref sub) => sub.ty()
+            Sub(ref sub) => sub.ty(),
+            Udiv(ref udiv) => udiv.ty(),
+            Sdiv(ref sdiv) => sdiv.ty()
         }
     }
 }
@@ -97,7 +101,9 @@ impl HasArity for Expr {
             Neg(ref neg) => neg.arity(),
             Add(ref add) => add.arity(),
             Mul(ref mul) => mul.arity(),
-            Sub(ref sub) => sub.arity()
+            Sub(ref sub) => sub.arity(),
+            Udiv(ref udiv) => udiv.arity(),
+            Sdiv(ref sdiv) => sdiv.arity()
         }
     }
 }
@@ -121,7 +127,9 @@ impl HasKind for Expr {
             Neg(ref neg) => neg.kind(),
             Add(ref add) => add.kind(),
             Mul(ref mul) => mul.kind(),
-            Sub(ref sub) => sub.kind()
+            Sub(ref sub) => sub.kind(),
+            Udiv(ref udiv) => udiv.kind(),
+            Sdiv(ref sdiv) => sdiv.kind()
         }
     }
 }
@@ -145,7 +153,9 @@ impl Childs for Expr {
             Neg(ref neg) => neg.childs(),
             Add(ref add) => add.childs(),
             Mul(ref mul) => mul.childs(),
-            Sub(ref sub) => sub.childs()
+            Sub(ref sub) => sub.childs(),
+            Udiv(ref udiv) => udiv.childs(),
+            Sdiv(ref sdiv) => sdiv.childs()
         }
     }
 }
@@ -169,7 +179,9 @@ impl ChildsMut for Expr {
             Neg(ref mut neg) => neg.childs_mut(),
             Add(ref mut add) => add.childs_mut(),
             Mul(ref mut mul) => mul.childs_mut(),
-            Sub(ref mut sub) => sub.childs_mut()
+            Sub(ref mut sub) => sub.childs_mut(),
+            Udiv(ref mut udiv) => udiv.childs_mut(),
+            Sdiv(ref mut sdiv) => sdiv.childs_mut()
         }
     }
 }
@@ -193,7 +205,9 @@ impl IntoChilds for Expr {
             Neg(neg) => neg.into_childs(),
             Add(add) => add.into_childs(),
             Mul(mul) => mul.into_childs(),
-            Sub(sub) => sub.into_childs()
+            Sub(sub) => sub.into_childs(),
+            Udiv(udiv) => udiv.into_childs(),
+            Sdiv(sdiv) => sdiv.into_childs()
         }
     }
 }
