@@ -5,6 +5,7 @@ pub mod prelude {
 	pub use super::{
 		HasType,
 		Type,
+		TypeKind,
 		have_common_ty,
 		common_ty
 	};
@@ -28,6 +29,27 @@ pub enum Type {
 	Array(ArrayTy)
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum TypeKind {
+	/// The boolean type kind.
+	Bool,
+	/// The bitvector type kind.
+	BitVec,
+	/// The array type kind.
+	Array
+}
+
+impl From<Type> for TypeKind {
+	/// Converts a `Type` into its associated `TypeKind`.
+	fn from(ty: Type) -> TypeKind {
+		match ty {
+			Type::Bool => TypeKind::Bool,
+			Type::BitVec(_) => TypeKind::BitVec,
+			Type::Array(..) => TypeKind::Array
+		}
+	}
+}
+
 impl Type {
 	/// Returns a `Bool` type.
 	#[inline]
@@ -46,6 +68,12 @@ impl Type {
 	#[inline]
 	pub fn array(index_width: BitWidth, value_width: BitWidth) -> Type {
 		Type::Array(ArrayTy{index_width, value_width})
+	}
+
+	/// Returns the `TypeKind` of this `Type`.
+	#[inline]
+	pub fn kind(self) -> TypeKind {
+		self.into()
 	}
 }
 
