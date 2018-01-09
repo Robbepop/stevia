@@ -6,7 +6,7 @@
 
 ---
 
-This is a brave attempt to write a simple [SMT][smt-wiki] solver in the [Rust][rust-home] ([github][rust-repo]) programming language based on the design of [STP][stp-home] ([github][stp-repo]).  
+This is a brave attempt to write a simple [SMT][smt-wiki] solver in the [Rust][rust-home] ([github][rust-repo]) programming language based on the design of [STP][stp-home] ([github][stp-repo]) and [Boolector][boolector-home].
 
 Currently the solver is in very early development phase.
 
@@ -17,7 +17,7 @@ Currently the solver is in very early development phase.
 - Comprehensive documentation for all important parts of the code.
 - Eventually be able to keep up with other SMT solvers like STP.
 - C API to enable bindings for other languages.
-- Use an efficient SAT solver under the hood, like [candy][candy-repo].
+- Use an efficient SAT solver under the hood, like [candy][candy-repo] and [JamSat][jamsat-repo].
 
 ## Simplifications
 
@@ -96,7 +96,9 @@ additional terms or conditions.
 [rust-repo]: https://github.com/rust-lang/rust
 [stp-home]: http://stp.github.io/
 [stp-repo]: https://github.com/stp/stp
+[boolector-home]: http://fmv.jku.at/boolector/
 [smtlib-home]: http://smtlib.cs.uiowa.edu/index.shtml
 [candy-repo]: https://github.com/Udopia/candy-kingdom
+[jamsat-repo]: https://github.com/fkutzner/JamSAT
 
 [unstable-box-patterns]: https://github.com/rust-lang/rust/issues/29641
