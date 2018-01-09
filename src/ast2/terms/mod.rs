@@ -3,6 +3,7 @@
 mod checks;
 mod bit_width;
 mod arithmetic;
+mod bitwise;
 
 pub mod prelude {
     pub use super::{
@@ -16,9 +17,15 @@ pub mod prelude {
         Sdiv,
         Smod,
         Urem,
-        Srem
+        Srem,
+
+        BitNot,
+        BitAnd,
+        BitOr,
+        BitXor
     };
 }
 
 pub use self::bit_width::prelude::*;
 pub use self::arithmetic::prelude::*;
+pub use self::bitwise::prelude::*;

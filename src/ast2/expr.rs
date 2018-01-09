@@ -31,7 +31,12 @@ macro_rules! forall_expr_kinds {
             Sdiv,
             Smod,
             Urem,
-            Srem
+            Srem,
+
+            BitNot,
+            BitAnd,
+            BitOr,
+            BitXor
         }
     }
 }

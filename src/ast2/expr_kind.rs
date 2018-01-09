@@ -52,7 +52,16 @@ pub enum ExprKind {
     /// The bitvec urem (unsigned remainder) term expression kind
     Urem,
     /// The bitvec srem (signed remainder) term expression kind
-    Srem
+    Srem,
+
+    /// The bitwise-not term expression kind
+    BitNot,
+    /// The bitwise-and term expression kind
+    BitAnd,
+    /// The bitwise-or term expression kind
+    BitOr,
+    /// The bitwise-xor term expression kind
+    BitXor
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -88,7 +97,7 @@ pub trait HasPriority {
 
 const BASE_PRIORITY_FORMULA: u32    = 100;
 const BASE_PRIORITY_ARITHMETIC: u32 = 200;
-// const BASE_PRIORITY_BITWISE: u32    = 300;
+const BASE_PRIORITY_BITWISE: u32    = 300;
 // const BASE_PRIORITY_COMPARISON: u32 = 400;
 // const BASE_PRIORITY_SHIFT: u32      = 500;
 // const BASE_PRIORITY_EXT_TRUNC: u32  = 600;
@@ -120,7 +129,12 @@ impl HasPriority for ExprKind {
             Sdiv        => BASE_PRIORITY_ARITHMETIC + 6,
             Smod        => BASE_PRIORITY_ARITHMETIC + 7,
             Urem        => BASE_PRIORITY_ARITHMETIC + 8,
-            Srem        => BASE_PRIORITY_ARITHMETIC + 9
+            Srem        => BASE_PRIORITY_ARITHMETIC + 9,
+
+            BitNot => BASE_PRIORITY_BITWISE,
+            BitAnd => BASE_PRIORITY_BITWISE + 1,
+            BitOr  => BASE_PRIORITY_BITWISE + 2,
+            BitXor => BASE_PRIORITY_BITWISE + 3
         };
         Priority(prio_val)
     }
