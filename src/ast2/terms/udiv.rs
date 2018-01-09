@@ -41,44 +41,4 @@ impl Udiv {
     }
 }
 
-impl Childs for Udiv {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Udiv {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Udiv {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Udiv {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Udiv {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Udiv
-    }
-}
-
-impl HasArity for Udiv {
-    fn arity(&self) -> usize {
-        2
-    }
-}
-
-impl From<Udiv> for Expr {
-    fn from(udiv: Udiv) -> Expr {
-        Expr::Udiv(udiv)
-    }
-}
+impl_traits_for_binary_term_expr!(Udiv);

@@ -43,44 +43,4 @@ impl Srem {
     }
 }
 
-impl Childs for Srem {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Srem {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Srem {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Srem {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Srem {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Srem
-    }
-}
-
-impl HasArity for Srem {
-    fn arity(&self) -> usize {
-        2
-    }
-}
-
-impl From<Srem> for Expr {
-    fn from(srem: Srem) -> Expr {
-        Expr::Srem(srem)
-    }
-}
+impl_traits_for_binary_term_expr!(Srem);

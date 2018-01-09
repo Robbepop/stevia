@@ -39,44 +39,4 @@ impl Urem {
     }
 }
 
-impl Childs for Urem {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Urem {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Urem {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Urem {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Urem {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Urem
-    }
-}
-
-impl HasArity for Urem {
-    fn arity(&self) -> usize {
-        2
-    }
-}
-
-impl From<Urem> for Expr {
-    fn from(urem: Urem) -> Expr {
-        Expr::Urem(urem)
-    }
-}
+impl_traits_for_binary_term_expr!(Urem);

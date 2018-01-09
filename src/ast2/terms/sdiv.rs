@@ -41,44 +41,4 @@ impl Sdiv {
     }
 }
 
-impl Childs for Sdiv {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Sdiv {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Sdiv {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Sdiv {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Sdiv {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Sdiv
-    }
-}
-
-impl HasArity for Sdiv {
-    fn arity(&self) -> usize {
-        2
-    }
-}
-
-impl From<Sdiv> for Expr {
-    fn from(sdiv: Sdiv) -> Expr {
-        Expr::Sdiv(sdiv)
-    }
-}
+impl_traits_for_binary_term_expr!(Sdiv);

@@ -45,44 +45,4 @@ impl Smod {
     }
 }
 
-impl Childs for Smod {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Smod {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Smod {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Smod {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Smod {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Smod
-    }
-}
-
-impl HasArity for Smod {
-    fn arity(&self) -> usize {
-        2
-    }
-}
-
-impl From<Smod> for Expr {
-    fn from(smod: Smod) -> Expr {
-        Expr::Smod(smod)
-    }
-}
+impl_traits_for_binary_term_expr!(Smod);

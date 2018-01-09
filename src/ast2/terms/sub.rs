@@ -35,44 +35,4 @@ impl Sub {
     }
 }
 
-impl Childs for Sub {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Sub {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Sub {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Sub {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Sub {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Sub
-    }
-}
-
-impl HasArity for Sub {
-    fn arity(&self) -> usize {
-        2
-    }
-}
-
-impl From<Sub> for Expr {
-    fn from(sub: Sub) -> Expr {
-        Expr::Sub(sub)
-    }
-}
+impl_traits_for_binary_term_expr!(Sub);
