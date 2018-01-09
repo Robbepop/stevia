@@ -46,44 +46,4 @@ impl Add {
     }
 }
 
-impl Childs for Add {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::nary(&self.childs)
-    }
-}
-
-impl ChildsMut for Add {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::nary(&mut self.childs)
-    }
-}
-
-impl IntoChilds for Add {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::nary(self.childs)
-    }
-}
-
-impl HasType for Add {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Add {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Add
-    }
-}
-
-impl HasArity for Add {
-    fn arity(&self) -> usize {
-        self.childs.len()
-    }
-}
-
-impl From<Add> for Expr {
-    fn from(add: Add) -> Expr {
-        Expr::Add(add)
-    }
-}
+impl_traits_for_nary_term_expr!(Add);

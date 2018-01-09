@@ -43,44 +43,4 @@ impl Mul {
     }
 }
 
-impl Childs for Mul {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::nary(&self.childs)
-    }
-}
-
-impl ChildsMut for Mul {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::nary(&mut self.childs)
-    }
-}
-
-impl IntoChilds for Mul {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::nary(self.childs)
-    }
-}
-
-impl HasType for Mul {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for Mul {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Mul
-    }
-}
-
-impl HasArity for Mul {
-    fn arity(&self) -> usize {
-        self.childs.len()
-    }
-}
-
-impl From<Mul> for Expr {
-    fn from(mul: Mul) -> Expr {
-        Expr::Mul(mul)
-    }
-}
+impl_traits_for_nary_term_expr!(Mul);

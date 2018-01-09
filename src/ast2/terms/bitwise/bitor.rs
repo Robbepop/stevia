@@ -46,44 +46,4 @@ impl BitOr {
     }
 }
 
-impl Childs for BitOr {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::nary(&self.childs)
-    }
-}
-
-impl ChildsMut for BitOr {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::nary(&mut self.childs)
-    }
-}
-
-impl IntoChilds for BitOr {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::nary(self.childs)
-    }
-}
-
-impl HasType for BitOr {
-    fn ty(&self) -> Type {
-        self.width.ty()
-    }
-}
-
-impl HasKind for BitOr {
-    fn kind(&self) -> ExprKind {
-        ExprKind::BitAnd
-    }
-}
-
-impl HasArity for BitOr {
-    fn arity(&self) -> usize {
-        self.childs.len()
-    }
-}
-
-impl From<BitOr> for Expr {
-    fn from(bitor: BitOr) -> Expr {
-        Expr::BitOr(bitor)
-    }
-}
+impl_traits_for_nary_term_expr!(BitOr);
