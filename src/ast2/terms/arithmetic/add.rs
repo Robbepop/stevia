@@ -1,4 +1,5 @@
 use ast2::prelude::*;
+use ast2::terms::prelude::*;
 use ast2::terms::checks;
 
 /// Re-exports all commonly used items of this module.
