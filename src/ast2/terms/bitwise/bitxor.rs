@@ -20,7 +20,7 @@ pub struct BitXor {
 }
 
 impl BitXor {
-    /// Returns a new `BitXor` (unsigned division) term expression with the
+    /// Returns a new `BitXor` (bitwise-xor) term expression with the
     /// given child term expressions.
     /// 
     /// # Errors
