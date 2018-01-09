@@ -73,7 +73,7 @@ impl Deref for SymbolName {
     fn deref(&self) -> &Self::Target {
         let interner = SYMBOL_INTERNER.cell.get();
         let interner = unsafe{&*interner};
-        &unsafe{ interner.resolve_unchecked(*self) }
+        unsafe{ interner.resolve_unchecked(*self) }
     }
 }
 

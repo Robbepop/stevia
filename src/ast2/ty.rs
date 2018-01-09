@@ -144,5 +144,5 @@ pub fn common_ty<T1, T2>(lhs: &T1, rhs: &T2) -> Option<Type>
 		}
 		_ => ()
 	}
-	return None
+	None
 }

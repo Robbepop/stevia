@@ -2,13 +2,13 @@
 /// 
 /// This includes impls for
 /// 
-/// - Childs
-/// - ChildsMut
-/// - IntoChilds
-/// - HasType
-/// - HasKind
-/// - HasArity
-/// - From<Self> for Expr
+/// - `Childs`
+/// - `ChildsMut`
+/// - `IntoChilds`
+/// - `HasType`
+/// - `HasKind`
+/// - `HasArity`
+/// - `From<Self> for Expr`
 /// 
 /// # Note
 /// 

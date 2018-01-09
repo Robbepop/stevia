@@ -97,27 +97,27 @@ impl HasPriority for ExprKind {
     fn priority(&self) -> Priority {
         use self::ExprKind::*;
         let prio_val = match *self {
-            Ite       => 0 + BASE_PRIORITY_GENERIC,
-            Symbol    => 1 + BASE_PRIORITY_GENERIC,
-            Equals    => 2 + BASE_PRIORITY_GENERIC,
+            Ite       => BASE_PRIORITY_GENERIC,
+            Symbol    => BASE_PRIORITY_GENERIC + 1,
+            Equals    => BASE_PRIORITY_GENERIC + 2,
 
-            BoolConst => 0 + BASE_PRIORITY_FORMULA,
-            Not       => 1 + BASE_PRIORITY_FORMULA,
-            And       => 2 + BASE_PRIORITY_FORMULA,
-            Or        => 3 + BASE_PRIORITY_FORMULA,
-            Implies   => 4 + BASE_PRIORITY_FORMULA,
-            Xor       => 5 + BASE_PRIORITY_FORMULA,
+            BoolConst => BASE_PRIORITY_FORMULA,
+            Not       => BASE_PRIORITY_FORMULA + 1,
+            And       => BASE_PRIORITY_FORMULA + 2,
+            Or        => BASE_PRIORITY_FORMULA + 3,
+            Implies   => BASE_PRIORITY_FORMULA + 4,
+            Xor       => BASE_PRIORITY_FORMULA + 5,
 
-            BitvecConst => 0 + BASE_PRIORITY_ARITHMETIC,
-            Neg         => 1 + BASE_PRIORITY_ARITHMETIC,
-            Add         => 2 + BASE_PRIORITY_ARITHMETIC,
-            Mul         => 3 + BASE_PRIORITY_ARITHMETIC,
-            Sub         => 4 + BASE_PRIORITY_ARITHMETIC,
-            Udiv        => 5 + BASE_PRIORITY_ARITHMETIC,
-            Sdiv        => 6 + BASE_PRIORITY_ARITHMETIC,
-            Smod        => 7 + BASE_PRIORITY_ARITHMETIC,
-            Urem        => 8 + BASE_PRIORITY_ARITHMETIC,
-            Srem        => 9 + BASE_PRIORITY_ARITHMETIC
+            BitvecConst => BASE_PRIORITY_ARITHMETIC,
+            Neg         => BASE_PRIORITY_ARITHMETIC + 1,
+            Add         => BASE_PRIORITY_ARITHMETIC + 2,
+            Mul         => BASE_PRIORITY_ARITHMETIC + 3,
+            Sub         => BASE_PRIORITY_ARITHMETIC + 4,
+            Udiv        => BASE_PRIORITY_ARITHMETIC + 5,
+            Sdiv        => BASE_PRIORITY_ARITHMETIC + 6,
+            Smod        => BASE_PRIORITY_ARITHMETIC + 7,
+            Urem        => BASE_PRIORITY_ARITHMETIC + 8,
+            Srem        => BASE_PRIORITY_ARITHMETIC + 9
         };
         Priority(prio_val)
     }
