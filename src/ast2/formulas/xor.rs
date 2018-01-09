@@ -8,8 +8,11 @@ pub mod prelude {
 
 /// An XOR (either or) formula binary expression.
 /// 
-/// This evaluates to true whenever exactly one of its child
-/// expressions evaluates to `true`.
+/// # Note
+/// 
+/// - This evaluates to true whenever exactly one of its child
+///   expressions evaluates to `true`.
+/// - This can be understood as the boolean not-equals.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Xor {
     /// The two child expressions.
