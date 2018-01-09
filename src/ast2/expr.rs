@@ -20,6 +20,7 @@ macro_rules! forall_expr_kinds {
             Or,
             Implies,
             Xor,
+            Iff,
 
             BitvecConst,
             Neg,

@@ -30,6 +30,8 @@ pub enum ExprKind {
     Implies,
     /// The xor (either-or) expression kind
     Xor,
+    /// The iff (if-and-only-if) expression kind
+    Iff,
 
     /// The constant bitvec term expression kind
     BitvecConst,
@@ -107,6 +109,7 @@ impl HasPriority for ExprKind {
             Or        => BASE_PRIORITY_FORMULA + 3,
             Implies   => BASE_PRIORITY_FORMULA + 4,
             Xor       => BASE_PRIORITY_FORMULA + 5,
+            Iff       => BASE_PRIORITY_FORMULA + 6,
 
             BitvecConst => BASE_PRIORITY_ARITHMETIC,
             Neg         => BASE_PRIORITY_ARITHMETIC + 1,
