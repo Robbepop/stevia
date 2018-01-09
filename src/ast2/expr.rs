@@ -31,7 +31,10 @@ pub enum Expr {
     Mul(Mul),
     Sub(Sub),
     Udiv(Udiv),
-    Sdiv(Sdiv)
+    Sdiv(Sdiv),
+    Smod(Smod),
+    Urem(Urem),
+    Srem(Srem)
 }
 
 /// Types that implement this trait can be queried for their arity.
@@ -77,7 +80,10 @@ impl HasType for Expr {
             Mul(ref mul) => mul.ty(),
             Sub(ref sub) => sub.ty(),
             Udiv(ref udiv) => udiv.ty(),
-            Sdiv(ref sdiv) => sdiv.ty()
+            Sdiv(ref sdiv) => sdiv.ty(),
+            Smod(ref smod) => smod.ty(),
+            Urem(ref urem) => urem.ty(),
+            Srem(ref srem) => srem.ty()
         }
     }
 }
@@ -103,7 +109,10 @@ impl HasArity for Expr {
             Mul(ref mul) => mul.arity(),
             Sub(ref sub) => sub.arity(),
             Udiv(ref udiv) => udiv.arity(),
-            Sdiv(ref sdiv) => sdiv.arity()
+            Sdiv(ref sdiv) => sdiv.arity(),
+            Smod(ref smod) => smod.arity(),
+            Urem(ref urem) => urem.arity(),
+            Srem(ref srem) => srem.arity()
         }
     }
 }
@@ -129,7 +138,10 @@ impl HasKind for Expr {
             Mul(ref mul) => mul.kind(),
             Sub(ref sub) => sub.kind(),
             Udiv(ref udiv) => udiv.kind(),
-            Sdiv(ref sdiv) => sdiv.kind()
+            Sdiv(ref sdiv) => sdiv.kind(),
+            Smod(ref smod) => smod.kind(),
+            Urem(ref urem) => urem.kind(),
+            Srem(ref srem) => srem.kind()
         }
     }
 }
@@ -155,7 +167,10 @@ impl Childs for Expr {
             Mul(ref mul) => mul.childs(),
             Sub(ref sub) => sub.childs(),
             Udiv(ref udiv) => udiv.childs(),
-            Sdiv(ref sdiv) => sdiv.childs()
+            Sdiv(ref sdiv) => sdiv.childs(),
+            Smod(ref smod) => smod.childs(),
+            Urem(ref urem) => urem.childs(),
+            Srem(ref srem) => srem.childs()
         }
     }
 }
@@ -181,7 +196,10 @@ impl ChildsMut for Expr {
             Mul(ref mut mul) => mul.childs_mut(),
             Sub(ref mut sub) => sub.childs_mut(),
             Udiv(ref mut udiv) => udiv.childs_mut(),
-            Sdiv(ref mut sdiv) => sdiv.childs_mut()
+            Sdiv(ref mut sdiv) => sdiv.childs_mut(),
+            Smod(ref mut smod) => smod.childs_mut(),
+            Urem(ref mut urem) => urem.childs_mut(),
+            Srem(ref mut srem) => srem.childs_mut()
         }
     }
 }
@@ -207,7 +225,10 @@ impl IntoChilds for Expr {
             Mul(mul) => mul.into_childs(),
             Sub(sub) => sub.into_childs(),
             Udiv(udiv) => udiv.into_childs(),
-            Sdiv(sdiv) => sdiv.into_childs()
+            Sdiv(sdiv) => sdiv.into_childs(),
+            Smod(smod) => smod.into_childs(),
+            Urem(urem) => urem.into_childs(),
+            Srem(srem) => srem.into_childs()
         }
     }
 }

@@ -44,7 +44,13 @@ pub enum ExprKind {
     /// The bitvec udiv (unsigned division) term expression kind
     Udiv,
     /// The bitvec sdiv (signed division) term expression kind
-    Sdiv
+    Sdiv,
+    /// The bitvec smod (signed remainder + sign match) term expression kind
+    Smod,
+    /// The bitvec urem (unsigned remainder) term expression kind
+    Urem,
+    /// The bitvec srem (signed remainder) term expression kind
+    Srem
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -108,7 +114,10 @@ impl HasPriority for ExprKind {
             Mul         => 3 + BASE_PRIORITY_ARITHMETIC,
             Sub         => 4 + BASE_PRIORITY_ARITHMETIC,
             Udiv        => 5 + BASE_PRIORITY_ARITHMETIC,
-            Sdiv        => 6 + BASE_PRIORITY_ARITHMETIC
+            Sdiv        => 6 + BASE_PRIORITY_ARITHMETIC,
+            Smod        => 7 + BASE_PRIORITY_ARITHMETIC,
+            Urem        => 8 + BASE_PRIORITY_ARITHMETIC,
+            Srem        => 9 + BASE_PRIORITY_ARITHMETIC
         };
         Priority(prio_val)
     }

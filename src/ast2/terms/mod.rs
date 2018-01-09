@@ -7,6 +7,9 @@ mod mul;
 mod sub;
 mod udiv;
 mod sdiv;
+mod smod;
+mod urem;
+mod srem;
 
 pub mod prelude {
     pub use super::{
@@ -17,7 +20,10 @@ pub mod prelude {
         Mul,
         Sub,
         Udiv,
-        Sdiv
+        Sdiv,
+        Smod,
+        Urem,
+        Srem
     };
 }
 
@@ -29,3 +35,6 @@ pub use self::mul::prelude::*;
 pub use self::sub::prelude::*;
 pub use self::udiv::prelude::*;
 pub use self::sdiv::prelude::*;
+pub use self::smod::prelude::*;
+pub use self::urem::prelude::*;
+pub use self::srem::prelude::*;

@@ -1,0 +1,88 @@
+use ast2::prelude::*;
+use ast2::terms::checks;
+
+pub mod prelude {
+    pub use super::{
+        Smod
+    };
+}
+
+/// Binary Smod (signed remainder) where its sign matches the sign of the divisor.
+/// 
+/// # Example
+/// 
+/// -21 mod 4 is 3 because -21 + 4 x 6 is 3.
+/// 
+/// # Note
+/// 
+/// - There purposely is no `Umod` term expression since it has no difference to
+///   the `Urem` term expression. Use this instead.
+/// - On machine level signed and unsigned division are
+///   two different operations and have to be treated differently.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct Smod {
+    /// The two child term expressions.
+    pub childs: P<BinExprChilds>,
+    /// The bit width of this expression.
+    /// 
+    /// All child expressions must respect this bit width.
+    /// This is also used to verify integrity of the bit width.
+    pub width: BitWidth
+}
+
+impl Smod {
+    /// Returns a new `Smod` (signed remaainder) term expression with the given
+    /// child term expressions where its sign matches the sign of the divisor.
+    /// 
+    /// # Errors
+    /// 
+    /// - If any of the two given child expressions is not of bitvec type or
+    ///   has an unmatching bit width to the given bit width.
+    pub fn new(width: BitWidth, lhs: Expr, rhs: Expr) -> Result<Smod, String> {
+        checks::expect_bitvec_ty_and_width(&lhs, width)?;
+        checks::expect_bitvec_ty_and_width(&rhs, width)?;
+        Ok(Smod{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    }
+}
+
+impl Childs for Smod {
+    fn childs(&self) -> ChildsIter {
+        self.childs.childs()
+    }
+}
+
+impl ChildsMut for Smod {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        self.childs.childs_mut()
+    }
+}
+
+impl IntoChilds for Smod {
+    fn into_childs(self) -> IntoChildsIter {
+        self.childs.into_childs()
+    }
+}
+
+impl HasType for Smod {
+    fn ty(&self) -> Type {
+        self.width.ty()
+    }
+}
+
+impl HasKind for Smod {
+    fn kind(&self) -> ExprKind {
+        ExprKind::Smod
+    }
+}
+
+impl HasArity for Smod {
+    fn arity(&self) -> usize {
+        2
+    }
+}
+
+impl From<Smod> for Expr {
+    fn from(smod: Smod) -> Expr {
+        Expr::Smod(smod)
+    }
+}
