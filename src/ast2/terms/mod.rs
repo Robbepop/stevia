@@ -1,3 +1,5 @@
+#[macro_use] mod mac;
+
 mod checks;
 mod bit_width;
 mod bitvec_const;
