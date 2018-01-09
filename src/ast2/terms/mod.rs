@@ -4,6 +4,7 @@ mod checks;
 mod bit_width;
 mod arithmetic;
 mod bitwise;
+mod comparison;
 
 pub mod prelude {
     pub use super::{
@@ -22,10 +23,20 @@ pub mod prelude {
         BitNot,
         BitAnd,
         BitOr,
-        BitXor
+        BitXor,
+
+        SignedGreaterEquals,
+        SignedGreaterThan,
+        SignedLessEquals,
+        SignedLessThan,
+        UnsignedGreaterEquals,
+        UnsignedGreaterThan,
+        UnsignedLessEquals,
+        UnsignedLessThan
     };
 }
 
 pub use self::bit_width::prelude::*;
 pub use self::arithmetic::prelude::*;
 pub use self::bitwise::prelude::*;
+pub use self::comparison::prelude::*;

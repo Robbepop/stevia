@@ -36,7 +36,16 @@ macro_rules! forall_expr_kinds {
             BitNot,
             BitAnd,
             BitOr,
-            BitXor
+            BitXor,
+
+            SignedGreaterEquals,
+            SignedGreaterThan,
+            SignedLessEquals,
+            SignedLessThan,
+            UnsignedGreaterEquals,
+            UnsignedGreaterThan,
+            UnsignedLessEquals,
+            UnsignedLessThan
         }
     }
 }

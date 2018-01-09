@@ -61,7 +61,24 @@ pub enum ExprKind {
     /// The bitwise-or term expression kind
     BitOr,
     /// The bitwise-xor term expression kind
-    BitXor
+    BitXor,
+
+    /// The signed greater-than-or-equals term expression kind
+    SignedGreaterEquals,
+    /// The signed greater-than term expression kind
+    SignedGreaterThan,
+    /// The signed less-than-or-equals term expression kind
+    SignedLessEquals,
+    /// The signed less-than term expression kind
+    SignedLessThan,
+    /// The unsigned greater-than-or-equals term expression kind
+    UnsignedGreaterEquals,
+    /// The unsigned greater-than term expression kind
+    UnsignedGreaterThan,
+    /// The unsigned less-than-or-equals term expression kind
+    UnsignedLessEquals,
+    /// The unsigned less-than term expression kind
+    UnsignedLessThan
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -98,7 +115,7 @@ pub trait HasPriority {
 const BASE_PRIORITY_FORMULA: u32    = 100;
 const BASE_PRIORITY_ARITHMETIC: u32 = 200;
 const BASE_PRIORITY_BITWISE: u32    = 300;
-// const BASE_PRIORITY_COMPARISON: u32 = 400;
+const BASE_PRIORITY_COMPARISON: u32 = 400;
 // const BASE_PRIORITY_SHIFT: u32      = 500;
 // const BASE_PRIORITY_EXT_TRUNC: u32  = 600;
 // const BASE_PRIORITY_ARRAY: u32      = 700;
@@ -134,7 +151,17 @@ impl HasPriority for ExprKind {
             BitNot => BASE_PRIORITY_BITWISE,
             BitAnd => BASE_PRIORITY_BITWISE + 1,
             BitOr  => BASE_PRIORITY_BITWISE + 2,
-            BitXor => BASE_PRIORITY_BITWISE + 3
+            BitXor => BASE_PRIORITY_BITWISE + 3,
+
+            // Equals                => BASE_PRIORITY_COMPARISON, // TODO: Replace generic Equals with Bitvec Equals.
+            SignedGreaterEquals   => BASE_PRIORITY_COMPARISON + 1,
+            SignedGreaterThan     => BASE_PRIORITY_COMPARISON + 1,
+            SignedLessEquals      => BASE_PRIORITY_COMPARISON + 2,
+            SignedLessThan        => BASE_PRIORITY_COMPARISON + 3,
+            UnsignedGreaterEquals => BASE_PRIORITY_COMPARISON + 4,
+            UnsignedGreaterThan   => BASE_PRIORITY_COMPARISON + 5,
+            UnsignedLessEquals    => BASE_PRIORITY_COMPARISON + 6,
+            UnsignedLessThan      => BASE_PRIORITY_COMPARISON + 7,
         };
         Priority(prio_val)
     }
