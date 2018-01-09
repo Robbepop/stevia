@@ -11,6 +11,8 @@ use ast::traits::{
 };
 use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
+use apint::ApInt;
+
 macro_rules! forall_expr_kinds {
 	( $mac:ident ) => {
 		$mac!{
@@ -225,7 +227,12 @@ impl Ord for Expr {
 
 			// sort bitvec constants by comparing their value
 			(&BitVecConst(ref left), &BitVecConst(ref right))
-				=> left.value.cmp(&right.value),
+				=> if left.value.checked_ult(&right.value).unwrap() {
+					Ordering::Less
+				}
+				else {
+					Ordering::Greater
+				},
 
 			// sort not by forwarding to inner
 			(&Not(ref left), &Not(ref right))
@@ -340,7 +347,7 @@ impl Expr {
 	/// 
 	/// Note: This is a convenience method.
 	pub fn is_bvconst_with_value<T>(&self, expected: T) -> bool
-		where T: Into<::BitVec>
+		where T: Into<ApInt>
 	{
 		if let Expr::BitVecConst(ref bvconst) = *self {
 			bvconst.value == expected.into()
@@ -438,7 +445,7 @@ impl Expr {
 	// ARITHMETHIC EXPRESSIONS
 	//-------------------------------------------------------------------------
 
-	pub fn bvconst<T: Into<::BitVec>>(bits: Bits, value: T) -> Expr {
+	pub fn bvconst<T: Into<ApInt>>(bits: Bits, value: T) -> Expr {
 		Expr::BitVecConst(expr::BitVecConst{
 			value: value.into(),
 			ty   : bits.into()

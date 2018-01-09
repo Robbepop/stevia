@@ -13,8 +13,8 @@ extern crate lazy_static;
 #[macro_use]
 extern crate smt_expr_derive;
 
-mod bitvec;
+/// The old and deprecated AST (Abstract Syntax Tree) module.
 pub mod ast;
-pub mod ast2;
 
-pub use bitvec::BitVec;
+/// The new and shiny experimental future AST (Abstract Syntax Tree) module.
+pub mod ast2;

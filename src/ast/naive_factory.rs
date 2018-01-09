@@ -4,7 +4,7 @@ use std::cell::RefCell;
 
 use string_interner::StringInterner;
 
-use bitvec::BitVec;
+use apint::ApInt;
 
 use ast::expr;
 use ast::prelude::*;
@@ -29,7 +29,7 @@ impl NaiveExprFactory {
 }
 
 impl ExprFactoryImpl for NaiveExprFactory {
-	fn bvconst_impl<T: Into<BitVec>>(&self, bits: Bits, value: T) -> Result<Expr> {
+	fn bvconst_impl<T: Into<ApInt>>(&self, bits: Bits, value: T) -> Result<Expr> {
 		Ok(Expr::BitVecConst(expr::BitVecConst{
 			value: value.into(),
 			ty   : bits.into()

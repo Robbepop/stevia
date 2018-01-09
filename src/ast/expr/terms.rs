@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use bitvec::BitVec;
+use apint::ApInt;
 
 use ast::{P, Type};
 use ast::traits::{
@@ -15,7 +15,7 @@ use ast::iterators::{Childs, ChildsMut, IntoChilds};
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SmtExpr)]
 pub struct BitVecConst{
-	pub value: BitVec,
+	pub value: ApInt,
 	/// The bitvec type of this expression.
 	pub ty: Type
 }

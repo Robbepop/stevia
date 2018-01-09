@@ -1,6 +1,6 @@
 use std::ops::Range;
 
-use bitvec::BitVec;
+use apint::ApInt;
 
 use ast::{Bits, Type};
 use ast::variants::Expr;
@@ -11,7 +11,7 @@ pub trait ExprFactoryImpl {
 	// TERM EXPRESSIONS
 	//=========================================================================
 
-	fn bvconst_impl<T: Into<BitVec>>(&self, bits: Bits, value: T) -> Result<Expr>;
+	fn bvconst_impl<T: Into<ApInt>>(&self, bits: Bits, value: T) -> Result<Expr>;
 
 	// ARITHMETHIC EXPRESSIONS
 	//-------------------------------------------------------------------------
@@ -118,7 +118,7 @@ pub trait ExprFactory {
 	//=========================================================================
 
 	fn bvconst<BV>(&self, bits: Bits, value: BV) -> Result<Expr>
-		where BV: Into<BitVec>;
+		where BV: Into<ApInt>;
 
 	// ARITHMETHIC EXPRESSIONS
 	//-------------------------------------------------------------------------
@@ -322,7 +322,7 @@ impl<ConcreteFactory> ExprFactory for ConcreteFactory where ConcreteFactory: Exp
 	//=========================================================================
 
 	fn bvconst<BV>(&self, bits: Bits, value: BV) -> Result<Expr>
-		where BV: Into<BitVec>
+		where BV: Into<ApInt>
 	{
 		self.bvconst_impl(bits, value)
 	}
