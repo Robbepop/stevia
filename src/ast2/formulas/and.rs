@@ -1,4 +1,5 @@
 use ast2::prelude::*;
+use ast2::formulas::checks;
 
 pub mod prelude {
     pub use super::{
@@ -16,6 +17,17 @@ pub struct And {
 }
 
 impl And {
+    /// Returns a new `And` formula expression with the given child expressions.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` are not of bool type.
+    pub fn binary(lhs: Expr, rhs: Expr) -> Result<And, String> {
+        checks::expect_bool_ty(&lhs)?;
+        checks::expect_bool_ty(&rhs)?;
+        Ok(And{ childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new `And` formula expression.
     /// 
     /// # Errors
