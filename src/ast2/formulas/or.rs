@@ -1,4 +1,5 @@
 use ast2::prelude::*;
+use ast2::formulas::checks;
 
 pub mod prelude {
     pub use super::{
@@ -14,6 +15,17 @@ pub struct Or {
 }
 
 impl Or {
+    /// Returns a new `Or` formula expression with the given child expressions.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` are not of bool type.
+    pub fn binary(lhs: Expr, rhs: Expr) -> Result<Or, String> {
+        checks::expect_bool_ty(&lhs)?;
+        checks::expect_bool_ty(&rhs)?;
+        Ok(Or{ childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new `Or` formula expression.
     /// 
     /// # Errors
