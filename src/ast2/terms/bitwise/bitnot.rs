@@ -29,12 +29,7 @@ impl BitNot {
         where E: IntoBoxExpr
     {
         let child = child.into_box_expr();
-        let bvw = checks::expect_bitvec_ty(&*child)
-            .map_err(|_| String::from(
-                "Requires inner expression to be of bitvec type for BitNot term expression."))?;
-        if bvw != width {
-            return Err("Required inner bitvec to have the same bitwidth as specified.".into())
-        }
+        checks::expect_bitvec_ty_and_width(&*child, width)?;
         Ok(BitNot{width, child})
     }
 }
