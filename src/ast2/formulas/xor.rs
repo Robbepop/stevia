@@ -1,4 +1,5 @@
 use ast2::prelude::*;
+use ast2::formulas::checks;
 
 pub mod prelude {
     pub use super::{
@@ -21,8 +22,14 @@ pub struct Xor {
 
 impl Xor {
     /// Returns a new `Xor` formula expression with the given child expressions.
-    pub fn new(lhs: Expr, rhs: Expr) -> Xor {
-        Xor{ childs: BinExprChilds::new_boxed(lhs, rhs) }
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` are not of bool type.
+    pub fn new(lhs: Expr, rhs: Expr) -> Result<Xor, String> {
+        checks::expect_bool_ty(&lhs)?;
+        checks::expect_bool_ty(&rhs)?;
+        Ok(Xor{ childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 
