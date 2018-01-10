@@ -20,6 +20,8 @@ pub enum ExprKind {
 
     /// The constant boolean expression kind
     BoolConst,
+    /// The boolean equality (also known as if-and-only-if) expression kind
+    BoolEquals,
     /// The not boolean expression kind
     Not,
     /// The and boolean expression kind
@@ -30,8 +32,6 @@ pub enum ExprKind {
     Implies,
     /// The xor (either-or) expression kind
     Xor,
-    /// The iff (if-and-only-if) expression kind
-    Iff,
 
     /// The constant bitvec term expression kind
     BitvecConst,
@@ -150,13 +150,13 @@ impl HasPriority for ExprKind {
             Symbol     => BASE_PRIORITY_GENERIC + 1,
             Equals     => BASE_PRIORITY_GENERIC + 2,
 
-            BoolConst => BASE_PRIORITY_FORMULA,
-            Not       => BASE_PRIORITY_FORMULA + 1,
-            And       => BASE_PRIORITY_FORMULA + 2,
-            Or        => BASE_PRIORITY_FORMULA + 3,
-            Implies   => BASE_PRIORITY_FORMULA + 4,
-            Xor       => BASE_PRIORITY_FORMULA + 5,
-            Iff       => BASE_PRIORITY_FORMULA + 6,
+            BoolConst  => BASE_PRIORITY_FORMULA,
+            BoolEquals => BASE_PRIORITY_FORMULA + 1,
+            Not        => BASE_PRIORITY_FORMULA + 2,
+            And        => BASE_PRIORITY_FORMULA + 3,
+            Or         => BASE_PRIORITY_FORMULA + 4,
+            Implies    => BASE_PRIORITY_FORMULA + 5,
+            Xor        => BASE_PRIORITY_FORMULA + 6,
 
             BitvecConst       => BASE_PRIORITY_ARITHMETIC,
             Neg               => BASE_PRIORITY_ARITHMETIC + 1,

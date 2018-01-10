@@ -15,12 +15,12 @@ macro_rules! forall_expr_kinds {
             Equals,
 
             BoolConst,
+            BoolEquals,
             Not,
             And,
             Or,
             Implies,
             Xor,
-            Iff,
 
             BitvecConst,
             Neg,
