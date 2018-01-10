@@ -49,7 +49,12 @@ macro_rules! forall_expr_kinds {
 
             ShiftLeft,
             LogicalShiftRight,
-            ArithmeticShiftRight
+            ArithmeticShiftRight,
+
+            Concat,
+            Extract,
+            SignExtend,
+            ZeroExtend
         }
     }
 }

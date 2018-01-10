@@ -85,7 +85,16 @@ pub enum ExprKind {
     /// The logical shift-right term expression kind
     LogicalShiftRight,
     /// The arithmetic shift-right term expression kind
-    ArithmeticShiftRight
+    ArithmeticShiftRight,
+
+    /// The bitvec concatenate term expression kind
+    Concat,
+    /// The bitvec extraction term expression kind
+    Extract,
+    /// The bitvec sign-extension term expression kind
+    SignExtend,
+    /// The bitvec zero-extension term expression kind
+    ZeroExtend
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -124,7 +133,7 @@ const BASE_PRIORITY_ARITHMETIC: u32 = 200;
 const BASE_PRIORITY_BITWISE: u32    = 300;
 const BASE_PRIORITY_COMPARISON: u32 = 400;
 const BASE_PRIORITY_SHIFT: u32      = 500;
-// const BASE_PRIORITY_EXT_TRUNC: u32  = 600;
+const BASE_PRIORITY_CAST: u32  = 600;
 // const BASE_PRIORITY_ARRAY: u32      = 700;
 const BASE_PRIORITY_GENERIC: u32    = 800;
 
@@ -172,7 +181,12 @@ impl HasPriority for ExprKind {
 
             ShiftLeft            => BASE_PRIORITY_SHIFT,
             LogicalShiftRight    => BASE_PRIORITY_SHIFT + 1,
-            ArithmeticShiftRight => BASE_PRIORITY_SHIFT + 2
+            ArithmeticShiftRight => BASE_PRIORITY_SHIFT + 2,
+
+            Concat     => BASE_PRIORITY_CAST,
+            Extract    => BASE_PRIORITY_CAST + 1,
+            SignExtend => BASE_PRIORITY_CAST + 2,
+            ZeroExtend => BASE_PRIORITY_CAST + 3
         };
         Priority(prio_val)
     }

@@ -6,6 +6,7 @@ mod arithmetic;
 mod bitwise;
 mod comparison;
 mod shift;
+mod cast;
 
 pub mod prelude {
     pub use super::{
@@ -37,7 +38,12 @@ pub mod prelude {
 
         ShiftLeft,
         LogicalShiftRight,
-        ArithmeticShiftRight
+        ArithmeticShiftRight,
+
+        Concat,
+        Extract,
+        SignExtend,
+        ZeroExtend
     };
 }
 
@@ -46,3 +52,4 @@ pub use self::arithmetic::prelude::*;
 pub use self::bitwise::prelude::*;
 pub use self::comparison::prelude::*;
 pub use self::shift::prelude::*;
+pub use self::cast::prelude::*;
