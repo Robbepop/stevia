@@ -35,6 +35,8 @@ pub enum ExprKind {
 
     /// The constant bitvec term expression kind
     BitvecConst,
+    // /// The bitvec equality term expression kind
+    // BitvecEquals,
     /// The bitvec negation term expression kind
     Neg,
     /// The bitvec add term expression kind
@@ -96,6 +98,8 @@ pub enum ExprKind {
     /// The bitvec zero-extension term expression kind
     ZeroExtend,
 
+    // /// The array equality formula expression kind
+    // ArrayEquals,
     /// The array-read expression kind
     ArrayRead,
     /// The array-write expression kind
@@ -159,22 +163,22 @@ impl HasPriority for ExprKind {
             Xor        => BASE_PRIORITY_FORMULA + 6,
 
             BitvecConst       => BASE_PRIORITY_ARITHMETIC,
-            Neg               => BASE_PRIORITY_ARITHMETIC + 1,
-            Add               => BASE_PRIORITY_ARITHMETIC + 2,
-            Mul               => BASE_PRIORITY_ARITHMETIC + 3,
-            Sub               => BASE_PRIORITY_ARITHMETIC + 4,
-            UnsignedDiv       => BASE_PRIORITY_ARITHMETIC + 5,
-            SignedDiv         => BASE_PRIORITY_ARITHMETIC + 6,
-            SignedModulo      => BASE_PRIORITY_ARITHMETIC + 7,
-            UnsignedRemainder => BASE_PRIORITY_ARITHMETIC + 8,
-            SignedRemainder   => BASE_PRIORITY_ARITHMETIC + 9,
+            // BitvecEquals      => BASE_PRIORITY_ARITHMETIC + 1,
+            Neg               => BASE_PRIORITY_ARITHMETIC +  2,
+            Add               => BASE_PRIORITY_ARITHMETIC +  3,
+            Mul               => BASE_PRIORITY_ARITHMETIC +  4,
+            Sub               => BASE_PRIORITY_ARITHMETIC +  5,
+            UnsignedDiv       => BASE_PRIORITY_ARITHMETIC +  6,
+            SignedDiv         => BASE_PRIORITY_ARITHMETIC +  7,
+            SignedModulo      => BASE_PRIORITY_ARITHMETIC +  8,
+            UnsignedRemainder => BASE_PRIORITY_ARITHMETIC +  9,
+            SignedRemainder   => BASE_PRIORITY_ARITHMETIC + 10,
 
             BitNot => BASE_PRIORITY_BITWISE,
             BitAnd => BASE_PRIORITY_BITWISE + 1,
             BitOr  => BASE_PRIORITY_BITWISE + 2,
             BitXor => BASE_PRIORITY_BITWISE + 3,
 
-            // Equals                => BASE_PRIORITY_COMPARISON, // TODO: Replace generic Equals with Bitvec Equals.
             SignedGreaterEquals   => BASE_PRIORITY_COMPARISON + 1,
             SignedGreaterThan     => BASE_PRIORITY_COMPARISON + 1,
             SignedLessEquals      => BASE_PRIORITY_COMPARISON + 2,
@@ -193,8 +197,9 @@ impl HasPriority for ExprKind {
             SignExtend => BASE_PRIORITY_CAST + 2,
             ZeroExtend => BASE_PRIORITY_CAST + 3,
 
-            ArrayRead  => BASE_PRIORITY_ARRAY,
-            ArrayWrite => BASE_PRIORITY_ARRAY + 1
+            // ArrayEquals => BASE_PRIORITY_ARRAY,
+            ArrayRead  => BASE_PRIORITY_ARRAY + 1,
+            ArrayWrite => BASE_PRIORITY_ARRAY + 2
         };
         Priority(prio_val)
     }
