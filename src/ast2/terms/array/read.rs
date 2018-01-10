@@ -65,3 +65,63 @@ impl ArrayRead {
         Ok(ArrayRead{ width: array_ty.value_width(), childs: ArrayReadChilds::new_boxed(array, index) })
     }
 }
+
+impl Childs for ArrayReadChilds {
+    fn childs(&self) -> ChildsIter {
+        ChildsIter::binary(&self.array, &self.index)
+    }
+}
+
+impl ChildsMut for ArrayReadChilds {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        ChildsIterMut::binary(&mut self.array, &mut self.index)
+    }
+}
+
+impl IntoChilds for ArrayReadChilds {
+    fn into_childs(self) -> IntoChildsIter {
+        IntoChildsIter::binary(self.array, self.index)
+    }
+}
+
+impl HasType for ArrayRead {
+    fn ty(&self) -> Type {
+        self.width.ty()
+    }
+}
+
+impl HasKind for ArrayRead {
+    fn kind(&self) -> ExprKind {
+        ExprKind::ArrayRead
+    }
+}
+
+impl HasArity for ArrayRead {
+    fn arity(&self) -> usize {
+        2
+    }
+}
+
+impl From<ArrayRead> for Expr {
+    fn from(array_read: ArrayRead) -> Expr {
+        Expr::ArrayRead(array_read)
+    }
+}
+
+impl Childs for ArrayRead {
+    fn childs(&self) -> ChildsIter {
+        self.childs.childs()
+    }
+}
+
+impl ChildsMut for ArrayRead {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        self.childs.childs_mut()
+    }
+}
+
+impl IntoChilds for ArrayRead {
+    fn into_childs(self) -> IntoChildsIter {
+        self.childs.into_childs()
+    }
+}

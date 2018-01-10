@@ -54,7 +54,9 @@ macro_rules! forall_expr_kinds {
             Concat,
             Extract,
             SignExtend,
-            ZeroExtend
+            ZeroExtend,
+
+            ArrayRead
         }
     }
 }

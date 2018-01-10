@@ -94,7 +94,10 @@ pub enum ExprKind {
     /// The bitvec sign-extension term expression kind
     SignExtend,
     /// The bitvec zero-extension term expression kind
-    ZeroExtend
+    ZeroExtend,
+
+    /// The array-read expression kind
+    ArrayRead
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -133,8 +136,8 @@ const BASE_PRIORITY_ARITHMETIC: u32 = 200;
 const BASE_PRIORITY_BITWISE: u32    = 300;
 const BASE_PRIORITY_COMPARISON: u32 = 400;
 const BASE_PRIORITY_SHIFT: u32      = 500;
-const BASE_PRIORITY_CAST: u32  = 600;
-// const BASE_PRIORITY_ARRAY: u32      = 700;
+const BASE_PRIORITY_CAST: u32       = 600;
+const BASE_PRIORITY_ARRAY: u32      = 700;
 const BASE_PRIORITY_GENERIC: u32    = 800;
 
 impl HasPriority for ExprKind {
@@ -186,7 +189,9 @@ impl HasPriority for ExprKind {
             Concat     => BASE_PRIORITY_CAST,
             Extract    => BASE_PRIORITY_CAST + 1,
             SignExtend => BASE_PRIORITY_CAST + 2,
-            ZeroExtend => BASE_PRIORITY_CAST + 3
+            ZeroExtend => BASE_PRIORITY_CAST + 3,
+
+            ArrayRead => BASE_PRIORITY_ARRAY
         };
         Priority(prio_val)
     }
