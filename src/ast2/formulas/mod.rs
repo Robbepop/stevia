@@ -1,3 +1,4 @@
+mod checks;
 mod bool_const;
 mod not;
 mod and;
