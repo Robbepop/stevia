@@ -1,4 +1,5 @@
 use ast2::prelude::*;
+use ast2::formulas::checks;
 
 pub mod prelude {
     pub use super::{
@@ -17,8 +18,14 @@ pub struct Implies {
 
 impl Implies {
     /// Returns a new `Implies` formula expression with the given child expressions.
-    pub fn new(lhs: Expr, rhs: Expr) -> Implies {
-        Implies{ childs: BinExprChilds::new_boxed(lhs, rhs) }
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` are not of bool type.
+    pub fn new(lhs: Expr, rhs: Expr) -> Result<Implies, String> {
+        checks::expect_bool_ty(&lhs)?;
+        checks::expect_bool_ty(&rhs)?;
+        Ok(Implies{ childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 
