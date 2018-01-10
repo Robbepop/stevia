@@ -1,4 +1,5 @@
 use ast2::{
+    ArrayTy,
     Type,
     HasType,
     BitWidth
@@ -9,6 +10,21 @@ pub mod prelude {
     pub use super::{
         expect_bitvec_ty
     };
+}
+
+/// Checks if the given typed param is of array type
+/// and returns its concrete array type if it is the case.
+/// 
+/// # Errors
+/// 
+/// - If the given typed param is not of array type.
+pub fn expect_array_ty<T>(genval: &T) -> Result<ArrayTy, String>
+    where T: HasType
+{
+    match genval.ty() {
+        Type::Array(array_ty) => Ok(array_ty),
+        _ => Err("Expected array type.".into())
+    }
 }
 
 /// Checks if the given typed param is of bitvec type
