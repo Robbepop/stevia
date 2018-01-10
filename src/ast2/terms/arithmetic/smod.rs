@@ -3,11 +3,11 @@ use ast2::terms::checks;
 
 pub mod prelude {
     pub use super::{
-        Smod
+        SignedModulo
     };
 }
 
-/// Binary Smod (signed remainder) where its sign matches the sign of the divisor.
+/// Binary `SignedModulo` (signed remainder) where its sign matches the sign of the divisor.
 /// 
 /// # Example
 /// 
@@ -20,7 +20,7 @@ pub mod prelude {
 /// - On machine level signed and unsigned division are
 ///   two different operations and have to be treated differently.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Smod {
+pub struct SignedModulo {
     /// The two child term expressions.
     pub childs: P<BinExprChilds>,
     /// The bit width of this expression.
@@ -30,19 +30,19 @@ pub struct Smod {
     pub width: BitWidth
 }
 
-impl Smod {
-    /// Returns a new `Smod` (signed remaainder) term expression with the given
+impl SignedModulo {
+    /// Returns a new `SignedModulo` (signed remaainder) term expression with the given
     /// child term expressions where its sign matches the sign of the divisor.
     /// 
     /// # Errors
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(width: BitWidth, lhs: Expr, rhs: Expr) -> Result<Smod, String> {
+    pub fn new(width: BitWidth, lhs: Expr, rhs: Expr) -> Result<SignedModulo, String> {
         checks::expect_bitvec_ty_and_width(&lhs, width)?;
         checks::expect_bitvec_ty_and_width(&rhs, width)?;
-        Ok(Smod{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })
+        Ok(SignedModulo{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 
-impl_traits_for_binary_term_expr!(Smod);
+impl_traits_for_binary_term_expr!(SignedModulo);

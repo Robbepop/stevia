@@ -44,15 +44,15 @@ pub enum ExprKind {
     /// The bitvec sub term expression kind
     Sub,
     /// The bitvec udiv (unsigned division) term expression kind
-    Udiv,
+    UnsignedDiv,
     /// The bitvec sdiv (signed division) term expression kind
-    Sdiv,
+    SignedDiv,
     /// The bitvec smod (signed remainder + sign match) term expression kind
-    Smod,
+    SignedModulo,
     /// The bitvec urem (unsigned remainder) term expression kind
-    Urem,
+    UnsignedRemainder,
     /// The bitvec srem (signed remainder) term expression kind
-    Srem,
+    SignedRemainder,
 
     /// The bitwise-not term expression kind
     BitNot,
@@ -158,16 +158,16 @@ impl HasPriority for ExprKind {
             Xor       => BASE_PRIORITY_FORMULA + 5,
             Iff       => BASE_PRIORITY_FORMULA + 6,
 
-            BitvecConst => BASE_PRIORITY_ARITHMETIC,
-            Neg         => BASE_PRIORITY_ARITHMETIC + 1,
-            Add         => BASE_PRIORITY_ARITHMETIC + 2,
-            Mul         => BASE_PRIORITY_ARITHMETIC + 3,
-            Sub         => BASE_PRIORITY_ARITHMETIC + 4,
-            Udiv        => BASE_PRIORITY_ARITHMETIC + 5,
-            Sdiv        => BASE_PRIORITY_ARITHMETIC + 6,
-            Smod        => BASE_PRIORITY_ARITHMETIC + 7,
-            Urem        => BASE_PRIORITY_ARITHMETIC + 8,
-            Srem        => BASE_PRIORITY_ARITHMETIC + 9,
+            BitvecConst       => BASE_PRIORITY_ARITHMETIC,
+            Neg               => BASE_PRIORITY_ARITHMETIC + 1,
+            Add               => BASE_PRIORITY_ARITHMETIC + 2,
+            Mul               => BASE_PRIORITY_ARITHMETIC + 3,
+            Sub               => BASE_PRIORITY_ARITHMETIC + 4,
+            UnsignedDiv       => BASE_PRIORITY_ARITHMETIC + 5,
+            SignedDiv         => BASE_PRIORITY_ARITHMETIC + 6,
+            SignedModulo      => BASE_PRIORITY_ARITHMETIC + 7,
+            UnsignedRemainder => BASE_PRIORITY_ARITHMETIC + 8,
+            SignedRemainder   => BASE_PRIORITY_ARITHMETIC + 9,
 
             BitNot => BASE_PRIORITY_BITWISE,
             BitAnd => BASE_PRIORITY_BITWISE + 1,

@@ -16,11 +16,11 @@ pub mod prelude {
         Add,
         Mul,
         Sub,
-        Udiv,
-        Sdiv,
-        Smod,
-        Urem,
-        Srem
+        UnsignedDiv,
+        SignedDiv,
+        SignedModulo,
+        UnsignedRemainder,
+        SignedRemainder
     };
 }
 
