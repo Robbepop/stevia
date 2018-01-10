@@ -3,6 +3,7 @@ use ast2::{BitWidth};
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
 	pub use super::{
+		ArrayTy,
 		HasType,
 		Type,
 		TypeKind,
@@ -94,10 +95,17 @@ impl HasType for Type {
 /// a bit width for their associated value type.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayTy {
-		/// The bit width of the index type.
+	/// The bit width of the index type.
 	index_width: BitWidth,
-		/// The bit width of the value type.
+	/// The bit width of the value type.
 	value_width: BitWidth
+}
+
+impl ArrayTy {
+	/// Returns the index bit width of this array type.
+	pub fn index_width(self) -> BitWidth { self.index_width }
+	/// Returns the value bit width of this array type.
+	pub fn value_width(self) -> BitWidth { self.index_width }
 }
 
 impl HasType for ArrayTy {
