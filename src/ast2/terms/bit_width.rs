@@ -14,6 +14,17 @@ pub mod prelude {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BitWidth(apint::BitWidth);
 
+impl From<usize> for BitWidth {
+    /// Converts the `usize` to a `BitWidth`.
+    /// 
+    /// # Panics
+    /// 
+    /// - If the given value is equal to 0.
+    fn from(val: usize) -> BitWidth {
+        BitWidth(apint::BitWidth::from(val))
+    }
+}
+
 impl From<apint::BitWidth> for BitWidth {
     /// Converts the `BitWidth` from `apint` crate to the local `BitWidth`.
     fn from(width: apint::BitWidth) -> BitWidth {
