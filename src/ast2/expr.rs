@@ -56,7 +56,8 @@ macro_rules! forall_expr_kinds {
             SignExtend,
             ZeroExtend,
 
-            ArrayRead
+            ArrayRead,
+            ArrayWrite
         }
     }
 }

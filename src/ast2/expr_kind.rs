@@ -97,7 +97,9 @@ pub enum ExprKind {
     ZeroExtend,
 
     /// The array-read expression kind
-    ArrayRead
+    ArrayRead,
+    /// The array-write expression kind
+    ArrayWrite
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -191,7 +193,8 @@ impl HasPriority for ExprKind {
             SignExtend => BASE_PRIORITY_CAST + 2,
             ZeroExtend => BASE_PRIORITY_CAST + 3,
 
-            ArrayRead => BASE_PRIORITY_ARRAY
+            ArrayRead  => BASE_PRIORITY_ARRAY,
+            ArrayWrite => BASE_PRIORITY_ARRAY + 1
         };
         Priority(prio_val)
     }
