@@ -21,7 +21,7 @@ pub struct BoolEquals {
 }
 
 impl BoolEquals {
-    /// Returns a new `BoolEquals` formula expression with the given child expressions.
+    /// Returns a new binary `BoolEquals` formula expression with the given child expressions.
     /// 
     /// # Errors
     /// 

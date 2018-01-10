@@ -15,7 +15,7 @@ pub struct Or {
 }
 
 impl Or {
-    /// Returns a new `Or` formula expression with the given child expressions.
+    /// Returns a new binary `Or` formula expression with the given child expressions.
     /// 
     /// # Errors
     /// 
@@ -26,13 +26,13 @@ impl Or {
         Ok(Or{ childs: vec![lhs, rhs] })
     }
 
-    /// Creates a new `Or` formula expression.
+    /// Creates a new n-ary `Or` formula expression.
     /// 
     /// # Errors
     /// 
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
-    pub fn new<I>(childs: I) -> Result<Or, String>
+    pub fn nary<I>(childs: I) -> Result<Or, String>
         where I: IntoIterator<Item = Expr>
     {
         let childs = childs.into_iter().collect::<Vec<_>>();
