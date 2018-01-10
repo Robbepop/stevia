@@ -114,7 +114,7 @@ impl HasType for IfThenElse {
 
 impl HasKind for IfThenElse {
     fn kind(&self) -> ExprKind {
-        ExprKind::Ite
+        ExprKind::IfThenElse
     }
 }
 

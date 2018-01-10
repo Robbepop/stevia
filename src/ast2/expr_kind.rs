@@ -12,7 +12,7 @@ pub mod prelude {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ExprKind {
     /// The if-then-else expression kind.
-    Ite,
+    IfThenElse,
     /// The symbol expression kind
     Symbol,
     /// The equality expression kind
@@ -125,9 +125,9 @@ impl HasPriority for ExprKind {
     fn priority(&self) -> Priority {
         use self::ExprKind::*;
         let prio_val = match *self {
-            Ite       => BASE_PRIORITY_GENERIC,
-            Symbol    => BASE_PRIORITY_GENERIC + 1,
-            Equals    => BASE_PRIORITY_GENERIC + 2,
+            IfThenElse => BASE_PRIORITY_GENERIC,
+            Symbol     => BASE_PRIORITY_GENERIC + 1,
+            Equals     => BASE_PRIORITY_GENERIC + 2,
 
             BoolConst => BASE_PRIORITY_FORMULA,
             Not       => BASE_PRIORITY_FORMULA + 1,
