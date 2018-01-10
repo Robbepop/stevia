@@ -78,7 +78,14 @@ pub enum ExprKind {
     /// The unsigned less-than-or-equals term expression kind
     UnsignedLessEquals,
     /// The unsigned less-than term expression kind
-    UnsignedLessThan
+    UnsignedLessThan,
+
+    /// The shift-left term expression kind
+    ShiftLeft,
+    /// The logical shift-right term expression kind
+    LogicalShiftRight,
+    /// The arithmetic shift-right term expression kind
+    ArithmeticShiftRight
 }
 
 /// This trait should be implemented by all expressions and structures that
@@ -116,7 +123,7 @@ const BASE_PRIORITY_FORMULA: u32    = 100;
 const BASE_PRIORITY_ARITHMETIC: u32 = 200;
 const BASE_PRIORITY_BITWISE: u32    = 300;
 const BASE_PRIORITY_COMPARISON: u32 = 400;
-// const BASE_PRIORITY_SHIFT: u32      = 500;
+const BASE_PRIORITY_SHIFT: u32      = 500;
 // const BASE_PRIORITY_EXT_TRUNC: u32  = 600;
 // const BASE_PRIORITY_ARRAY: u32      = 700;
 const BASE_PRIORITY_GENERIC: u32    = 800;
@@ -162,6 +169,10 @@ impl HasPriority for ExprKind {
             UnsignedGreaterThan   => BASE_PRIORITY_COMPARISON + 5,
             UnsignedLessEquals    => BASE_PRIORITY_COMPARISON + 6,
             UnsignedLessThan      => BASE_PRIORITY_COMPARISON + 7,
+
+            ShiftLeft            => BASE_PRIORITY_SHIFT,
+            LogicalShiftRight    => BASE_PRIORITY_SHIFT + 1,
+            ArithmeticShiftRight => BASE_PRIORITY_SHIFT + 2
         };
         Priority(prio_val)
     }

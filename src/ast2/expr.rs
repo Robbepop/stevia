@@ -45,7 +45,11 @@ macro_rules! forall_expr_kinds {
             UnsignedGreaterEquals,
             UnsignedGreaterThan,
             UnsignedLessEquals,
-            UnsignedLessThan
+            UnsignedLessThan,
+
+            ShiftLeft,
+            LogicalShiftRight,
+            ArithmeticShiftRight
         }
     }
 }

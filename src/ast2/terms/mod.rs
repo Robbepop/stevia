@@ -5,6 +5,7 @@ mod bit_width;
 mod arithmetic;
 mod bitwise;
 mod comparison;
+mod shift;
 
 pub mod prelude {
     pub use super::{
@@ -32,7 +33,11 @@ pub mod prelude {
         UnsignedGreaterEquals,
         UnsignedGreaterThan,
         UnsignedLessEquals,
-        UnsignedLessThan
+        UnsignedLessThan,
+
+        ShiftLeft,
+        LogicalShiftRight,
+        ArithmeticShiftRight
     };
 }
 
@@ -40,3 +45,4 @@ pub use self::bit_width::prelude::*;
 pub use self::arithmetic::prelude::*;
 pub use self::bitwise::prelude::*;
 pub use self::comparison::prelude::*;
+pub use self::shift::prelude::*;
