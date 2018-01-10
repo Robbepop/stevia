@@ -7,6 +7,7 @@ mod bitwise;
 mod comparison;
 mod shift;
 mod cast;
+mod array;
 
 pub mod prelude {
     pub use super::{
@@ -43,7 +44,10 @@ pub mod prelude {
         Concat,
         Extract,
         SignExtend,
-        ZeroExtend
+        ZeroExtend,
+
+        ArrayRead,
+        ArrayWrite
     };
 }
 
@@ -53,3 +57,4 @@ pub use self::bitwise::prelude::*;
 pub use self::comparison::prelude::*;
 pub use self::shift::prelude::*;
 pub use self::cast::prelude::*;
+pub use self::array::prelude::*;
