@@ -115,6 +115,12 @@ impl HasType for ArrayTy {
 	}
 }
 
+impl From<ArrayTy> for Type {
+	fn from(array_ty: ArrayTy) -> Type {
+		Type::Array(array_ty)
+	}
+}
+
 /// Returns `true` if the `Type`s of `lhs` and `rhs` are equal.
 /// 
 /// # Note
