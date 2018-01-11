@@ -74,6 +74,7 @@ pub mod expr {
     };
     pub use super::terms::{
         BitvecConst,
+        BitvecEquals,
         Neg,
         Add,
         Mul,

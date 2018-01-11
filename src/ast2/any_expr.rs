@@ -23,6 +23,7 @@ macro_rules! forall_expr_kinds {
             Xor,
 
             BitvecConst,
+            BitvecEquals,
             Neg,
             Add,
             Mul,

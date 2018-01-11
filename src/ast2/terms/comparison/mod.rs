@@ -1,3 +1,4 @@
+mod bitvec_equals;
 mod sge;
 mod sgt;
 mod sle;
@@ -9,6 +10,7 @@ mod ult;
 
 pub mod prelude {
     pub use super::{
+        BitvecEquals,
         SignedGreaterEquals,
         SignedGreaterThan,
         SignedLessEquals,
@@ -20,6 +22,7 @@ pub mod prelude {
     };
 }
 
+pub use self::bitvec_equals::*;
 pub use self::sge::prelude::*;
 pub use self::sgt::prelude::*;
 pub use self::sle::prelude::*;
