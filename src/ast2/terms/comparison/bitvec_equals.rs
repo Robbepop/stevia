@@ -39,7 +39,7 @@ impl BitvecEquals {
         Ok(BitvecEquals{ childs_width: width, childs: vec![lhs, rhs] })
     }
 
-    /// Creates a new `BitvecEquals` expression from the given iterator over expressions.
+    /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
     /// 
     /// # Errors
     /// 

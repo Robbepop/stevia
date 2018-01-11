@@ -21,13 +21,13 @@ pub struct Mul {
 }
 
 impl Mul {
-    /// Creates a new `Mul` formula expression.
+    /// Creates a new n-ary `Mul` formula expression.
     ///
     /// # Errors
     ///
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
-    pub fn new<I>(width: BitWidth, childs: I) -> Result<Mul, String>
+    pub fn nary<I>(width: BitWidth, childs: I) -> Result<Mul, String>
     where
         I: IntoIterator<Item = AnyExpr>,
     {

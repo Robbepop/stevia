@@ -22,7 +22,7 @@ pub struct Add {
 }
 
 impl Add {
-    /// Creates a new bitvector Add term expression for all of the child
+    /// Creates a new n-ary Add term expression for all of the child
     /// expressions yielded by the given iterator and with the given bit width.
     ///
     /// # Errors
@@ -30,7 +30,7 @@ impl Add {
     /// - If the given iterator yields less than two child expressions.
     /// - If not all yielded child expressions are of bitvec type with
     ///   the required bit width.
-    pub fn new<I>(width: BitWidth, childs: I) -> Result<Add, String>
+    pub fn nary<I>(width: BitWidth, childs: I) -> Result<Add, String>
     where
         I: IntoIterator<Item = AnyExpr>,
     {

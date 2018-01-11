@@ -40,7 +40,7 @@ impl ArrayEquals {
         Ok(ArrayEquals{ childs_ty: array_ty, childs: vec![lhs, rhs] })
     }
 
-    /// Creates a new `ArrayEquals` expression from the given iterator over expressions.
+    /// Creates a new n-ary `ArrayEquals` expression from the given iterator over expressions.
     /// 
     /// # Errors
     /// 

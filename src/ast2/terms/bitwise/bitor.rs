@@ -24,7 +24,7 @@ pub struct BitOr {
 }
 
 impl BitOr {
-    /// Creates a new bitvector BitOr term expression for all of the child
+    /// Creates a new n-ary BitOr term expression for all of the child
     /// expressions yielded by the given iterator and with the given bit width.
     /// 
     /// # Errors
@@ -32,7 +32,7 @@ impl BitOr {
     /// - If the given iterator yields less than two child expressions.
     /// - If not all yielded child expressions are of bitvec type with
     ///   the required bit width.
-    pub fn new<I>(width: BitWidth, childs: I) -> Result<BitOr, String>
+    pub fn nary<I>(width: BitWidth, childs: I) -> Result<BitOr, String>
         where I: IntoIterator<Item = AnyExpr>
     {
         let childs = childs.into_iter().collect::<Vec<_>>();
