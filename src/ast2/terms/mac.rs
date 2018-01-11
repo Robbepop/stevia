@@ -36,7 +36,7 @@ macro_rules! impl_traits_for_binary_term_expr {
 
         impl HasType for $name {
             fn ty(&self) -> Type {
-                self.width.ty()
+                self.bitvec_ty.ty()
             }
         }
 
@@ -98,7 +98,7 @@ macro_rules! impl_traits_for_nary_term_expr {
 
         impl HasType for $name {
             fn ty(&self) -> Type {
-                self.width.ty()
+                self.bitvec_ty.ty()
             }
         }
 

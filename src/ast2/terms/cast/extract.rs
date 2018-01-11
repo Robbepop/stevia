@@ -40,7 +40,7 @@ impl Extract {
             return Err(format!("Expected lo (={:?}) < hi (={:?}) for creation of Extract term expression.", lo, hi))
         }
         let src_width = checks::expect_bitvec_ty(&*src)?;
-        if BitWidth::from(hi) > src_width {
+        if BitvecTy::from(hi) > src_width {
             return Err(format!(
                 "Encountered hi-overflow for new Extract term expression with source bit width of {:?} and hi position of {:?}.",
                 src_width, hi))
@@ -69,7 +69,7 @@ impl IntoChilds for Extract {
 
 impl HasType for Extract {
     fn ty(&self) -> Type {
-        BitWidth::from(self.hi - self.lo).ty()
+        BitvecTy::from(self.hi - self.lo).ty()
     }
 }
 

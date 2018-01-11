@@ -1,9 +1,11 @@
 use ast2::{BitWidth};
+use apint;
 
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
 	pub use super::{
 		ArrayTy,
+		BitvecTy,
 		HasType,
 		Type,
 		TypeKind,
@@ -25,7 +27,7 @@ pub enum Type {
 	/// Boolean type.
 	Bool,
 	/// Bitvector type with the given bit-width.
-	Bitvec(BitWidth),
+	Bitvec(BitvecTy),
 	/// Array type with the given index-width and value-width.
 	Array(ArrayTy)
 }
@@ -65,14 +67,14 @@ impl Type {
 	/// Returns a `BitVec` type with the given bit width.
 	#[inline]
 	pub fn bitvec(width: BitWidth) -> Type {
-		Type::Bitvec(width)
+		Type::Bitvec(BitvecTy(width))
 	}
 
 	/// Returns an `Array` type with the given index bit width and
 	/// value bit width.
 	#[inline]
-	pub fn array(index_width: BitWidth, value_width: BitWidth) -> Type {
-		Type::Array(ArrayTy{index_width, value_width})
+	pub fn array(index_ty: BitvecTy, value_ty: BitvecTy) -> Type {
+		Type::Array(ArrayTy{index_ty, value_ty})
 	}
 
 	/// Returns the `TypeKind` of this `Type`.
@@ -95,17 +97,21 @@ impl HasType for Type {
 /// a bit width for their associated value type.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayTy {
-	/// The bit width of the index type.
-	index_width: BitWidth,
-	/// The bit width of the value type.
-	value_width: BitWidth
+	/// The index bitvec type.
+	index_ty: BitvecTy,
+	/// The value bitvec type.
+	value_ty: BitvecTy
 }
 
 impl ArrayTy {
 	/// Returns the index bit width of this array type.
-	pub fn index_width(self) -> BitWidth { self.index_width }
+	pub fn index_width(self) -> BitWidth { self.index_ty.width() }
 	/// Returns the value bit width of this array type.
-	pub fn value_width(self) -> BitWidth { self.index_width }
+	pub fn value_width(self) -> BitWidth { self.value_ty.width() }
+	/// Returns the index bit width of this array type.
+	pub fn index_ty(self) -> BitvecTy { self.index_ty }
+	/// Returns the value bit width of this array type.
+	pub fn value_ty(self) -> BitvecTy { self.value_ty }
 }
 
 impl HasType for ArrayTy {
@@ -120,6 +126,55 @@ impl From<ArrayTy> for Type {
 		Type::Array(array_ty)
 	}
 }
+
+
+/// The `Bitvec` type.
+/// 
+/// Bitvec have an associated bit width for their respective value.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct BitvecTy(BitWidth);
+
+impl From<usize> for BitvecTy {
+    /// Converts the `usize` to a `BitvecTy`.
+    /// 
+    /// # Panics
+    /// 
+    /// - If the given value is equal to 0.
+    fn from(val: usize) -> BitvecTy {
+        BitvecTy(BitWidth::from(val))
+    }
+}
+
+impl From<BitWidth> for BitvecTy {
+    /// Converts the `BitWidth` from `apint` crate to a `BitvecTy`.
+    fn from(width: BitWidth) -> BitvecTy {
+        BitvecTy(width)
+    }
+}
+
+impl From<apint::BitWidth> for BitvecTy {
+    /// Converts the `BitWidth` from `apint` crate to a `BitvecTy`.
+    fn from(width: apint::BitWidth) -> BitvecTy {
+        BitvecTy::from(width.to_usize())
+    }
+}
+
+impl BitvecTy {
+    /// Returns the bit width as `usize`.
+    #[inline]
+    pub fn width(self) -> BitWidth {
+        self.0
+    }
+}
+
+impl HasType for BitvecTy {
+    /// Converts this `BitvecTy` to its associated `Type`.
+    #[inline]
+    fn ty(&self) -> Type {
+        Type::Bitvec(*self)
+    }
+}
+
 
 /// Returns `true` if the `Type`s of `lhs` and `rhs` are equal.
 /// 

@@ -23,7 +23,7 @@ pub struct Concat {
     /// 
     /// Caching this value is useful since the bit width cannot
     /// change during the lifetime of this expression.
-    pub width: BitWidth
+    pub bitvec_ty: BitvecTy
 }
 
 impl Concat {
@@ -32,12 +32,12 @@ impl Concat {
     /// 
     /// # Errors
     /// 
-    /// - If any of the two given child expressions is not of bitvec type or
-    ///   has an unmatching bit width to the given bit width.
+    /// - If any of the two given child expressions is not of bitvec type.
     pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Concat, String> {
-        let width = checks::expect_bitvec_ty(&lhs)?;
-        checks::expect_bitvec_ty_and_width(&rhs, width)?;
-        Ok(Concat{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })
+        let lhs_bvty = checks::expect_bitvec_ty(&lhs)?;
+        let rhs_bvty = checks::expect_bitvec_ty(&rhs)?;
+        let concat_bvty = BitvecTy::from(lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
+        Ok(Concat{ bitvec_ty: concat_bvty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 

@@ -17,7 +17,7 @@ pub struct ArrayRead {
     /// This is a cache for the value bit width of the child
     /// array expression to prevent the indirection over the
     /// childs structure if this value is used often.
-    pub width: BitWidth
+    pub bitvec_ty: BitvecTy
 }
 
 /// The child expressions of a `Read` expression.
@@ -61,8 +61,8 @@ impl ArrayRead {
     ///   index bit width of the given array.
     pub fn new(array: AnyExpr, index: AnyExpr) -> Result<ArrayRead, String> {
         let array_ty = checks::expect_array_ty(&array)?;
-        checks::expect_bitvec_ty_and_width(&index, array_ty.index_width())?;
-        Ok(ArrayRead{ width: array_ty.value_width(), childs: ArrayReadChilds::new_boxed(array, index) })
+        checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
+        Ok(ArrayRead{ bitvec_ty: array_ty.value_ty(), childs: ArrayReadChilds::new_boxed(array, index) })
     }
 }
 
@@ -86,7 +86,7 @@ impl IntoChilds for ArrayReadChilds {
 
 impl HasType for ArrayRead {
     fn ty(&self) -> Type {
-        self.width.ty()
+        self.bitvec_ty.ty()
     }
 }
 

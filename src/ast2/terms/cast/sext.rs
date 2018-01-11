@@ -18,7 +18,7 @@ pub struct SignExtend {
     /// The target bit width.
     /// 
     /// This is also the bit width of this term expression.
-    pub width: BitWidth
+    pub bitvec_ty: BitvecTy
 }
 
 impl SignExtend {
@@ -33,13 +33,13 @@ impl SignExtend {
         where E: IntoBoxedAnyExpr
     {
         let src = src.into_boxed_any_expr();
-        let src_width = checks::expect_bitvec_ty(&*src)?;
-        if target_width < src_width {
+        let src_bvty = checks::expect_bitvec_ty(&*src)?;
+        if target_width < src_bvty.width() {
             return Err(format!(
                 "Encountered sign-extend creation where the target width (={:?}) is smaller than the source width (={:?}).",
-                target_width, src_width))
+                target_width, src_bvty.width()))
         }
-        Ok(SignExtend{ width: target_width, src })
+        Ok(SignExtend{ bitvec_ty: BitvecTy::from(target_width), src })
     }
 }
 
@@ -63,7 +63,7 @@ impl IntoChilds for SignExtend {
 
 impl HasType for SignExtend {
     fn ty(&self) -> Type {
-        self.width.ty()
+        self.bitvec_ty.ty()
     }
 }
 

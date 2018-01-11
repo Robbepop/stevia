@@ -14,6 +14,7 @@ pub type P<T> = Box<T>;
 
 pub use self::ty::{
     ArrayTy,
+    BitvecTy,
     Type,
     TypeKind,
     HasType,

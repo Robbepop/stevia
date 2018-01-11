@@ -1,3 +1,6 @@
+#[macro_use]
+mod mac;
+
 mod bitvec_equals;
 mod sge;
 mod sgt;

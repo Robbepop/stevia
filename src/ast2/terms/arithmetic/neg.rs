@@ -15,7 +15,7 @@ pub struct Neg {
     /// The inner child formula expression.
     pub child: P<AnyExpr>,
     /// The bit width of this term expression.
-    pub width: BitWidth
+    pub bitvec_ty: BitvecTy
 }
 
 impl Neg {
@@ -25,17 +25,17 @@ impl Neg {
     /// 
     /// - If the given child expression is not of bitvec type with the
     ///   proper given bit width specified.
-    pub fn new<E>(width: BitWidth, child: E) -> Result<Neg, String>
+    pub fn new<E>(bitvec_ty: BitvecTy, child: E) -> Result<Neg, String>
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        let bvw = checks::expect_bitvec_ty(&*child)
+        let bv_ty = checks::expect_bitvec_ty(&*child)
             .map_err(|_| String::from(
                 "Requires inner expression to be of bitvec type for Neg term expression."))?;
-        if bvw != width {
+        if bv_ty != bitvec_ty {
             return Err("Required inner bitvec to have the same bitwidth as specified.".into())
         }
-        Ok(Neg{width, child})
+        Ok(Neg{bitvec_ty, child})
     }
 }
 
@@ -59,7 +59,7 @@ impl IntoChilds for Neg {
 
 impl HasType for Neg {
     fn ty(&self) -> Type {
-        self.width.ty()
+        self.bitvec_ty.ty()
     }
 }
 

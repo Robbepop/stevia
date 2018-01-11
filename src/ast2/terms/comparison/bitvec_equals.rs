@@ -23,7 +23,7 @@ pub struct BitvecEquals {
     /// The child expressions.
     pub childs: Vec<AnyExpr>,
     /// The common bit width of all child bitvec expressions.
-    pub childs_width: BitWidth
+    pub childs_bitvec_ty: BitvecTy
 }
 
 impl BitvecEquals {
@@ -33,10 +33,10 @@ impl BitvecEquals {
     /// 
     /// - If `lhs` or `rhs` are not of bitvec type.
     /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary(width: BitWidth, lhs: AnyExpr, rhs: AnyExpr) -> Result<BitvecEquals, String> {
-        checks::expect_bitvec_ty_and_width(&rhs, width)?;
-        checks::expect_bitvec_ty_and_width(&rhs, width)?;
-        Ok(BitvecEquals{ childs_width: width, childs: vec![lhs, rhs] })
+    pub fn binary(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<BitvecEquals, String> {
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs: vec![lhs, rhs] })
     }
 
     /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
@@ -45,7 +45,7 @@ impl BitvecEquals {
     /// 
     /// - If the given iterator iterates over less than two expressions.
     /// - If not all iterated expressions are of bitvec type with the given bit width.
-    pub fn nary<E>(width: BitWidth, exprs: E) -> Result<BitvecEquals, String>
+    pub fn nary<E>(bitvec_ty: BitvecTy, exprs: E) -> Result<BitvecEquals, String>
         where E: IntoIterator<Item=AnyExpr>
     {
         let childs = Vec::from_iter(exprs);
@@ -53,9 +53,9 @@ impl BitvecEquals {
             return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
         }
         for child in childs.iter() {
-            checks::expect_bitvec_ty_and_width(child, width)?;
+            checks::expect_concrete_bitvec_ty(child, bitvec_ty)?;
         }
-        Ok(BitvecEquals{ childs_width: width, childs })
+        Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs })
     }
 }
 

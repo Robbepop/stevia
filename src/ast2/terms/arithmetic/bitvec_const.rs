@@ -15,7 +15,7 @@ pub struct BitvecConst {
     ///
     /// Used to verify the integrity of the bit width during
     /// the lifetime of an expression.
-    pub width: BitWidth,
+    pub bitvec_ty: BitvecTy,
 }
 
 impl BitvecConst {
@@ -23,7 +23,7 @@ impl BitvecConst {
     pub fn from_i8(val: i8) -> BitvecConst {
         let val = ApInt::from_i8(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -34,7 +34,7 @@ impl BitvecConst {
     pub fn from_u8(val: u8) -> BitvecConst {
         let val = ApInt::from_u8(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -45,7 +45,7 @@ impl BitvecConst {
     pub fn from_i16(val: i16) -> BitvecConst {
         let val = ApInt::from_i16(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -56,7 +56,7 @@ impl BitvecConst {
     pub fn from_u16(val: u16) -> BitvecConst {
         let val = ApInt::from_u16(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -67,7 +67,7 @@ impl BitvecConst {
     pub fn from_i32(val: i32) -> BitvecConst {
         let val = ApInt::from_i32(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -78,7 +78,7 @@ impl BitvecConst {
     pub fn from_u32(val: u32) -> BitvecConst {
         let val = ApInt::from_u32(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -89,7 +89,7 @@ impl BitvecConst {
     pub fn from_i64(val: i64) -> BitvecConst {
         let val = ApInt::from_i64(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -100,7 +100,7 @@ impl BitvecConst {
     pub fn from_u64(val: u64) -> BitvecConst {
         let val = ApInt::from_u64(val);
         BitvecConst {
-            width: BitWidth::from(val.width()),
+            bitvec_ty: BitvecTy::from(val.width()),
             val,
         }
     }
@@ -151,7 +151,7 @@ impl From<ApInt> for BitvecConst {
     /// Creates a new `BitvecConst` from the given `ApInt`.
     fn from(apint: ApInt) -> BitvecConst {
         BitvecConst {
-            width: apint.width().into(),
+            bitvec_ty: apint.width().into(),
             val: apint,
         }
     }
@@ -177,7 +177,7 @@ impl IntoChilds for BitvecConst {
 
 impl HasType for BitvecConst {
     fn ty(&self) -> Type {
-        self.width.ty()
+        self.bitvec_ty.ty()
     }
 }
 

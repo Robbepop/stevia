@@ -23,7 +23,7 @@ pub struct UnsignedDiv {
     /// 
     /// All child expressions must respect this bit width.
     /// This is also used to verify integrity of the bit width.
-    pub width: BitWidth
+    pub bitvec_ty: BitvecTy
 }
 
 impl UnsignedDiv {
@@ -34,10 +34,10 @@ impl UnsignedDiv {
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(width: BitWidth, lhs: AnyExpr, rhs: AnyExpr) -> Result<UnsignedDiv, String> {
-        checks::expect_bitvec_ty_and_width(&lhs, width)?;
-        checks::expect_bitvec_ty_and_width(&rhs, width)?;
-        Ok(UnsignedDiv{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    pub fn new(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<UnsignedDiv, String> {
+        checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        Ok(UnsignedDiv{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 

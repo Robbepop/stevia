@@ -15,7 +15,7 @@ pub struct BitNot {
     /// The inner child formula expression.
     pub child: P<AnyExpr>,
     /// The bit width of this term expression.
-    pub width: BitWidth
+    pub bitvec_ty: BitvecTy
 }
 
 impl BitNot {
@@ -25,12 +25,12 @@ impl BitNot {
     /// 
     /// - If the given child expression is not of bitvec type with the
     ///   proper given bit width specified.
-    pub fn new<E>(width: BitWidth, child: E) -> Result<BitNot, String>
+    pub fn new<E>(bitvec_ty: BitvecTy, child: E) -> Result<BitNot, String>
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        checks::expect_bitvec_ty_and_width(&*child, width)?;
-        Ok(BitNot{width, child})
+        checks::expect_concrete_bitvec_ty(&*child, bitvec_ty)?;
+        Ok(BitNot{bitvec_ty, child})
     }
 }
 
@@ -54,7 +54,7 @@ impl IntoChilds for BitNot {
 
 impl HasType for BitNot {
     fn ty(&self) -> Type {
-        self.width.ty()
+        self.bitvec_ty.ty()
     }
 }
 

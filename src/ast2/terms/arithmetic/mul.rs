@@ -17,7 +17,7 @@ pub struct Mul {
     ///
     /// All child expressions must respect this bit width.
     /// This is also used to verify integrity of the bit width.
-    pub width: BitWidth,
+    pub bitvec_ty: BitvecTy,
 }
 
 impl Mul {
@@ -27,7 +27,7 @@ impl Mul {
     ///
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
-    pub fn nary<I>(width: BitWidth, childs: I) -> Result<Mul, String>
+    pub fn nary<I>(bitvec_ty: BitvecTy, childs: I) -> Result<Mul, String>
     where
         I: IntoIterator<Item = AnyExpr>,
     {
@@ -39,14 +39,14 @@ impl Mul {
         }
         if childs
             .iter()
-            .any(|c| checks::expect_bitvec_ty_and_width(c, width).is_err())
+            .any(|c| checks::expect_concrete_bitvec_ty(c, bitvec_ty).is_err())
         {
             return Err(
                 "Requires all child expressions to be of bitvec type with the expected bit width."
                     .into(),
             );
         }
-        Ok(Mul { width, childs })
+        Ok(Mul{ bitvec_ty, childs })
     }
 }
 

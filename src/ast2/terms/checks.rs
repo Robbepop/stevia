@@ -1,8 +1,8 @@
 use ast2::{
     ArrayTy,
+    BitvecTy,
     Type,
-    HasType,
-    BitWidth
+    HasType
 };
 
 /// Re-exports all commonly used items of this module.
@@ -52,7 +52,7 @@ pub fn expect_concrete_array_ty<T>(genval: &T, req_array_ty: ArrayTy) -> Result<
 /// # Errors
 /// 
 /// - If the given typed param is not of bitvec type.
-pub fn expect_bitvec_ty<T>(genval: &T) -> Result<BitWidth, String>
+pub fn expect_bitvec_ty<T>(genval: &T) -> Result<BitvecTy, String>
     where T: HasType
 {
     match genval.ty() {
@@ -68,12 +68,12 @@ pub fn expect_bitvec_ty<T>(genval: &T) -> Result<BitWidth, String>
 /// 
 /// - If the given typed param is not of bitvec type.
 /// - If the given typed param is of bitvec type but has not the expected bit width.
-pub fn expect_bitvec_ty_and_width<T>(genval: &T, expected_width: BitWidth) -> Result<(), String>
+pub fn expect_concrete_bitvec_ty<T>(genval: &T, req_bitvec_ty: BitvecTy) -> Result<(), String>
     where T: HasType
 {
-    let bw = expect_bitvec_ty(genval)?;
-    if bw != expected_width {
-        return Err(format!("Expected bitvec with an expected bit width of {:?}", bw))
+    let act_bitvec_ty = expect_bitvec_ty(genval)?;
+    if act_bitvec_ty != req_bitvec_ty {
+        return Err(format!("Expected bitvec with an expected bit width of {:?}", req_bitvec_ty))
     }
     Ok(())
 }

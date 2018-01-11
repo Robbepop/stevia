@@ -66,8 +66,8 @@ impl ArrayWrite {
     ///   index bit width of the given array.
     pub fn new(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> Result<ArrayWrite, String> {
         let array_ty = checks::expect_array_ty(&array)?;
-        checks::expect_bitvec_ty_and_width(&index, array_ty.index_width())?;
-        checks::expect_bitvec_ty_and_width(&value, array_ty.value_width())?;
+        checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
+        checks::expect_concrete_bitvec_ty(&value, array_ty.value_ty())?;
         Ok(ArrayWrite{
             widths: array_ty,
             childs: ArrayWriteChilds::new_boxed(array, index, value)

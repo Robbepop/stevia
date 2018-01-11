@@ -1,5 +1,3 @@
-use ast2::prelude::*;
-
 use apint;
 
 pub mod prelude {
@@ -37,13 +35,5 @@ impl BitWidth {
     #[inline]
     pub fn to_usize(self) -> usize {
         self.0.to_usize()
-    }
-}
-
-impl HasType for BitWidth {
-    /// Converts this `BitWidth` to its associated `Type`.
-    #[inline]
-    fn ty(&self) -> Type {
-        Type::Bitvec(*self)
     }
 }
