@@ -53,7 +53,7 @@ impl ArrayEquals {
         if childs.len() < 2 {
             return Err("Require at least 2 child expressions to create a new ArrayEquals expression.".into())
         }
-        for child in childs.iter() {
+        for child in &childs {
             checks::expect_concrete_array_ty(child, array_ty)?;
         }
         Ok(ArrayEquals{ childs_ty: array_ty, childs })

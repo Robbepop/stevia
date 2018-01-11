@@ -160,7 +160,7 @@ impl HasPriority for ExprKind {
             Xor        => BASE_PRIORITY_FORMULA + 6,
 
             BitvecConst       => BASE_PRIORITY_ARITHMETIC,
-            BitvecEquals      => BASE_PRIORITY_ARITHMETIC + 1,
+            BitvecEquals      => BASE_PRIORITY_ARITHMETIC +  1,
             Neg               => BASE_PRIORITY_ARITHMETIC +  2,
             Add               => BASE_PRIORITY_ARITHMETIC +  3,
             Mul               => BASE_PRIORITY_ARITHMETIC +  4,
@@ -176,7 +176,7 @@ impl HasPriority for ExprKind {
             BitOr  => BASE_PRIORITY_BITWISE + 2,
             BitXor => BASE_PRIORITY_BITWISE + 3,
 
-            SignedGreaterEquals   => BASE_PRIORITY_COMPARISON + 1,
+            SignedGreaterEquals   => BASE_PRIORITY_COMPARISON,
             SignedGreaterThan     => BASE_PRIORITY_COMPARISON + 1,
             SignedLessEquals      => BASE_PRIORITY_COMPARISON + 2,
             SignedLessThan        => BASE_PRIORITY_COMPARISON + 3,

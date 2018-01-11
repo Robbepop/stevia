@@ -52,7 +52,7 @@ impl BitvecEquals {
         if childs.len() < 2 {
             return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
         }
-        for child in childs.iter() {
+        for child in &childs {
             checks::expect_concrete_bitvec_ty(child, bitvec_ty)?;
         }
         Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs })
