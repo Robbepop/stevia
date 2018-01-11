@@ -6,7 +6,6 @@
 - Add `BitvecEquals` expression.
 - Add `ArrayEquals` expression.
 - Add `expr` public submodule to `ast` module and export all concrete expressions in it.
-- Rename `Expr` to `AnyExpr`.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks.
 - (Maybe) add `*_infer` constructors to bitvec expressions to infer their bit width.
 - Reduce code bloat by introducing further code-gen macros.
