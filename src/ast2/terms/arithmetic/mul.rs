@@ -21,6 +21,18 @@ pub struct Mul {
 }
 
 impl Mul {
+    /// Returns a new binary `Mul` expression for the given two child expressions.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` are not of bitvec type.
+    /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
+    pub fn binary(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<Mul, String> {
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        Ok(Mul{ bitvec_ty, childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new n-ary `Mul` formula expression.
     ///
     /// # Errors

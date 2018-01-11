@@ -23,6 +23,18 @@ pub struct BitOr {
 }
 
 impl BitOr {
+    /// Returns a new binary `BitOr` expression for the given two child expressions.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` are not of bitvec type.
+    /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
+    pub fn binary(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<BitOr, String> {
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        Ok(BitOr{ bitvec_ty, childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new n-ary BitOr term expression for all of the child
     /// expressions yielded by the given iterator and with the given bit width.
     /// 
