@@ -2,13 +2,12 @@
 
 ## AST
 
-- Remove generic `Equals` expression.
-- Add `BitvecEquals` expression.
-- Add `ArrayEquals` expression.
-- Add `expr` public submodule to `ast` module and export all concrete expressions in it.
+- Create `binary` constructor methods for all n-ary term expression types such as Add or Mul.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks.
 - (Maybe) add `*_infer` constructors to bitvec expressions to infer their bit width.
 - Reduce code bloat by introducing further code-gen macros.
+- Rename `BitWidth` to `BitvecTy`, similar as to how it is done for `ArrayTy`.
+  Maybe we could even profit from a trivial `BoolTy` type?
 
 ## Critical
 
