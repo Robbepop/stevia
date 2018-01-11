@@ -1,5 +1,4 @@
 mod arity;
-mod into_box;
 mod child_iters;
 mod binexpr_childs;
 mod ty;
@@ -38,7 +37,8 @@ pub use self::terms::{
     BitWidth
 };
 pub use self::any_expr::{
-    AnyExpr
+    AnyExpr,
+    IntoBoxedAnyExpr
 };
 pub use self::expr_kind::{
     ExprKind,
@@ -47,9 +47,6 @@ pub use self::expr_kind::{
 };
 pub use self::arity::{
     HasArity
-};
-pub use self::into_box::{
-    IntoBoxedAnyExpr
 };
 
 /// Re-exports all expression types.
