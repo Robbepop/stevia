@@ -19,6 +19,7 @@ pub struct BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `i8` with a bit width of 8 bits.
     pub fn from_i8(val: i8) -> BitvecConst {
         let val = ApInt::from_i8(val);
         BitvecConst {
@@ -29,6 +30,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `u8` with a bit width of 8 bits.
     pub fn from_u8(val: u8) -> BitvecConst {
         let val = ApInt::from_u8(val);
         BitvecConst {
@@ -39,6 +41,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `i16` with a bit width of 16 bits.
     pub fn from_i16(val: i16) -> BitvecConst {
         let val = ApInt::from_i16(val);
         BitvecConst {
@@ -49,6 +52,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `u16` with a bit width of 16 bits.
     pub fn from_u16(val: u16) -> BitvecConst {
         let val = ApInt::from_u16(val);
         BitvecConst {
@@ -59,6 +63,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `i32` with a bit width of 32 bits.
     pub fn from_i32(val: i32) -> BitvecConst {
         let val = ApInt::from_i32(val);
         BitvecConst {
@@ -69,6 +74,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `u32` with a bit width of 32 bits.
     pub fn from_u32(val: u32) -> BitvecConst {
         let val = ApInt::from_u32(val);
         BitvecConst {
@@ -79,6 +85,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `i64` with a bit width of 64 bits.
     pub fn from_i64(val: i64) -> BitvecConst {
         let val = ApInt::from_i64(val);
         BitvecConst {
@@ -89,6 +96,7 @@ impl BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` from the given `u64` with a bit width of 64 bits.
     pub fn from_u64(val: u64) -> BitvecConst {
         let val = ApInt::from_u64(val);
         BitvecConst {
