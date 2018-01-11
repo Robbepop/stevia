@@ -8,7 +8,6 @@ mod formulas;
 mod terms;
 mod ite;
 mod symbol;
-mod equals;
 
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
@@ -56,9 +55,6 @@ pub mod expr {
     };
     pub use super::symbol::{
         Symbol
-    };
-    pub use super::equals::{
-        Equals
     };
     pub use super::formulas::{
         BoolConst,

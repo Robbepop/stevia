@@ -38,7 +38,6 @@ macro_rules! forall_expr_kinds {
 		$mac!{
             IfThenElse,
             Symbol,
-            Equals,
 
             BoolConst,
             BoolEquals,

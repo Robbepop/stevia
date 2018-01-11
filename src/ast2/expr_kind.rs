@@ -15,8 +15,6 @@ pub enum ExprKind {
     IfThenElse,
     /// The symbol expression kind
     Symbol,
-    /// The equality expression kind
-    Equals,
 
     /// The constant boolean expression kind
     BoolConst,
@@ -152,7 +150,6 @@ impl HasPriority for ExprKind {
         let prio_val = match *self {
             IfThenElse => BASE_PRIORITY_GENERIC,
             Symbol     => BASE_PRIORITY_GENERIC + 1,
-            Equals     => BASE_PRIORITY_GENERIC + 2,
 
             BoolConst  => BASE_PRIORITY_FORMULA,
             BoolEquals => BASE_PRIORITY_FORMULA + 1,
