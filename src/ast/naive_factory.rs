@@ -28,6 +28,12 @@ impl NaiveExprFactory {
 	}
 }
 
+impl Default for NaiveExprFactory {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ExprFactoryImpl for NaiveExprFactory {
 	fn bvconst_impl<T: Into<ApInt>>(&self, bits: Bits, value: T) -> Result<Expr> {
 		Ok(Expr::BitVecConst(expr::BitVecConst{
