@@ -27,6 +27,25 @@ pub fn expect_array_ty<T>(genval: &T) -> Result<ArrayTy, String>
     }
 }
 
+/// Checks if the given typed param is of array type
+/// with the given expected index and value bit width.
+/// 
+/// # Errors
+/// 
+/// - If the given typed param is not of array type.
+/// - If the given typed param is of array type but has not the expected index or value bit width.
+pub fn expect_concrete_array_ty<T>(genval: &T, req_array_ty: ArrayTy) -> Result<(), String>
+    where T: HasType
+{
+    let act_array_ty = expect_array_ty(genval)?;
+    if act_array_ty != req_array_ty {
+        return Err(format!("Expected concrete array type with index width of {:?} and value width of {:?}",
+            req_array_ty.index_width(),
+            req_array_ty.value_width()))
+    }
+    Ok(())
+}
+
 /// Checks if the given typed param is of bitvec type
 /// and returns its bit width if it is the case.
 /// 
