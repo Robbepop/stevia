@@ -99,7 +99,7 @@ pub enum ExprKind {
     ZeroExtend,
 
     // /// The array equality formula expression kind
-    // ArrayEquals,
+    ArrayEquals,
     /// The array-read expression kind
     ArrayRead,
     /// The array-write expression kind
@@ -197,7 +197,7 @@ impl HasPriority for ExprKind {
             SignExtend => BASE_PRIORITY_CAST + 2,
             ZeroExtend => BASE_PRIORITY_CAST + 3,
 
-            // ArrayEquals => BASE_PRIORITY_ARRAY,
+            ArrayEquals => BASE_PRIORITY_ARRAY,
             ArrayRead  => BASE_PRIORITY_ARRAY + 1,
             ArrayWrite => BASE_PRIORITY_ARRAY + 2
         };
