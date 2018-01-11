@@ -70,7 +70,7 @@ macro_rules! impl_expr_kinds {
         /// represents any one of them.
 		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 		pub enum AnyExpr {
-			$($names(any_expr::$names)),*
+			$($names(expr::$names)),*
 		}
 
         impl HasType for AnyExpr {
