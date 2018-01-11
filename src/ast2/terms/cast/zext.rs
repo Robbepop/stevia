@@ -30,9 +30,9 @@ impl ZeroExtend {
     /// - If the bit width of the child term expression is greater than
     ///   the target extension bit width.
     pub fn new<E>(target_width: BitWidth, src: E) -> Result<ZeroExtend, String>
-        where E: IntoBoxExpr
+        where E: IntoBoxedAnyExpr
     {
-        let src = src.into_box_expr();
+        let src = src.into_boxed_any_expr();
         let src_width = checks::expect_bitvec_ty(&*src)?;
         if target_width < src_width {
             return Err(format!(

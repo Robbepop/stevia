@@ -26,9 +26,9 @@ impl BitNot {
     /// - If the given child expression is not of bitvec type with the
     ///   proper given bit width specified.
     pub fn new<E>(width: BitWidth, child: E) -> Result<BitNot, String>
-        where E: IntoBoxExpr
+        where E: IntoBoxedAnyExpr
     {
-        let child = child.into_box_expr();
+        let child = child.into_boxed_any_expr();
         checks::expect_bitvec_ty_and_width(&*child, width)?;
         Ok(BitNot{width, child})
     }

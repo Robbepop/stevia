@@ -33,9 +33,9 @@ impl Extract {
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
     pub fn new<E>(src: E, hi: usize, lo: usize) -> Result<Extract, String>
-        where E: IntoBoxExpr
+        where E: IntoBoxedAnyExpr
     {
-        let src = src.into_box_expr();
+        let src = src.into_boxed_any_expr();
         if !(lo < hi) {
             return Err(format!("Expected lo (={:?}) < hi (={:?}) for creation of Extract term expression.", lo, hi))
         }

@@ -49,7 +49,7 @@ pub use self::arity::{
     HasArity
 };
 pub use self::into_box::{
-    IntoBoxExpr
+    IntoBoxedAnyExpr
 };
 
 /// Re-exports all expression types.

@@ -22,9 +22,9 @@ impl Not {
     /// 
     /// - If the given child expression is not of boolean type.
     pub fn new<E>(child: E) -> Result<Not, String>
-        where E: IntoBoxExpr
+        where E: IntoBoxedAnyExpr
     {
-        let child = child.into_box_expr();
+        let child = child.into_boxed_any_expr();
         if child.ty() != Type::Bool {
             return Err("Requires inner expression to be of boolean type for Not formula expression.".into())
         }

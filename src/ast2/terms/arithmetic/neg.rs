@@ -26,9 +26,9 @@ impl Neg {
     /// - If the given child expression is not of bitvec type with the
     ///   proper given bit width specified.
     pub fn new<E>(width: BitWidth, child: E) -> Result<Neg, String>
-        where E: IntoBoxExpr
+        where E: IntoBoxedAnyExpr
     {
-        let child = child.into_box_expr();
+        let child = child.into_boxed_any_expr();
         let bvw = checks::expect_bitvec_ty(&*child)
             .map_err(|_| String::from(
                 "Requires inner expression to be of bitvec type for Neg term expression."))?;
