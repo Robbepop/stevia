@@ -10,7 +10,5 @@
 Cargo.lock
 
 # Remove all default ignored files from all sub-libraries.
-/bitvec/target/
-/bitvec/Cargo.lock
 /smt-expr-derive/target/
 /smt-expr-derive/Cargo.lock
