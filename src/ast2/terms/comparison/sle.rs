@@ -31,7 +31,7 @@ impl SignedLessEquals {
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(width: BitWidth, lhs: Expr, rhs: Expr) -> Result<SignedLessEquals, String> {
+    pub fn new(width: BitWidth, lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedLessEquals, String> {
         checks::expect_bitvec_ty_and_width(&lhs, width)?;
         checks::expect_bitvec_ty_and_width(&rhs, width)?;
         Ok(SignedLessEquals{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })

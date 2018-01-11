@@ -14,7 +14,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ZeroExtend {
     /// The source term expression for extension.
-    pub src: P<Expr>,
+    pub src: P<AnyExpr>,
     /// The target bit width.
     /// 
     /// This is also the bit width of this term expression.
@@ -79,8 +79,8 @@ impl HasArity for ZeroExtend {
     }
 }
 
-impl From<ZeroExtend> for Expr {
-    fn from(zero_extend: ZeroExtend) -> Expr {
-        Expr::ZeroExtend(zero_extend)
+impl From<ZeroExtend> for AnyExpr {
+    fn from(zero_extend: ZeroExtend) -> AnyExpr {
+        AnyExpr::ZeroExtend(zero_extend)
     }
 }

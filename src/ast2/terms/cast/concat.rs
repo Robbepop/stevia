@@ -34,7 +34,7 @@ impl Concat {
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(lhs: Expr, rhs: Expr) -> Result<Concat, String> {
+    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Concat, String> {
         let width = checks::expect_bitvec_ty(&lhs)?;
         checks::expect_bitvec_ty_and_width(&rhs, width)?;
         Ok(Concat{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })

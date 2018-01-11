@@ -26,7 +26,7 @@ impl Xor {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn new(lhs: Expr, rhs: Expr) -> Result<Xor, String> {
+    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Xor, String> {
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
         Ok(Xor{ childs: BinExprChilds::new_boxed(lhs, rhs) })
@@ -69,8 +69,8 @@ impl HasArity for Xor {
     }
 }
 
-impl From<Xor> for Expr {
-    fn from(xor: Xor) -> Expr {
-        Expr::Xor(xor)
+impl From<Xor> for AnyExpr {
+    fn from(xor: Xor) -> AnyExpr {
+        AnyExpr::Xor(xor)
     }
 }

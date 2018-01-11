@@ -20,7 +20,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Equals {
     /// The child expressions.
-    childs: Vec<Expr>,
+    childs: Vec<AnyExpr>,
     /// The type of the childs expression.
     childs_ty: Type
 }
@@ -33,7 +33,7 @@ impl Equals {
     /// - If the given iterator iterates over less than two expressions.
     /// - If not all iterated expressions share the same type.
     pub fn new<E>(exprs: E) -> Result<Equals, String>
-        where E: IntoIterator<Item=Expr>
+        where E: IntoIterator<Item=AnyExpr>
     {
         let childs = Vec::from_iter(exprs);
         if childs.len() < 2 {
@@ -65,9 +65,9 @@ impl HasArity for Equals {
     }
 }
 
-impl From<Equals> for Expr {
-    fn from(equals: Equals) -> Expr {
-        Expr::Equals(equals)
+impl From<Equals> for AnyExpr {
+    fn from(equals: Equals) -> AnyExpr {
+        AnyExpr::Equals(equals)
     }
 }
 

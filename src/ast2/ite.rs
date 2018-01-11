@@ -37,19 +37,19 @@ pub struct IfThenElseChilds {
     /// The condition of the parent `IfThenElse` expression.
     /// 
     /// This must always be of boolean type.
-	pub cond: Expr,
+	pub cond: AnyExpr,
     /// The then case of the parent `IfThenElse` expression.
     /// 
     /// This must always have the same type as its parent
     /// `IfThenElse` expresssion and thus the sibling
     /// `else_case` expression.
-	pub then_case: Expr,
+	pub then_case: AnyExpr,
     /// The else case of the parent `IfThenElse` expression.
     /// 
     /// This must always have the same type as its parent
     /// `IfThenElse` expresssion and thus the sibling
     /// `then_case` expression.
-	pub else_case: Expr
+	pub else_case: AnyExpr
 }
 
 impl IfThenElse {
@@ -59,7 +59,7 @@ impl IfThenElse {
     /// 
     /// - If the given condition is not of boolean type.
     /// - If the given then-case and else-case do not have a common type.
-    pub fn new(cond: Expr, then_case: Expr, else_case: Expr) -> Result<IfThenElse, String> {
+    pub fn new(cond: AnyExpr, then_case: AnyExpr, else_case: AnyExpr) -> Result<IfThenElse, String> {
         if cond.ty() != Type::Bool {
             return Err("The condition of an if-then-else expression must be of boolean type.".into())
         }
@@ -79,7 +79,7 @@ impl IfThenElse {
     /// # Panics
     /// 
     /// - If the given then-case and else-case do not have a common type.
-    pub unsafe fn new_unchecked(cond: Expr, then_case: Expr, else_case: Expr) -> IfThenElse {
+    pub unsafe fn new_unchecked(cond: AnyExpr, then_case: AnyExpr, else_case: AnyExpr) -> IfThenElse {
         let common_ty = common_ty(&then_case, &else_case).unwrap();
         IfThenElse{
             ty: common_ty,
@@ -124,9 +124,9 @@ impl HasArity for IfThenElse {
     }
 }
 
-impl From<IfThenElse> for Expr {
-    fn from(ite: IfThenElse) -> Expr {
-        Expr::IfThenElse(ite)
+impl From<IfThenElse> for AnyExpr {
+    fn from(ite: IfThenElse) -> AnyExpr {
+        AnyExpr::IfThenElse(ite)
     }
 }
 

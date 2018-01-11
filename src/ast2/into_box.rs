@@ -7,27 +7,27 @@ pub mod prelude {
     };
 }
 
-/// Utility trait to transform `Expr` or `Box<Expr>` into `Box<Expr>` and
-/// without unboxing the input in the `Box<Expr>` case.
+/// Utility trait to transform `AnyExpr` or `Box<AnyExpr>` into `Box<AnyExpr>` and
+/// without unboxing the input in the `Box<AnyExpr>` case.
 pub trait IntoBoxExpr {
     /// Puts `self` into a `Box` if it isn't already boxed.
-    fn into_box_expr(self) -> Box<Expr>;
+    fn into_box_expr(self) -> Box<AnyExpr>;
 }
 
-impl IntoBoxExpr for Box<Expr> {
+impl IntoBoxExpr for Box<AnyExpr> {
     /// Simply forwards the boxed `T`.
     /// 
     /// This is the "cheap" static case.
-    fn into_box_expr(self) -> Box<Expr> {
+    fn into_box_expr(self) -> Box<AnyExpr> {
         self
     }
 }
 
-impl IntoBoxExpr for Expr {
+impl IntoBoxExpr for AnyExpr {
     /// Puts `T` into a box.
     /// 
     /// This is the "expensive" static case.
-    fn into_box_expr(self) -> Box<Expr> {
+    fn into_box_expr(self) -> Box<AnyExpr> {
         Box::new(self)
     }
 }

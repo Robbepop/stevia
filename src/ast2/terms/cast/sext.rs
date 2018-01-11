@@ -14,7 +14,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct SignExtend {
     /// The source term expression for extension.
-    pub src: P<Expr>,
+    pub src: P<AnyExpr>,
     /// The target bit width.
     /// 
     /// This is also the bit width of this term expression.
@@ -79,8 +79,8 @@ impl HasArity for SignExtend {
     }
 }
 
-impl From<SignExtend> for Expr {
-    fn from(sign_extend: SignExtend) -> Expr {
-        Expr::SignExtend(sign_extend)
+impl From<SignExtend> for AnyExpr {
+    fn from(sign_extend: SignExtend) -> AnyExpr {
+        AnyExpr::SignExtend(sign_extend)
     }
 }

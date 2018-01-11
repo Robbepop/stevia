@@ -24,18 +24,18 @@ pub struct ArrayWriteChilds {
     /// The array expression.
     /// 
     /// This must be of array type.
-    pub array: Expr,
+    pub array: AnyExpr,
     /// The index where the array shall be read.
     /// 
     /// This must be of bitvec type with a bit width
     /// equals to the array's index bit width.
-    pub index: Expr,
+    pub index: AnyExpr,
     /// The value that is written at the position
     /// of the index.
     /// 
     /// This must be of bitvec type with a bit width
     /// equal to the array's value bit width.
-    pub value: Expr
+    pub value: AnyExpr
 }
 
 impl ArrayWriteChilds {
@@ -43,14 +43,14 @@ impl ArrayWriteChilds {
     /// 
     /// Does not check any invariants of `ArrayWrite`.
     /// This function should be marked unsafe since it fails to hold any guarantees.
-    pub fn new(array: Expr, index: Expr, value: Expr) -> ArrayWriteChilds {
+    pub fn new(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> ArrayWriteChilds {
         ArrayWriteChilds{array, index, value}
     }
 
     /// Creates a new boxed `ArrayWriteChilds` object.
     /// 
     /// This is just a convenience wrapper around `ArrayWriteChilds::new`.
-    pub fn new_boxed(array: Expr, index: Expr, value: Expr) -> P<ArrayWriteChilds> {
+    pub fn new_boxed(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> P<ArrayWriteChilds> {
         P::new(ArrayWriteChilds::new(array, index, value))
     }
 }
@@ -64,7 +64,7 @@ impl ArrayWrite {
     /// - If the given `array` is not of array type.
     /// - If the given `index` is not of bitvec type and does not match the
     ///   index bit width of the given array.
-    pub fn new(array: Expr, index: Expr, value: Expr) -> Result<ArrayWrite, String> {
+    pub fn new(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> Result<ArrayWrite, String> {
         let array_ty = checks::expect_array_ty(&array)?;
         checks::expect_bitvec_ty_and_width(&index, array_ty.index_width())?;
         checks::expect_bitvec_ty_and_width(&value, array_ty.value_width())?;
@@ -111,9 +111,9 @@ impl HasArity for ArrayWrite {
     }
 }
 
-impl From<ArrayWrite> for Expr {
-    fn from(array_write: ArrayWrite) -> Expr {
-        Expr::ArrayWrite(array_write)
+impl From<ArrayWrite> for AnyExpr {
+    fn from(array_write: ArrayWrite) -> AnyExpr {
+        AnyExpr::ArrayWrite(array_write)
     }
 }
 

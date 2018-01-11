@@ -15,7 +15,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BitAnd {
     /// The child bitvector expressions.
-    pub childs: Vec<Expr>,
+    pub childs: Vec<AnyExpr>,
     /// The bit width of this expression.
     /// 
     /// All child expressions must respect this bit width.
@@ -33,7 +33,7 @@ impl BitAnd {
     /// - If not all yielded child expressions are of bitvec type with
     ///   the required bit width.
     pub fn new<I>(width: BitWidth, childs: I) -> Result<BitAnd, String>
-        where I: IntoIterator<Item = Expr>
+        where I: IntoIterator<Item = AnyExpr>
     {
         let childs = childs.into_iter().collect::<Vec<_>>();
         if childs.len() < 2 {

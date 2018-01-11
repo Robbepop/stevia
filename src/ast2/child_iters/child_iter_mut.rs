@@ -20,12 +20,12 @@ pub enum ChildsIterMut<'p> {
 
 #[derive(Debug)]
 pub struct InlChildsIterMut<'p> {
-    childs: [Option<&'p mut Expr>; 3],
+    childs: [Option<&'p mut AnyExpr>; 3],
     cur: usize
 }
 
 impl<'p> InlChildsIterMut<'p> {
-    fn from_array(childs: [Option<&'p mut Expr>; 3]) -> InlChildsIterMut {
+    fn from_array(childs: [Option<&'p mut AnyExpr>; 3]) -> InlChildsIterMut {
         InlChildsIterMut{childs, cur: 0}
     }
 
@@ -33,21 +33,21 @@ impl<'p> InlChildsIterMut<'p> {
         InlChildsIterMut::from_array([None, None, None])
     }
 
-	pub fn unary(fst: &'p mut Expr) -> InlChildsIterMut<'p> {
+	pub fn unary(fst: &'p mut AnyExpr) -> InlChildsIterMut<'p> {
 		InlChildsIterMut::from_array([Some(fst), None, None])
 	}
 
-	pub fn binary(fst: &'p mut Expr, snd: &'p mut Expr) -> InlChildsIterMut<'p> {
+	pub fn binary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr) -> InlChildsIterMut<'p> {
 		InlChildsIterMut::from_array([Some(fst), Some(snd), None])
 	}
 
-	pub fn ternary(fst: &'p mut Expr, snd: &'p mut Expr, trd: &'p mut Expr) -> InlChildsIterMut<'p> {
+	pub fn ternary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr, trd: &'p mut AnyExpr) -> InlChildsIterMut<'p> {
 		InlChildsIterMut::from_array([Some(fst), Some(snd), Some(trd)])
 	}
 }
 
 impl<'p> Iterator for InlChildsIterMut<'p> {
-    type Item = &'p mut Expr;
+    type Item = &'p mut AnyExpr;
 
     fn next(&mut self) -> Option<Self::Item> {
         // FIXME: Ugly hack to fight the borrow-checker but works for now!
@@ -59,17 +59,17 @@ impl<'p> Iterator for InlChildsIterMut<'p> {
 
 #[derive(Debug)]
 pub struct ExtChildsIterMut<'p> {
-    childs: slice::IterMut<'p, Expr>
+    childs: slice::IterMut<'p, AnyExpr>
 }
 
 impl<'p> ExtChildsIterMut<'p> {
-    fn from_slice(childs: &'p mut [Expr]) -> ExtChildsIterMut {
+    fn from_slice(childs: &'p mut [AnyExpr]) -> ExtChildsIterMut {
         ExtChildsIterMut{childs: childs.into_iter()}
     }
 }
 
 impl<'p> Iterator for ExtChildsIterMut<'p> {
-    type Item = &'p mut Expr;
+    type Item = &'p mut AnyExpr;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.childs.next()
@@ -81,29 +81,29 @@ impl<'p> ChildsIterMut<'p> {
         ChildsIterMut::Inl(InlChildsIterMut::none())
 	}
 
-	pub fn unary(fst: &'p mut Expr) -> ChildsIterMut<'p> {
+	pub fn unary(fst: &'p mut AnyExpr) -> ChildsIterMut<'p> {
         ChildsIterMut::Inl(InlChildsIterMut::unary(fst))
 	}
 
-	pub fn binary(fst: &'p mut Expr, snd: &'p mut Expr) -> ChildsIterMut<'p> {
+	pub fn binary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr) -> ChildsIterMut<'p> {
         ChildsIterMut::Inl(InlChildsIterMut::binary(fst, snd))
 	}
 
 	pub fn ternary(
-		fst: &'p mut Expr,
-		snd: &'p mut Expr,
-		trd: &'p mut Expr) -> ChildsIterMut<'p>
+		fst: &'p mut AnyExpr,
+		snd: &'p mut AnyExpr,
+		trd: &'p mut AnyExpr) -> ChildsIterMut<'p>
 	{
 		ChildsIterMut::Inl(InlChildsIterMut::ternary(fst, snd, trd))
 	}
 
-	pub fn nary(childs: &'p mut [Expr]) -> ChildsIterMut<'p> {
+	pub fn nary(childs: &'p mut [AnyExpr]) -> ChildsIterMut<'p> {
 		ChildsIterMut::Ext(ExtChildsIterMut::from_slice(childs))
 	}
 }
 
 impl<'p> Iterator for ChildsIterMut<'p> {
-	type Item = &'p mut Expr;
+	type Item = &'p mut AnyExpr;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		use self::ChildsIterMut::*;

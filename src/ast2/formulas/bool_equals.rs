@@ -17,7 +17,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BoolEquals {
     /// The child expressions.
-    pub childs: Vec<Expr>
+    pub childs: Vec<AnyExpr>
 }
 
 impl BoolEquals {
@@ -26,7 +26,7 @@ impl BoolEquals {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn binary(lhs: Expr, rhs: Expr) -> Result<BoolEquals, String> {
+    pub fn binary(lhs: AnyExpr, rhs: AnyExpr) -> Result<BoolEquals, String> {
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
         Ok(BoolEquals{ childs: vec![lhs, rhs] })
@@ -39,7 +39,7 @@ impl BoolEquals {
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
     pub fn nary<I>(childs: I) -> Result<BoolEquals, String>
-        where I: IntoIterator<Item = Expr>
+        where I: IntoIterator<Item = AnyExpr>
     {
         let childs = childs.into_iter().collect::<Vec<_>>();
         if childs.len() < 2 {
@@ -88,8 +88,8 @@ impl HasArity for BoolEquals {
     }
 }
 
-impl From<BoolEquals> for Expr {
-    fn from(bool_equals: BoolEquals) -> Expr {
-        Expr::BoolEquals(bool_equals)
+impl From<BoolEquals> for AnyExpr {
+    fn from(bool_equals: BoolEquals) -> AnyExpr {
+        AnyExpr::BoolEquals(bool_equals)
     }
 }

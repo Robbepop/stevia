@@ -15,12 +15,12 @@ pub mod prelude {
 /// 
 /// Can transform ownership.
 pub struct IntoChildsIter {
-	childs: smallvec::IntoIter<[Expr; 3]>
+	childs: smallvec::IntoIter<[AnyExpr; 3]>
 }
 
-impl FromIterator<Expr> for IntoChildsIter {
+impl FromIterator<AnyExpr> for IntoChildsIter {
     fn from_iter<T>(iter: T) -> IntoChildsIter
-        where T: IntoIterator<Item = Expr>
+        where T: IntoIterator<Item = AnyExpr>
     {
         IntoChildsIter{
             childs: smallvec::SmallVec::from_iter(iter).into_iter()
@@ -33,7 +33,7 @@ impl<'parent> IntoChildsIter {
         IntoChildsIter::from_iter(vec![])
 	}
 
-	pub fn unary(fst: Expr) -> IntoChildsIter {
+	pub fn unary(fst: AnyExpr) -> IntoChildsIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		IntoChildsIter{
@@ -41,7 +41,7 @@ impl<'parent> IntoChildsIter {
 		}
 	}
 
-	pub fn binary(fst: Expr, snd: Expr) -> IntoChildsIter {
+	pub fn binary(fst: AnyExpr, snd: AnyExpr) -> IntoChildsIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		vec.push(snd);
@@ -50,7 +50,7 @@ impl<'parent> IntoChildsIter {
 		}
 	}
 
-	pub fn ternary(fst: Expr, snd: Expr, trd: Expr) -> IntoChildsIter {
+	pub fn ternary(fst: AnyExpr, snd: AnyExpr, trd: AnyExpr) -> IntoChildsIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		vec.push(snd);
@@ -60,13 +60,13 @@ impl<'parent> IntoChildsIter {
 		}
 	}
 
-	pub fn nary(childs: Vec<Expr>) -> IntoChildsIter {
+	pub fn nary(childs: Vec<AnyExpr>) -> IntoChildsIter {
 		IntoChildsIter::from_iter(childs)
 	}
 }
 
 impl Iterator for IntoChildsIter {
-	type Item = Expr;
+	type Item = AnyExpr;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		self.childs.next()

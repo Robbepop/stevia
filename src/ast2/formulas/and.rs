@@ -13,7 +13,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct And {
     /// The child formula expressions.
-    pub childs: Vec<Expr>,
+    pub childs: Vec<AnyExpr>,
 }
 
 impl And {
@@ -22,7 +22,7 @@ impl And {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn binary(lhs: Expr, rhs: Expr) -> Result<And, String> {
+    pub fn binary(lhs: AnyExpr, rhs: AnyExpr) -> Result<And, String> {
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
         Ok(And{ childs: vec![lhs, rhs] })
@@ -35,7 +35,7 @@ impl And {
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
     pub fn nary<I>(childs: I) -> Result<And, String>
-        where I: IntoIterator<Item = Expr>
+        where I: IntoIterator<Item = AnyExpr>
     {
         let childs = childs.into_iter().collect::<Vec<_>>();
         if childs.len() < 2 {
@@ -84,8 +84,8 @@ impl HasArity for And {
     }
 }
 
-impl From<And> for Expr {
-    fn from(and: And) -> Expr {
-        Expr::And(and)
+impl From<And> for AnyExpr {
+    fn from(and: And) -> AnyExpr {
+        AnyExpr::And(and)
     }
 }

@@ -12,7 +12,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Not {
     /// The inner child formula expression.
-    pub child: P<Expr>
+    pub child: P<AnyExpr>
 }
 
 impl Not {
@@ -68,8 +68,8 @@ impl HasArity for Not {
     }
 }
 
-impl From<Not> for Expr {
-    fn from(not: Not) -> Expr {
-        Expr::Not(not)
+impl From<Not> for AnyExpr {
+    fn from(not: Not) -> AnyExpr {
+        AnyExpr::Not(not)
     }
 }

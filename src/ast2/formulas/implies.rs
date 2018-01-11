@@ -22,7 +22,7 @@ impl Implies {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn new(lhs: Expr, rhs: Expr) -> Result<Implies, String> {
+    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Implies, String> {
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
         Ok(Implies{ childs: BinExprChilds::new_boxed(lhs, rhs) })
@@ -65,8 +65,8 @@ impl HasArity for Implies {
     }
 }
 
-impl From<Implies> for Expr {
-    fn from(implies: Implies) -> Expr {
-        Expr::Implies(implies)
+impl From<Implies> for AnyExpr {
+    fn from(implies: Implies) -> AnyExpr {
+        AnyExpr::Implies(implies)
     }
 }

@@ -14,20 +14,20 @@ pub mod prelude {
 /// child expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinExprChilds {
-    pub lhs: Expr,
-    pub rhs: Expr
+    pub lhs: AnyExpr,
+    pub rhs: AnyExpr
 }
 
 impl BinExprChilds {
     /// Creates a new `BinExprChilds` for the given child expressions.
     #[inline]
-    pub fn new(lhs: Expr, rhs: Expr) -> BinExprChilds {
+    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> BinExprChilds {
         BinExprChilds{lhs, rhs}
     }
 
     /// Creates a new boxed (on heap) `BinExprChilds` for the given child expressions.
     #[inline]
-    pub fn new_boxed(lhs: Expr, rhs: Expr) -> P<BinExprChilds> {
+    pub fn new_boxed(lhs: AnyExpr, rhs: AnyExpr) -> P<BinExprChilds> {
         P::new(BinExprChilds::new(lhs, rhs))
     }
 }

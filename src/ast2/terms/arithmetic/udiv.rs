@@ -34,7 +34,7 @@ impl UnsignedDiv {
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(width: BitWidth, lhs: Expr, rhs: Expr) -> Result<UnsignedDiv, String> {
+    pub fn new(width: BitWidth, lhs: AnyExpr, rhs: AnyExpr) -> Result<UnsignedDiv, String> {
         checks::expect_bitvec_ty_and_width(&lhs, width)?;
         checks::expect_bitvec_ty_and_width(&rhs, width)?;
         Ok(UnsignedDiv{ width, childs: BinExprChilds::new_boxed(lhs, rhs) })

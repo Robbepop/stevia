@@ -13,7 +13,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Neg {
     /// The inner child formula expression.
-    pub child: P<Expr>,
+    pub child: P<AnyExpr>,
     /// The bit width of this term expression.
     pub width: BitWidth
 }
@@ -75,8 +75,8 @@ impl HasArity for Neg {
     }
 }
 
-impl From<Neg> for Expr {
-    fn from(neg: Neg) -> Expr {
-        Expr::Neg(neg)
+impl From<Neg> for AnyExpr {
+    fn from(neg: Neg) -> AnyExpr {
+        AnyExpr::Neg(neg)
     }
 }

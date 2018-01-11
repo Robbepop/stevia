@@ -17,7 +17,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Extract {
     /// The source term expression that is to be extracted.
-    pub src: P<Expr>,
+    pub src: P<AnyExpr>,
     /// The index of the hi bit position where lo < hi.
     pub hi: usize,
     /// The index of the lo bit position where lo < hi.
@@ -85,8 +85,8 @@ impl HasArity for Extract {
     }
 }
 
-impl From<Extract> for Expr {
-    fn from(extract: Extract) -> Expr {
-        Expr::Extract(extract)
+impl From<Extract> for AnyExpr {
+    fn from(extract: Extract) -> AnyExpr {
+        AnyExpr::Extract(extract)
     }
 }

@@ -13,7 +13,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BitNot {
     /// The inner child formula expression.
-    pub child: P<Expr>,
+    pub child: P<AnyExpr>,
     /// The bit width of this term expression.
     pub width: BitWidth
 }
@@ -70,8 +70,8 @@ impl HasArity for BitNot {
     }
 }
 
-impl From<BitNot> for Expr {
-    fn from(bitnot: BitNot) -> Expr {
-        Expr::BitNot(bitnot)
+impl From<BitNot> for AnyExpr {
+    fn from(bitnot: BitNot) -> AnyExpr {
+        AnyExpr::BitNot(bitnot)
     }
 }

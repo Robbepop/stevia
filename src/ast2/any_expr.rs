@@ -3,7 +3,7 @@ use ast2::prelude::*;
 /// Reexports all commonly used items of this module.
 pub mod prelude {
     pub use super::{
-        Expr
+        AnyExpr
     };
 }
 
@@ -66,61 +66,61 @@ macro_rules! impl_expr_kinds {
 	( $($names:ident),* ) => {
         /// Any expression.
         /// 
-        /// There are different kinds of expressions and `Expr`
+        /// There are different kinds of expressions and `AnyExpr`
         /// represents any one of them.
 		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-		pub enum Expr {
-			$($names(expr::$names)),*
+		pub enum AnyExpr {
+			$($names(any_expr::$names)),*
 		}
 
-        impl HasType for Expr {
+        impl HasType for AnyExpr {
             fn ty(&self) -> Type {
-				use self::Expr::*;
+				use self::AnyExpr::*;
 				match *self {
 					$($names(ref expr) => expr.ty()),*
                 }
             }
         }
 
-        impl HasArity for Expr {
+        impl HasArity for AnyExpr {
             fn arity(&self) -> usize {
-				use self::Expr::*;
+				use self::AnyExpr::*;
 				match *self {
 					$($names(ref expr) => expr.arity()),*
                 }
             }
         }
 
-        impl HasKind for Expr {
+        impl HasKind for AnyExpr {
             fn kind(&self) -> ExprKind {
-				use self::Expr::*;
+				use self::AnyExpr::*;
 				match *self {
 					$($names(ref expr) => expr.kind()),*
                 }
             }
         }
 
-        impl Childs for Expr {
+        impl Childs for AnyExpr {
             fn childs(&self) -> ChildsIter {
-				use self::Expr::*;
+				use self::AnyExpr::*;
 				match *self {
 					$($names(ref expr) => expr.childs()),*
                 }
             }
         }
 
-        impl ChildsMut for Expr {
+        impl ChildsMut for AnyExpr {
             fn childs_mut(&mut self) -> ChildsIterMut {
-				use self::Expr::*;
+				use self::AnyExpr::*;
 				match *self {
 					$($names(ref mut expr) => expr.childs_mut()),*
                 }
             }
         }
 
-        impl IntoChilds for Expr {
+        impl IntoChilds for AnyExpr {
             fn into_childs(self) -> IntoChildsIter {
-				use self::Expr::*;
+				use self::AnyExpr::*;
 				match self {
 					$($names(expr) => expr.into_childs()),*
                 }

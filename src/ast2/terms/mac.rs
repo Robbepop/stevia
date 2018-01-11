@@ -52,9 +52,9 @@ macro_rules! impl_traits_for_binary_term_expr {
             }
         }
 
-        impl From<$name> for Expr {
-            fn from(expr: $name) -> Expr {
-                Expr::$name(expr)
+        impl From<$name> for AnyExpr {
+            fn from(expr: $name) -> AnyExpr {
+                AnyExpr::$name(expr)
             }
         }
     }
@@ -75,7 +75,7 @@ macro_rules! impl_traits_for_binary_term_expr {
 /// # Note
 /// 
 /// This macro expects the given binary term expression to have a `width` field
-/// of type `BitWidth` as well as another field `childs` of type `Vec<Expr>`.
+/// of type `BitWidth` as well as another field `childs` of type `Vec<AnyExpr>`.
 macro_rules! impl_traits_for_nary_term_expr {
     ($name:ident) => {
         impl Childs for $name {
@@ -114,9 +114,9 @@ macro_rules! impl_traits_for_nary_term_expr {
             }
         }
 
-        impl From<$name> for Expr {
-            fn from(expr: $name) -> Expr {
-                Expr::$name(expr)
+        impl From<$name> for AnyExpr {
+            fn from(expr: $name) -> AnyExpr {
+                AnyExpr::$name(expr)
             }
         }
     }

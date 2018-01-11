@@ -117,9 +117,9 @@ impl HasArity for Symbol {
     }
 }
 
-impl From<Symbol> for Expr {
-    fn from(symbol: Symbol) -> Expr {
-        Expr::Symbol(symbol)
+impl From<Symbol> for AnyExpr {
+    fn from(symbol: Symbol) -> AnyExpr {
+        AnyExpr::Symbol(symbol)
     }
 }
 

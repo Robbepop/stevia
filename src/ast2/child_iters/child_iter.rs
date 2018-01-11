@@ -19,12 +19,12 @@ pub enum ChildsIter<'p> {
 
 #[derive(Debug, Clone)]
 pub struct InlChildsIter<'p> {
-    childs: [Option<&'p Expr>; 3],
+    childs: [Option<&'p AnyExpr>; 3],
     cur: usize
 }
 
 impl<'p> InlChildsIter<'p> {
-    fn from_array(childs: [Option<&'p Expr>; 3]) -> InlChildsIter {
+    fn from_array(childs: [Option<&'p AnyExpr>; 3]) -> InlChildsIter {
         InlChildsIter{childs, cur: 0}
     }
 
@@ -32,21 +32,21 @@ impl<'p> InlChildsIter<'p> {
         InlChildsIter::from_array([None; 3])
     }
 
-	pub fn unary(fst: &'p Expr) -> InlChildsIter<'p> {
+	pub fn unary(fst: &'p AnyExpr) -> InlChildsIter<'p> {
 		InlChildsIter::from_array([Some(fst), None, None])
 	}
 
-	pub fn binary(fst: &'p Expr, snd: &'p Expr) -> InlChildsIter<'p> {
+	pub fn binary(fst: &'p AnyExpr, snd: &'p AnyExpr) -> InlChildsIter<'p> {
 		InlChildsIter::from_array([Some(fst), Some(snd), None])
 	}
 
-	pub fn ternary(fst: &'p Expr, snd: &'p Expr, trd: &'p Expr) -> InlChildsIter<'p> {
+	pub fn ternary(fst: &'p AnyExpr, snd: &'p AnyExpr, trd: &'p AnyExpr) -> InlChildsIter<'p> {
 		InlChildsIter::from_array([Some(fst), Some(snd), Some(trd)])
 	}
 }
 
 impl<'p> Iterator for InlChildsIter<'p> {
-    type Item = &'p Expr;
+    type Item = &'p AnyExpr;
 
     fn next(&mut self) -> Option<Self::Item> {
         let elem: Option<Self::Item> = self.childs[self.cur];
@@ -57,17 +57,17 @@ impl<'p> Iterator for InlChildsIter<'p> {
 
 #[derive(Debug, Clone)]
 pub struct ExtChildsIter<'p> {
-    childs: slice::Iter<'p, Expr>
+    childs: slice::Iter<'p, AnyExpr>
 }
 
 impl<'p> ExtChildsIter<'p> {
-    fn from_slice(childs: &'p [Expr]) -> ExtChildsIter {
+    fn from_slice(childs: &'p [AnyExpr]) -> ExtChildsIter {
         ExtChildsIter{childs: childs.into_iter()}
     }
 }
 
 impl<'p> Iterator for ExtChildsIter<'p> {
-    type Item = &'p Expr;
+    type Item = &'p AnyExpr;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.childs.next()
@@ -79,29 +79,29 @@ impl<'p> ChildsIter<'p> {
         ChildsIter::Inl(InlChildsIter::none())
 	}
 
-	pub fn unary(fst: &'p Expr) -> ChildsIter<'p> {
+	pub fn unary(fst: &'p AnyExpr) -> ChildsIter<'p> {
         ChildsIter::Inl(InlChildsIter::unary(fst))
 	}
 
-	pub fn binary(fst: &'p Expr, snd: &'p Expr) -> ChildsIter<'p> {
+	pub fn binary(fst: &'p AnyExpr, snd: &'p AnyExpr) -> ChildsIter<'p> {
         ChildsIter::Inl(InlChildsIter::binary(fst, snd))
 	}
 
 	pub fn ternary(
-		fst: &'p Expr,
-		snd: &'p Expr,
-		trd: &'p Expr) -> ChildsIter<'p>
+		fst: &'p AnyExpr,
+		snd: &'p AnyExpr,
+		trd: &'p AnyExpr) -> ChildsIter<'p>
 	{
 		ChildsIter::Inl(InlChildsIter::ternary(fst, snd, trd))
 	}
 
-	pub fn nary(childs: &'p [Expr]) -> ChildsIter<'p> {
+	pub fn nary(childs: &'p [AnyExpr]) -> ChildsIter<'p> {
 		ChildsIter::Ext(ExtChildsIter::from_slice(childs))
 	}
 }
 
 impl<'p> Iterator for ChildsIter<'p> {
-	type Item = &'p Expr;
+	type Item = &'p AnyExpr;
 
 	fn next(&mut self) -> Option<Self::Item> {
 		use self::ChildsIter::*;

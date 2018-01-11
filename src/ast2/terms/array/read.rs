@@ -26,11 +26,11 @@ pub struct ArrayReadChilds {
     /// The array expression.
     /// 
     /// This must be of array type.
-    pub array: Expr,
+    pub array: AnyExpr,
     /// The index where the array shall be read.
     /// 
     /// This must be of bitvec type.
-    pub index: Expr
+    pub index: AnyExpr
 }
 
 impl ArrayReadChilds {
@@ -38,14 +38,14 @@ impl ArrayReadChilds {
     /// 
     /// Does not check any invariants of `ArrayRead`.
     /// This function should be marked unsafe since it fails to hold any guarantees.
-    pub fn new(array: Expr, index: Expr) -> ArrayReadChilds {
+    pub fn new(array: AnyExpr, index: AnyExpr) -> ArrayReadChilds {
         ArrayReadChilds{array, index}
     }
 
     /// Creates a new boxed `ArrayReadChilds` object.
     /// 
     /// This is just a convenience wrapper around `ArrayReadChilds::new`.
-    pub fn new_boxed(array: Expr, index: Expr) -> P<ArrayReadChilds> {
+    pub fn new_boxed(array: AnyExpr, index: AnyExpr) -> P<ArrayReadChilds> {
         P::new(ArrayReadChilds::new(array, index))
     }
 }
@@ -59,7 +59,7 @@ impl ArrayRead {
     /// - If the given `array` is not of array type.
     /// - If the given `index` is not of bitvec type and does not match the
     ///   index bit width of the given array.
-    pub fn new(array: Expr, index: Expr) -> Result<ArrayRead, String> {
+    pub fn new(array: AnyExpr, index: AnyExpr) -> Result<ArrayRead, String> {
         let array_ty = checks::expect_array_ty(&array)?;
         checks::expect_bitvec_ty_and_width(&index, array_ty.index_width())?;
         Ok(ArrayRead{ width: array_ty.value_width(), childs: ArrayReadChilds::new_boxed(array, index) })
@@ -102,9 +102,9 @@ impl HasArity for ArrayRead {
     }
 }
 
-impl From<ArrayRead> for Expr {
-    fn from(array_read: ArrayRead) -> Expr {
-        Expr::ArrayRead(array_read)
+impl From<ArrayRead> for AnyExpr {
+    fn from(array_read: ArrayRead) -> AnyExpr {
+        AnyExpr::ArrayRead(array_read)
     }
 }
 
