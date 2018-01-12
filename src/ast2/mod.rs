@@ -8,6 +8,7 @@ mod formulas;
 mod terms;
 mod ite;
 mod symbol;
+mod recursive_childs_iter;
 
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
@@ -32,6 +33,11 @@ pub use self::child_iters::{
     Childs,
     ChildsMut,
     IntoChilds
+};
+pub use self::recursive_childs_iter::{
+    YieldEvent,
+    AnyExprAndEvent,
+    RecursiveChildsIter
 };
 pub use self::terms::{
     BitWidth
