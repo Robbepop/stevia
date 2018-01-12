@@ -22,5 +22,8 @@ pub mod prelude {
         YieldEvent,
         AnyExprAndEvent,
         RecursiveChildsIter,
+        childs_recursive_with_event,
+        childs_recursive_entering,
+        childs_recursive_leaving
     };
 }

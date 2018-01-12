@@ -4,8 +4,47 @@ pub mod prelude {
     pub use super::{
         YieldEvent,
         AnyExprAndEvent,
-        RecursiveChildsIter
+        RecursiveChildsIter,
+        childs_recursive_with_event,
+        childs_recursive_entering,
+        childs_recursive_leaving
     };
+}
+
+/// Iterate recursively over the given `AnyExpr` and all of its child expressions
+/// with an indicator whether the node was entered or left.
+/// 
+/// # Note
+/// 
+/// - This iterates twice over all expression. Once for entering and once for leaving.
+pub fn childs_recursive_with_event(expr: &AnyExpr) -> RecursiveChildsIter {
+    RecursiveChildsIter::new(expr)
+}
+
+/// Iterate recursively over the given `AnyExpr` and all of its child expressions.
+/// 
+/// # Note
+/// 
+/// - Yields parent expressions before their childs.
+pub fn childs_recursive_entering<'a>(expr: &'a AnyExpr) -> impl Iterator<Item=&'a AnyExpr> {
+    childs_recursive_with_event(expr)
+        .filter_map(|expr_and_event| match expr_and_event.event {
+            YieldEvent::Entering => Some(expr_and_event.expr),
+            YieldEvent::Leaving  => None
+        })
+}
+
+/// Iterate recursively over the given `AnyExpr` and all of its child expressions.
+/// 
+/// # Note
+/// 
+/// - Yields parent expressions after their childs.
+pub fn childs_recursive_leaving<'a>(expr: &'a AnyExpr) -> impl Iterator<Item=&'a AnyExpr> {
+    childs_recursive_with_event(expr)
+        .filter_map(|expr_and_event| match expr_and_event.event {
+            YieldEvent::Leaving  => Some(expr_and_event.expr),
+            YieldEvent::Entering => None
+        })
 }
 
 /// States if a yielded expression in the recursive iteration

@@ -1,4 +1,5 @@
 #![feature(box_patterns)]
+#![feature(conservative_impl_trait)]
 
 extern crate apint;
 extern crate num;
