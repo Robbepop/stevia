@@ -29,12 +29,7 @@ impl Neg {
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        let bv_ty = checks::expect_bitvec_ty(&*child)
-            .map_err(|_| String::from(
-                "Requires inner expression to be of bitvec type for Neg term expression."))?;
-        if bv_ty != bitvec_ty {
-            return Err("Required inner bitvec to have the same bitwidth as specified.".into())
-        }
+        checks::expect_concrete_bitvec_ty(&*child, bitvec_ty)?;
         Ok(Neg{bitvec_ty, child})
     }
 }
