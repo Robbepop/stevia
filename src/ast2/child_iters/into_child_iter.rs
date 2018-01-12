@@ -72,3 +72,9 @@ impl Iterator for IntoChildsIter {
 		self.childs.next()
 	}
 }
+
+impl DoubleEndedIterator for IntoChildsIter {
+	fn next_back(&mut self) -> Option<Self::Item> {
+		self.childs.next_back()
+	}
+}

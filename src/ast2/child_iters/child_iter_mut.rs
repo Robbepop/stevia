@@ -21,28 +21,29 @@ pub enum ChildsIterMut<'p> {
 #[derive(Debug)]
 pub struct InlChildsIterMut<'p> {
     childs: [Option<&'p mut AnyExpr>; 3],
-    cur: usize
+    begin: usize,
+	end: usize
 }
 
 impl<'p> InlChildsIterMut<'p> {
-    fn from_array(childs: [Option<&'p mut AnyExpr>; 3]) -> InlChildsIterMut {
-        InlChildsIterMut{childs, cur: 0}
+    fn from_array(num_childs: usize, childs: [Option<&'p mut AnyExpr>; 3]) -> InlChildsIterMut {
+        InlChildsIterMut{childs, begin: 0, end: num_childs.saturating_sub(1)}
     }
 
     pub fn none() -> InlChildsIterMut<'p> {
-        InlChildsIterMut::from_array([None, None, None])
+        InlChildsIterMut::from_array(0, [None, None, None])
     }
 
 	pub fn unary(fst: &'p mut AnyExpr) -> InlChildsIterMut<'p> {
-		InlChildsIterMut::from_array([Some(fst), None, None])
+		InlChildsIterMut::from_array(1, [Some(fst), None, None])
 	}
 
 	pub fn binary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr) -> InlChildsIterMut<'p> {
-		InlChildsIterMut::from_array([Some(fst), Some(snd), None])
+		InlChildsIterMut::from_array(2, [Some(fst), Some(snd), None])
 	}
 
 	pub fn ternary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr, trd: &'p mut AnyExpr) -> InlChildsIterMut<'p> {
-		InlChildsIterMut::from_array([Some(fst), Some(snd), Some(trd)])
+		InlChildsIterMut::from_array(3, [Some(fst), Some(snd), Some(trd)])
 	}
 }
 
@@ -50,9 +51,18 @@ impl<'p> Iterator for InlChildsIterMut<'p> {
     type Item = &'p mut AnyExpr;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // FIXME: Ugly hack to fight the borrow-checker but works for now!
-        let elem = mem::replace(&mut self.childs[self.cur], None);
-        self.cur = cmp::min(self.cur + 1, 2);
+        // FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
+        let elem = mem::replace(&mut self.childs[self.begin], None);
+        self.begin = cmp::min(self.begin + 1, 2);
+        elem
+    }
+}
+
+impl<'p> DoubleEndedIterator for InlChildsIterMut<'p> {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        // FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
+        let elem = mem::replace(&mut self.childs[self.end], None);
+        self.end = self.end.saturating_sub(1);
         elem
     }
 }
@@ -74,6 +84,12 @@ impl<'p> Iterator for ExtChildsIterMut<'p> {
     fn next(&mut self) -> Option<Self::Item> {
         self.childs.next()
     }
+}
+
+impl<'p> DoubleEndedIterator for ExtChildsIterMut<'p> {
+	fn next_back(&mut self) -> Option<Self::Item> {
+		self.childs.next_back()
+	}
 }
 
 impl<'p> ChildsIterMut<'p> {
@@ -110,6 +126,16 @@ impl<'p> Iterator for ChildsIterMut<'p> {
 		match *self {
 			Inl(ref mut iter) => iter.next(),
 			Ext(ref mut iter) => iter.next()
+		}
+	}
+}
+
+impl<'p> DoubleEndedIterator for ChildsIterMut<'p> {
+	fn next_back(&mut self) -> Option<Self::Item> {
+		use self::ChildsIterMut::*;
+		match *self {
+			Inl(ref mut iter) => iter.next_back(),
+			Ext(ref mut iter) => iter.next_back()
 		}
 	}
 }
