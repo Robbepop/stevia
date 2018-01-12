@@ -30,7 +30,7 @@ impl BitAnd {
     /// - If `lhs` or `rhs` are not of bitvec type.
     /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
     pub fn binary(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<BitAnd, String> {
-        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(BitAnd{ bitvec_ty, childs: vec![lhs, rhs] })
     }
