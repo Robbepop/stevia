@@ -51,7 +51,18 @@ pub fn childs_recursive_leaving<'a>(expr: &'a AnyExpr) -> impl Iterator<Item=&'a
 /// is entering scope (childs are not yet yielded) or leaving scope
 /// (childs have been yielded).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum YieldEvent { Entering, Leaving }
+pub enum YieldEvent {
+    /// States that the expression was just entered.
+    /// 
+    /// At this point none of the expression's childs have
+    /// been yielded by the iterator.
+    Entering,
+    /// States that the expression was just left.
+    /// 
+    /// At this point all of the expression's childs have
+    /// been yielded by the iterator.
+    Leaving
+}
 
 /// Iterates over all expressions of an AST recursively.
 #[derive(Debug, Clone)]
