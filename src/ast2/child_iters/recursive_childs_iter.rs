@@ -130,7 +130,7 @@ mod tests {
             )?))
         }
 
-        use ast2::expr::{Or, And, Xor, BoolConst};
+        use ast2::expr::{And, Xor, BoolConst};
 
         let expr = create_ast().unwrap();
         let mut rec_iter = childs_recursive_with_event(&expr);
