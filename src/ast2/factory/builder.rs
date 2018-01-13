@@ -144,6 +144,18 @@ pub trait ExprTreeFactory {
     fn bitvec_or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary bitvec xor expression for the given child expressions.
     fn bitvec_xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+
+    /// Creates a new binary bitvector concatenate expression with the given child expressions.
+    fn bitvec_concat(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new unary bitvector extraction expression for the given child expression
+    /// and the given hi and lo bit positions.
+    fn bitvec_extract_hi_lo(self, hi: usize, lo: usize, inner: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new unary bitvector sign-extension expression for the given child expression
+    /// to the given bit width bits.
+    fn bitvec_sext(self, target_width: BitWidth, inner: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new unary bitvector zero-extension expression for the given child expression
+    /// to the given bit width bits.
+    fn bitvec_zext(self, target_width: BitWidth, inner: AnyExpr) -> Result<AnyExpr>;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -504,5 +516,45 @@ impl<F> ExprTreeBuilder<F>
               R: IntoAnyExprOrError
     {
         self.create_binary_expr(F::bitvec_xor, lhs, rhs)
+    }
+}
+
+/// Casting bitvector expressions that can be created by this builder.
+impl<F> ExprTreeBuilder<F>
+    where F: ExprTreeFactory
+{
+    /// Creates a new binary bitvector concatenate expression with the given child expressions.
+    pub fn bitvec_concat<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_concat, lhs, rhs)
+    }
+
+    /// Creates a new unary bitvector extraction expression for the given child expression
+    /// and the given hi and lo bit positions.
+    pub fn bitvec_extract_hi_lo<E>(self, hi: usize, lo: usize, inner: E) -> Result<AnyExpr>
+        where E: IntoAnyExprOrError
+    {
+        let inner = inner.into_any_expr_or_error()?;
+        self.factory().bitvec_extract_hi_lo(hi, lo, inner)
+    }
+
+    /// Creates a new unary bitvector sign-extension expression for the given child expression
+    /// to the given bit width bits.
+    pub fn bitvec_sext<E>(self, target_width: BitWidth, inner: E) -> Result<AnyExpr>
+        where E: IntoAnyExprOrError
+    {
+        let inner = inner.into_any_expr_or_error()?;
+        self.factory().bitvec_sext(target_width, inner)
+    }
+
+    /// Creates a new unary bitvector zero-extension expression for the given child expression
+    /// to the given bit width bits.
+    pub fn bitvec_zext<E>(self, target_width: BitWidth, inner: E) -> Result<AnyExpr>
+        where E: IntoAnyExprOrError
+    {
+        let inner = inner.into_any_expr_or_error()?;
+        self.factory().bitvec_zext(target_width, inner)
     }
 }
