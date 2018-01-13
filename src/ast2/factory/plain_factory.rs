@@ -85,70 +85,70 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Xor::new(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn array_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
+    fn array_equals(self, _lhs: AnyExpr, _rhs: AnyExpr) -> Result<AnyExpr> {
 		unimplemented!()
 	}
 
-    fn array_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+    fn array_equals_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
 		unimplemented!()
 	}
     
-    fn array_read(self, array: AnyExpr, index: AnyExpr) -> Result<AnyExpr> {
+    fn array_read(self, _array: AnyExpr, _index: AnyExpr) -> Result<AnyExpr> {
 		unimplemented!()
 	}
     
-    fn array_write(self, array: AnyExpr, index: AnyExpr, value: AnyExpr) -> Result<AnyExpr> {
+    fn array_write(self, _array: AnyExpr, _index: AnyExpr, _value: AnyExpr) -> Result<AnyExpr> {
 		unimplemented!()
 	}
 
-    fn bitvec_const<V>(self, ty: BitvecTy, value: V) -> Result<AnyExpr>
+    fn bitvec_const<V>(self, _ty: BitvecTy, _value: V) -> Result<AnyExpr>
         where V: Into<expr::BitvecConst>
     {
 		unimplemented!()
     }
 
     fn bitvec_neg(self, inner: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::Neg::new_infer(inner).map(AnyExpr::from)
 	}
 
     fn bitvec_add(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::Add::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_add_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+    fn bitvec_add_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
 		unimplemented!()
 	}
 
     fn bitvec_sub(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::Sub::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_mul(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::Mul::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_mul_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+    fn bitvec_mul_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
 		unimplemented!()
 	}
 
     fn bitvec_sdiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedDiv::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_smod(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedModulo::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_srem(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedRemainder::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_udiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::UnsignedDiv::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_urem(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::UnsignedRemainder::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_not(self, inner: AnyExpr) -> Result<AnyExpr> {
