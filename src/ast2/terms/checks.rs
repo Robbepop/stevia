@@ -46,6 +46,25 @@ pub fn expect_concrete_array_ty<T>(genval: &T, req_array_ty: ArrayTy) -> Result<
     Ok(())
 }
 
+/// Checks if the given typed params are of the same array type.
+/// 
+/// # Errors
+/// 
+/// - If the given typed params are not of array type.
+/// - If the given typed params are not of the same array type.
+pub fn expect_common_array_ty<L, R>(lhs: &L, rhs: &R) -> Result<ArrayTy, String>
+    where L: HasType,
+          R: HasType
+{
+    let lhs_arrty = expect_array_ty(lhs)?;
+    let rhs_arrty = expect_array_ty(lhs)?;
+    if lhs_arrty != rhs_arrty {
+        return Err(format!("Expected equal array types for {:?} and {:?}.",
+            lhs_arrty, rhs_arrty))
+    }
+    Ok(lhs_arrty)
+}
+
 /// Checks if the given typed param is of bitvec type
 /// and returns its bit width if it is the case.
 /// 
@@ -76,4 +95,23 @@ pub fn expect_concrete_bitvec_ty<T>(genval: &T, req_bitvec_ty: BitvecTy) -> Resu
         return Err(format!("Expected bitvec with an expected bit width of {:?}", req_bitvec_ty))
     }
     Ok(())
+}
+
+/// Checks if the given typed params are of the same bitvector type.
+/// 
+/// # Errors
+/// 
+/// - If the given typed params are not of bitvector type.
+/// - If the given typed params are not of the same bitvector type.
+pub fn expect_common_bitvec_ty<L, R>(lhs: &L, rhs: &R) -> Result<BitvecTy, String>
+    where L: HasType,
+          R: HasType
+{
+    let lhs_bvty = expect_bitvec_ty(lhs)?;
+    let rhs_bvty = expect_bitvec_ty(lhs)?;
+    if lhs_bvty != rhs_bvty {
+        return Err(format!("Expected equal bitvector types for {:?} and {:?}.",
+            lhs_bvty, rhs_bvty))
+    }
+    Ok(lhs_bvty)
 }
