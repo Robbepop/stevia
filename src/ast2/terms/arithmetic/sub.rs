@@ -22,7 +22,7 @@ pub struct Sub {
 }
 
 impl Sub {
-    /// Returns a new `Sub` term expression with the given child term expressions.
+    /// Returns a new `Sub` (subtract) term expression with the given child term expressions.
     /// 
     /// # Errors
     /// 
@@ -32,6 +32,21 @@ impl Sub {
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(Sub{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    }
+
+    /// Returns a new binary `Sub` (subtract) expression for the
+    /// given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<Sub, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(Sub{ bitvec_ty: common_ty, childs: vec![lhs, rhs] })
     }
 }
 

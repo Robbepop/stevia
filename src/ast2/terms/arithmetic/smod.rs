@@ -31,7 +31,7 @@ pub struct SignedModulo {
 }
 
 impl SignedModulo {
-    /// Returns a new `SignedModulo` (signed remaainder) term expression with the given
+    /// Returns a new `SignedModulo` (signed modulo) term expression with the given
     /// child term expressions where its sign matches the sign of the divisor.
     /// 
     /// # Errors
@@ -42,6 +42,21 @@ impl SignedModulo {
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(SignedModulo{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    }
+
+    /// Returns a new binary `SignedModulo` (signed modulo) expression for the
+    /// given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedModulo, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(SignedModulo{ bitvec_ty: common_ty, childs: vec![lhs, rhs] })
     }
 }
 

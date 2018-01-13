@@ -32,6 +32,23 @@ impl Neg {
         checks::expect_concrete_bitvec_ty(&*child, bitvec_ty)?;
         Ok(Neg{bitvec_ty, child})
     }
+
+    /// Creates a new `Neg` term expression for the given child expression.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the bitvector type for this expression from its child expression.
+    /// 
+    /// # Errors
+    /// 
+    /// - If the given child expression is not of bitvec type.
+    pub fn new_infer<E>(child: E) -> Result<Neg, String>
+        where E: IntoBoxedAnyExpr
+    {
+        let child = child.into_boxed_any_expr();
+        let bitvec_ty = checks::expect_bitvec_ty(&*child)?;
+        Ok(Neg{bitvec_ty, child})
+    }
 }
 
 impl Childs for Neg {

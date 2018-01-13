@@ -33,6 +33,20 @@ impl Add {
         Ok(Add{ bitvec_ty, childs: vec![lhs, rhs] })
     }
 
+    /// Returns a new binary `Add` expression for the given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn binary_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<Add, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(Add{ bitvec_ty: common_ty, childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new n-ary Add term expression for all of the child
     /// expressions yielded by the given iterator and with the given bit width.
     ///

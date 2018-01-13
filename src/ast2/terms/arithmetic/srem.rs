@@ -41,6 +41,22 @@ impl SignedRemainder {
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(SignedRemainder{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
+
+    /// Returns a new binary `SignedRemainder` (signed remainder) expression for the
+    /// given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedRemainder, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(SignedRemainder{ bitvec_ty: common_ty, childs: vec![lhs, rhs] })
+    }
+
 }
 
 impl_traits_for_binary_term_expr!(SignedRemainder);
