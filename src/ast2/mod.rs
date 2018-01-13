@@ -1,6 +1,7 @@
 mod arity;
 mod child_iters;
 mod binexpr_childs;
+mod factory;
 mod ty;
 mod expr_kind;
 mod any_expr;
@@ -40,6 +41,11 @@ pub use self::child_iters::{
     childs_recursive_with_event,
     childs_recursive_entering,
     childs_recursive_leaving
+};
+pub use self::factory::{
+    IntoAnyExprOrError,
+    ExprTreeFactory,
+    ExprTreeBuilder
 };
 pub use self::terms::{
     BitWidth
