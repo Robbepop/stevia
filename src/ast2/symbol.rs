@@ -90,12 +90,17 @@ pub struct Symbol {
 
 impl Symbol {
     /// Returns a new `Symbol` for the given name and type.
-    pub fn new<S>(name: S, ty: Type) -> Symbol
+    /// 
+    /// # Errors
+    /// 
+    /// - If the given type does not match the type cached in the
+    ///   type context for symbols.
+    pub fn new<S>(name: S, ty: Type) -> Result<Symbol, String>
         where S: Into<String> + AsRef<str>
     {
         let interner = SYMBOL_INTERNER.cell.get();
         let interner = unsafe{&mut *interner};
-        Symbol{ty, name: interner.get_or_intern(name)}
+        Ok(Symbol{ty, name: interner.get_or_intern(name)})
     }
 }
 
