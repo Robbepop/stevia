@@ -45,7 +45,8 @@ pub use self::child_iters::{
 pub use self::factory::{
     IntoAnyExprOrError,
     ExprTreeFactory,
-    ExprTreeBuilder
+    ExprTreeBuilder,
+    PlainExprTreeBuilder
 };
 pub use self::terms::{
     BitWidth
