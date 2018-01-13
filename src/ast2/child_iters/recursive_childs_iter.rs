@@ -70,6 +70,9 @@ pub struct RecursiveChildsIter<'it> {
     path: Vec<AnyExprAndEvent<'it>>
 }
 
+/// Holds an `AnyExpr` and a `YieldEvent`.
+/// 
+/// This type is yielded by the recursive event driven iterator over expressions.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct AnyExprAndEvent<'it> {
     /// The expression of this yield item.

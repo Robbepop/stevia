@@ -175,6 +175,10 @@ pub trait ExprTreeFactory {
     fn bitvec_ult(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
 }
 
+/// Interface for expression tree creation.
+/// 
+/// This wraps an `ExprTreeFactory` and uses it internally to construct
+/// the expression tree.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ExprTreeBuilder<F>(F)
     where F: ExprTreeFactory;
