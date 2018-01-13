@@ -56,7 +56,7 @@ impl SignedModulo {
     /// - If `lhs` or `rhs` do not share a common bitvec type.
     pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedModulo, String> {
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(SignedModulo{ bitvec_ty: common_ty, childs: vec![lhs, rhs] })
+        Ok(SignedModulo{ bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 
