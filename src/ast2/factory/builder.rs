@@ -186,6 +186,14 @@ pub struct ExprTreeBuilder<F>(F)
 impl<F> ExprTreeBuilder<F>
     where F: ExprTreeFactory
 {
+    pub fn new(factory: F) -> ExprTreeBuilder<F> {
+        ExprTreeBuilder(factory)
+    }
+}
+
+impl<F> ExprTreeBuilder<F>
+    where F: ExprTreeFactory
+{
     /// Returns the factory of this expression tree builder.
     #[inline]
     fn factory(self) -> F {
