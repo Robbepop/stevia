@@ -156,6 +156,23 @@ pub trait ExprTreeFactory {
     /// Creates a new unary bitvector zero-extension expression for the given child expression
     /// to the given bit width bits.
     fn bitvec_zext(self, target_width: BitWidth, inner: AnyExpr) -> Result<AnyExpr>;
+
+    /// Creates a new binary signed greater-than-or-equals expression with the given child expressions.
+    fn bitvec_sge(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary signed greater-than expression with the given child expressions.
+    fn bitvec_sgt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary signed less-than-or-equals expression with the given child expressions.
+    fn bitvec_sle(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary signed less-than expression with the given child expressions.
+    fn bitvec_slt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary unsigned greater-than-or-equals expression with the given child expressions.
+    fn bitvec_uge(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary unsigned greater-than expression with the given child expressions.
+    fn bitvec_ugt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary unsigned less-than-or-equals expression with the given child expressions.
+    fn bitvec_ule(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary unsigned less-than expression with the given child expressions.
+    fn bitvec_ult(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -556,5 +573,74 @@ impl<F> ExprTreeBuilder<F>
     {
         let inner = inner.into_any_expr_or_error()?;
         self.factory().bitvec_zext(target_width, inner)
+    }
+}
+
+/// Comparison bitvector expressions that can be created by this builder.
+impl<F> ExprTreeBuilder<F>
+    where F: ExprTreeFactory
+{
+    /// Creates a new binary signed greater-than-or-equals expression with the given child expressions.
+    pub fn bitvec_sge<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_sge, lhs, rhs)
+    }
+
+    /// Creates a new binary signed greater-than expression with the given child expressions.
+    pub fn bitvec_sgt<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_sgt, lhs, rhs)
+    }
+
+    /// Creates a new binary signed less-than-or-equals expression with the given child expressions.
+    pub fn bitvec_sle<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_sle, lhs, rhs)
+    }
+
+    /// Creates a new binary signed less-than expression with the given child expressions.
+    pub fn bitvec_slt<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_slt, lhs, rhs)
+    }
+
+    /// Creates a new binary unsigned greater-than-or-equals expression with the given child expressions.
+    pub fn bitvec_uge<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_uge, lhs, rhs)
+    }
+
+    /// Creates a new binary unsigned greater-than expression with the given child expressions.
+    pub fn bitvec_ugt<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_ugt, lhs, rhs)
+    }
+
+    /// Creates a new binary unsigned less-than-or-equals expression with the given child expressions.
+    pub fn bitvec_ule<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_ule, lhs, rhs)
+    }
+
+    /// Creates a new binary unsigned less-than expression with the given child expressions.
+    pub fn bitvec_ult<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_ult, lhs, rhs)
     }
 }
