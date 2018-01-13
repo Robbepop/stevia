@@ -36,8 +36,12 @@ impl Concat {
     pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Concat, String> {
         let lhs_bvty = checks::expect_bitvec_ty(&lhs)?;
         let rhs_bvty = checks::expect_bitvec_ty(&rhs)?;
-        let concat_bvty = BitvecTy::from(lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
-        Ok(Concat{ bitvec_ty: concat_bvty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+        let concat_bvty = BitvecTy::from(
+            lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
+        Ok(Concat{
+            bitvec_ty: concat_bvty,
+            childs: BinExprChilds::new_boxed(lhs, rhs)
+        })
     }
 }
 
