@@ -127,57 +127,65 @@ impl<'it> Iterator for RecursiveChildsIter<'it> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ast2::factory::prelude::*;
 
     #[test]
     fn simple() {
         fn create_ast() -> Result<AnyExpr, String> {
-            use ast2::expr::{Or, And, Xor, BoolConst};
-            Ok(AnyExpr::from(Or::binary(
-                AnyExpr::from(And::binary(
-                    AnyExpr::from(BoolConst::t()),
-                    AnyExpr::from(BoolConst::f())
-                )?),
-                AnyExpr::from(Xor::new(
-                    AnyExpr::from(BoolConst::f()),
-                    AnyExpr::from(BoolConst::t())
-                )?)
-            )?))
+            let b = PlainExprTreeBuilder::default();
+            b.or(
+                b.and(
+                    b.bool_const(true),
+                    b.bool_const(false)
+                ),
+                b.xor(
+                    b.bool_const(false),
+                    b.bool_const(true)
+                )
+            )
         }
 
-        use ast2::expr::{And, Xor, BoolConst};
-
+        let b = PlainExprTreeBuilder::default();
         let expr = create_ast().unwrap();
         let mut rec_iter = childs_recursive_with_event(&expr);
 
         assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&create_ast().unwrap())));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&
-            AnyExpr::from(And::binary(
-                AnyExpr::from(BoolConst::t()),
-                AnyExpr::from(BoolConst::f())
-            ).unwrap()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&AnyExpr::from(BoolConst::t()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&AnyExpr::from(BoolConst::t()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&AnyExpr::from(BoolConst::f()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&AnyExpr::from(BoolConst::f()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&
-            AnyExpr::from(And::binary(
-                AnyExpr::from(BoolConst::t()),
-                AnyExpr::from(BoolConst::f())
-            ).unwrap()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&
-            AnyExpr::from(Xor::new(
-                AnyExpr::from(BoolConst::f()),
-                AnyExpr::from(BoolConst::t())
-            ).unwrap()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&AnyExpr::from(BoolConst::f()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&AnyExpr::from(BoolConst::f()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&AnyExpr::from(BoolConst::t()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&AnyExpr::from(BoolConst::t()))));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&
-            AnyExpr::from(Xor::new(
-                AnyExpr::from(BoolConst::f()),
-                AnyExpr::from(BoolConst::t())
-            ).unwrap()))));
+        assert_eq!(rec_iter.next(),
+            Some(AnyExprAndEvent::entering(&
+                b.and(
+                    b.bool_const(true),
+                    b.bool_const(false)
+                ).unwrap()
+            )));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&b.bool_const(true).unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&b.bool_const(true).unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&b.bool_const(false).unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&b.bool_const(false).unwrap())));
+        assert_eq!(rec_iter.next(),
+            Some(AnyExprAndEvent::leaving(&
+                b.and(
+                    b.bool_const(true),
+                    b.bool_const(false)
+                ).unwrap()
+            )));
+        assert_eq!(rec_iter.next(),
+            Some(AnyExprAndEvent::entering(&
+                b.xor(
+                    b.bool_const(false),
+                    b.bool_const(true)
+                ).unwrap()
+            )));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&b.bool_const(false).unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&b.bool_const(false).unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&b.bool_const(true).unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&b.bool_const(true).unwrap())));
+        assert_eq!(rec_iter.next(), 
+            Some(AnyExprAndEvent::leaving(&
+                b.xor(
+                    b.bool_const(false),
+                    b.bool_const(true)
+                ).unwrap()
+            )));
         assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&create_ast().unwrap())));
         assert_eq!(rec_iter.next(), None);
     }
