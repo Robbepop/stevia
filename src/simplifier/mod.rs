@@ -1,4 +1,5 @@
 mod base;
+mod simplifier;
 
 pub mod prelude {
     pub use super::{
@@ -7,7 +8,9 @@ pub mod prelude {
         AnyTransformer,
         AnyExprAndTransformResult,
         BaseTransformer,
+        Simplifier
     };
 }
 
 pub use self::base::prelude::*;
+pub use self::simplifier::prelude::*;
