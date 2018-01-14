@@ -20,7 +20,7 @@ pub struct BitXor {
 }
 
 impl BitXor {
-    /// Returns a new `BitXor` (bitwise-xor) term expression with the
+    /// Returns a new `BitXor` (bitwise xor) term expression with the
     /// given child term expressions.
     /// 
     /// # Errors
@@ -31,6 +31,21 @@ impl BitXor {
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(BitXor{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    }
+
+    /// Returns a new binary `BitXor` (bitwise xor) expression for the
+    /// given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<BitXor, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(BitXor{ bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
 }
 

@@ -35,6 +35,20 @@ impl BitAnd {
         Ok(BitAnd{ bitvec_ty, childs: vec![lhs, rhs] })
     }
 
+    /// Returns a new binary `BitAnd` expression for the given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn binary_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<BitAnd, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(BitAnd{ bitvec_ty: common_ty, childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new n-ary BitAnd term expression for all of the child
     /// expressions yielded by the given iterator and with the given bit width.
     /// 
