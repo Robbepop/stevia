@@ -57,7 +57,7 @@ pub fn expect_common_array_ty<L, R>(lhs: &L, rhs: &R) -> Result<ArrayTy, String>
           R: HasType
 {
     let lhs_arrty = expect_array_ty(lhs)?;
-    let rhs_arrty = expect_array_ty(lhs)?;
+    let rhs_arrty = expect_array_ty(rhs)?;
     if lhs_arrty != rhs_arrty {
         return Err(format!("Expected equal array types for {:?} and {:?}.",
             lhs_arrty, rhs_arrty))
@@ -108,7 +108,7 @@ pub fn expect_common_bitvec_ty<L, R>(lhs: &L, rhs: &R) -> Result<BitvecTy, Strin
           R: HasType
 {
     let lhs_bvty = expect_bitvec_ty(lhs)?;
-    let rhs_bvty = expect_bitvec_ty(lhs)?;
+    let rhs_bvty = expect_bitvec_ty(rhs)?;
     if lhs_bvty != rhs_bvty {
         return Err(format!("Expected equal bitvector types for {:?} and {:?}.",
             lhs_bvty, rhs_bvty))
