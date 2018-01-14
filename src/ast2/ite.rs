@@ -3,7 +3,8 @@ use ast2::prelude::*;
 /// Exports all commonly used items of this module.
 pub mod prelude {
     pub use super::{
-        IfThenElse
+        IfThenElse,
+        IfThenElseChilds
     };
 }
 

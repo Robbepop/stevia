@@ -26,6 +26,9 @@ pub use self::ty::{
 pub use self::binexpr_childs::{
     BinExprChilds
 };
+pub use self::ite::{
+    IfThenElseChilds
+};
 pub use self::child_iters::{
     ChildsIter,
     ChildsIterMut,
