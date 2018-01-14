@@ -4,7 +4,9 @@ pub mod prelude {
     pub use super::{
         TransformResult,
         Transformer,
-        AnyExprAndTransformResult
+        AnyTransformer,
+        AnyExprAndTransformResult,
+        BaseTransformer,
     };
 }
 

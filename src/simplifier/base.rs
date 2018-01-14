@@ -8,6 +8,7 @@ pub mod prelude {
         BaseTransformer,
         Transformer,
         TransformResult,
+        AnyTransformer,
         AnyExprAndTransformResult
     };
 }
@@ -105,7 +106,7 @@ impl Default for NoopTransformer {
 }
 
 /// Expression transformers that may transform `AnyExpr` instances.
-trait AnyTransformer: Copy {
+pub trait AnyTransformer: Copy {
     /// Transforms the given mutable `AnyExpr` inplace.
     /// 
     /// Returns a state indicating whether the given expression was actually transformed.
