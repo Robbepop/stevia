@@ -40,6 +40,20 @@ impl ArrayEquals {
         Ok(ArrayEquals{ childs_ty: array_ty, childs: vec![lhs, rhs] })
     }
 
+    /// Returns a new binary `ArrayEquals` expression for the given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn binary_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<ArrayEquals, String> {
+        let common_ty = checks::expect_common_array_ty(&lhs, &rhs)?;
+        Ok(ArrayEquals{ childs_ty: common_ty, childs: vec![lhs, rhs] })
+    }
+
     /// Creates a new n-ary `ArrayEquals` expression from the given iterator over expressions.
     /// 
     /// # Errors
