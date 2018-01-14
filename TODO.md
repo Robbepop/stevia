@@ -3,7 +3,6 @@
 ## AST
 
 - Improve doc-comments of some expressions. E.g. remove the ` ticks.
-- (Maybe) add `*_infer` constructors to bitvec expressions to infer their bit width.
 - Reduce code bloat by introducing further code-gen macros.
 - Add proper error management to the AST module. Maybe use failure?
 
