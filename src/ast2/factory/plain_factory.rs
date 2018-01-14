@@ -85,8 +85,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Xor::new(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn array_equals(self, _lhs: AnyExpr, _rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+    fn array_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
+		expr::ArrayEquals::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn array_equals_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
@@ -160,74 +160,74 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 	}
 
     fn bitvec_not(self, inner: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::BitNot::new_infer(inner).map(AnyExpr::from)
 	}
 
     fn bitvec_and(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::BitAnd::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+    fn bitvec_and_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
 		unimplemented!()
 	}
 
     fn bitvec_or(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::BitOr::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+    fn bitvec_or_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
 		unimplemented!()
 	}
 
     fn bitvec_xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::BitXor::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_concat(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::Concat::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_extract_hi_lo(self, hi: usize, lo: usize, inner: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+        expr::Extract::new(inner, hi, lo).map(AnyExpr::from)
 	}
 
     fn bitvec_sext(self, target_width: BitWidth, inner: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignExtend::new(target_width, inner).map(AnyExpr::from)
 	}
 
     fn bitvec_zext(self, target_width: BitWidth, inner: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::ZeroExtend::new(target_width, inner).map(AnyExpr::from)
 	}
 
     fn bitvec_sge(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedGreaterEquals::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_sgt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedGreaterThan::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_sle(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedLessEquals::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_slt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::SignedLessThan::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_uge(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::UnsignedGreaterEquals::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_ugt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::UnsignedGreaterThan::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_ule(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::UnsignedLessEquals::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_ult(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+		expr::UnsignedLessThan::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
 }
