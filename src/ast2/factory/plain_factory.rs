@@ -230,4 +230,16 @@ impl ExprTreeFactory for PlainExprTreeFactory {
     fn bitvec_ult(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
 		expr::UnsignedLessThan::new_infer(lhs, rhs).map(AnyExpr::from)
 	}
+
+	fn bitvec_ashr(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
+		expr::ArithmeticShiftRight::new_infer(lhs, rhs).map(AnyExpr::from)
+	}
+
+	fn bitvec_lshr(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
+		expr::LogicalShiftRight::new_infer(lhs, rhs).map(AnyExpr::from)
+	}
+
+	fn bitvec_shl(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
+		expr::ShiftLeft::new_infer(lhs, rhs).map(AnyExpr::from)
+	}
 }

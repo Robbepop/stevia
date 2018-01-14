@@ -177,6 +177,13 @@ pub trait ExprTreeFactory {
     fn bitvec_ule(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new binary unsigned less-than expression with the given child expressions.
     fn bitvec_ult(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+
+    /// Creates a new binary arithmetical right-shift expression with the given child expressions.
+    fn bitvec_ashr(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary logical right-shift expression with the given child expressions.
+    fn bitvec_lshr(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new binary left-shift expression with the given child expressions.
+    fn bitvec_shl(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
 }
 
 /// Interface for expression tree creation.
@@ -658,5 +665,34 @@ impl<F> ExprTreeBuilder<F>
               R: IntoAnyExprOrError
     {
         self.create_binary_expr(F::bitvec_ult, lhs, rhs)
+    }
+}
+
+/// Shift bitvector expressions that can be created by this builder.
+impl<F> ExprTreeBuilder<F>
+    where F: ExprTreeFactory
+{
+    /// Creates a new binary arithmetical right-shift expression with the given child expressions.
+    pub fn bitvec_ashr<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_ashr, lhs, rhs)
+    }
+
+    /// Creates a new binary logical right-shift expression with the given child expressions.
+    pub fn bitvec_lshr<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_lshr, lhs, rhs)
+    }
+
+    /// Creates a new binary left-shift expression with the given child expressions.
+    pub fn bitvec_shl<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_shl, lhs, rhs)
     }
 }
