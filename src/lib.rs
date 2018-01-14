@@ -19,3 +19,4 @@ pub mod ast;
 
 /// The new and shiny experimental future AST (Abstract Syntax Tree) module.
 pub mod ast2;
+pub mod simplifier;
