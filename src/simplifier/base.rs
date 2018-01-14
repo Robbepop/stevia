@@ -5,6 +5,7 @@ use std::ops::BitOrAssign;
 
 pub mod prelude {
     pub use super::{
+        BaseTransformer,
         Transformer,
         TransformResult,
         AnyExprAndTransformResult
@@ -22,6 +23,11 @@ pub enum TransformResult {
 }
 
 impl BitOrAssign for TransformResult {
+    /// Assigns this `TransformResult` to `rhs`.
+    /// 
+    /// This works equivalent to boolean or-assign
+    /// where `Identity` is equal to `false` and
+    /// `Transformed` is equal to `true`.
     fn bitor_assign(&mut self, rhs: TransformResult) {
         match rhs {
             TransformResult::Transformed => *self = rhs,
@@ -30,17 +36,23 @@ impl BitOrAssign for TransformResult {
     }
 }
 
+/// Simple struct to store a transformed expression
+/// and a state indicating if it was actually transformed.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct AnyExprAndTransformResult {
+    /// States if `expr` actually got transformed.
     pub result: TransformResult,
+    /// The (probably) transformed expression.
     pub expr: AnyExpr
 }
 
 impl AnyExprAndTransformResult {
+    /// Creates a new `AnyExprAndTransformResult` with the given expression and state.
     pub fn new(result: TransformResult, expr: AnyExpr) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult{expr, result}
     }
 
+    /// Creates a new non-transformed `AnyExprAndTransformResult` for the given expression.
     pub fn identity<E>(expr: E) -> AnyExprAndTransformResult
         where E: Into<AnyExpr>
     {
@@ -52,6 +64,7 @@ pub trait Transformer: Copy {
     fn transform_cond(self, cond: expr::IfThenElse) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(cond)
     }
+
     fn transform_var(self, bool_const: expr::Symbol) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bool_const)
     }
@@ -77,68 +90,37 @@ pub trait Transformer: Copy {
     }
 }
 
-// #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-// struct NoopTransformer;
-// impl Transformer for NoopTransformer {}
-// impl AutoImplAnyTransformer for NoopTransformer {}
-// impl Default for NoopTransformer {
-//     fn default() -> Self {
-//         NoopTransformer
-//     }
-// }
+/// Simple transformer that does nothing.
+/// 
+/// This is useful for testing as long as there are no other
+/// real transformers to test the system.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NoopTransformer;
+impl Transformer for NoopTransformer {}
+impl AutoImplAnyTransformer for NoopTransformer {}
+impl Default for NoopTransformer {
+    fn default() -> Self {
+        NoopTransformer
+    }
+}
 
-// #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-// pub struct PrintingTransformer(char);
-
-// impl Transformer for PrintingTransformer {
-//     fn transform_cond(self, cond: expr::IfThenElse) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - IfThenElse", self.0);
-//         AnyExprAndTransformResult::identity(cond)
-//     }
-//     fn transform_var(self, symbol: expr::Symbol) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - Symbol: {:?}", self.0, symbol.name);
-//         AnyExprAndTransformResult::identity(symbol)
-//     }
-
-//     fn transform_bool_const(self, bool_const: expr::BoolConst) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - BoolConst: {:?}", self.0, bool_const.val);
-//         AnyExprAndTransformResult::identity(bool_const)
-//     }
-
-//     fn transform_bool_equals(self, bool_equals: expr::BoolEquals) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - BoolEquals", self.0);
-//         AnyExprAndTransformResult::identity(bool_equals)
-//     }
-
-//     fn transform_and(self, and: expr::And) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - And", self.0);
-//         AnyExprAndTransformResult::identity(and)
-//     }
-
-//     fn transform_or(self, or: expr::Or) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - Or", self.0);
-//         AnyExprAndTransformResult::identity(or)
-//     }
-
-//     fn transform_not(self, not: expr::Not) -> AnyExprAndTransformResult {
-//         println!("PrintingTransformer({:?}) - Not", self.0);
-//         AnyExprAndTransformResult::identity(not)
-//     }
-// }
-
-// impl AutoImplAnyTransformer for PrintingTransformer {}
-// impl PrintingTransformer {
-//     fn new(ch: char) -> Self {
-//         PrintingTransformer(ch)
-//     }
-// }
-
+/// Expression transformers that may transform `AnyExpr` instances.
 trait AnyTransformer: Copy {
+    /// Transforms the given mutable `AnyExpr` inplace.
+    /// 
+    /// Returns a state indicating whether the given expression was actually transformed.
     fn transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult;
+
+    /// Consumed the given `AnyExpr` and transforms it.
+    /// 
+    /// Returns the resulting expression after the transformation and a state
+    /// indicating whether the consumed expression was actually transformed.
     fn into_transform_any_expr(self, expr: AnyExpr) -> AnyExprAndTransformResult;
 }
 
-trait AutoImplAnyTransformer {}
+/// Implement this to activate automatic default implementation
+/// of the `AnyTransformer` trait.
+pub trait AutoImplAnyTransformer {}
 
 impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
     fn transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
@@ -165,60 +147,12 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
     }
 }
 
-// #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-// struct TransformerTraverser<T1, T2>
-//     where T1: AnyTransformer,
-//           T2: AnyTransformer
-// {
-//     fst: T1,
-//     snd: T2
-// }
-
-// impl<T1, T2> TransformerTraverser<T1, T2>
-//     where T1: AnyTransformer,
-//           T2: AnyTransformer
-// {
-//     pub fn new(fst: T1, snd: T2) -> Self {
-//         TransformerTraverser{fst, snd}
-//     }
-
-//     fn forward_transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
-//         let mut result = TransformResult::Identity;
-//         result |= self.fst.transform_any_expr(expr);
-//         result |= self.snd.transform_any_expr(expr);
-//         result
-//     }
-
-//     pub fn traverse_transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
-//         let mut result = TransformResult::Identity;
-//         for child in expr.childs_mut() {
-//             result |= self.traverse_transform_any_expr(child);
-//         }
-//         result |= self.forward_transform_any_expr(expr);
-//         result
-//     }
-// }
-
-// impl<T1, T2> AnyTransformer for TransformerTraverser<T1, T2>
-//     where T1: AnyTransformer,
-//           T2: AnyTransformer
-// {
-//     fn transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
-//         self.traverse_transform_any_expr(expr)
-//     }
-
-//     fn into_transform_any_expr(self, expr: AnyExpr) -> AnyExprAndTransformResult {
-//         let mut expr = expr;
-//         let result = self.transform_any_expr(&mut expr);
-//         AnyExprAndTransformResult::new(result, expr)
-//     }
-// }
-
-
-
-
 macro_rules! create_base_transformer {
-    (struct $name:ident; $(($id:ident, $trans:ty)),*) => {
+    (struct $name:ident; $(($id:ident, $trans:ty)),+) => {
+        /// The base transformer including a collection of sub-transformers.
+        /// 
+        /// This traverses the expression tree and performs transformations
+        /// using all given transformers.
         #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
         pub struct $name {
             $($id: $trans),*
@@ -264,45 +198,5 @@ macro_rules! create_base_transformer {
 create_base_transformer!{
     struct BaseTransformer;
 
-//     (_0, PrintingTransformer),
-//     (_1, PrintingTransformer),
-//     (_2, PrintingTransformer),
-//     (_3, PrintingTransformer)
+    (_0, NoopTransformer)
 }
-
-
-
-
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-
-//     #[test]
-//     fn simple() {
-//         let transformer = BaseTransformer::new(
-//             PrintingTransformer::new('A'),
-//             PrintingTransformer::new('B'),
-//             PrintingTransformer::new('C'),
-//             PrintingTransformer::new('D')
-//         );
-//         let b = PlainExprTreeBuilder::default();
-//         let mut expr = b.cond(
-//             b.not(
-//                 b.bool_equals(
-//                     b.bool_var("x"),
-//                     b.bool_var("y")
-//                 )
-//             ),
-//             b.and(
-//                 b.bool_const(true),
-//                 b.bool_var("a")
-//             ),
-//             b.or(
-//                 b.bool_const(false),
-//                 b.bool_var("b")
-//             )
-//         ).unwrap();
-//         transformer.transform_any_expr(&mut expr);
-//     }
-// }
