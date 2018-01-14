@@ -106,6 +106,10 @@ pub trait ExprTreeFactory {
     /// expression at index child expression and write value child expression.
     fn array_write(self, array: AnyExpr, index: AnyExpr, value: AnyExpr) -> Result<AnyExpr>;
 
+    /// Creates a new binary bitvec equality expression with the given child expressions.
+    fn bitvec_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
+    /// Creates a new n-ary bitvec equality expression with the given child expressions.
+    fn bitvec_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new bitvec constant with the given type and value.
     fn bitvec_const<V>(self, ty: BitvecTy, value: V) -> Result<AnyExpr>
         where V: Into<expr::BitvecConst>;

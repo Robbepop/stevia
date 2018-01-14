@@ -101,6 +101,14 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		unimplemented!()
 	}
 
+    fn bitvec_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
+		expr::BitvecEquals::binary_infer(lhs, rhs).map(AnyExpr::from)
+    }
+
+    fn bitvec_equals_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+        unimplemented!()
+    }
+
     fn bitvec_const<V>(self, _ty: BitvecTy, _value: V) -> Result<AnyExpr>
         where V: Into<expr::BitvecConst>
     {
