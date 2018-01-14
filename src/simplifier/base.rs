@@ -319,8 +319,6 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
             ArithmeticShiftRight(expr) => self.transform_ashr(expr),
             LogicalShiftRight(expr) => self.transform_lshr(expr),
             ShiftLeft(expr) => self.transform_shl(expr)
-
-            _ => unimplemented!()
         }
     }
 }
