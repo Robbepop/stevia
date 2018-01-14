@@ -36,6 +36,20 @@ impl SignedGreaterThan {
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(SignedGreaterThan{ childs_bitvec_ty: bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
+
+    /// Returns a new binary `SignedGreaterThan` expression for the given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedGreaterThan, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(SignedGreaterThan{ childs_bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    }
 }
 
 impl_traits_for_binary_comparison_expr!(SignedGreaterThan);

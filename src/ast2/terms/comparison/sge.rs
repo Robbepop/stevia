@@ -41,6 +41,21 @@ impl SignedGreaterEquals {
             childs: BinExprChilds::new_boxed(lhs, rhs),
         })
     }
+
+    /// Returns a new binary `SignedGreaterEquals` expression for the given two child expressions.
+    /// 
+    /// # Note
+    /// 
+    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// 
+    /// # Errors
+    /// 
+    /// - If `lhs` or `rhs` do not share a common bitvec type.
+    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedGreaterEquals, String> {
+        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        Ok(SignedGreaterEquals{ childs_bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+    }
+
 }
 
 impl_traits_for_binary_comparison_expr!(SignedGreaterEquals);
