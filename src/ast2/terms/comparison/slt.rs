@@ -50,6 +50,13 @@ impl SignedLessThan {
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(SignedLessThan{ childs_bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
+
+    /// Creates a new `SignedLessThan` expression from the given raw parts.
+    /// 
+    /// This construction is unsafe since it does not type-check its arguments.
+    pub unsafe fn from_raw_parts(bitvec_ty: BitvecTy, childs: P<BinExprChilds>) -> SignedLessThan {
+        SignedLessThan{childs_bitvec_ty: bitvec_ty, childs}
+    }
 }
 
 impl_traits_for_binary_comparison_expr!(SignedLessThan);
