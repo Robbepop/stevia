@@ -19,4 +19,8 @@ pub mod ast;
 
 /// The new and shiny experimental future AST (Abstract Syntax Tree) module.
 pub mod ast2;
-pub mod simplifier;
+mod simplifier;
+
+pub use simplifier::prelude::{
+    Simplifier
+};
