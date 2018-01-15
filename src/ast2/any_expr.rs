@@ -24,12 +24,14 @@ impl IntoBoxedAnyExpr for Box<AnyExpr> {
     }
 }
 
-impl IntoBoxedAnyExpr for AnyExpr {
-    /// Puts `T` into a box.
+impl<T> IntoBoxedAnyExpr for T
+    where T: Into<AnyExpr>
+{
+    /// Converts `T` into the respective `AnyExpr` and puts it into a box.
     /// 
     /// This is the "expensive" static case.
     fn into_boxed_any_expr(self) -> Box<AnyExpr> {
-        Box::new(self)
+        Box::new(self.into())
     }
 }
 
