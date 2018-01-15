@@ -33,6 +33,8 @@ impl Xor {
     }
 }
 
+impl BoolExpr for Xor {}
+
 impl Childs for Xor {
     fn childs(&self) -> ChildsIter {
         self.childs.childs()

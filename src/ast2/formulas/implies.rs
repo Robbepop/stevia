@@ -29,6 +29,8 @@ impl Implies {
     }
 }
 
+impl BoolExpr for Implies {}
+
 impl Childs for Implies {
     fn childs(&self) -> ChildsIter {
         self.childs.childs()

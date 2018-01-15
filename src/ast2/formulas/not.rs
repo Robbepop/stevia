@@ -43,6 +43,8 @@ impl Not {
     }
 }
 
+impl BoolExpr for Not {}
+
 impl Childs for Not {
     fn childs(&self) -> ChildsIter {
         ChildsIter::unary(&self.child)

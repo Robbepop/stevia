@@ -52,6 +52,8 @@ impl BoolEquals {
     }
 }
 
+impl BoolExpr for BoolEquals {}
+
 impl Childs for BoolEquals {
     fn childs(&self) -> ChildsIter {
         ChildsIter::nary(&self.childs)

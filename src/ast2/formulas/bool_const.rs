@@ -37,6 +37,8 @@ impl BoolConst {
     }
 }
 
+impl BoolExpr for BoolConst {}
+
 impl Childs for BoolConst {
     fn childs(&self) -> ChildsIter {
         ChildsIter::none()

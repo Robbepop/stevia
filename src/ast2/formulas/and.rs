@@ -48,6 +48,8 @@ impl And {
     }
 }
 
+impl BoolExpr for And {}
+
 impl Childs for And {
     fn childs(&self) -> ChildsIter {
         ChildsIter::nary(&self.childs)

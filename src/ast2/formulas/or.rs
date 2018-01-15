@@ -46,6 +46,8 @@ impl Or {
     }
 }
 
+impl BoolExpr for Or {}
+
 impl Childs for Or {
     fn childs(&self) -> ChildsIter {
         ChildsIter::nary(&self.childs)
