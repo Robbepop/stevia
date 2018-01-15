@@ -55,7 +55,6 @@ impl SignedGreaterEquals {
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(SignedGreaterEquals{ childs_bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }
-
 }
 
 impl_traits_for_binary_comparison_expr!(SignedGreaterEquals);
