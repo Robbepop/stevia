@@ -9,6 +9,7 @@ mod formulas;
 mod terms;
 mod ite;
 mod symbol;
+mod bool_expr;
 
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
@@ -62,6 +63,10 @@ pub use self::expr_kind::{
     ExprKind,
     HasKind,
     HasPriority
+};
+pub use self::bool_expr::{
+    BoolExpr,
+    WrapWithNot
 };
 pub use self::arity::{
     HasArity
