@@ -238,20 +238,6 @@ pub trait Transformer: Copy {
     }
 }
 
-/// Simple transformer that does nothing.
-/// 
-/// This is useful for testing as long as there are no other
-/// real transformers to test the system.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct NoopTransformer;
-impl Transformer for NoopTransformer {}
-impl AutoImplAnyTransformer for NoopTransformer {}
-impl Default for NoopTransformer {
-    fn default() -> Self {
-        NoopTransformer
-    }
-}
-
 /// Expression transformers that may transform `AnyExpr` instances.
 pub trait AnyTransformer: Copy {
     /// Transforms the given mutable `AnyExpr` inplace.
