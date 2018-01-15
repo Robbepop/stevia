@@ -342,12 +342,6 @@ macro_rules! create_base_transformer {
         }
 
         impl $name {
-            pub fn new($($id: $trans),*) -> Self {
-                $name{
-                    $($id),*
-                }
-            }
-
             fn forward_transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
                 let mut result = TransformResult::Identity;
                 $(result |= self.$id.transform_any_expr(expr));*;
