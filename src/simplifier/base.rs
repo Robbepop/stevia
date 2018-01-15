@@ -59,6 +59,13 @@ impl AnyExprAndTransformResult {
     {
         AnyExprAndTransformResult::new(TransformResult::Identity, expr.into())
     }
+
+    /// Creates a new transformed `AnyExprAndTransformResult` for the given expression.
+    pub fn transformed<E>(expr: E) -> AnyExprAndTransformResult
+        where E: Into<AnyExpr>
+    {
+        AnyExprAndTransformResult::new(TransformResult::Transformed, expr.into())
+    }
 }
 
 pub trait Transformer: Copy {
