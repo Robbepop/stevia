@@ -1,5 +1,7 @@
+#[macro_use]
 mod base;
 mod simplifier;
+mod simplifications;
 
 pub mod prelude {
     pub use super::{
@@ -7,6 +9,7 @@ pub mod prelude {
         Transformer,
         AnyTransformer,
         AnyExprAndTransformResult,
+        AutoImplAnyTransformer,
         BaseTransformer,
         Simplifier
     };
