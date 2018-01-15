@@ -12,6 +12,11 @@ pub mod prelude {
 /// This automatically implements methods on them that are safe for boolean expressions.
 pub trait BoolExpr {}
 
+/// Expressions that can be safely wrapped with a `Not` expression.
+/// 
+/// # Note
+/// 
+/// This trait is automatically implemented for all types that implement `BoolExpr`.
 pub trait WrapWithNot {
     /// Wraps the given boolean expression with a not-expression.
     /// 
