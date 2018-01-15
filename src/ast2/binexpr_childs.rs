@@ -30,6 +30,19 @@ impl BinExprChilds {
     pub fn new_boxed(lhs: AnyExpr, rhs: AnyExpr) -> P<BinExprChilds> {
         P::new(BinExprChilds::new(lhs, rhs))
     }
+
+    /// Swaps its left-hand side child with the right-hand side child.
+    pub fn swap_childs(&mut self) {
+        use std::mem;
+        mem::swap(&mut self.lhs, &mut self.rhs)
+    }
+
+    /// Consumed `self`, swaps its childs and returns the result back.
+    pub fn into_swap_childs(self) -> BinExprChilds {
+        let mut this = self;
+        this.swap_childs();
+        this
+    }
 }
 
 impl Childs for BinExprChilds {
