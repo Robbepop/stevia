@@ -14,3 +14,9 @@ pub mod prelude {
 
 pub use self::base::prelude::*;
 pub use self::simplifier::prelude::*;
+
+create_base_transformer!{
+    struct BaseTransformer;
+
+    (_0, simplifications::InvolutionSimplifier)
+}

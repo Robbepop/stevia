@@ -5,11 +5,11 @@ use std::ops::BitOrAssign;
 
 pub mod prelude {
     pub use super::{
-        BaseTransformer,
         Transformer,
         TransformResult,
         AnyTransformer,
-        AnyExprAndTransformResult
+        AnyExprAndTransformResult,
+        AutoImplAnyTransformer
     };
 }
 
@@ -330,6 +330,7 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
     }
 }
 
+#[macro_export]
 macro_rules! create_base_transformer {
     (struct $name:ident; $(($id:ident, $trans:ty)),+) => {
         /// The base transformer including a collection of sub-transformers.
@@ -376,10 +377,4 @@ macro_rules! create_base_transformer {
             }
         }
     }
-}
-
-create_base_transformer!{
-    struct BaseTransformer;
-
-    (_0, NoopTransformer)
 }
