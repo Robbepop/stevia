@@ -30,6 +30,17 @@ impl Not {
         }
         Ok(Not{child})
     }
+
+    /// Creates a new `Not` formula expression for the given child expression.
+    /// 
+    /// # Unsafe
+    /// 
+    /// This is unsafe since it does not type-check its argument.
+    pub unsafe fn new_unchecked<E>(child: E) -> Not
+        where E: IntoBoxedAnyExpr
+    {
+        Not{child: child.into_boxed_any_expr()}
+    }
 }
 
 impl Childs for Not {
