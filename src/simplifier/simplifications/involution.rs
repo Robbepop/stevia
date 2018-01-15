@@ -7,6 +7,13 @@ pub mod prelude {
     };
 }
 
+/// Resolves double negations into their equivalent forms without negation.
+/// 
+/// # Example
+/// 
+/// - `not(not(a))` is simplified to `a`
+/// - `neg(neg(x))` is simplified to `x`
+/// - `bitvec_not(bitvec_not(x))` is simplified to `x`
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct InvolutionSimplifier;
 
