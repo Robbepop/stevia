@@ -16,6 +16,8 @@
 /// have a field `childs` of type `BinExprChilds`.
 macro_rules! impl_traits_for_binary_comparison_expr {
     ($name:ident) => {
+        impl BoolExpr for $name {}
+
         impl Childs for $name {
             fn childs(&self) -> ChildsIter {
                 self.childs.childs()
