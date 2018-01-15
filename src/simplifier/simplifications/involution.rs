@@ -9,7 +9,7 @@ pub mod prelude {
 
 /// Resolves double negations into their equivalent forms without negation.
 /// 
-/// # Example
+/// # Examples
 /// 
 /// - `not(not(a))` is simplified to `a`
 /// - `neg(neg(x))` is simplified to `x`
