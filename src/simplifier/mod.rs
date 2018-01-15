@@ -23,13 +23,15 @@ use ast2::prelude::*;
 create_base_transformer!{
     struct BaseTransformer;
 
-    (_0, simplifications::InvolutionSimplifier)
+    (_0, simplifications::InvolutionSimplifier),
+    (_1, simplifications::ComparisonReducer)
 }
 
 impl Default for BaseTransformer {
     fn default() -> BaseTransformer {
         BaseTransformer{
-            _0: simplifications::InvolutionSimplifier
+            _0: simplifications::InvolutionSimplifier,
+            _1: simplifications::ComparisonReducer
         }
     }
 }
