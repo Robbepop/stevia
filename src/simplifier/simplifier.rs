@@ -14,6 +14,14 @@ pub struct Simplifier {
     transformer: BaseTransformer
 }
 
+impl Default for Simplifier {
+    fn default() -> Simplifier {
+        Simplifier{
+            transformer: BaseTransformer::default()
+        }
+    }
+}
+
 impl Simplifier {
     /// Simplifies the given expression for a single step.
     pub fn simplify(self, expr: &mut AnyExpr) -> TransformResult {
