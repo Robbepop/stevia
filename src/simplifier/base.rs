@@ -330,7 +330,6 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
     }
 }
 
-#[macro_export]
 macro_rules! create_base_transformer {
     (struct $name:ident; $(($id:ident, $trans:ty)),+) => {
         /// The base transformer including a collection of sub-transformers.
