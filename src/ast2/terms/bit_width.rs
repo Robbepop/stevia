@@ -12,6 +12,32 @@ pub mod prelude {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BitWidth(apint::BitWidth);
 
+impl BitWidth {
+	/// Returns a `BitWidth` with a bit width of 1 bit.
+	pub fn w1() -> BitWidth {
+		BitWidth(apint::BitWidth::w1())
+	}
+	/// Returns a `BitWidth` with a bit width of 8 bit.
+	pub fn w8() -> BitWidth {
+		BitWidth(apint::BitWidth::w8())
+	}
+
+	/// Returns a `BitWidth` with a bit width of 16 bit.
+	pub fn w16() -> BitWidth {
+		BitWidth(apint::BitWidth::w16())
+	}
+
+	/// Returns a `BitWidth` with a bit width of 32 bit.
+	pub fn w32() -> BitWidth {
+		BitWidth(apint::BitWidth::w32())
+	}
+
+	/// Returns a `BitWidth` with a bit width of 64 bit.
+	pub fn w64() -> BitWidth {
+		BitWidth(apint::BitWidth::w64())
+	}
+}
+
 impl From<usize> for BitWidth {
     /// Converts the `usize` to a `BitWidth`.
     /// 

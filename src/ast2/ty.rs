@@ -134,6 +134,32 @@ impl From<ArrayTy> for Type {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct BitvecTy(BitWidth);
 
+impl BitvecTy {
+	/// Returns a `BitvecTy` representing bitvector with a bit width of 1 bit.
+	pub fn w1() -> BitvecTy {
+		BitvecTy(BitWidth::w1())
+	}
+	/// Returns a `BitvecTy` representing bitvector with a bit width of 8 bit.
+	pub fn w8() -> BitvecTy {
+		BitvecTy(BitWidth::w8())
+	}
+
+	/// Returns a `BitvecTy` representing bitvector with a bit width of 16 bit.
+	pub fn w16() -> BitvecTy {
+		BitvecTy(BitWidth::w16())
+	}
+
+	/// Returns a `BitvecTy` representing bitvector with a bit width of 32 bit.
+	pub fn w32() -> BitvecTy {
+		BitvecTy(BitWidth::w32())
+	}
+
+	/// Returns a `BitvecTy` representing bitvector with a bit width of 64 bit.
+	pub fn w64() -> BitvecTy {
+		BitvecTy(BitWidth::w64())
+	}
+}
+
 impl From<usize> for BitvecTy {
     /// Converts the `usize` to a `BitvecTy`.
     /// 
