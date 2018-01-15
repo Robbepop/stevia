@@ -58,27 +58,27 @@ pub struct ComparisonReducer;
 impl AutoImplAnyTransformer for ComparisonReducer {}
 
 impl Transformer for ComparisonReducer {
-    fn transform_sge(self, sge: expr::SignedGreaterEquals) -> AnyExprAndTransformResult {
+    fn transform_sge(&self, sge: expr::SignedGreaterEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::transformed(reduce_sge_to_slt(sge))
     }
 
-    fn transform_sgt(self, sgt: expr::SignedGreaterThan) -> AnyExprAndTransformResult {
+    fn transform_sgt(&self, sgt: expr::SignedGreaterThan) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::transformed(reduce_sgt_to_slt(sgt))
     }
 
-    fn transform_sle(self, sle: expr::SignedLessEquals) -> AnyExprAndTransformResult {
+    fn transform_sle(&self, sle: expr::SignedLessEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::transformed(reduce_sle_to_slt(sle))
     }
 
-    fn transform_uge(self, uge: expr::UnsignedGreaterEquals) -> AnyExprAndTransformResult {
+    fn transform_uge(&self, uge: expr::UnsignedGreaterEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::transformed(reduce_uge_to_ult(uge))
     }
 
-    fn transform_ugt(self, ugt: expr::UnsignedGreaterThan) -> AnyExprAndTransformResult {
+    fn transform_ugt(&self, ugt: expr::UnsignedGreaterThan) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::transformed(reduce_ugt_to_ult(ugt))
     }
 
-    fn transform_ule(self, ule: expr::UnsignedLessEquals) -> AnyExprAndTransformResult {
+    fn transform_ule(&self, ule: expr::UnsignedLessEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::transformed(reduce_ule_to_ult(ule))
     }
 }

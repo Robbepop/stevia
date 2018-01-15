@@ -50,7 +50,7 @@ impl expr::BitNot {
 }
 
 impl Transformer for InvolutionSimplifier {
-    fn transform_not(self, not: expr::Not) -> AnyExprAndTransformResult {
+    fn transform_not(&self, not: expr::Not) -> AnyExprAndTransformResult {
         if !not.is_double_not() {
             return AnyExprAndTransformResult::identity(not)
         }
@@ -62,7 +62,7 @@ impl Transformer for InvolutionSimplifier {
         }
     }
 
-    fn transform_neg(self, neg: expr::Neg) -> AnyExprAndTransformResult {
+    fn transform_neg(&self, neg: expr::Neg) -> AnyExprAndTransformResult {
         if !neg.is_double_neg() {
             return AnyExprAndTransformResult::identity(neg)
         }
@@ -74,7 +74,7 @@ impl Transformer for InvolutionSimplifier {
         }
     }
 
-    fn transform_bitnot(self, bitnot: expr::BitNot) -> AnyExprAndTransformResult {
+    fn transform_bitnot(&self, bitnot: expr::BitNot) -> AnyExprAndTransformResult {
         if !bitnot.is_double_bitnot() {
             return AnyExprAndTransformResult::identity(bitnot)
         }

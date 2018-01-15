@@ -68,188 +68,188 @@ impl AnyExprAndTransformResult {
     }
 }
 
-pub trait Transformer: Copy {
-    fn transform_cond(self, cond: expr::IfThenElse) -> AnyExprAndTransformResult {
+pub trait Transformer {
+    fn transform_cond(&self, cond: expr::IfThenElse) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(cond)
     }
 
-    fn transform_var(self, bool_const: expr::Symbol) -> AnyExprAndTransformResult {
+    fn transform_var(&self, bool_const: expr::Symbol) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bool_const)
     }
 
-    fn transform_bool_const(self, bool_const: expr::BoolConst) -> AnyExprAndTransformResult {
+    fn transform_bool_const(&self, bool_const: expr::BoolConst) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bool_const)
     }
 
-    fn transform_bool_equals(self, bool_equals: expr::BoolEquals) -> AnyExprAndTransformResult {
+    fn transform_bool_equals(&self, bool_equals: expr::BoolEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bool_equals)
     }
 
-    fn transform_and(self, and: expr::And) -> AnyExprAndTransformResult {
+    fn transform_and(&self, and: expr::And) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(and)
     }
 
-    fn transform_or(self, or: expr::Or) -> AnyExprAndTransformResult {
+    fn transform_or(&self, or: expr::Or) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(or)
     }
 
-    fn transform_not(self, not: expr::Not) -> AnyExprAndTransformResult {
+    fn transform_not(&self, not: expr::Not) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(not)
     }
 
-    fn transform_xor(self, xor: expr::Xor) -> AnyExprAndTransformResult {
+    fn transform_xor(&self, xor: expr::Xor) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(xor)
     }
 
-    fn transform_implies(self, implies: expr::Implies) -> AnyExprAndTransformResult {
+    fn transform_implies(&self, implies: expr::Implies) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(implies)
     }
 
-    fn transform_array_equals(self, array_equals: expr::ArrayEquals) -> AnyExprAndTransformResult {
+    fn transform_array_equals(&self, array_equals: expr::ArrayEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(array_equals)
     }
 
-    fn transform_array_read(self, array_read: expr::ArrayRead) -> AnyExprAndTransformResult {
+    fn transform_array_read(&self, array_read: expr::ArrayRead) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(array_read)
     }
 
-    fn transform_array_write(self, array_write: expr::ArrayWrite) -> AnyExprAndTransformResult {
+    fn transform_array_write(&self, array_write: expr::ArrayWrite) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(array_write)
     }
 
-    fn transform_bitvec_const(self, bitvec_const: expr::BitvecConst) -> AnyExprAndTransformResult {
+    fn transform_bitvec_const(&self, bitvec_const: expr::BitvecConst) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bitvec_const)
     }
 
-    fn transform_add(self, add: expr::Add) -> AnyExprAndTransformResult {
+    fn transform_add(&self, add: expr::Add) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(add)
     }
 
-    fn transform_mul(self, mul: expr::Mul) -> AnyExprAndTransformResult {
+    fn transform_mul(&self, mul: expr::Mul) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(mul)
     }
 
-    fn transform_neg(self, neg: expr::Neg) -> AnyExprAndTransformResult {
+    fn transform_neg(&self, neg: expr::Neg) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(neg)
     }
 
-    fn transform_sdiv(self, sdiv: expr::SignedDiv) -> AnyExprAndTransformResult {
+    fn transform_sdiv(&self, sdiv: expr::SignedDiv) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(sdiv)
     }
 
-    fn transform_smod(self, smod: expr::SignedModulo) -> AnyExprAndTransformResult {
+    fn transform_smod(&self, smod: expr::SignedModulo) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(smod)
     }
 
-    fn transform_srem(self, srem: expr::SignedRemainder) -> AnyExprAndTransformResult {
+    fn transform_srem(&self, srem: expr::SignedRemainder) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(srem)
     }
 
-    fn transform_sub(self, sub: expr::Sub) -> AnyExprAndTransformResult {
+    fn transform_sub(&self, sub: expr::Sub) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(sub)
     }
 
-    fn transform_udiv(self, udiv: expr::UnsignedDiv) -> AnyExprAndTransformResult {
+    fn transform_udiv(&self, udiv: expr::UnsignedDiv) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(udiv)
     }
 
-    fn transform_urem(self, urem: expr::UnsignedRemainder) -> AnyExprAndTransformResult {
+    fn transform_urem(&self, urem: expr::UnsignedRemainder) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(urem)
     }
 
-    fn transform_bitand(self, bitand: expr::BitAnd) -> AnyExprAndTransformResult {
+    fn transform_bitand(&self, bitand: expr::BitAnd) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bitand)
     }
 
-    fn transform_bitnot(self, bitnot: expr::BitNot) -> AnyExprAndTransformResult {
+    fn transform_bitnot(&self, bitnot: expr::BitNot) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bitnot)
     }
 
-    fn transform_bitor(self, bitor: expr::BitOr) -> AnyExprAndTransformResult {
+    fn transform_bitor(&self, bitor: expr::BitOr) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bitor)
     }
 
-    fn transform_bitxor(self, bitxor: expr::BitXor) -> AnyExprAndTransformResult {
+    fn transform_bitxor(&self, bitxor: expr::BitXor) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bitxor)
     }
 
-    fn transform_concat(self, concat: expr::Concat) -> AnyExprAndTransformResult {
+    fn transform_concat(&self, concat: expr::Concat) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(concat)
     }
 
-    fn transform_extract(self, extract: expr::Extract) -> AnyExprAndTransformResult {
+    fn transform_extract(&self, extract: expr::Extract) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(extract)
     }
 
-    fn transform_sext(self, sext: expr::SignExtend) -> AnyExprAndTransformResult {
+    fn transform_sext(&self, sext: expr::SignExtend) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(sext)
     }
 
-    fn transform_zext(self, zext: expr::ZeroExtend) -> AnyExprAndTransformResult {
+    fn transform_zext(&self, zext: expr::ZeroExtend) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(zext)
     }
 
-    fn transform_bitvec_equals(self, bitvec_equals: expr::BitvecEquals) -> AnyExprAndTransformResult {
+    fn transform_bitvec_equals(&self, bitvec_equals: expr::BitvecEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(bitvec_equals)
     }
 
-    fn transform_sge(self, sge: expr::SignedGreaterEquals) -> AnyExprAndTransformResult {
+    fn transform_sge(&self, sge: expr::SignedGreaterEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(sge)
     }
 
-    fn transform_sgt(self, sgt: expr::SignedGreaterThan) -> AnyExprAndTransformResult {
+    fn transform_sgt(&self, sgt: expr::SignedGreaterThan) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(sgt)
     }
 
-    fn transform_sle(self, sle: expr::SignedLessEquals) -> AnyExprAndTransformResult {
+    fn transform_sle(&self, sle: expr::SignedLessEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(sle)
     }
 
-    fn transform_slt(self, slt: expr::SignedLessThan) -> AnyExprAndTransformResult {
+    fn transform_slt(&self, slt: expr::SignedLessThan) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(slt)
     }
 
-    fn transform_uge(self, uge: expr::UnsignedGreaterEquals) -> AnyExprAndTransformResult {
+    fn transform_uge(&self, uge: expr::UnsignedGreaterEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(uge)
     }
 
-    fn transform_ugt(self, ugt: expr::UnsignedGreaterThan) -> AnyExprAndTransformResult {
+    fn transform_ugt(&self, ugt: expr::UnsignedGreaterThan) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(ugt)
     }
 
-    fn transform_ule(self, ule: expr::UnsignedLessEquals) -> AnyExprAndTransformResult {
+    fn transform_ule(&self, ule: expr::UnsignedLessEquals) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(ule)
     }
 
-    fn transform_ult(self, ult: expr::UnsignedLessThan) -> AnyExprAndTransformResult {
+    fn transform_ult(&self, ult: expr::UnsignedLessThan) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(ult)
     }
 
-    fn transform_ashr(self, ashr: expr::ArithmeticShiftRight) -> AnyExprAndTransformResult {
+    fn transform_ashr(&self, ashr: expr::ArithmeticShiftRight) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(ashr)
     }
 
-    fn transform_lshr(self, lshr: expr::LogicalShiftRight) -> AnyExprAndTransformResult {
+    fn transform_lshr(&self, lshr: expr::LogicalShiftRight) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(lshr)
     }
 
-    fn transform_shl(self, shl: expr::ShiftLeft) -> AnyExprAndTransformResult {
+    fn transform_shl(&self, shl: expr::ShiftLeft) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(shl)
     }
 }
 
 /// Expression transformers that may transform `AnyExpr` instances.
-pub trait AnyTransformer: Copy {
+pub trait AnyTransformer {
     /// Transforms the given mutable `AnyExpr` inplace.
     /// 
     /// Returns a state indicating whether the given expression was actually transformed.
-    fn transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult;
+    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult;
 
     /// Consumed the given `AnyExpr` and transforms it.
     /// 
     /// Returns the resulting expression after the transformation and a state
     /// indicating whether the consumed expression was actually transformed.
-    fn into_transform_any_expr(self, expr: AnyExpr) -> AnyExprAndTransformResult;
+    fn into_transform_any_expr(&self, expr: AnyExpr) -> AnyExprAndTransformResult;
 }
 
 /// Implement this to activate automatic default implementation
@@ -257,7 +257,7 @@ pub trait AnyTransformer: Copy {
 pub trait AutoImplAnyTransformer {}
 
 impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
-    fn transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
+    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);
 		let AnyExprAndTransformResult{result, expr: transformed} =
@@ -266,7 +266,7 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
         result
     }
 
-    fn into_transform_any_expr(self, expr: AnyExpr) -> AnyExprAndTransformResult {
+    fn into_transform_any_expr(&self, expr: AnyExpr) -> AnyExprAndTransformResult {
         use self::AnyExpr::*;
         match expr {
             IfThenElse(expr) => self.transform_cond(expr),
@@ -328,13 +328,13 @@ macro_rules! create_base_transformer {
         }
 
         impl $name {
-            fn forward_transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
+            fn forward_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
                 let mut result = TransformResult::Identity;
                 $(result |= self.$id.transform_any_expr(expr));*;
                 result
             }
 
-            pub fn traverse_transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
+            pub fn traverse_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
                 let mut result = TransformResult::Identity;
                 for child in expr.childs_mut() {
                     result |= self.traverse_transform_any_expr(child);
@@ -345,11 +345,11 @@ macro_rules! create_base_transformer {
         }
 
         impl AnyTransformer for $name {
-            fn transform_any_expr(self, expr: &mut AnyExpr) -> TransformResult {
+            fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
                 self.traverse_transform_any_expr(expr)
             }
 
-            fn into_transform_any_expr(self, expr: AnyExpr) -> AnyExprAndTransformResult {
+            fn into_transform_any_expr(&self, expr: AnyExpr) -> AnyExprAndTransformResult {
                 let mut expr = expr;
                 let result = self.transform_any_expr(&mut expr);
                 AnyExprAndTransformResult::new(result, expr)
