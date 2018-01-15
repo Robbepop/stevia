@@ -22,5 +22,6 @@ pub mod ast2;
 mod simplifier;
 
 pub use simplifier::prelude::{
+    TransformResult,
     Simplifier
 };
