@@ -29,6 +29,20 @@ struct SymbolInterner {
 
 unsafe impl Sync for SymbolInterner {}
 
+impl SymbolInterner {
+    fn get_or_intern<S>(&self, name: S) -> SymbolName
+        where S: Into<String> + AsRef<str>
+    {
+        self.access.lock().unwrap().get_or_intern(name)
+    }
+
+    fn resolve_symbol(&self, name: SymbolName) -> &'static str {
+        let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
+        let resolved = unsafe{ lock_guard.resolve_unchecked(name) };
+        unsafe{ &* (resolved as *const str) }
+    }
+}
+
 impl Default for SymbolInterner {
     /// Returns an empty `SymbolInterner`.
     fn default() -> Self {
@@ -72,10 +86,7 @@ impl Deref for SymbolName {
     /// This is possible by having a dedicated `StringInterner` only for interning
     /// symbol names that is static for this library on execution.
     fn deref(&self) -> &Self::Target {
-        let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
-        let interner_ref: &StringInterner<SymbolName> = &lock_guard;
-        let interner_ptr: *const StringInterner<SymbolName> = interner_ref as *const StringInterner<SymbolName>;
-        unsafe{ (&*interner_ptr).resolve_unchecked(*self) }
+        SYMBOL_INTERNER.resolve_symbol(*self)
     }
 }
 
@@ -100,10 +111,7 @@ impl Symbol {
     pub fn new<S>(name: S, ty: Type) -> Result<Symbol, String>
         where S: Into<String> + AsRef<str>
     {
-        let mut lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
-        let interner_ref: &mut StringInterner<SymbolName> = &mut lock_guard;
-        let interner_ptr: *mut StringInterner<SymbolName> = interner_ref as *mut StringInterner<SymbolName>;
-        let sym = unsafe{ &mut *interner_ptr }.get_or_intern(name);
+        let sym = SYMBOL_INTERNER.get_or_intern(name);
         Ok(Symbol{ty, name: sym})
     }
 }
