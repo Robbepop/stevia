@@ -4,7 +4,6 @@ use string_interner;
 use string_interner::{StringInterner};
 
 use std::ops::Deref;
-use std::cell::UnsafeCell;
 use std::marker::PhantomData;
 use std::sync::Mutex;
 
@@ -25,7 +24,7 @@ lazy_static! {
 /// 
 /// It requires mutable static access thus it is wrapped in an `UnsafeCell`.
 struct SymbolInterner {
-    access: Mutex<UnsafeCell<StringInterner<SymbolName>>>,
+    access: Mutex<StringInterner<SymbolName>>
 }
 
 unsafe impl Sync for SymbolInterner {}
@@ -35,8 +34,7 @@ impl Default for SymbolInterner {
     fn default() -> Self {
         SymbolInterner {
             access: Mutex::new(
-                UnsafeCell::new(
-                    StringInterner::with_hasher(Default::default()))),
+                StringInterner::with_hasher(Default::default()))
         }
     }
 }
@@ -75,8 +73,9 @@ impl Deref for SymbolName {
     /// symbol names that is static for this library on execution.
     fn deref(&self) -> &Self::Target {
         let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
-        let derefed = unsafe{ &*lock_guard.get() };
-        unsafe{ derefed.resolve_unchecked(*self) }
+        let interner_ref: &StringInterner<SymbolName> = &lock_guard;
+        let interner_ptr: *const StringInterner<SymbolName> = interner_ref as *const StringInterner<SymbolName>;
+        unsafe{ (&*interner_ptr).resolve_unchecked(*self) }
     }
 }
 
@@ -101,9 +100,10 @@ impl Symbol {
     pub fn new<S>(name: S, ty: Type) -> Result<Symbol, String>
         where S: Into<String> + AsRef<str>
     {
-        let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
-        let derefed = unsafe{ &mut *lock_guard.get() };
-        let sym = derefed.get_or_intern(name);
+        let mut lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
+        let interner_ref: &mut StringInterner<SymbolName> = &mut lock_guard;
+        let interner_ptr: *mut StringInterner<SymbolName> = interner_ref as *mut StringInterner<SymbolName>;
+        let sym = unsafe{ &mut *interner_ptr }.get_or_intern(name);
         Ok(Symbol{ty, name: sym})
     }
 }
