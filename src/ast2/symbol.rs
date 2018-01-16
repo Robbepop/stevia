@@ -6,6 +6,7 @@ use string_interner::{StringInterner};
 use std::ops::Deref;
 use std::cell::UnsafeCell;
 use std::marker::PhantomData;
+use std::sync::Mutex;
 
 pub mod prelude {
     pub use super::{
@@ -24,19 +25,21 @@ lazy_static! {
 /// 
 /// It requires mutable static access thus it is wrapped in an `UnsafeCell`.
 struct SymbolInterner {
-    cell: UnsafeCell<StringInterner<SymbolName>>,
+    access: Mutex<UnsafeCell<StringInterner<SymbolName>>>,
 }
+
+unsafe impl Sync for SymbolInterner {}
 
 impl Default for SymbolInterner {
     /// Returns an empty `SymbolInterner`.
     fn default() -> Self {
         SymbolInterner {
-            cell: UnsafeCell::new(StringInterner::with_hasher(Default::default())),
+            access: Mutex::new(
+                UnsafeCell::new(
+                    StringInterner::with_hasher(Default::default()))),
         }
     }
 }
-
-unsafe impl Sync for SymbolInterner {}
 
 /// Represents an identifier stored in a `StringInterner`
 /// for efficient storage and access.
@@ -71,9 +74,9 @@ impl Deref for SymbolName {
     /// This is possible by having a dedicated `StringInterner` only for interning
     /// symbol names that is static for this library on execution.
     fn deref(&self) -> &Self::Target {
-        let interner = SYMBOL_INTERNER.cell.get();
-        let interner = unsafe{&*interner};
-        unsafe{ interner.resolve_unchecked(*self) }
+        let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
+        let derefed = unsafe{ &*lock_guard.get() };
+        unsafe{ derefed.resolve_unchecked(*self) }
     }
 }
 
@@ -98,9 +101,10 @@ impl Symbol {
     pub fn new<S>(name: S, ty: Type) -> Result<Symbol, String>
         where S: Into<String> + AsRef<str>
     {
-        let interner = SYMBOL_INTERNER.cell.get();
-        let interner = unsafe{&mut *interner};
-        Ok(Symbol{ty, name: interner.get_or_intern(name)})
+        let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
+        let derefed = unsafe{ &mut *lock_guard.get() };
+        let sym = derefed.get_or_intern(name);
+        Ok(Symbol{ty, name: sym})
     }
 }
 
