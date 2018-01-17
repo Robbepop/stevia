@@ -35,6 +35,26 @@ impl<T> IntoBoxedAnyExpr for T
     }
 }
 
+impl AnyExpr {
+    /// Returns `true` if the given boolean expression is a constant boolean
+    /// expression with the given boolean value, returns `false` otherwise.
+    pub fn is_bool_const(&self, req_value: bool) -> bool {
+        match *self {
+            AnyExpr::BoolConst(ref bool_const) => bool_const.val == req_value,
+            _ => false
+        }
+    }
+
+    /// Checks if `self` is a constant boolean expression and returns its
+    /// value if it is and nothing otherwise.
+    pub fn get_if_bool_const(&self) -> Option<bool> {
+        match *self {
+            AnyExpr::BoolConst(ref bool_const) => Some(bool_const.val),
+            _ => None
+        }
+    }
+}
+
 macro_rules! forall_expr_kinds {
 	( $mac:ident ) => {
 		$mac!{
