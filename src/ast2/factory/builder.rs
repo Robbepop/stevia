@@ -95,10 +95,6 @@ pub trait ExprTreeFactory {
     /// Creates a new binary or expression for the given child expressions.
     fn xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
 
-    /// Creates a new binary array equality expression with the given child expressions.
-    fn array_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
-    /// Creates a new n-ary array equality expression with the given child expressions.
-    fn array_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary array read expression on the given array
     /// child expression and at index child expression.
     fn array_read(self, array: AnyExpr, index: AnyExpr) -> Result<AnyExpr>;
@@ -367,22 +363,6 @@ impl<F> ExprTreeBuilder<F>
 impl<F> ExprTreeBuilder<F>
     where F: ExprTreeFactory
 {
-    /// Creates a new binary array equality expression with the given child expressions.
-    pub fn array_equals<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
-        where L: IntoAnyExprOrError,
-              R: IntoAnyExprOrError
-    {
-        self.create_binary_expr(F::array_equals, lhs, rhs)
-    }
-
-    /// Creates a new n-ary array equality expression with the given child expressions.
-    pub fn array_equals_n<I, E>(self, childs: I) -> Result<AnyExpr>
-        where I: IntoIterator<Item=E>,
-              E: IntoAnyExprOrError
-    {
-        self.create_nary_expr(F::array_equals_n, childs)
-    }
-
     /// Creates a new binary array read expression on the given array
     /// child expression and at index child expression.
     pub fn array_read<A, I>(self, array: A, index: I) -> Result<AnyExpr>

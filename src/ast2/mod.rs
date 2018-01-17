@@ -125,7 +125,6 @@ pub mod expr {
         SignExtend,
         ZeroExtend,
 
-        ArrayEquals,
         ArrayRead,
         ArrayWrite
     };

@@ -105,10 +105,6 @@ pub trait Transformer {
         AnyExprAndTransformResult::identity(implies)
     }
 
-    fn transform_array_equals(&self, array_equals: expr::ArrayEquals) -> AnyExprAndTransformResult {
-        AnyExprAndTransformResult::identity(array_equals)
-    }
-
     fn transform_array_read(&self, array_read: expr::ArrayRead) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult::identity(array_read)
     }
@@ -276,12 +272,12 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
             Not(expr) => self.transform_not(expr),
             And(expr) => self.transform_and(expr),
             Or(expr) => self.transform_or(expr),
-
             Xor(expr) => self.transform_xor(expr),
             Implies(expr) => self.transform_implies(expr),
-            ArrayEquals(expr) => self.transform_array_equals(expr),
+
             ArrayRead(expr) => self.transform_array_read(expr),
             ArrayWrite(expr) => self.transform_array_write(expr),
+
             Add(expr) => self.transform_add(expr),
             BitvecConst(expr) => self.transform_bitvec_const(expr),
             Mul(expr) => self.transform_mul(expr),
@@ -292,14 +288,17 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
             Sub(expr) => self.transform_sub(expr),
             UnsignedDiv(expr) => self.transform_udiv(expr),
             UnsignedRemainder(expr) => self.transform_urem(expr),
+
             BitAnd(expr) => self.transform_bitand(expr),
             BitNot(expr) => self.transform_bitnot(expr),
             BitOr(expr) => self.transform_bitor(expr),
             BitXor(expr) => self.transform_bitxor(expr),
+
             Concat(expr) => self.transform_concat(expr),
             Extract(expr) => self.transform_extract(expr),
             SignExtend(expr) => self.transform_sext(expr),
             ZeroExtend(expr) => self.transform_zext(expr),
+
             BitvecEquals(expr) => self.transform_bitvec_equals(expr),
             SignedGreaterEquals(expr) => self.transform_sge(expr),
             SignedGreaterThan(expr) => self.transform_sgt(expr),
@@ -309,6 +308,7 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
             UnsignedGreaterThan(expr) => self.transform_ugt(expr),
             UnsignedLessEquals(expr) => self.transform_ule(expr),
             UnsignedLessThan(expr) => self.transform_ult(expr),
+
             ArithmeticShiftRight(expr) => self.transform_ashr(expr),
             LogicalShiftRight(expr) => self.transform_lshr(expr),
             ShiftLeft(expr) => self.transform_shl(expr)

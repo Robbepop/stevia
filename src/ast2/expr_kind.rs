@@ -96,8 +96,6 @@ pub enum ExprKind {
     /// The bitvec zero-extension term expression kind
     ZeroExtend,
 
-    // /// The array equality formula expression kind
-    ArrayEquals,
     /// The array-read expression kind
     ArrayRead,
     /// The array-write expression kind
@@ -194,9 +192,8 @@ impl HasPriority for ExprKind {
             SignExtend => BASE_PRIORITY_CAST + 2,
             ZeroExtend => BASE_PRIORITY_CAST + 3,
 
-            ArrayEquals => BASE_PRIORITY_ARRAY,
-            ArrayRead  => BASE_PRIORITY_ARRAY + 1,
-            ArrayWrite => BASE_PRIORITY_ARRAY + 2
+            ArrayRead  => BASE_PRIORITY_ARRAY,
+            ArrayWrite => BASE_PRIORITY_ARRAY + 1
         };
         Priority(prio_val)
     }

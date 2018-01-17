@@ -85,14 +85,6 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Xor::new(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn array_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::ArrayEquals::binary_infer(lhs, rhs).map(AnyExpr::from)
-	}
-
-    fn array_equals_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		unimplemented!()
-	}
-    
     fn array_read(self, _array: AnyExpr, _index: AnyExpr) -> Result<AnyExpr> {
 		unimplemented!()
 	}
