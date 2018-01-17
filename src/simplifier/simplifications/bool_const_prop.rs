@@ -12,14 +12,36 @@ impl AutoImplAnyTransformer for BoolConstPropagator {}
 
 impl Transformer for BoolConstPropagator {
     fn transform_cond(&self, cond: expr::IfThenElse) -> AnyExprAndTransformResult {
-        match cond.childs.cond.get_if_bool_const() {
-            Some(flag) => if flag {
-                AnyExprAndTransformResult::transformed(cond.childs.then_case)
+        // Reduce to then case if condition is constant true and else case
+        // if condition is constant false.
+        if let Some(flag) = cond.childs.cond.get_if_bool_const() {
+            if flag {
+                return AnyExprAndTransformResult::transformed(cond.childs.then_case)
             } else {
-                AnyExprAndTransformResult::transformed(cond.childs.else_case)
-            },
-            None => AnyExprAndTransformResult::identity(cond),
+                return AnyExprAndTransformResult::transformed(cond.childs.else_case)
+            }
         }
+        let opt_then_const = cond.childs.then_case.get_if_bool_const();
+        let opt_else_const = cond.childs.else_case.get_if_bool_const();
+        if let (Some(then_const), Some(else_const)) = (opt_then_const, opt_else_const) {
+            // If both childs are of the same value the conditional will always result in
+            // the same value and can be reduced to exactly that.
+            if then_const == else_const {
+                return AnyExprAndTransformResult::transformed(expr::BoolConst::from(then_const))
+            }
+            // If then and else are true and false respectively we can reduce the conditional
+            // to its condition.
+            if then_const && !else_const {
+                return AnyExprAndTransformResult::transformed(cond.childs.cond)
+            }
+            // If then and else are false and true respectively we can reduce the conditional
+            // to the negation of its condition.
+            if !then_const && else_const {
+                return AnyExprAndTransformResult::transformed(
+                    unsafe{ expr::Not::new_unchecked(cond.childs.cond) })
+            }
+        }
+        AnyExprAndTransformResult::identity(cond)
     }
 
     fn transform_bool_equals(&self, bool_equals: expr::BoolEquals) -> AnyExprAndTransformResult {
@@ -90,21 +112,51 @@ impl Transformer for BoolConstPropagator {
 mod tests {
     use super::*;
 
-    #[test]
-    fn cond() {
-        fn test_for(flag: bool) {    
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.cond(
-                b.bool_const(flag),
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            let expected = b.bool_var(if flag { "a" } else { "b" }).unwrap();
-            assert_eq!(expr, expected);
+    mod cond {
+        use super::*;
+
+        #[test]
+        fn const_condition() {
+            fn test_for(flag: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.cond(
+                    b.bool_const(flag),
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                ).unwrap();
+                Simplifier::default().simplify(&mut expr);
+                let expected = b.bool_var(if flag { "a" } else { "b" }).unwrap();
+                assert_eq!(expr, expected);
+            }
+            test_for(true);
+            test_for(false);
         }
-        test_for(true);
-        test_for(false);
+
+        #[test]
+        fn const_then_else() {
+            fn test_for(then_case: bool, else_case: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.cond(
+                    b.bool_var("a"),
+                    b.bool_const(then_case),
+                    b.bool_const(else_case)
+                ).unwrap();
+                Simplifier::default().simplify(&mut expr);
+                if then_case == else_case {
+                    assert_eq!(expr, b.bool_const(then_case).unwrap());
+                }
+                if then_case && !else_case {
+                    assert_eq!(expr, b.bool_var("a").unwrap());
+                }
+                if !then_case && else_case {
+                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
+                }
+            }
+            test_for( true,  true);
+            test_for( true, false);
+            test_for(false,  true);
+            test_for( true,  true);
+        }
     }
 
     #[test]
