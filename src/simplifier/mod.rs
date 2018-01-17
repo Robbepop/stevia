@@ -24,14 +24,16 @@ create_base_transformer!{
     struct BaseTransformer;
 
     (_0, simplifications::InvolutionSimplifier),
-    (_1, simplifications::ComparisonReducer)
+    (_1, simplifications::ComparisonReducer),
+    (_2, simplifications::BoolConstPropagator)
 }
 
 impl Default for BaseTransformer {
     fn default() -> BaseTransformer {
         BaseTransformer{
             _0: simplifications::InvolutionSimplifier,
-            _1: simplifications::ComparisonReducer
+            _1: simplifications::ComparisonReducer,
+            _2: simplifications::BoolConstPropagator
         }
     }
 }
