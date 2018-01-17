@@ -95,9 +95,9 @@ mod tests {
     #[test]
     fn notnot() {
         let b = PlainExprTreeBuilder::default();
-        let mut expr = b.not(b.not(b.bool_var("x"))).unwrap();
+        let mut expr = b.not(b.not(b.bool_var("a"))).unwrap();
         Simplifier::default().simplify(&mut expr);
-        assert_eq!(expr, b.bool_var("x").unwrap());
+        assert_eq!(expr, b.bool_var("a").unwrap());
     }
 
     #[test]
