@@ -2,6 +2,7 @@ use ast2::prelude::*;
 
 use string_interner;
 use string_interner::{StringInterner};
+use vec_map::{VecMap};
 
 use std::ops::Deref;
 use std::marker::PhantomData;
@@ -17,12 +18,56 @@ pub mod prelude {
 lazy_static! {
     /// The `StringInterner` specialized for interning symbol identifiers.
     static ref SYMBOL_INTERNER: SymbolInterner = SymbolInterner::default();
+    /// The `VecMap` that maps from `SymbolName`s to actual values if existant.
+    static ref TYPE_MAP: TypeMap = TypeMap::default();
+}
+
+#[derive(Debug)]
+struct TypeMap {
+    access: Mutex<VecMap<Type>>
+}
+
+impl Default for TypeMap {
+    /// Returns an empty `TypeMap`.
+    fn default() -> Self {
+        TypeMap {
+            access: Mutex::new(
+                VecMap::new()
+            )
+        }
+    }
+}
+
+impl TypeMap {
+    /// Checks if for the given name the given type is already stored in the
+    /// type map or otherwise inserts the given type into it.
+    /// 
+    /// This is used to verify that symbols with the same identifier are
+    /// associated to the same underlying type.
+    fn check_or_intern(&self, name: SymbolName, ty: Type) -> Result<(), String> {
+        use string_interner::Symbol;
+        use vec_map::Entry::{Vacant, Occupied};
+        let mut locked_map = TYPE_MAP.access.lock().unwrap();
+        match locked_map.entry(name.to_usize()) {
+            Vacant(slot) => {
+                slot.insert(ty);
+            }
+            Occupied(value) => {
+                if *value.get() != ty {
+                    return Err(String::from(
+                        "Tried to create symbols with different types but the same name."))
+                }
+            }
+        };
+        Ok(())
+    }
 }
 
 /// A `SymbolInterner` is a lazy-static optimized `StringInterner` for `SymbolName`
 /// symbols used exclusively by `Symbol` expressions.
 /// 
 /// It requires mutable static access thus it is wrapped in an `UnsafeCell`.
+#[derive(Debug)]
 struct SymbolInterner {
     access: Mutex<StringInterner<SymbolName>>
 }
@@ -108,11 +153,12 @@ impl Symbol {
     /// 
     /// - If the given type does not match the type cached in the
     ///   type context for symbols.
-    pub fn new<S>(name: S, ty: Type) -> Result<Symbol, String>
+    pub fn new<S>(identifier: S, ty: Type) -> Result<Symbol, String>
         where S: Into<String> + AsRef<str>
     {
-        let sym = SYMBOL_INTERNER.get_or_intern(name);
-        Ok(Symbol{ty, name: sym})
+        let name = SYMBOL_INTERNER.get_or_intern(identifier);
+        TYPE_MAP.check_or_intern(name, ty)?;
+        Ok(Symbol{ty, name})
     }
 }
 
