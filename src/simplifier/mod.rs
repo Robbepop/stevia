@@ -8,7 +8,7 @@ pub mod prelude {
         TransformEffect,
         Transformer,
         AnyTransformer,
-        AnyExprAndTransformResult,
+        TransformOutcome,
         AutoImplAnyTransformer,
         BaseTransformer,
         Simplifier

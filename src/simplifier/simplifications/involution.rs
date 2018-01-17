@@ -50,37 +50,37 @@ impl expr::BitNot {
 }
 
 impl Transformer for InvolutionSimplifier {
-    fn transform_not(&self, not: expr::Not) -> AnyExprAndTransformResult {
+    fn transform_not(&self, not: expr::Not) -> TransformOutcome {
         if !not.is_double_not() {
-            return AnyExprAndTransformResult::identity(not)
+            return TransformOutcome::identity(not)
         }
         match *not.child {
             AnyExpr::Not(notnot) => {
-                AnyExprAndTransformResult::transformed(*notnot.child)
+                TransformOutcome::transformed(*notnot.child)
             }
             _ => unreachable!()
         }
     }
 
-    fn transform_neg(&self, neg: expr::Neg) -> AnyExprAndTransformResult {
+    fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         if !neg.is_double_neg() {
-            return AnyExprAndTransformResult::identity(neg)
+            return TransformOutcome::identity(neg)
         }
         match *neg.child {
             AnyExpr::Neg(negneg) => {
-                AnyExprAndTransformResult::transformed(*negneg.child)
+                TransformOutcome::transformed(*negneg.child)
             }
             _ => unreachable!()
         }
     }
 
-    fn transform_bitnot(&self, bitnot: expr::BitNot) -> AnyExprAndTransformResult {
+    fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
         if !bitnot.is_double_bitnot() {
-            return AnyExprAndTransformResult::identity(bitnot)
+            return TransformOutcome::identity(bitnot)
         }
         match *bitnot.child {
             AnyExpr::BitNot(bitnotnot) => {
-                AnyExprAndTransformResult::transformed(*bitnotnot.child)
+                TransformOutcome::transformed(*bitnotnot.child)
             }
             _ => unreachable!()
         }
