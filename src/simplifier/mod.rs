@@ -5,7 +5,7 @@ mod simplifications;
 
 pub mod prelude {
     pub use super::{
-        TransformResult,
+        TransformEffect,
         Transformer,
         AnyTransformer,
         AnyExprAndTransformResult,

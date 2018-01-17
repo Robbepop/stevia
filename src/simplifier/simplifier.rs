@@ -24,7 +24,7 @@ impl Default for Simplifier {
 
 impl Simplifier {
     /// Simplifies the given expression for a single step.
-    pub fn simplify(&self, expr: &mut AnyExpr) -> TransformResult {
+    pub fn simplify(&self, expr: &mut AnyExpr) -> TransformEffect {
         self.transformer.transform_any_expr(expr)
     }
 
@@ -35,6 +35,6 @@ impl Simplifier {
     /// 
     /// This might be a slow operation but always results in the best simplification.
     pub fn exhaustive_simplify(&self, expr: &mut AnyExpr) {
-        while self.transformer.transform_any_expr(expr) == TransformResult::Transformed {}
+        while self.transformer.transform_any_expr(expr) == TransformEffect::Transformed {}
     }
 }

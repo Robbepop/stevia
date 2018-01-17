@@ -6,7 +6,7 @@ use std::ops::BitOrAssign;
 pub mod prelude {
     pub use super::{
         Transformer,
-        TransformResult,
+        TransformEffect,
         AnyTransformer,
         AnyExprAndTransformResult,
         AutoImplAnyTransformer
@@ -16,23 +16,23 @@ pub mod prelude {
 /// Describes whether the result of a transformation actually transformed
 /// the input or did nothing to it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum TransformResult {
+pub enum TransformEffect {
     /// States that the transformation had no effect on the input.
     Identity,
     /// States that the transformation transformed the input.
     Transformed
 }
 
-impl BitOrAssign for TransformResult {
+impl BitOrAssign for TransformEffect {
     /// Assigns this `TransformResult` to `rhs`.
     /// 
     /// This works equivalent to boolean or-assign
     /// where `Identity` is equal to `false` and
     /// `Transformed` is equal to `true`.
-    fn bitor_assign(&mut self, rhs: TransformResult) {
+    fn bitor_assign(&mut self, rhs: TransformEffect) {
         match rhs {
-            TransformResult::Transformed => *self = rhs,
-            TransformResult::Identity    => ()
+            TransformEffect::Transformed => *self = rhs,
+            TransformEffect::Identity    => ()
         }
     }
 }
@@ -42,14 +42,14 @@ impl BitOrAssign for TransformResult {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct AnyExprAndTransformResult {
     /// States if `expr` actually got transformed.
-    pub result: TransformResult,
+    pub result: TransformEffect,
     /// The (probably) transformed expression.
     pub expr: AnyExpr
 }
 
 impl AnyExprAndTransformResult {
     /// Creates a new `AnyExprAndTransformResult` with the given expression and state.
-    pub fn new(result: TransformResult, expr: AnyExpr) -> AnyExprAndTransformResult {
+    pub fn new(result: TransformEffect, expr: AnyExpr) -> AnyExprAndTransformResult {
         AnyExprAndTransformResult{expr, result}
     }
 
@@ -57,14 +57,14 @@ impl AnyExprAndTransformResult {
     pub fn identity<E>(expr: E) -> AnyExprAndTransformResult
         where E: Into<AnyExpr>
     {
-        AnyExprAndTransformResult::new(TransformResult::Identity, expr.into())
+        AnyExprAndTransformResult::new(TransformEffect::Identity, expr.into())
     }
 
     /// Creates a new transformed `AnyExprAndTransformResult` for the given expression.
     pub fn transformed<E>(expr: E) -> AnyExprAndTransformResult
         where E: Into<AnyExpr>
     {
-        AnyExprAndTransformResult::new(TransformResult::Transformed, expr.into())
+        AnyExprAndTransformResult::new(TransformEffect::Transformed, expr.into())
     }
 }
 
@@ -239,7 +239,7 @@ pub trait AnyTransformer {
     /// Transforms the given mutable `AnyExpr` inplace.
     /// 
     /// Returns a state indicating whether the given expression was actually transformed.
-    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult;
+    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect;
 
     /// Consumed the given `AnyExpr` and transforms it.
     /// 
@@ -253,7 +253,7 @@ pub trait AnyTransformer {
 pub trait AutoImplAnyTransformer {}
 
 impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
-    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
+    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);
 		let AnyExprAndTransformResult{result, expr: transformed} =
@@ -328,14 +328,14 @@ macro_rules! create_base_transformer {
         }
 
         impl $name {
-            fn forward_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
-                let mut result = TransformResult::Identity;
+            fn forward_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
+                let mut result = TransformEffect::Identity;
                 $(result |= self.$id.transform_any_expr(expr));*;
                 result
             }
 
-            pub fn traverse_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
-                let mut result = TransformResult::Identity;
+            pub fn traverse_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
+                let mut result = TransformEffect::Identity;
                 for child in expr.childs_mut() {
                     result |= self.traverse_transform_any_expr(child);
                 }
@@ -345,7 +345,7 @@ macro_rules! create_base_transformer {
         }
 
         impl AnyTransformer for $name {
-            fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformResult {
+            fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
                 self.traverse_transform_any_expr(expr)
             }
 
