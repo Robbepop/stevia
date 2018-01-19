@@ -73,8 +73,8 @@ pub trait Transformer {
         TransformOutcome::identity(cond)
     }
 
-    fn transform_var(&self, bool_const: expr::Symbol) -> TransformOutcome {
-        TransformOutcome::identity(bool_const)
+    fn transform_var(&self, bool_var: expr::Symbol) -> TransformOutcome {
+        TransformOutcome::identity(bool_var)
     }
 
     fn transform_bool_const(&self, bool_const: expr::BoolConst) -> TransformOutcome {
