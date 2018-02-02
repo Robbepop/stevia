@@ -153,12 +153,12 @@ pub trait Transformer {
         TransformOutcome::identity(urem)
     }
 
-    fn transform_bitand(&self, bitand: expr::BitAnd) -> TransformOutcome {
-        TransformOutcome::identity(bitand)
-    }
-
     fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
         TransformOutcome::identity(bitnot)
+    }
+
+    fn transform_bitand(&self, bitand: expr::BitAnd) -> TransformOutcome {
+        TransformOutcome::identity(bitand)
     }
 
     fn transform_bitor(&self, bitor: expr::BitOr) -> TransformOutcome {
