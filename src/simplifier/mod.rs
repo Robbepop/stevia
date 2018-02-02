@@ -25,7 +25,8 @@ create_base_transformer!{
 
     (_0, simplifications::InvolutionSimplifier),
     (_1, simplifications::ComparisonReducer),
-    (_2, simplifications::BoolConstPropagator)
+    (_2, simplifications::BoolConstPropagator),
+    (_4, simplifications::Normalizer)
 }
 
 impl Default for BaseTransformer {
@@ -33,7 +34,8 @@ impl Default for BaseTransformer {
         BaseTransformer{
             _0: simplifications::InvolutionSimplifier,
             _1: simplifications::ComparisonReducer,
-            _2: simplifications::BoolConstPropagator
+            _2: simplifications::BoolConstPropagator,
+            _4: simplifications::Normalizer
         }
     }
 }
