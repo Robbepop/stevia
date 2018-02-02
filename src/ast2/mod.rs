@@ -67,6 +67,8 @@ pub use self::expr_kind::{
 pub use self::bool_expr::{
     BoolExpr,
     WrapWithNot,
+    UnaryExpr,
+    SingleChild,
     ChildsVec,
     ChildsVecMut,
     IntoChildsVec
