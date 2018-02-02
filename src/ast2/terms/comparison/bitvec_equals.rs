@@ -33,7 +33,12 @@ impl BitvecEquals {
     /// 
     /// - If `lhs` or `rhs` are not of bitvec type.
     /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<BitvecEquals, String> {
+    pub fn binary<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs: vec![lhs, rhs] })
@@ -48,7 +53,12 @@ impl BitvecEquals {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn binary_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<BitvecEquals, String> {
+    pub fn binary_infer<E1, E2>(lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(BitvecEquals{ childs_bitvec_ty: common_ty, childs: vec![lhs, rhs] })
     }

@@ -22,7 +22,12 @@ impl Implies {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Implies, String> {
+    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Implies, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
         Ok(Implies{ childs: BinExprChilds::new_boxed(lhs, rhs) })

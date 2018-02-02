@@ -33,7 +33,12 @@ impl Concat {
     /// # Errors
     /// 
     /// - If any of the two given child expressions is not of bitvec type.
-    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Result<Concat, String> {
+    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Concat, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         let lhs_bvty = checks::expect_bitvec_ty(&lhs)?;
         let rhs_bvty = checks::expect_bitvec_ty(&rhs)?;
         let concat_bvty = BitvecTy::from(

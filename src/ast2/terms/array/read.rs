@@ -59,7 +59,12 @@ impl ArrayRead {
     /// - If the given `array` is not of array type.
     /// - If the given `index` is not of bitvec type and does not match the
     ///   index bit width of the given array.
-    pub fn new(array: AnyExpr, index: AnyExpr) -> Result<ArrayRead, String> {
+    pub fn new<E1, E2>(array: E1, index: E2) -> Result<ArrayRead, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let array = array.into();
+        let index = index.into();
         let array_ty = checks::expect_array_ty(&array)?;
         checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
         Ok(ArrayRead{ bitvec_ty: array_ty.value_ty(), childs: ArrayReadChilds::new_boxed(array, index) })

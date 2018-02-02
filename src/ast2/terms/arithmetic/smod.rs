@@ -38,7 +38,12 @@ impl SignedModulo {
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedModulo, String> {
+    pub fn new<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<SignedModulo, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(SignedModulo{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })

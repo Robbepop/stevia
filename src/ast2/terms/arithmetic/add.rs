@@ -27,7 +27,12 @@ impl Add {
     /// 
     /// - If `lhs` or `rhs` are not of bitvec type.
     /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<Add, String> {
+    pub fn binary<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<Add, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(Add{ bitvec_ty, childs: vec![lhs, rhs] })

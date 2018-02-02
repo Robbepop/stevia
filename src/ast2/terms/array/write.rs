@@ -64,7 +64,14 @@ impl ArrayWrite {
     /// - If the given `array` is not of array type.
     /// - If the given `index` is not of bitvec type and does not match the
     ///   index bit width of the given array.
-    pub fn new(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> Result<ArrayWrite, String> {
+    pub fn new<A, I, V>(array: A, index: I, value: V) -> Result<ArrayWrite, String>
+        where A: Into<AnyExpr>,
+              I: Into<AnyExpr>,
+              V: Into<AnyExpr>
+    {
+        let array = array.into();
+        let index = index.into();
+        let value = value.into();
         let array_ty = checks::expect_array_ty(&array)?;
         checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
         checks::expect_concrete_bitvec_ty(&value, array_ty.value_ty())?;

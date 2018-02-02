@@ -31,7 +31,12 @@ impl UnsignedLessEquals {
     /// 
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new(bitvec_ty: BitvecTy, lhs: AnyExpr, rhs: AnyExpr) -> Result<UnsignedLessEquals, String> {
+    pub fn new<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<UnsignedLessEquals, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(UnsignedLessEquals{ childs_bitvec_ty: bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
@@ -46,7 +51,12 @@ impl UnsignedLessEquals {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<UnsignedLessEquals, String> {
+    pub fn new_infer<E1, E2>(lhs: E1, rhs: E2) -> Result<UnsignedLessEquals, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(UnsignedLessEquals{ childs_bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
     }

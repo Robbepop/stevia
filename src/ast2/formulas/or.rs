@@ -20,7 +20,12 @@ impl Or {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn binary(lhs: AnyExpr, rhs: AnyExpr) -> Result<Or, String> {
+    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> Result<Or, String>
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
         Ok(Or{ childs: vec![lhs, rhs] })
