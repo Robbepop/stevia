@@ -583,6 +583,22 @@ impl<F> ExprTreeBuilder<F>
 impl<F> ExprTreeBuilder<F>
     where F: ExprTreeFactory
 {
+    /// Creates a new binary bitvector equality expression with the given child expressions.
+    pub fn bitvec_equals<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
+        where L: IntoAnyExprOrError,
+              R: IntoAnyExprOrError
+    {
+        self.create_binary_expr(F::bitvec_equals, lhs, rhs)
+    }
+
+    /// Creates a new n-ary bitvector equality expression with the given child expressions.
+    pub fn bitvec_equals_n<I, E>(self, childs: I) -> Result<AnyExpr>
+        where I: IntoIterator<Item=E>,
+              E: IntoAnyExprOrError
+    {
+        self.create_nary_expr(F::bitvec_equals_n, childs)
+    }
+
     /// Creates a new binary signed greater-than-or-equals expression with the given child expressions.
     pub fn bitvec_sge<L, R>(self, lhs: L, rhs: R) -> Result<AnyExpr>
         where L: IntoAnyExprOrError,
