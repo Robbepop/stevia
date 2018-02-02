@@ -43,6 +43,11 @@ impl BinExprChilds {
         this.swap_childs();
         this
     }
+
+    /// Consumes `self` and returns both of its childs as pair.
+    pub fn into_childs_pair(self) -> (AnyExpr, AnyExpr) {
+        (self.lhs, self.rhs)
+    }
 }
 
 impl Childs for BinExprChilds {
