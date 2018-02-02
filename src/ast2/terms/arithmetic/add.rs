@@ -103,3 +103,21 @@ impl Add {
 }
 
 impl_traits_for_nary_term_expr!(Add);
+
+impl ChildsVec for Add {
+    fn childs_vec(&self) -> &Vec<AnyExpr> {
+        &self.childs
+    }
+}
+
+impl ChildsVecMut for Add {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
+        &mut self.childs
+    }
+}
+
+impl IntoChildsVec for Add {
+    fn into_childs_vec(self) -> Vec<AnyExpr> {
+        self.childs
+    }
+}

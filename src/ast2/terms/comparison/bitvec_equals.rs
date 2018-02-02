@@ -143,3 +143,21 @@ impl IntoChilds for BitvecEquals {
         IntoChildsIter::nary(self.childs)
     }
 }
+
+impl ChildsVec for BitvecEquals {
+    fn childs_vec(&self) -> &Vec<AnyExpr> {
+        &self.childs
+    }
+}
+
+impl ChildsVecMut for BitvecEquals {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
+        &mut self.childs
+    }
+}
+
+impl IntoChildsVec for BitvecEquals {
+    fn into_childs_vec(self) -> Vec<AnyExpr> {
+        self.childs
+    }
+}

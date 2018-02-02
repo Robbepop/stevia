@@ -100,3 +100,21 @@ impl From<BoolEquals> for AnyExpr {
         AnyExpr::BoolEquals(bool_equals)
     }
 }
+
+impl ChildsVec for BoolEquals {
+    fn childs_vec(&self) -> &Vec<AnyExpr> {
+        &self.childs
+    }
+}
+
+impl ChildsVecMut for BoolEquals {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
+        &mut self.childs
+    }
+}
+
+impl IntoChildsVec for BoolEquals {
+    fn into_childs_vec(self) -> Vec<AnyExpr> {
+        self.childs
+    }
+}

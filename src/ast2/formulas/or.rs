@@ -94,3 +94,21 @@ impl From<Or> for AnyExpr {
         AnyExpr::Or(or)
     }
 }
+
+impl ChildsVec for Or {
+    fn childs_vec(&self) -> &Vec<AnyExpr> {
+        &self.childs
+    }
+}
+
+impl ChildsVecMut for Or {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
+        &mut self.childs
+    }
+}
+
+impl IntoChildsVec for Or {
+    fn into_childs_vec(self) -> Vec<AnyExpr> {
+        self.childs
+    }
+}

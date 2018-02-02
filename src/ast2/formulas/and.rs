@@ -96,3 +96,21 @@ impl From<And> for AnyExpr {
         AnyExpr::And(and)
     }
 }
+
+impl ChildsVec for And {
+    fn childs_vec(&self) -> &Vec<AnyExpr> {
+        &self.childs
+    }
+}
+
+impl ChildsVecMut for And {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
+        &mut self.childs
+    }
+}
+
+impl IntoChildsVec for And {
+    fn into_childs_vec(self) -> Vec<AnyExpr> {
+        self.childs
+    }
+}

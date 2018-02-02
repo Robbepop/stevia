@@ -101,3 +101,21 @@ impl BitAnd {
 }
 
 impl_traits_for_nary_term_expr!(BitAnd);
+
+impl ChildsVec for BitAnd {
+    fn childs_vec(&self) -> &Vec<AnyExpr> {
+        &self.childs
+    }
+}
+
+impl ChildsVecMut for BitAnd {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
+        &mut self.childs
+    }
+}
+
+impl IntoChildsVec for BitAnd {
+    fn into_childs_vec(self) -> Vec<AnyExpr> {
+        self.childs
+    }
+}
