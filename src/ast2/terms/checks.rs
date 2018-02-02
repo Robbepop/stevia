@@ -115,3 +115,26 @@ pub fn expect_common_bitvec_ty<L, R>(lhs: &L, rhs: &R) -> Result<BitvecTy, Strin
     }
     Ok(lhs_bvty)
 }
+
+/// Checks if the given iterator of typed items are all of the same bitvector type.
+/// 
+/// # Errors
+/// 
+/// - If the given iterator yields no elements.
+/// - If not all yielded typed items are of the same bitvector type.
+pub fn expect_common_bitvec_ty_n<'t, I, T>(ty_iter: I) -> Result<BitvecTy, String>
+	where I: IntoIterator<Item=&'t T>,
+	      T: HasType + 't
+{
+    let mut ty_iter = ty_iter.into_iter();
+	match ty_iter.next() {
+		None => Err("Expected at least one item in the given iterator over typed entities.".into()),
+        Some(ty) => {
+            let head_bvty = expect_bitvec_ty(&ty.ty())?;
+            for ty in ty_iter {
+                expect_concrete_bitvec_ty(&ty.ty(), head_bvty)?;
+            }
+            Ok(head_bvty)
+        }
+	}
+}
