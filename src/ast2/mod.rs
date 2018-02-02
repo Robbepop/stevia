@@ -66,7 +66,10 @@ pub use self::expr_kind::{
 };
 pub use self::bool_expr::{
     BoolExpr,
-    WrapWithNot
+    WrapWithNot,
+    ChildsVec,
+    ChildsVecMut,
+    IntoChildsVec
 };
 pub use self::arity::{
     HasArity
