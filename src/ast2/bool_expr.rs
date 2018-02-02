@@ -30,3 +30,25 @@ impl<T> WrapWithNot for T where T: BoolExpr + IntoBoxedAnyExpr {
         unsafe{ expr::Not::new_unchecked(self.into_boxed_any_expr()) }
     }
 }
+
+/// Marker trait to mark n-ary expressions.
+pub trait NaryExpr:
+    ChildsVec +
+    ChildsVecMut +
+    IntoChildsVec
+{}
+
+/// Types implementing this trait allow to access their child expressions as vec.
+pub trait ChildsVec {
+    fn childs_vec(&self) -> &Vec<AnyExpr>;
+}
+
+/// Types implementing this trait allow to access their child expressions as vec mutably.
+pub trait ChildsVecMut {
+    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr>;
+}
+
+/// Types implementing this trait allow to be transformed into a vec of their childs.
+pub trait IntoChildsVec {
+    fn into_childs_vec(self) -> Vec<AnyExpr>;
+}
