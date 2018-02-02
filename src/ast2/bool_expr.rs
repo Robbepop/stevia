@@ -4,6 +4,8 @@ pub mod prelude {
     pub use super::{
         BoolExpr,
         WrapWithNot,
+        UnaryExpr,
+        SingleChild,
         ChildsVec,
         ChildsVecMut,
         IntoChildsVec
@@ -32,6 +34,23 @@ impl<T> WrapWithNot for T where T: BoolExpr + IntoBoxedAnyExpr {
     fn wrap_with_not(self) -> expr::Not {
         unsafe{ expr::Not::new_unchecked(self.into_boxed_any_expr()) }
     }
+}
+
+/// Marker trait to mark unary expressions.
+pub trait UnaryExpr: SingleChild {}
+
+/// Types implementing this trait allow to query or take their single child expression.
+pub trait SingleChild {
+    /// Returns a shared reference to the only child expression.
+    fn single_child(&self) -> &AnyExpr;
+    /// Returns a mutable reference to the only child expression.
+    fn single_child_mut(&mut self) -> &mut AnyExpr;
+    /// Consumes `self` and returns its only child expression.
+    fn into_single_child(self) -> AnyExpr;
+    /// Consumes `self` and returns its only child expression in a box.
+    /// 
+    /// Use this to prevent unnecesary unboxing of unary child expressions.
+    fn into_boxed_single_child(self) -> Box<AnyExpr>;
 }
 
 /// Marker trait to mark n-ary expressions.
