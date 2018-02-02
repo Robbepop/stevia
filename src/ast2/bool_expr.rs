@@ -3,7 +3,10 @@ use ast2::prelude::*;
 pub mod prelude {
     pub use super::{
         BoolExpr,
-        WrapWithNot
+        WrapWithNot,
+        ChildsVec,
+        ChildsVecMut,
+        IntoChildsVec
     };
 }
 
