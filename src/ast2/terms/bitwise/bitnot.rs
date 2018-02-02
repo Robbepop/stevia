@@ -92,3 +92,23 @@ impl From<BitNot> for AnyExpr {
         AnyExpr::BitNot(bitnot)
     }
 }
+
+impl UnaryExpr for BitNot {}
+
+impl SingleChild for BitNot {
+    fn single_child(&self) -> &AnyExpr {
+        &*self.child
+    }
+
+    fn single_child_mut(&mut self) -> &mut AnyExpr {
+        &mut *self.child
+    }
+
+    fn into_single_child(self) -> AnyExpr {
+        *self.child
+    }
+
+    fn into_boxed_single_child(self) -> Box<AnyExpr> {
+        self.child
+    }
+}

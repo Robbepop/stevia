@@ -86,3 +86,23 @@ impl From<Not> for AnyExpr {
         AnyExpr::Not(not)
     }
 }
+
+impl UnaryExpr for Not {}
+
+impl SingleChild for Not {
+    fn single_child(&self) -> &AnyExpr {
+        &*self.child
+    }
+
+    fn single_child_mut(&mut self) -> &mut AnyExpr {
+        &mut *self.child
+    }
+
+    fn into_single_child(self) -> AnyExpr {
+        *self.child
+    }
+
+    fn into_boxed_single_child(self) -> Box<AnyExpr> {
+        self.child
+    }
+}

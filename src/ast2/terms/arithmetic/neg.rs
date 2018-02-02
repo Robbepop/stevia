@@ -92,3 +92,23 @@ impl From<Neg> for AnyExpr {
         AnyExpr::Neg(neg)
     }
 }
+
+impl UnaryExpr for Neg {}
+
+impl SingleChild for Neg {
+    fn single_child(&self) -> &AnyExpr {
+        &*self.child
+    }
+
+    fn single_child_mut(&mut self) -> &mut AnyExpr {
+        &mut *self.child
+    }
+
+    fn into_single_child(self) -> AnyExpr {
+        *self.child
+    }
+
+    fn into_boxed_single_child(self) -> Box<AnyExpr> {
+        self.child
+    }
+}
