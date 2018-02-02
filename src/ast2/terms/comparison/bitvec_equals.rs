@@ -71,6 +71,25 @@ impl BitvecEquals {
         }
         Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs })
     }
+
+    /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
+    /// 
+    /// This automatically infers the common bitvector type of its given child expressions.
+    /// 
+    /// # Errors
+    /// 
+    /// - If the given iterator yields less than two expressions.
+    /// - If not all yielded expressions are of the same bitvec type.
+    pub fn nary_infer<E>(exprs: E) -> Result<BitvecEquals, String>
+        where E: IntoIterator<Item=AnyExpr>
+    {
+        let childs = exprs.into_iter().collect::<Vec<_>>();
+        if childs.len() < 2 {
+            return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
+        }
+        let childs_bitvec_ty = checks::expect_common_bitvec_ty_n(&childs)?;
+        Ok(BitvecEquals{ childs_bitvec_ty, childs })
+    }
 }
 
 impl HasType for BitvecEquals {

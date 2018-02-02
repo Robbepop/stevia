@@ -74,6 +74,25 @@ impl Mul {
         }
         Ok(Mul{ bitvec_ty, childs })
     }
+
+    /// Creates a new n-ary `Mul` expression from the given iterator over expressions.
+    /// 
+    /// This automatically infers the common bitvector type of its given child expressions.
+    /// 
+    /// # Errors
+    /// 
+    /// - If the given iterator yields less than two expressions.
+    /// - If not all yielded expressions are of the same bitvec type.
+    pub fn nary_infer<E>(exprs: E) -> Result<Mul, String>
+        where E: IntoIterator<Item=AnyExpr>
+    {
+        let childs = exprs.into_iter().collect::<Vec<_>>();
+        if childs.len() < 2 {
+            return Err("Require at least 2 child expressions to create a new Mul expression.".into())
+        }
+        let bitvec_ty = checks::expect_common_bitvec_ty_n(&childs)?;
+        Ok(Mul{ bitvec_ty, childs })
+    }
 }
 
 impl_traits_for_nary_term_expr!(Mul);
