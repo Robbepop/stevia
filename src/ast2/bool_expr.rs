@@ -10,7 +10,7 @@ pub mod prelude {
 /// Marker trait to mark boolean expressions.
 /// 
 /// This automatically implements methods on them that are safe for boolean expressions.
-pub trait BoolExpr {}
+pub trait BoolExpr: WrapWithNot {}
 
 /// Expressions that can be safely wrapped with a `Not` expression.
 /// 
