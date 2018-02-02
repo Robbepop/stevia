@@ -85,12 +85,12 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Xor::new(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn array_read(self, _array: AnyExpr, _index: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+    fn array_read(self, array: AnyExpr, index: AnyExpr) -> Result<AnyExpr> {
+		expr::ArrayRead::new(array, index).map(AnyExpr::from)
 	}
-    
-    fn array_write(self, _array: AnyExpr, _index: AnyExpr, _value: AnyExpr) -> Result<AnyExpr> {
-		unimplemented!()
+
+    fn array_write(self, array: AnyExpr, index: AnyExpr, value: AnyExpr) -> Result<AnyExpr> {
+		expr::ArrayWrite::new(array, index, value).map(AnyExpr::from)
 	}
 
     fn bitvec_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
