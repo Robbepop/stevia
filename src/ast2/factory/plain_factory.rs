@@ -97,8 +97,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::BitvecEquals::binary_infer(lhs, rhs).map(AnyExpr::from)
     }
 
-    fn bitvec_equals_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-        unimplemented!()
+    fn bitvec_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+        expr::BitvecEquals::nary_infer(childs).map(AnyExpr::from)
     }
 
     fn bitvec_const<V>(self, _ty: BitvecTy, _value: V) -> Result<AnyExpr>
@@ -115,8 +115,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Add::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_add_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		unimplemented!()
+    fn bitvec_add_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::Add::nary_infer(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_sub(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -127,8 +127,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Mul::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_mul_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		unimplemented!()
+    fn bitvec_mul_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::Mul::nary_infer(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_sdiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -159,16 +159,16 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::BitAnd::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_and_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		unimplemented!()
+    fn bitvec_and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::BitAnd::nary_infer(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_or(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
 		expr::BitOr::binary_infer(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_or_n(self, _childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		unimplemented!()
+    fn bitvec_or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::BitOr::nary_infer(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
