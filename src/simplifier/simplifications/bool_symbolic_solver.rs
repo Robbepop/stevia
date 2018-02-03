@@ -29,8 +29,10 @@ impl AutoImplAnyTransformer for BoolSymbolicSolver {}
 
 impl Transformer for BoolSymbolicSolver {
     fn transform_cond(&self, cond: expr::IfThenElse) -> TransformOutcome {
+        if cond.childs.then_case == cond.childs.else_case {
+            return TransformOutcome::transformed(cond.childs.then_case)
+        }
         TransformOutcome::identity(cond)
-        // if c then a else a => a
     }
 
     fn transform_bool_equals(&self, bool_equals: expr::BoolEquals) -> TransformOutcome {
@@ -101,6 +103,22 @@ impl Transformer for BoolSymbolicSolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    mod if_then_else {
+        use super::*;
+
+        #[test]
+        fn then_else_equals() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.cond(
+                b.bool_var("a"),
+                b.bool_var("b"),
+                b.bool_var("b")
+            ).unwrap();
+            Simplifier::default().simplify(&mut expr);
+            assert_eq!(expr, b.bool_var("b").unwrap());
+        }
+    }
 
     mod bool_equals {
         use super::*;
