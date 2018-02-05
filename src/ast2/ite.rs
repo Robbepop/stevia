@@ -53,6 +53,13 @@ pub struct IfThenElseChilds {
 	pub else_case: AnyExpr
 }
 
+impl IfThenElseChilds {
+    /// Consumes `self` and returns both of its childs as tuple.
+    pub fn into_childs_tuple(self) -> (AnyExpr, AnyExpr, AnyExpr) {
+        (self.cond, self.then_case, self.else_case)
+    }
+}
+
 impl IfThenElse {
     /// Returns a new `IfThenElse` expression from the given condition, then-case and else-case.
     /// 
