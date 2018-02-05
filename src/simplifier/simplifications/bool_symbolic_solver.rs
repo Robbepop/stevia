@@ -28,11 +28,26 @@ fn is_logical_contradiction(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
 impl AutoImplAnyTransformer for BoolSymbolicSolver {}
 
 impl Transformer for BoolSymbolicSolver {
-    fn transform_cond(&self, cond: expr::IfThenElse) -> TransformOutcome {
-        if cond.childs.then_case == cond.childs.else_case {
-            return TransformOutcome::transformed(cond.childs.then_case)
+    fn transform_cond(&self, ite: expr::IfThenElse) -> TransformOutcome {
+        if ite.childs.then_case == ite.childs.else_case {
+            return TransformOutcome::transformed(ite.childs.then_case)
         }
-        TransformOutcome::identity(cond)
+        if ite.childs.cond.kind() == ExprKind::Not {
+            let (cond, then_case, else_case) = ite.childs.into_childs_tuple();
+            if let AnyExpr::Not(not) = cond {
+                return TransformOutcome::transformed(
+                    AnyExpr::from(unsafe{
+                        expr::IfThenElse::new_unchecked(
+                            not.into_single_child(),
+                            else_case,
+                            then_case
+                        )
+                    })
+                )
+            }
+            unreachable!()
+        }
+        TransformOutcome::identity(ite)
     }
 
     fn transform_bool_equals(&self, bool_equals: expr::BoolEquals) -> TransformOutcome {
@@ -117,6 +132,23 @@ mod tests {
             ).unwrap();
             Simplifier::default().simplify(&mut expr);
             assert_eq!(expr, b.bool_var("b").unwrap());
+        }
+
+        #[test]
+        fn not_cond() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.cond(
+                b.not(b.bool_var("a")),
+                b.bool_var("b"),
+                b.bool_var("c")
+            ).unwrap();
+            Simplifier::default().simplify(&mut expr);
+            let expected = b.cond(
+                b.bool_var("a"),
+                b.bool_var("c"),
+                b.bool_var("b")
+            ).unwrap();
+            assert_eq!(expr, expected);
         }
     }
 
