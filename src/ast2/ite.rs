@@ -58,6 +58,16 @@ impl IfThenElseChilds {
     pub fn into_childs_tuple(self) -> (AnyExpr, AnyExpr, AnyExpr) {
         (self.cond, self.then_case, self.else_case)
     }
+
+    /// Returns a tuple of mutable references to the child expressions.
+    pub fn as_childs_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
+        (&mut self.cond, &mut self.then_case, &mut self.else_case)
+    }
+
+    /// Swaps then and else case child expressions.
+    pub fn swap_then_else(&mut self) {
+        ::std::mem::swap(&mut self.then_case, &mut self.else_case)
+    }
 }
 
 impl IfThenElse {
@@ -93,6 +103,16 @@ impl IfThenElse {
             ty: common_ty,
             childs: P::new(IfThenElseChilds{cond, then_case, else_case})
         }
+    }
+
+    /// Swaps then and else case child expressions.
+    pub fn swap_then_else(&mut self) {
+        self.childs.swap_then_else()
+    }
+
+    /// Returns a tuple of mutable references to the child expressions.
+    pub fn as_childs_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
+        self.childs.as_childs_tuple_mut()
     }
 }
 
