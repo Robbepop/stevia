@@ -32,20 +32,14 @@ impl Transformer for BoolSymbolicSolver {
         if ite.childs.then_case == ite.childs.else_case {
             return TransformOutcome::transformed(ite.childs.then_case)
         }
-        if ite.childs.cond.kind() == ExprKind::Not {
-            let (cond, then_case, else_case) = ite.childs.into_childs_tuple();
-            if let AnyExpr::Not(not) = cond {
-                return TransformOutcome::transformed(
-                    AnyExpr::from(unsafe{
-                        expr::IfThenElse::new_unchecked(
-                            not.into_single_child(),
-                            else_case,
-                            then_case
-                        )
-                    })
+        if let box IfThenElseChilds{ cond: AnyExpr::Not(not), then_case, else_case } = ite.childs {
+            return TransformOutcome::transformed(unsafe{
+                expr::IfThenElse::new_unchecked(
+                    not.into_single_child(),
+                    else_case,
+                    then_case
                 )
-            }
-            unreachable!()
+            })
         }
         TransformOutcome::identity(ite)
     }
