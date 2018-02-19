@@ -6,7 +6,7 @@ pub mod prelude {
 }
 
 /// This simplification procedure propagates constant values through boolean expressions.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolConstPropagator;
 
 impl AutoImplAnyTransformer for BoolConstPropagator {}

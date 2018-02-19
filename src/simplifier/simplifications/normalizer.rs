@@ -9,7 +9,7 @@ pub mod prelude {
     pub use super::Normalizer;
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Normalizer;
 
 impl AutoImplAnyTransformer for Normalizer {}

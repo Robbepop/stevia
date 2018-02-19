@@ -322,7 +322,7 @@ macro_rules! create_base_transformer {
         /// 
         /// This traverses the expression tree and performs transformations
         /// using all given transformers.
-        #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+        #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
         pub struct $name {
             $($id: $trans),*
         }

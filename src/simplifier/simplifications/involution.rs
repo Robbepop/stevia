@@ -14,7 +14,7 @@ pub mod prelude {
 /// - `not(not(a))` is simplified to `a`
 /// - `neg(neg(x))` is simplified to `x`
 /// - `bitvec_not(bitvec_not(x))` is simplified to `x`
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct InvolutionSimplifier;
 
 impl AutoImplAnyTransformer for InvolutionSimplifier {}

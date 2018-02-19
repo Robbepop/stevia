@@ -30,14 +30,14 @@ create_base_transformer!{
     (_4, simplifications::Normalizer)
 }
 
-impl Default for BaseTransformer {
-    fn default() -> BaseTransformer {
-        BaseTransformer{
-            _0: simplifications::InvolutionSimplifier,
-            _1: simplifications::ComparisonReducer,
-            _2: simplifications::BoolConstPropagator,
-            _3: simplifications::BoolSymbolicSolver,
-            _4: simplifications::Normalizer
-        }
-    }
-}
+// impl Default for BaseTransformer {
+//     fn default() -> BaseTransformer {
+//         BaseTransformer{
+//             _0: simplifications::InvolutionSimplifier,
+//             _1: simplifications::ComparisonReducer,
+//             _2: simplifications::BoolConstPropagator,
+//             _3: simplifications::BoolSymbolicSolver,
+//             _4: simplifications::Normalizer
+//         }
+//     }
+// }

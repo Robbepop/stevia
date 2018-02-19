@@ -52,7 +52,7 @@ fn reduce_ule_to_ult(ule: expr::UnsignedLessEquals) -> expr::Not {
 /// - `a > b` is simplified to `b < a`
 /// - `a >= b` is simplified to `not(a < b)`
 /// - `a <= b` is simplified to `not(b < a)`
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ComparisonReducer;
 
 impl AutoImplAnyTransformer for ComparisonReducer {}

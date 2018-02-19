@@ -12,7 +12,7 @@ pub mod prelude {
 /// 
 /// This works best if used after an expression normalization transformation and
 /// might be expensive for deeply nested expression trees that have many similarities.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolSymbolicSolver;
 
 fn is_logical_contradiction(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
