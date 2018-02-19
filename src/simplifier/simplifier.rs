@@ -1,5 +1,6 @@
 use ast2::prelude::*;
 use simplifier::prelude::*;
+use simplifier::simplifications;
 
 pub mod prelude {
     pub use super::{
@@ -7,19 +8,21 @@ pub mod prelude {
     };
 }
 
-/// Simplifies expressions using the underlying base transformer.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Simplifier {
-    /// The base transformer for expressions used by this simplifier.
-    transformer: BaseTransformer
+create_modular_ast_transformer! {
+    struct SimplifierTransformer;
+
+    (_0, simplifications::InvolutionSimplifier),
+    (_1, simplifications::ComparisonReducer),
+    (_2, simplifications::BoolConstPropagator),
+    (_3, simplifications::BoolSymbolicSolver),
+    (_4, simplifications::Normalizer)
 }
 
-impl Default for Simplifier {
-    fn default() -> Simplifier {
-        Simplifier{
-            transformer: BaseTransformer::default()
-        }
-    }
+/// Simplifies expressions using the underlying base transformer.
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Simplifier {
+    /// The base transformer for expressions used by this simplifier.
+    transformer: SimplifierTransformer
 }
 
 impl Simplifier {
