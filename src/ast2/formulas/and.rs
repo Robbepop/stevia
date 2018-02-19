@@ -33,6 +33,20 @@ impl And {
         Ok(And{ childs: vec![lhs, rhs] })
     }
 
+    /// Returns a new binary `And` formula expression with the given child expressions.
+    /// 
+    /// # Safety
+    /// 
+    /// This is unsafe since it does not check the type requirements for the given child expressions.
+    pub unsafe fn binary_unchecked<E1, E2>(lhs: E1, rhs: E2) -> And
+        where E1: Into<AnyExpr>,
+              E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
+        And{ childs: vec![lhs, rhs] }
+    }
+
     /// Creates a new n-ary `And` formula expression.
     /// 
     /// # Errors
