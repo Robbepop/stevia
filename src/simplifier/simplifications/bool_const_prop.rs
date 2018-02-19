@@ -42,6 +42,32 @@ impl Transformer for BoolConstPropagator {
                     unsafe{ expr::Not::new_unchecked(cond.childs.cond) })
             }
         }
+        if let (Some(then_const), None) = (opt_then_const, opt_else_const) {
+            if then_const {
+                // If then is true return equisatisfiable or: `(ite c ⊤ e)` ➔ `(or c e)`
+                return TransformOutcome::transformed(
+                    unsafe{ expr::Or::binary_unchecked(cond.childs.cond, cond.childs.else_case) });
+            }
+            else {
+                // If then is false return equisatisfiable and: `(ite c ⊥ e)` ➔ `(and (not c) e)`
+                return TransformOutcome::transformed(
+                    unsafe{ expr::And::binary_unchecked(
+                        expr::Not::new_unchecked(cond.childs.cond), cond.childs.else_case) });
+            }
+        }
+        if let (None, Some(else_const)) = (opt_then_const, opt_else_const) {
+            if else_const {
+                // If else is true return equisatisfiable and: `(ite c t ⊤)` ➔ `(or (not c) t)`
+                return TransformOutcome::transformed(
+                    unsafe{ expr::Or::binary_unchecked(
+                        expr::Not::new_unchecked(cond.childs.cond), cond.childs.then_case) });
+            }
+            else {
+                // If else is false return equisatisfiable or: `(ite c t ⊥)` ➔ `(and c t)`
+                return TransformOutcome::transformed(
+                    unsafe{ expr::And::binary_unchecked(cond.childs.cond, cond.childs.then_case) });
+            }
+        }
         TransformOutcome::identity(cond)
     }
 
@@ -185,6 +211,70 @@ mod tests {
             test_for( true, false);
             test_for(false,  true);
             test_for(false, false);
+        }
+
+        #[test]
+        fn then_true_lower_or() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.cond(
+                b.bool_var("a"),
+                b.bool_const(true),
+                b.bool_var("b")
+            ).unwrap();
+            Simplifier::default().simplify(&mut expr);
+            let expected = b.or(
+                b.bool_var("a"),
+                b.bool_var("b")
+            ).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn then_false_lower_and() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.cond(
+                b.bool_var("a"),
+                b.bool_const(false),
+                b.bool_var("b")
+            ).unwrap();
+            Simplifier::default().simplify(&mut expr);
+            let expected = b.and(
+                b.not(b.bool_var("a")),
+                b.bool_var("b")
+            ).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn else_true_lower_or() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.cond(
+                b.bool_var("a"),
+                b.bool_var("b"),
+                b.bool_const(true)
+            ).unwrap();
+            Simplifier::default().simplify(&mut expr);
+            let expected = b.or(
+                b.not(b.bool_var("a")),
+                b.bool_var("b")
+            ).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn else_false_lower_or() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.cond(
+                b.bool_var("a"),
+                b.bool_var("b"),
+                b.bool_const(false)
+            ).unwrap();
+            Simplifier::default().simplify(&mut expr);
+            let expected = b.and(
+                b.bool_var("a"),
+                b.bool_var("b")
+            ).unwrap();
+            assert_eq!(expr, expected);
         }
     }
 
