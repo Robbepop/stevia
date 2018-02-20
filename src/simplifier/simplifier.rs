@@ -8,6 +8,8 @@ pub mod prelude {
     };
 }
 
+pub type Simplifier = BaseSimplifier<SimplifierTransformer>;
+
 create_modular_ast_transformer! {
     struct SimplifierTransformer;
 
@@ -20,12 +22,16 @@ create_modular_ast_transformer! {
 
 /// Simplifies expressions using the underlying base transformer.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Simplifier {
+pub struct BaseSimplifier<Transformer>
+    where Transformer: AnyTransformer
+{
     /// The base transformer for expressions used by this simplifier.
-    transformer: SimplifierTransformer
+    transformer: Transformer
 }
 
-impl Simplifier {
+impl<Transformer> BaseSimplifier<Transformer>
+    where Transformer: AnyTransformer
+{
     /// Simplifies the given expression for a single step.
     pub fn simplify(&self, expr: &mut AnyExpr) -> TransformEffect {
         self.transformer.transform_any_expr(expr)
