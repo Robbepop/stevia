@@ -167,6 +167,20 @@ impl Transformer for BoolConstPropagator {
 mod tests {
     use super::*;
 
+    create_modular_ast_transformer! {
+        struct BoolConstPropagatorTransformer;
+        (_0, BoolConstPropagator)
+    }
+    type BoolConstPropagatorSimplifier = BaseSimplifier<BoolConstPropagatorTransformer>;
+
+    fn create_simplifier() -> BoolConstPropagatorSimplifier {
+        BoolConstPropagatorSimplifier::default()
+    }
+
+    fn simplify(expr: &mut AnyExpr) -> TransformEffect {
+        create_simplifier().simplify(expr)
+    }
+
     mod cond {
         use super::*;
 
@@ -179,7 +193,7 @@ mod tests {
                     b.bool_var("a"),
                     b.bool_var("b")
                 ).unwrap();
-                Simplifier::default().simplify(&mut expr);
+                simplify(&mut expr);
                 let expected = b.bool_var(if flag { "a" } else { "b" }).unwrap();
                 assert_eq!(expr, expected);
             }
@@ -196,7 +210,7 @@ mod tests {
                     b.bool_const(then_case),
                     b.bool_const(else_case)
                 ).unwrap();
-                Simplifier::default().simplify(&mut expr);
+                simplify(&mut expr);
                 if then_case == else_case {
                     assert_eq!(expr, b.bool_const(then_case).unwrap());
                 }
@@ -221,7 +235,7 @@ mod tests {
                 b.bool_const(true),
                 b.bool_var("b")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             let expected = b.or(
                 b.bool_var("a"),
                 b.bool_var("b")
@@ -237,7 +251,7 @@ mod tests {
                 b.bool_const(false),
                 b.bool_var("b")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             let expected = b.and(
                 b.not(b.bool_var("a")),
                 b.bool_var("b")
@@ -253,7 +267,7 @@ mod tests {
                 b.bool_var("b"),
                 b.bool_const(true)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             let expected = b.or(
                 b.not(b.bool_var("a")),
                 b.bool_var("b")
@@ -269,7 +283,7 @@ mod tests {
                 b.bool_var("b"),
                 b.bool_const(false)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             let expected = b.and(
                 b.bool_var("a"),
                 b.bool_var("b")
@@ -286,7 +300,7 @@ mod tests {
                 b.bool_const(lhs),
                 b.bool_const(rhs)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             if lhs == rhs {
                 assert_eq!(expr, b.bool_const(true).unwrap());
             }
@@ -308,7 +322,7 @@ mod tests {
                 b.bool_const(lhs),
                 b.bool_const(rhs)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             if lhs && rhs {
                 assert_eq!(expr, b.bool_const(true).unwrap())
             }
@@ -330,7 +344,7 @@ mod tests {
                 b.bool_const(lhs),
                 b.bool_const(rhs)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             if lhs || rhs {
                 assert_eq!(expr, b.bool_const(true).unwrap())
             }
@@ -352,7 +366,7 @@ mod tests {
                 b.bool_const(lhs),
                 b.bool_const(rhs)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             if lhs ^ rhs {
                 assert_eq!(expr, b.bool_const(true).unwrap())
             }
@@ -377,7 +391,7 @@ mod tests {
                     b.bool_const(lhs),
                     b.bool_const(rhs)
                 ).unwrap();
-                Simplifier::default().simplify(&mut expr);
+                simplify(&mut expr);
                 if !lhs || rhs {
                     assert_eq!(expr, b.bool_const(true).unwrap())
                 }
@@ -399,7 +413,7 @@ mod tests {
                     b.bool_const(lhs),
                     b.bool_var("a")
                 ).unwrap();
-                Simplifier::default().simplify(&mut expr);
+                simplify(&mut expr);
                 if !lhs {
                     assert_eq!(expr, b.bool_const(true).unwrap())
                 }
@@ -419,7 +433,7 @@ mod tests {
                     b.bool_var("a"),
                     b.bool_const(rhs)
                 ).unwrap();
-                Simplifier::default().simplify(&mut expr);
+                simplify(&mut expr);
                 if rhs {
                     assert_eq!(expr, b.bool_const(true).unwrap())
                 }
@@ -439,7 +453,7 @@ mod tests {
             let mut expr = b.not(
                 b.bool_const(flag)
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            simplify(&mut expr);
             if !flag {
                 assert_eq!(expr, b.bool_const(true).unwrap())
             }
