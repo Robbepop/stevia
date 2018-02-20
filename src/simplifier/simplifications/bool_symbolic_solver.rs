@@ -113,6 +113,17 @@ impl Transformer for BoolSymbolicSolver {
 mod tests {
     use super::*;
 
+    create_modular_ast_transformer! {
+        struct BoolSymbolicTransformer;
+
+        (_1, BoolSymbolicSolver)
+    }
+    type BoolSymbolicSimplifier = BaseSimplifier<BoolSymbolicTransformer>;
+
+    fn create_simplifier() -> BoolSymbolicSimplifier {
+        BoolSymbolicSimplifier::default()
+    }
+
     mod if_then_else {
         use super::*;
 
@@ -124,7 +135,7 @@ mod tests {
                 b.bool_var("b"),
                 b.bool_var("b")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_var("b").unwrap());
         }
 
@@ -136,7 +147,7 @@ mod tests {
                 b.bool_var("b"),
                 b.bool_var("c")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             let expected = b.cond(
                 b.bool_var("a"),
                 b.bool_var("c"),
@@ -158,7 +169,7 @@ mod tests {
                 b.not(b.bool_var("a")),
                 b.bool_var("c")
             ]).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_const(false).unwrap());
         }
     }
@@ -175,7 +186,7 @@ mod tests {
                 b.not(b.bool_var("a")),
                 b.bool_var("c")
             ]).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_const(false).unwrap());
         }
     }
@@ -192,7 +203,7 @@ mod tests {
                 b.not(b.bool_var("a")),
                 b.bool_var("c")
             ]).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_const(true).unwrap());
         }
     }
@@ -207,7 +218,7 @@ mod tests {
                 b.bool_var("a"),
                 b.bool_var("a")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_const(false).unwrap());
         }
 
@@ -218,7 +229,7 @@ mod tests {
                 b.bool_var("a"),
                 b.not(b.bool_var("a"))
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_const(true).unwrap());
         }
     }
@@ -233,7 +244,7 @@ mod tests {
                 b.bool_var("a"),
                 b.bool_var("a")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_const(true).unwrap());
         }
 
@@ -244,7 +255,7 @@ mod tests {
                 b.not(b.bool_var("a")),
                 b.bool_var("a")
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.bool_var("a").unwrap());
         }
 
@@ -255,7 +266,7 @@ mod tests {
                 b.bool_var("a"),
                 b.not(b.bool_var("a"))
             ).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            create_simplifier().simplify(&mut expr);
             assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
         }
     }
