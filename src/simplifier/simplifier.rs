@@ -4,7 +4,8 @@ use simplifier::simplifications;
 
 pub mod prelude {
     pub use super::{
-        Simplifier
+        Simplifier,
+        BaseSimplifier
     };
 }
 

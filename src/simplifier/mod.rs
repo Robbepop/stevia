@@ -10,7 +10,8 @@ pub mod prelude {
         AnyTransformer,
         TransformOutcome,
         AutoImplAnyTransformer,
-        Simplifier
+        Simplifier,
+        BaseSimplifier
     };
 }
 
