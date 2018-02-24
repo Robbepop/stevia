@@ -56,6 +56,8 @@ Keep in mind that this is still a pretty naive simplification. More to come in f
 These features need to be stabilized before this crate can be used on the stable channel.
 
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
+- [`#![feature(conservative_impl_trait)]`][conservative-impl-trait]
+- [`#![feature(nll)]`][nll]
 
 ## License
 
@@ -102,3 +104,5 @@ additional terms or conditions.
 [jamsat-repo]: https://github.com/fkutzner/JamSAT
 
 [unstable-box-patterns]: https://github.com/rust-lang/rust/issues/29641
+[conservative-impl-trait]: https://github.com/rust-lang/rust/issues/34511
+[nll]: https://github.com/rust-lang/rust/issues/43234
