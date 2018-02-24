@@ -52,6 +52,10 @@ pub use self::factory::{
     ExprTreeBuilder,
     PlainExprTreeBuilder
 };
+pub use self::formulas::{
+    BinBoolExpr,
+    NaryBoolExpr
+};
 pub use self::terms::{
     BitWidth,
     BinTermExpr,

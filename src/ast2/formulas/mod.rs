@@ -1,3 +1,5 @@
+mod binexpr;
+mod nary_expr;
 mod checks;
 mod bool_const;
 mod bool_equals;
@@ -19,6 +21,8 @@ pub mod prelude {
     };
 }
 
+pub use self::binexpr::prelude::*;
+pub use self::nary_expr::prelude::*;
 pub use self::bool_const::prelude::*;
 pub use self::bool_equals::prelude::*;
 pub use self::not::prelude::*;
