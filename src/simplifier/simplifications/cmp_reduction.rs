@@ -9,40 +9,40 @@ pub mod prelude {
 
 /// Reduces this `SignedGreaterEquals` to using less-than as only comparison.
 fn reduce_sge_to_slt(sge: expr::SignedGreaterEquals) -> expr::Not {
-    unsafe{ expr::SignedLessThan::from_raw_parts(sge.childs_bitvec_ty, sge.childs) }.wrap_with_not()
+    unsafe{ expr::SignedLessThan::new_unchecked(sge.childs_bitvec_ty, sge.childs) }.wrap_with_not()
 }
 
 /// Reduces this `SignedLessThan` to using less-than as only comparison.
 fn reduce_sgt_to_slt(sgt: expr::SignedGreaterThan) -> expr::SignedLessThan {
     let mut sgt = sgt;
     sgt.childs.swap_childs();
-    unsafe{ expr::SignedLessThan::from_raw_parts(sgt.childs_bitvec_ty, sgt.childs) }
+    unsafe{ expr::SignedLessThan::new_unchecked(sgt.childs_bitvec_ty, sgt.childs) }
 }
 
 /// Creates a new `SignedLessEquals` expression from the given `SignedGreaterThan`.
 fn reduce_sle_to_slt(sle: expr::SignedLessEquals) -> expr::Not {
     let mut sle = sle;
     sle.childs.swap_childs();
-    unsafe{ expr::SignedLessThan::from_raw_parts(sle.childs_bitvec_ty, sle.childs).wrap_with_not() }
+    unsafe{ expr::SignedLessThan::new_unchecked(sle.childs_bitvec_ty, sle.childs).wrap_with_not() }
 }
 
 /// Reduces this `UnsignedGreaterEquals` to using less-than as only comparison.
 fn reduce_uge_to_ult(uge: expr::UnsignedGreaterEquals) -> expr::Not {
-    unsafe{ expr::UnsignedLessThan::from_raw_parts(uge.childs_bitvec_ty, uge.childs) }.wrap_with_not()
+    unsafe{ expr::UnsignedLessThan::new_unchecked(uge.childs_bitvec_ty, uge.childs) }.wrap_with_not()
 }
 
 /// Reduces this `UnsignedLessThan` to using less-than as only comparison.
 fn reduce_ugt_to_ult(ugt: expr::UnsignedGreaterThan) -> expr::UnsignedLessThan {
     let mut ugt = ugt;
     ugt.childs.swap_childs();
-    unsafe{ expr::UnsignedLessThan::from_raw_parts(ugt.childs_bitvec_ty, ugt.childs) }
+    unsafe{ expr::UnsignedLessThan::new_unchecked(ugt.childs_bitvec_ty, ugt.childs) }
 }
 
 /// Creates a new `UnsignedLessEquals` expression from the given `SignedGreaterThan`.
 fn reduce_ule_to_ult(ule: expr::UnsignedLessEquals) -> expr::Not {
     let mut ule = ule;
     ule.childs.swap_childs();
-    unsafe{ expr::UnsignedLessThan::from_raw_parts(ule.childs_bitvec_ty, ule.childs).wrap_with_not() }
+    unsafe{ expr::UnsignedLessThan::new_unchecked(ule.childs_bitvec_ty, ule.childs).wrap_with_not() }
 }
 
 /// Reduces comparison expressions to less-than forms.
