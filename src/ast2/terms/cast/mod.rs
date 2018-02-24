@@ -1,6 +1,6 @@
 mod concat;
 mod extract;
-mod ext;
+mod extend;
 
 pub mod prelude {
     pub use super::{
@@ -13,4 +13,4 @@ pub mod prelude {
 
 pub use self::concat::prelude::*;
 pub use self::extract::prelude::*;
-pub use self::ext::prelude::*;
+pub use self::extend::prelude::*;
