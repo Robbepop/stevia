@@ -1,5 +1,4 @@
 use ast2::prelude::*;
-use ast2::formulas::checks;
 
 pub mod prelude {
     pub use super::{
@@ -7,77 +6,29 @@ pub mod prelude {
     };
 }
 
-/// An XOR (either or) formula binary expression.
+mod marker {
+    use ast2::prelude::*;
+    use ast2::terms::ExprMarker;
+
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+    pub struct XorMarker;
+
+    impl ExprMarker for XorMarker {
+        const EXPR_KIND: ExprKind = ExprKind::Xor;
+    }
+}
+
+/// XOR (exclusive-or, either-or) formula binary expression.
 /// 
 /// # Note
 /// 
 /// - This evaluates to true whenever exactly one of its child
 ///   expressions evaluates to `true`.
 /// - This can be understood as the boolean not-equals.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct Xor {
-    /// The two child expressions.
-    pub childs: P<BinExprChilds>
-}
-
-impl Xor {
-    /// Returns a new `Xor` formula expression with the given child expressions.
-    /// 
-    /// # Errors
-    /// 
-    /// - If `lhs` or `rhs` are not of bool type.
-    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Xor, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
-    {
-        let lhs = lhs.into();
-        let rhs = rhs.into();
-        checks::expect_bool_ty(&lhs)?;
-        checks::expect_bool_ty(&rhs)?;
-        Ok(Xor{ childs: BinExprChilds::new_boxed(lhs, rhs) })
-    }
-}
-
-impl BoolExpr for Xor {}
-
-impl Childs for Xor {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
-    }
-}
-
-impl ChildsMut for Xor {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
-    }
-}
-
-impl IntoChilds for Xor {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
-    }
-}
-
-impl HasType for Xor {
-    fn ty(&self) -> Type {
-        Type::Bool
-    }
-}
-
-impl HasKind for Xor {
-    fn kind(&self) -> ExprKind {
-        ExprKind::Xor
-    }
-}
-
-impl HasArity for Xor {
-    fn arity(&self) -> usize {
-        2
-    }
-}
+pub type Xor = BinBoolExpr<marker::XorMarker>;
 
 impl From<Xor> for AnyExpr {
-    fn from(xor: Xor) -> AnyExpr {
-        AnyExpr::Xor(xor)
+    fn from(expr: Xor) -> AnyExpr {
+        AnyExpr::Xor(expr)
     }
 }
