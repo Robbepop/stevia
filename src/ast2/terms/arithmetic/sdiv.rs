@@ -1,10 +1,21 @@
 use ast2::prelude::*;
-use ast2::terms::checks;
 
 pub mod prelude {
     pub use super::{
         SignedDiv
     };
+}
+
+mod marker {
+    use ast2::prelude::*;
+    use ast2::terms::ExprMarker;
+
+    #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+    pub struct SignedDivMarker;
+
+    impl ExprMarker for SignedDivMarker {
+        const EXPR_KIND: ExprKind = ExprKind::SignedDiv;
+    }
 }
 
 /// Binary `SignedDiv` (signed division) term expression.
@@ -15,51 +26,10 @@ pub mod prelude {
 /// 
 /// - On machine level signed and unsigned division are
 ///   two different operations and have to be treated differently.
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct SignedDiv {
-    /// The two child term expressions.
-    pub childs: P<BinExprChilds>,
-    /// The bit width of this expression.
-    /// 
-    /// All child expressions must respect this bit width.
-    /// This is also used to verify integrity of the bit width.
-    pub bitvec_ty: BitvecTy
-}
+pub type SignedDiv = BinTermExpr<marker::SignedDivMarker>;
 
-impl SignedDiv {
-    /// Returns a new `SignedDiv` (signed division) term expression with the given
-    /// child term expressions.
-    /// 
-    /// # Errors
-    /// 
-    /// - If any of the two given child expressions is not of bitvec type or
-    ///   has an unmatching bit width to the given bit width.
-    pub fn new<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<SignedDiv, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
-    {
-        let lhs = lhs.into();
-        let rhs = rhs.into();
-        checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
-        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(SignedDiv{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
+impl From<SignedDiv> for AnyExpr {
+    fn from(expr: SignedDiv) -> AnyExpr {
+        AnyExpr::SignedDiv(expr)
     }
-
-    /// Returns a new binary `SignedDiv` (signed division) expression for the
-    /// given two child expressions.
-    /// 
-    /// # Note
-    /// 
-    /// Infers the concrete bitvector type of the resulting expression from its childs.
-    /// 
-    /// # Errors
-    /// 
-    /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn new_infer(lhs: AnyExpr, rhs: AnyExpr) -> Result<SignedDiv, String> {
-        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(SignedDiv{ bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs) })
-    }
-
 }
-
-impl_traits_for_binary_term_expr!(SignedDiv);

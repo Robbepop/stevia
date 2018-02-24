@@ -53,7 +53,9 @@ pub use self::factory::{
     PlainExprTreeBuilder
 };
 pub use self::terms::{
-    BitWidth
+    BitWidth,
+    BinTermExpr,
+    NaryTermExpr
 };
 pub use self::any_expr::{
     AnyExpr,
