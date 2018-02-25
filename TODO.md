@@ -3,7 +3,6 @@
 ## AST
 
 - Improve doc-comments of some expressions. E.g. remove the ` ticks.
-- Reduce code bloat by introducing further code-gen macros.
 - Add proper error management to the AST module. Maybe use failure?
 
 ## Long term
