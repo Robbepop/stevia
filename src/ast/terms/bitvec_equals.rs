@@ -2,6 +2,7 @@ use ast::prelude::*;
 use ast::terms::checks;
 
 use std::iter::FromIterator;
+use std::cmp::Ordering;
 
 /// Re-exports all commonly used items of this module.
 pub mod prelude {
@@ -144,20 +145,16 @@ impl IntoChilds for BitvecEquals {
     }
 }
 
-impl ChildsVec for BitvecEquals {
-    fn childs_vec(&self) -> &Vec<AnyExpr> {
-        &self.childs
+impl DedupChildren for BitvecEquals {
+    fn dedup_children(&mut self) {
+        self.childs.dedup()
     }
 }
 
-impl ChildsVecMut for BitvecEquals {
-    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
-        &mut self.childs
-    }
-}
-
-impl IntoChildsVec for BitvecEquals {
-    fn into_childs_vec(self) -> Vec<AnyExpr> {
-        self.childs
+impl SortChildren for BitvecEquals {
+    fn sort_children_by<F>(&mut self, comparator: F)
+        where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering
+    {
+        self.childs.sort_unstable_by(comparator)
     }
 }

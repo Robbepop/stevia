@@ -3,6 +3,7 @@ use ast::formulas::checks;
 use ast::terms::ExprMarker;
 
 use std::marker::PhantomData;
+use std::cmp::Ordering;
 
 pub mod prelude {
     pub use super::{
@@ -136,20 +137,16 @@ impl<M> HasArity for NaryBoolExpr<M> {
     }
 }
 
-impl<M> ChildsVec for NaryBoolExpr<M> {
-    fn childs_vec(&self) -> &Vec<AnyExpr> {
-        &self.childs
+impl<M> DedupChildren for NaryBoolExpr<M> {
+    fn dedup_children(&mut self) {
+        self.childs.dedup()
     }
 }
 
-impl<M> ChildsVecMut for NaryBoolExpr<M> {
-    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr> {
-        &mut self.childs
-    }
-}
-
-impl<M> IntoChildsVec for NaryBoolExpr<M> {
-    fn into_childs_vec(self) -> Vec<AnyExpr> {
-        self.childs
+impl<M> SortChildren for NaryBoolExpr<M> {
+    fn sort_children_by<F>(&mut self, comparator: F)
+        where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering
+    {
+        self.childs.sort_unstable_by(comparator)
     }
 }

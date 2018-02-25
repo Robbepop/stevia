@@ -105,21 +105,23 @@ fn is_sorted_norm<'c, C>(childs: C) -> bool
 }
 
 fn establish_ordering<E>(expr: &mut E) -> NormalizeFlag
-    where E: ChildsVec + ChildsVecMut
+    where E: Childs + SortChildren
 {
-    if is_sorted_norm(expr.childs_vec()) {
+    if is_sorted_norm(expr.childs()) {
         return NormalizeFlag::Idle
     }
-    expr.childs_vec_mut()
-        .sort_unstable_by(normalization_cmp);
+    expr.sort_children_by(normalization_cmp);
+    // expr.childs_vec_mut()
+    //     .sort_unstable_by(normalization_cmp);
     NormalizeFlag::Success
 }
 
 fn remove_duplicates<E>(expr: &mut E) -> NormalizeFlag
-    where E: ChildsVecMut + HasArity
+    where E: DedupChildren + HasArity
 {
     let arity_before = expr.arity();
-    expr.childs_vec_mut().dedup();
+    // expr.childs_vec_mut().dedup();
+    expr.dedup_children();
     let arity_after = expr.arity();
     assert!(arity_after <= arity_before);
     if arity_before != arity_after {
@@ -156,7 +158,7 @@ impl NormalizeOutcome {
 }
 
 fn into_normalize<E>(expr: E) -> NormalizeOutcome
-    where E: ChildsVec + ChildsVecMut + HasArity + Into<AnyExpr>
+    where E: Childs + DedupChildren + SortChildren + HasArity + Into<AnyExpr>
 {
     let mut expr = expr;
     let ordering = establish_ordering(&mut expr);

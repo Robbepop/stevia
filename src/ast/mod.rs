@@ -75,9 +75,9 @@ pub use self::bool_expr::{
     WrapWithNot,
     UnaryExpr,
     SingleChild,
-    ChildsVec,
-    ChildsVecMut,
-    IntoChildsVec
+    NaryExpr,
+    DedupChildren,
+    SortChildren
 };
 pub use self::arity::{
     HasArity

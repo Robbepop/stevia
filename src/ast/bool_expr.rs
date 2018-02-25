@@ -1,14 +1,16 @@
 use ast::prelude::*;
 
+use std::cmp::Ordering;
+
 pub mod prelude {
     pub use super::{
         BoolExpr,
         WrapWithNot,
         UnaryExpr,
         SingleChild,
-        ChildsVec,
-        ChildsVecMut,
-        IntoChildsVec
+        NaryExpr,
+        DedupChildren,
+        SortChildren
     };
 }
 
@@ -55,22 +57,17 @@ pub trait SingleChild {
 
 /// Marker trait to mark n-ary expressions.
 pub trait NaryExpr:
-    ChildsVec +
-    ChildsVecMut +
-    IntoChildsVec
+    DedupChildren +
+    SortChildren
 {}
 
-/// Types implementing this trait allow to access their child expressions as vec.
-pub trait ChildsVec {
-    fn childs_vec(&self) -> &Vec<AnyExpr>;
+/// Types implementing this trait allow to deduplicate their child expressions.
+pub trait DedupChildren {
+    fn dedup_children(&mut self);
 }
 
-/// Types implementing this trait allow to access their child expressions as vec mutably.
-pub trait ChildsVecMut {
-    fn childs_vec_mut(&mut self) -> &mut Vec<AnyExpr>;
-}
-
-/// Types implementing this trait allow to be transformed into a vec of their childs.
-pub trait IntoChildsVec {
-    fn into_childs_vec(self) -> Vec<AnyExpr>;
+/// Types implementing this trait allow to sort their child expressions using the given comparator.
+pub trait SortChildren {
+    fn sort_children_by<F>(&mut self, comparator: F)
+        where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering;
 }
