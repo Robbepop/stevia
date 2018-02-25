@@ -25,7 +25,7 @@ impl BitNot {
     /// 
     /// - If the given child expression is not of bitvec type with the
     ///   proper given bit width specified.
-    pub fn new<E>(bitvec_ty: BitvecTy, child: E) -> Result<BitNot, String>
+    pub fn new_with_type<E>(bitvec_ty: BitvecTy, child: E) -> Result<BitNot, String>
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
@@ -42,7 +42,7 @@ impl BitNot {
     /// # Errors
     /// 
     /// - If the given child expression is not of bitvec type.
-    pub fn new_infer<E>(child: E) -> Result<BitNot, String>
+    pub fn new<E>(child: E) -> Result<BitNot, String>
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();

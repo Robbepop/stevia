@@ -39,7 +39,7 @@ impl<M> NaryTermExpr<M> {
     /// 
     /// - If `lhs` or `rhs` are not of bitvec type.
     /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<Self, String>
+    pub fn binary_with_type<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<Self, String>
         where E1: Into<AnyExpr>,
               E2: Into<AnyExpr>
     {
@@ -61,7 +61,7 @@ impl<M> NaryTermExpr<M> {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn binary_infer<E1, E2>(lhs: E1, rhs: E2) -> Result<Self, String>
+    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> Result<Self, String>
         where E1: Into<AnyExpr>,
               E2: Into<AnyExpr>
     {
@@ -79,7 +79,7 @@ impl<M> NaryTermExpr<M> {
     /// - If the given iterator yields less than two child expressions.
     /// - If not all yielded child expressions are of bitvec type with
     ///   the required bit width.
-    pub fn nary<I>(bitvec_ty: BitvecTy, childs: I) -> Result<Self, String>
+    pub fn nary_with_type<I>(bitvec_ty: BitvecTy, childs: I) -> Result<Self, String>
         where I: IntoIterator<Item = AnyExpr>,
     {
         let childs = childs.into_iter().collect::<Vec<_>>();
@@ -110,7 +110,7 @@ impl<M> NaryTermExpr<M> {
     /// 
     /// - If the given iterator yields less than two expressions.
     /// - If not all yielded expressions are of the same bitvec type.
-    pub fn nary_infer<E>(exprs: E) -> Result<Self, String>
+    pub fn nary<E>(exprs: E) -> Result<Self, String>
         where E: IntoIterator<Item=AnyExpr>
     {
         let childs = exprs.into_iter().collect::<Vec<_>>();

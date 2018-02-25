@@ -34,7 +34,7 @@ impl BitvecEquals {
     /// 
     /// - If `lhs` or `rhs` are not of bitvec type.
     /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
+    pub fn binary_with_type<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
         where E1: Into<AnyExpr>,
               E2: Into<AnyExpr>
     {
@@ -54,7 +54,7 @@ impl BitvecEquals {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn binary_infer<E1, E2>(lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
+    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
         where E1: Into<AnyExpr>,
               E2: Into<AnyExpr>
     {
@@ -70,7 +70,7 @@ impl BitvecEquals {
     /// 
     /// - If the given iterator iterates over less than two expressions.
     /// - If not all iterated expressions are of bitvec type with the given bit width.
-    pub fn nary<E>(bitvec_ty: BitvecTy, exprs: E) -> Result<BitvecEquals, String>
+    pub fn nary_with_type<E>(bitvec_ty: BitvecTy, exprs: E) -> Result<BitvecEquals, String>
         where E: IntoIterator<Item=AnyExpr>
     {
         let childs = Vec::from_iter(exprs);
@@ -91,7 +91,7 @@ impl BitvecEquals {
     /// 
     /// - If the given iterator yields less than two expressions.
     /// - If not all yielded expressions are of the same bitvec type.
-    pub fn nary_infer<E>(exprs: E) -> Result<BitvecEquals, String>
+    pub fn nary<E>(exprs: E) -> Result<BitvecEquals, String>
         where E: IntoIterator<Item=AnyExpr>
     {
         let childs = exprs.into_iter().collect::<Vec<_>>();

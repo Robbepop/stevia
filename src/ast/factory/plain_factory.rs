@@ -94,11 +94,11 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 	}
 
     fn bitvec_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::BitvecEquals::binary_infer(lhs, rhs).map(AnyExpr::from)
+		expr::BitvecEquals::binary(lhs, rhs).map(AnyExpr::from)
     }
 
     fn bitvec_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-        expr::BitvecEquals::nary_infer(childs).map(AnyExpr::from)
+        expr::BitvecEquals::nary(childs).map(AnyExpr::from)
     }
 
     fn bitvec_const<V>(self, _ty: BitvecTy, _value: V) -> Result<AnyExpr>
@@ -108,71 +108,71 @@ impl ExprTreeFactory for PlainExprTreeFactory {
     }
 
     fn bitvec_neg(self, inner: AnyExpr) -> Result<AnyExpr> {
-		expr::Neg::new_infer(inner).map(AnyExpr::from)
+		expr::Neg::new(inner).map(AnyExpr::from)
 	}
 
     fn bitvec_add(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::Add::binary_infer(lhs, rhs).map(AnyExpr::from)
+		expr::Add::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_add_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::Add::nary_infer(childs).map(AnyExpr::from)
+		expr::Add::nary(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_sub(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::Sub::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::Sub::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_mul(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::Mul::binary_infer(lhs, rhs).map(AnyExpr::from)
+		expr::Mul::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_mul_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::Mul::nary_infer(childs).map(AnyExpr::from)
+		expr::Mul::nary(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_sdiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedDiv::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedDiv::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_smod(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedModulo::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedModulo::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_srem(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedRemainder::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedRemainder::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_udiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::UnsignedDiv::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::UnsignedDiv::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_urem(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::UnsignedRemainder::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::UnsignedRemainder::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_not(self, inner: AnyExpr) -> Result<AnyExpr> {
-		expr::BitNot::new_infer(inner).map(AnyExpr::from)
+		expr::BitNot::new(inner).map(AnyExpr::from)
 	}
 
     fn bitvec_and(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::BitAnd::binary_infer(lhs, rhs).map(AnyExpr::from)
+		expr::BitAnd::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::BitAnd::nary_infer(childs).map(AnyExpr::from)
+		expr::BitAnd::nary(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_or(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::BitOr::binary_infer(lhs, rhs).map(AnyExpr::from)
+		expr::BitOr::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::BitOr::nary_infer(childs).map(AnyExpr::from)
+		expr::BitOr::nary(childs).map(AnyExpr::from)
 	}
 
     fn bitvec_xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::BitXor::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::BitXor::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_concat(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -192,46 +192,46 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 	}
 
     fn bitvec_sge(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedGreaterEquals::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedGreaterEquals::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_sgt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedGreaterThan::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedGreaterThan::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_sle(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedLessEquals::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedLessEquals::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_slt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::SignedLessThan::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::SignedLessThan::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_uge(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::UnsignedGreaterEquals::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::UnsignedGreaterEquals::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_ugt(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::UnsignedGreaterThan::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::UnsignedGreaterThan::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_ule(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::UnsignedLessEquals::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::UnsignedLessEquals::new(lhs, rhs).map(AnyExpr::from)
 	}
 
     fn bitvec_ult(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::UnsignedLessThan::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::UnsignedLessThan::new(lhs, rhs).map(AnyExpr::from)
 	}
 
 	fn bitvec_ashr(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::ArithmeticShiftRight::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::ArithmeticShiftRight::new(lhs, rhs).map(AnyExpr::from)
 	}
 
 	fn bitvec_lshr(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::LogicalShiftRight::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::LogicalShiftRight::new(lhs, rhs).map(AnyExpr::from)
 	}
 
 	fn bitvec_shl(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
-		expr::ShiftLeft::new_infer(lhs, rhs).map(AnyExpr::from)
+		expr::ShiftLeft::new(lhs, rhs).map(AnyExpr::from)
 	}
 }
