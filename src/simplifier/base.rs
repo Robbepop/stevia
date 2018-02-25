@@ -1,4 +1,4 @@
-use ast2::prelude::*;
+use ast::prelude::*;
 
 use std::mem;
 use std::ops::BitOrAssign;

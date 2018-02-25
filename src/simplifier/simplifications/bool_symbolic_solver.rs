@@ -1,4 +1,4 @@
-use ast2::prelude::*;
+use ast::prelude::*;
 use simplifier::prelude::*;
 
 use itertools::Itertools;

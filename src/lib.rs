@@ -13,8 +13,7 @@ extern crate vec_map;
 #[macro_use]
 extern crate lazy_static;
 
-/// The new and shiny experimental future AST (Abstract Syntax Tree) module.
-pub mod ast2;
+pub mod ast;
 mod simplifier;
 
 pub use simplifier::prelude::{
