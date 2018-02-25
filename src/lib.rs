@@ -16,9 +16,6 @@ extern crate lazy_static;
 #[macro_use]
 extern crate smt_expr_derive;
 
-/// The old and deprecated AST (Abstract Syntax Tree) module.
-pub mod ast;
-
 /// The new and shiny experimental future AST (Abstract Syntax Tree) module.
 pub mod ast2;
 mod simplifier;
