@@ -13,7 +13,6 @@ extern crate vec_map;
 #[macro_use] extern crate lazy_static;
 
 #[macro_use] pub mod ast;
-
 mod simplifier;
 
 pub use ast::prelude::{
