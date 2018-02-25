@@ -9,6 +9,7 @@ extern crate unreachable;
 extern crate itertools;
 extern crate string_interner;
 extern crate vec_map;
+extern crate either;
 
 #[macro_use] extern crate lazy_static;
 
