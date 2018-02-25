@@ -11,6 +11,9 @@ mod ite;
 mod symbol;
 mod bool_expr;
 
+#[macro_use]
+mod transformer;
+
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
@@ -81,6 +84,13 @@ pub use self::bool_expr::{
 };
 pub use self::arity::{
     HasArity
+};
+pub use self::transformer::{
+    TransformEffect,
+    Transformer,
+    AnyTransformer,
+    TransformOutcome,
+    AutoImplAnyTransformer
 };
 
 /// Re-exports all expression types.

@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use simplifier::prelude::*;
 
 use itertools::Itertools;
 
@@ -112,6 +111,7 @@ impl Transformer for BoolSymbolicSolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use simplifier::prelude::*;
 
     create_modular_ast_transformer! {
         struct BoolSymbolicTransformer;

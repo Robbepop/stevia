@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use simplifier::prelude::*;
 
 pub mod prelude {
     pub use super::{

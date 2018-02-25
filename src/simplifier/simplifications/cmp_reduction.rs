@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use simplifier::prelude::*;
 
 pub mod prelude {
     pub use super::{
@@ -86,6 +85,7 @@ impl Transformer for ComparisonReducer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use simplifier::prelude::*;
 
     #[test]
     fn sge() {

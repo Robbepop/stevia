@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use simplifier::prelude::*;
 
 pub mod prelude {
     pub use super::BoolConstPropagator;
@@ -166,6 +165,7 @@ impl Transformer for BoolConstPropagator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use simplifier::prelude::*;
 
     create_modular_ast_transformer! {
         struct BoolConstPropagatorTransformer;

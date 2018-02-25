@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use simplifier::prelude::*;
 
 use itertools::Itertools;
 
@@ -224,6 +223,7 @@ impl Transformer for Normalizer {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use simplifier::prelude::*;
 
     fn gen_dedup_bool_symbols() -> (AnyExpr, AnyExpr, AnyExpr) {
         let b = PlainExprTreeBuilder::default();

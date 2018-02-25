@@ -10,13 +10,15 @@ extern crate itertools;
 extern crate string_interner;
 extern crate vec_map;
 
-#[macro_use]
-extern crate lazy_static;
+#[macro_use] extern crate lazy_static;
 
-pub mod ast;
+#[macro_use] pub mod ast;
+
 mod simplifier;
 
+pub use ast::prelude::{
+    TransformEffect
+};
 pub use simplifier::prelude::{
-    TransformEffect,
     Simplifier
 };
