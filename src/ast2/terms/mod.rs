@@ -1,5 +1,3 @@
-#[macro_use] mod mac;
-
 mod binexpr;
 mod nary_expr;
 mod checks;

@@ -50,4 +50,44 @@ impl Concat {
     }
 }
 
-impl_traits_for_binary_term_expr!(Concat);
+impl Childs for Concat {
+    fn childs(&self) -> ChildsIter {
+        self.childs.childs()
+    }
+}
+
+impl ChildsMut for Concat {
+    fn childs_mut(&mut self) -> ChildsIterMut {
+        self.childs.childs_mut()
+    }
+}
+
+impl IntoChilds for Concat {
+    fn into_childs(self) -> IntoChildsIter {
+        self.childs.into_childs()
+    }
+}
+
+impl HasType for Concat {
+    fn ty(&self) -> Type {
+        self.bitvec_ty.ty()
+    }
+}
+
+impl HasKind for Concat {
+    fn kind(&self) -> ExprKind {
+        ExprKind::Concat
+    }
+}
+
+impl HasArity for Concat {
+    fn arity(&self) -> usize {
+        2
+    }
+}
+
+impl From<Concat> for AnyExpr {
+    fn from(expr: Concat) -> AnyExpr {
+        AnyExpr::Concat(expr)
+    }
+}
