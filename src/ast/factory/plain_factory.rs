@@ -101,10 +101,15 @@ impl ExprTreeFactory for PlainExprTreeFactory {
         expr::BitvecEquals::nary(childs).map(AnyExpr::from)
     }
 
-    fn bitvec_const<V>(self, _ty: BitvecTy, _value: V) -> Result<AnyExpr>
+    fn bitvec_const<V>(self, ty: BitvecTy, value: V) -> Result<AnyExpr>
         where V: Into<expr::BitvecConst>
     {
-		unimplemented!()
+		let result = value.into();
+		if ty.ty() != result.ty() {
+			return Err(format!(
+				"Encountered incompatible bitwidth of {:?} upon construction of a new `BitvecConst` from {:?}.", ty, result));
+		}
+		Ok(result).map(AnyExpr::from)
     }
 
     fn bitvec_neg(self, inner: AnyExpr) -> Result<AnyExpr> {
