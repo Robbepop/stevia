@@ -26,7 +26,7 @@ pub fn childs_recursive_with_event(expr: &AnyExpr) -> RecursiveChildsIter {
 /// # Note
 /// 
 /// - Yields parent expressions before their childs.
-pub fn childs_recursive_entering<'a>(expr: &'a AnyExpr) -> impl Iterator<Item=&'a AnyExpr> {
+pub fn childs_recursive_entering(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> {
     childs_recursive_with_event(expr)
         .filter_map(|expr_and_event| match expr_and_event.event {
             YieldEvent::Entering => Some(expr_and_event.expr),
@@ -39,7 +39,7 @@ pub fn childs_recursive_entering<'a>(expr: &'a AnyExpr) -> impl Iterator<Item=&'
 /// # Note
 /// 
 /// - Yields parent expressions after their childs.
-pub fn childs_recursive_leaving<'a>(expr: &'a AnyExpr) -> impl Iterator<Item=&'a AnyExpr> {
+pub fn childs_recursive_leaving(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> {
     childs_recursive_with_event(expr)
         .filter_map(|expr_and_event| match expr_and_event.event {
             YieldEvent::Leaving  => Some(expr_and_event.expr),
@@ -83,12 +83,12 @@ pub struct AnyExprAndEvent<'it> {
 
 impl<'it> AnyExprAndEvent<'it> {
     /// Returns an `AnyExprAndEvent` for the given `AnyExpr` and an entering event.
-    pub fn entering<'e>(expr: &'e AnyExpr) -> AnyExprAndEvent<'e> {
+    pub fn entering(expr: &AnyExpr) -> AnyExprAndEvent {
         AnyExprAndEvent{ event: YieldEvent::Entering, expr }
     }
 
     /// Returns an `AnyExprAndEvent` for the given `AnyExpr` and a leaving event.
-    pub fn leaving<'e>(expr: &'e AnyExpr) -> AnyExprAndEvent<'e> {
+    pub fn leaving(expr: &AnyExpr) -> AnyExprAndEvent {
         AnyExprAndEvent{ event: YieldEvent::Leaving, expr }
     }
 }
@@ -99,7 +99,7 @@ impl<'it> RecursiveChildsIter<'it> {
     /// This iterator iterates over all expressions (inclusive the given expression)
     /// recursively. Every expression is yielded twice, once with an entering event
     /// and once with a leaving event.
-    pub fn new<'e>(expr: &'e AnyExpr) -> RecursiveChildsIter<'e> {
+    pub fn new(expr: &AnyExpr) -> RecursiveChildsIter {
         RecursiveChildsIter{ path: vec![AnyExprAndEvent::entering(expr)] }
     }
 }

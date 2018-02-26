@@ -126,7 +126,7 @@ fn remove_duplicates<E>(expr: &mut E) -> NormalizeFlag
     if arity_before != arity_after {
         return NormalizeFlag::Success
     }
-    return NormalizeFlag::Idle
+    NormalizeFlag::Idle
 }
 
 enum NormalizeOutcome {

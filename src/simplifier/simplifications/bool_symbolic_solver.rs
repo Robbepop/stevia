@@ -15,13 +15,13 @@ pub mod prelude {
 pub struct BoolSymbolicSolver;
 
 fn is_logical_contradiction(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
-    if let (&AnyExpr::Not(ref lhs), & ref rhs) = (lhs, rhs) {
+    if let (&AnyExpr::Not(ref lhs), rhs) = (lhs, rhs) {
         return lhs.single_child() == rhs
     }
-    if let (& ref lhs, &AnyExpr::Not(ref rhs)) = (lhs, rhs) {
+    if let (lhs, &AnyExpr::Not(ref rhs)) = (lhs, rhs) {
         return lhs == rhs.single_child()
     }
-    return false
+    false
 }
 
 impl AutoImplAnyTransformer for BoolSymbolicSolver {}
