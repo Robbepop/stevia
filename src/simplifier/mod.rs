@@ -1,5 +1,5 @@
 #[macro_use]
-mod simplifier;
+mod base;
 mod simplifications;
 
 pub mod prelude {
@@ -9,4 +9,4 @@ pub mod prelude {
     };
 }
 
-pub use self::simplifier::prelude::*;
+pub use self::base::prelude::*;
