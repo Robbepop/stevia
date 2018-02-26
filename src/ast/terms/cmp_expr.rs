@@ -77,7 +77,9 @@ impl<M> ComparisonExpr<M> {
     /// 
     /// # Safety
     /// 
-    /// This is unsafe since it does not check the type requirements for the given child expressions.
+    /// This is unsafe since it does not check the type requirements for the given child expressions
+    /// thus allowing users of this API to break invariants of this type which could ultimatively
+    /// lead to undefined behaviour indirectly in code depending on those invariants.
     pub unsafe fn new_unchecked(bitvec_ty: BitvecTy, childs: P<BinExprChilds>) -> Self {
         Self{childs_bitvec_ty: bitvec_ty, childs, marker: PhantomData}
     }
