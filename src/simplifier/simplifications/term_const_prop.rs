@@ -126,6 +126,18 @@ mod tests {
         }
 
         #[test]
+        fn binary_with_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_add_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0),
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
         fn eliminate_zeros() {
             let b = PlainExprTreeBuilder::default();
             let mut expr = b.bitvec_add_n(vec![
