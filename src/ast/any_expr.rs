@@ -1,5 +1,7 @@
 use ast::prelude::*;
 
+use apint::ApInt;
+
 /// Reexports all commonly used items of this module.
 pub mod prelude {
     pub use super::{
@@ -50,6 +52,15 @@ impl AnyExpr {
     pub fn get_if_bool_const(&self) -> Option<bool> {
         match *self {
             AnyExpr::BoolConst(ref bool_const) => Some(bool_const.val),
+            _ => None
+        }
+    }
+
+    /// Checks if `self` is a constant bitvector expression and returns its
+    /// value if it is and nothing otherwise.
+    pub fn get_if_bitvec_const(&self) -> Option<&ApInt> {
+        match *self {
+            AnyExpr::BitvecConst(ref bitvec_const) => Some(&bitvec_const.val),
             _ => None
         }
     }
