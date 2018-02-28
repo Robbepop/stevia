@@ -165,6 +165,28 @@ impl Transformer for BoolConstPropagator {
         if let (Some(c1), Some(c2)) = (lhs_opt_const, rhs_opt_const) {
             return TransformOutcome::transformed(expr::BoolConst::from(c1 != c2))
         }
+        if let Some(c1) = lhs_opt_const {
+            // If the left-hand side is false this is equal to the right-hand side.
+            if !c1 {
+                return TransformOutcome::transformed(xor.childs.rhs)
+            }
+            // If the left-hand side is true this is equal to the negated right-hand side.
+            else {
+                return TransformOutcome::transformed(
+                    unsafe{ expr::Not::new_unchecked(xor.childs.rhs) } )
+            }
+        }
+        if let Some(c1) = rhs_opt_const {
+            // If the right-hand side is false this is equal to the right-hand side.
+            if !c1 {
+                return TransformOutcome::transformed(xor.childs.lhs)
+            }
+            // If the right-hand side is true this is equal to the negated right-hand side.
+            else {
+                return TransformOutcome::transformed(
+                    unsafe{ expr::Not::new_unchecked(xor.childs.lhs) } )
+            }
+        }
         TransformOutcome::identity(xor)
     }
 
@@ -176,11 +198,11 @@ impl Transformer for BoolConstPropagator {
             return TransformOutcome::transformed(expr::BoolConst::from((!c1) || c2))
         }
         if let Some(c1) = lhs_opt_const {
-            // If left-hand side is false this is always true.
+            // If the left-hand side is false this is always true.
             if !c1 {
                 return TransformOutcome::transformed(expr::BoolConst::from(true))
             }
-            // If left-hand side is true this is equal to the right-hand side.
+            // If the left-hand side is true this is equal to the right-hand side.
             else {
                 return TransformOutcome::transformed(implies.childs.rhs)
             }
@@ -464,26 +486,70 @@ mod tests {
         }
     }
 
-    #[test]
-    fn xor() {
-        fn test_for(lhs: bool, rhs: bool) {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.xor(
-                b.bool_const(lhs),
-                b.bool_const(rhs)
-            ).unwrap();
-            simplify(&mut expr);
-            if lhs ^ rhs {
-                assert_eq!(expr, b.bool_const(true).unwrap())
+    mod xor {
+        use super::*;
+
+        #[test]
+        fn lhs_const() {
+            fn test_for(lhs: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.xor(
+                    b.bool_const(lhs),
+                    b.bool_var("a")
+                ).unwrap();
+                simplify(&mut expr);
+                if lhs {
+                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
+                }
+                else {
+                    assert_eq!(expr, b.bool_var("a").unwrap());
+                }
             }
-            else {
-                assert_eq!(expr, b.bool_const(false).unwrap());
-            }
+            test_for(true);
+            test_for(false);
         }
-        test_for( true,  true);
-        test_for( true, false);
-        test_for(false,  true);
-        test_for(false, false);
+
+        #[test]
+        fn rhs_const() {
+            fn test_for(rhs: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.xor(
+                    b.bool_var("a"),
+                    b.bool_const(rhs)
+                ).unwrap();
+                simplify(&mut expr);
+                if rhs {
+                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
+                }
+                else {
+                    assert_eq!(expr, b.bool_var("a").unwrap());
+                }
+            }
+            test_for(true);
+            test_for(false);
+        }
+
+        #[test]
+        fn pure_const() {
+            fn test_for(lhs: bool, rhs: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.xor(
+                    b.bool_const(lhs),
+                    b.bool_const(rhs)
+                ).unwrap();
+                simplify(&mut expr);
+                if lhs ^ rhs {
+                    assert_eq!(expr, b.bool_const(true).unwrap())
+                }
+                else {
+                    assert_eq!(expr, b.bool_const(false).unwrap());
+                }
+            }
+            test_for( true,  true);
+            test_for( true, false);
+            test_for(false,  true);
+            test_for(false, false);
+        }
     }
 
     mod implies {
