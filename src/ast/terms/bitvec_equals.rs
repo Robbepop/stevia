@@ -158,3 +158,11 @@ impl SortChildren for BitvecEquals {
         self.childs.sort_unstable_by(comparator)
     }
 }
+
+impl RetainChildren for BitvecEquals {
+    fn retain_children<P>(&mut self, predicate: P)
+        where P: FnMut(&AnyExpr) -> bool
+    {
+        self.childs.retain(predicate);
+    }
+}

@@ -10,7 +10,8 @@ pub mod prelude {
         SingleChild,
         NaryExpr,
         DedupChildren,
-        SortChildren
+        SortChildren,
+        RetainChildren
     };
 }
 
@@ -70,4 +71,11 @@ pub trait DedupChildren {
 pub trait SortChildren {
     fn sort_children_by<F>(&mut self, comparator: F)
         where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering;
+}
+
+/// Types implementing this trait allow to retain only the child expressions for which
+/// the given predicate evalutes to `true`.
+pub trait RetainChildren {
+    fn retain_children<P>(&mut self, predicate: P)
+        where P: FnMut(&AnyExpr) -> bool;
 }

@@ -150,3 +150,11 @@ impl<M> SortChildren for NaryBoolExpr<M> {
         self.childs.sort_unstable_by(comparator)
     }
 }
+
+impl<M> RetainChildren for NaryBoolExpr<M> {
+    fn retain_children<P>(&mut self, predicate: P)
+        where P: FnMut(&AnyExpr) -> bool
+    {
+        self.childs.retain(predicate);
+    }
+}

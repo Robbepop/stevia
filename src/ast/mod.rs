@@ -80,7 +80,8 @@ pub use self::bool_expr::{
     SingleChild,
     NaryExpr,
     DedupChildren,
-    SortChildren
+    SortChildren,
+    RetainChildren
 };
 pub use self::arity::{
     HasArity
