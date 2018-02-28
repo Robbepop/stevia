@@ -97,6 +97,25 @@ impl Transformer for BoolConstPropagator {
         if and.childs().all(|c| c.is_bool_const(true)) {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
         }
+        // Remove any constant true expression if existing.
+        //
+        // If there is only one child expression remaining we lower the
+        // and expression to this single remaining child.
+        if and.childs().any(|c| c.is_bool_const(true)) {
+            let mut and = and;
+            and.retain_children(|c| !c.is_bool_const(true));
+            // The former simplifications prevent situations where there
+            // are no elements left in the and expression.
+            assert!(and.arity() > 0);
+            if and.arity() == 1 {
+                // Only a single child expression is left after removing
+                // all constant true expressions so we lower the and expression
+                // to its only remaining expression.
+                let only_child = and.into_childs().next().unwrap();
+                return TransformOutcome::transformed(only_child);
+            }
+            return TransformOutcome::transformed(and);
+        }
         TransformOutcome::identity(and)
     }
 
@@ -108,6 +127,25 @@ impl Transformer for BoolConstPropagator {
         // If all child expressions are false this is false.
         if or.childs().all(|c| c.is_bool_const(false)) {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
+        }
+        // Remove any constant false expression if existing.
+        //
+        // If there is only one child expression remaining we lower the
+        // and expression to this single remaining child.
+        if or.childs().any(|c| c.is_bool_const(false)) {
+            let mut or = or;
+            or.retain_children(|c| !c.is_bool_const(false));
+            // The former simplifications prevent situations where there
+            // are no elements left in the and expression.
+            assert!(or.arity() > 0);
+            if or.arity() == 1 {
+                // Only a single child expression is left after removing
+                // all constant false expressions so we lower the and expression
+                // to its only remaining expression.
+                let only_child = or.into_childs().next().unwrap();
+                return TransformOutcome::transformed(only_child);
+            }
+            return TransformOutcome::transformed(or);
         }
         TransformOutcome::identity(or)
     }
@@ -314,48 +352,116 @@ mod tests {
         test_for(false, false);
     }
 
-    #[test]
-    fn and() {
-        fn test_for(lhs: bool, rhs: bool) {
+    mod and {
+        use super::*;
+
+        #[test]
+        fn drop_true() {
             let b = PlainExprTreeBuilder::default();
-            let mut expr = b.and(
-                b.bool_const(lhs),
-                b.bool_const(rhs)
+            let mut input = b.and_n(vec![
+                b.bool_const(true),
+                b.bool_var("a"),
+                b.bool_const(true),
+                b.bool_var("b")
+            ]).unwrap();
+            simplify(&mut input);
+            let expected = b.and(
+                b.bool_var("a"),
+                b.bool_var("b")
             ).unwrap();
-            simplify(&mut expr);
-            if lhs && rhs {
-                assert_eq!(expr, b.bool_const(true).unwrap())
-            }
-            else {
-                assert_eq!(expr, b.bool_const(false).unwrap());
-            }
+            assert_eq!(input, expected);
         }
-        test_for( true,  true);
-        test_for( true, false);
-        test_for(false,  true);
-        test_for(false, false);
+
+        #[test]
+        fn drop_true_single() {
+            let b = PlainExprTreeBuilder::default();
+            let mut input = b.and_n(vec![
+                b.bool_const(true),
+                b.bool_var("a"),
+                b.bool_const(true),
+            ]).unwrap();
+            simplify(&mut input);
+            let expected = b.bool_var("a").unwrap();
+            assert_eq!(input, expected);
+        }
+
+        #[test]
+        fn any_all() {
+            fn test_for(lhs: bool, rhs: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.and(
+                    b.bool_const(lhs),
+                    b.bool_const(rhs)
+                ).unwrap();
+                simplify(&mut expr);
+                if lhs && rhs {
+                    assert_eq!(expr, b.bool_const(true).unwrap())
+                }
+                else {
+                    assert_eq!(expr, b.bool_const(false).unwrap());
+                }
+            }
+            test_for( true,  true);
+            test_for( true, false);
+            test_for(false,  true);
+            test_for(false, false);
+        }
     }
 
-    #[test]
-    fn or() {
-        fn test_for(lhs: bool, rhs: bool) {
+    mod or {
+        use super::*;
+
+        #[test]
+        fn drop_true() {
             let b = PlainExprTreeBuilder::default();
-            let mut expr = b.or(
-                b.bool_const(lhs),
-                b.bool_const(rhs)
+            let mut input = b.or_n(vec![
+                b.bool_const(false),
+                b.bool_var("a"),
+                b.bool_const(false),
+                b.bool_var("b")
+            ]).unwrap();
+            simplify(&mut input);
+            let expected = b.or(
+                b.bool_var("a"),
+                b.bool_var("b")
             ).unwrap();
-            simplify(&mut expr);
-            if lhs || rhs {
-                assert_eq!(expr, b.bool_const(true).unwrap())
-            }
-            else {
-                assert_eq!(expr, b.bool_const(false).unwrap());
-            }
+            assert_eq!(input, expected);
         }
-        test_for( true,  true);
-        test_for( true, false);
-        test_for(false,  true);
-        test_for(false, false);
+
+        #[test]
+        fn drop_true_single() {
+            let b = PlainExprTreeBuilder::default();
+            let mut input = b.or_n(vec![
+                b.bool_const(false),
+                b.bool_var("a"),
+                b.bool_const(false),
+            ]).unwrap();
+            simplify(&mut input);
+            let expected = b.bool_var("a").unwrap();
+            assert_eq!(input, expected);
+        }
+
+        #[test]
+        fn any_all() {
+            fn test_for(lhs: bool, rhs: bool) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.or(
+                    b.bool_const(lhs),
+                    b.bool_const(rhs)
+                ).unwrap();
+                simplify(&mut expr);
+                if lhs || rhs {
+                    assert_eq!(expr, b.bool_const(true).unwrap())
+                }
+                else {
+                    assert_eq!(expr, b.bool_const(false).unwrap());
+                }
+            }
+            test_for( true,  true);
+            test_for( true, false);
+            test_for(false,  true);
+            test_for(false, false);
+        }
     }
 
     #[test]
