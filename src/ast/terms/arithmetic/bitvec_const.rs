@@ -19,6 +19,12 @@ pub struct BitvecConst {
 }
 
 impl BitvecConst {
+    /// Creates a new `BitvecConst` for the given bit width with a value of zero.
+    pub fn zero(ty: BitvecTy) -> BitvecConst {
+        let val = ApInt::zero(ty.width().raw_width());
+        BitvecConst::from(val)
+    }
+
     /// Creates a new `BitvecConst` from the given `i8` with a bit width of 8 bits.
     pub fn from_i8(val: i8) -> BitvecConst {
         let val = ApInt::from_i8(val);
