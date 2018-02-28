@@ -36,6 +36,11 @@ impl BitWidth {
 	pub fn w64() -> BitWidth {
 		BitWidth(apint::BitWidth::w64())
 	}
+
+    /// Returns the raw `ApInt` bitwidth of this bit width.
+    pub fn raw_width(&self) -> apint::BitWidth {
+        self.0
+    }
 }
 
 impl From<usize> for BitWidth {
