@@ -15,10 +15,9 @@ impl AutoImplAnyTransformer for TermConstPropagator {}
 impl Transformer for TermConstPropagator {
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         // If the child expression is a constant value, simply negate it.
-        if let Some(c) = neg.child.get_if_bitvec_const() {
-            // Note: Using `get_if_bitvec_const` just returns a reference to the underlying `ApInt`
-            //       so we have to `clone` it which might be costly for large `ApInt` instances.
-            return TransformOutcome::transformed(expr::BitvecConst::from(c.clone().into_negate()))
+        if let box AnyExpr::BitvecConst(mut bv_const) = neg.child {
+            bv_const.val.negate();
+            return TransformOutcome::transformed(bv_const)
         }
         TransformOutcome::identity(neg)
     }
