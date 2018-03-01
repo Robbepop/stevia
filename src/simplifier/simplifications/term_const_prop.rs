@@ -72,8 +72,6 @@ impl Transformer for TermConstPropagator {
                 _ => ()
             }
         }
-
-
         // If there exist at least two constant child expressions within this and expression
         // we can evaluate their product and replace the constant child expressions with it.
         if mul.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
@@ -100,8 +98,6 @@ impl Transformer for TermConstPropagator {
             };
             return TransformOutcome::transformed(result)
         }
-
-
         TransformOutcome::identity(mul)
     }
 }
