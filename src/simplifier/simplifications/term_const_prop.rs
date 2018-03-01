@@ -60,6 +60,18 @@ impl Transformer for TermConstPropagator {
         if mul.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
             return TransformOutcome::transformed(expr::BitvecConst::zero(mul.bitvec_ty))
         }
+        // We need to mutate mul perhaps.
+        let mut mul = mul;
+        // Remove all ones from this mul as they are the multiplicative neutral element and have
+        // no effect besides wasting memory.
+        if mul.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_one()).count() > 0 {
+            mul.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_one()));
+            match mul.arity() {
+                0 => return TransformOutcome::transformed(expr::BitvecConst::one(mul.bitvec_ty)),
+                1 => return TransformOutcome::transformed(mul.into_childs().next().unwrap()),
+                _ => ()
+            }
+        }
         TransformOutcome::identity(mul)
     }
 }
@@ -151,7 +163,8 @@ mod tests {
             let mut expr = b.bitvec_add_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y")
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 0)
             ]).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_add(
@@ -175,6 +188,35 @@ mod tests {
             ]).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn binary_with_one() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_mul_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 1),
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn eliminate_ones() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_mul_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 1),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 1)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_mul(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+            ).unwrap();
             assert_eq!(expr, expected);
         }
     }
