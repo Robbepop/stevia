@@ -13,6 +13,16 @@ pub struct TermConstPropagator;
 impl AutoImplAnyTransformer for TermConstPropagator {}
 
 impl Transformer for TermConstPropagator {
+    fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
+        // If the child expression is a constant value, simply negate it.
+        if let Some(c) = neg.child.get_if_bitvec_const() {
+            // Note: Using `get_if_bitvec_const` just returns a reference to the underlying `ApInt`
+            //       so we have to `clone` it which might be costly for large `ApInt` instances.
+            return TransformOutcome::transformed(expr::BitvecConst::from(c.clone().into_negate()))
+        }
+        TransformOutcome::identity(neg)
+    }
+
     fn transform_add(&self, add: expr::Add) -> TransformOutcome {
         // We need to mutate add perhaps.
         let mut add = add;
@@ -119,6 +129,19 @@ mod tests {
 
     fn simplify(expr: &mut AnyExpr) -> TransformEffect {
         create_simplifier().simplify(expr)
+    }
+
+    mod neg {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_neg(b.bitvec_const(BitvecTy::w32(), 42)).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), -42).unwrap();
+            assert_eq!(expr, expected);
+        }
     }
 
     mod add {
