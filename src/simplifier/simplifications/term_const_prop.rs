@@ -22,6 +22,15 @@ impl Transformer for TermConstPropagator {
         TransformOutcome::identity(neg)
     }
 
+    fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
+        // If the child expression is a constant value, simply bit-negate it.
+        if let box AnyExpr::BitvecConst(mut bv_const) = bitnot.child {
+            bv_const.val.bitnot();
+            return TransformOutcome::transformed(bv_const)
+        }
+        TransformOutcome::identity(bitnot)
+    }
+
     fn transform_add(&self, add: expr::Add) -> TransformOutcome {
         // We need to mutate add perhaps.
         let mut add = add;
@@ -139,6 +148,19 @@ mod tests {
             let mut expr = b.bitvec_neg(b.bitvec_const(BitvecTy::w32(), 42)).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_const(BitvecTy::w32(), -42).unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod bitnot {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_not(b.bitvec_const(BitvecTy::w8(), 0b0110_1100_u8)).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w8(), 0b1001_0011_u8).unwrap();
             assert_eq!(expr, expected);
         }
     }
