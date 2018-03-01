@@ -54,6 +54,14 @@ impl Transformer for TermConstPropagator {
         }
         TransformOutcome::identity(add)
     }
+
+    fn transform_mul(&self, mul: expr::Mul) -> TransformOutcome {
+        // If there exist a const zero child expression the entire multiplication is zero.
+        if mul.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+            return TransformOutcome::transformed(expr::BitvecConst::zero(mul.bitvec_ty))
+        }
+        TransformOutcome::identity(mul)
+    }
 }
 
 #[cfg(test)]
@@ -150,6 +158,23 @@ mod tests {
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_var(BitvecTy::w32(), "y"),
             ).unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod mul {
+        use super::*;
+
+        #[test]
+        fn identify_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_mul_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
             assert_eq!(expr, expected);
         }
     }
