@@ -28,9 +28,14 @@ impl AutoImplAnyTransformer for BoolSymbolicSolver {}
 
 impl Transformer for BoolSymbolicSolver {
     fn transform_cond(&self, ite: expr::IfThenElse) -> TransformOutcome {
+        // If then and else cases are equal we can lower the entire if-then-else
+        // to either one. The condition can be dropped since it has no effect to
+        // the result. We simply lower to the then-case in this situation.
         if ite.childs.then_case == ite.childs.else_case {
             return TransformOutcome::transformed(ite.childs.then_case)
         }
+        // If the condition is a logical-negation we can drop the negation by
+        // swapping the then and else case.
         if let box IfThenElseChilds{ cond: AnyExpr::Not(not), then_case, else_case } = ite.childs {
             return TransformOutcome::transformed(unsafe{
                 expr::IfThenElse::new_unchecked(
