@@ -18,36 +18,6 @@ pub struct InvolutionSimplifier;
 
 impl AutoImplAnyTransformer for InvolutionSimplifier {}
 
-impl expr::Not {
-    /// Returns `true` if this not-expression is a double negation.
-    pub fn is_double_not(&self) -> bool {
-        match self.child.kind() {
-            ExprKind::Not => true,
-            _ => false
-        }
-    }
-}
-
-impl expr::Neg {
-    /// Returns `true` if this neg-expression is a double negation.
-    pub fn is_double_neg(&self) -> bool {
-        match self.child.kind() {
-            ExprKind::Neg => true,
-            _ => false
-        }
-    }
-}
-
-impl expr::BitNot {
-    /// Returns `true` if this bitnot-expression is a double negation.
-    pub fn is_double_bitnot(&self) -> bool {
-        match self.child.kind() {
-            ExprKind::BitNot => true,
-            _ => false
-        }
-    }
-}
-
 impl Transformer for InvolutionSimplifier {
     fn transform_not(&self, not: expr::Not) -> TransformOutcome {
         if let box AnyExpr::Not(notnot) = not.child {
