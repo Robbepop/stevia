@@ -73,6 +73,35 @@ impl Transformer for TermConstPropagator {
         TransformOutcome::identity(add)
     }
 
+    fn transform_sub(&self, sub: expr::Sub) -> TransformOutcome {
+        // If both child expressions are const bitvectors we can simplify this to
+        // the result of their subtraction.
+        if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = sub.childs {
+            let mut lval = lhs.val;
+            let rval = rhs.val;
+            // Since `into_checked_sub` is currently bugged in `apint` we have to use `checked_sub_assign` instead.
+            // let result_sub = lval.into_checked_sub(&rval).unwrap();
+            lval.checked_sub_assign(&rval).unwrap();
+            return TransformOutcome::transformed(expr::BitvecConst::from(lval))
+        }
+        // If the left-hand side is constant zero we can simplify this subtraction
+        // to the negated right-hand side.
+        if let Some(lval) = sub.childs.lhs.get_if_bitvec_const() {
+            if lval.is_zero() {
+                let negated_rhs = expr::Neg::new(sub.childs.rhs).unwrap();
+                return TransformOutcome::transformed(negated_rhs)
+            }
+        }
+        // If the right-hand side is constant zero we can simplify this subtraction
+        // to the left-hand side.
+        if let Some(rval) = sub.childs.rhs.get_if_bitvec_const() {
+            if rval.is_zero() {
+                return TransformOutcome::transformed(sub.childs.lhs)
+            }
+        }
+        TransformOutcome::identity(sub)
+    }
+
     fn transform_mul(&self, mul: expr::Mul) -> TransformOutcome {
         // If there exist a const zero child expression the entire multiplication is zero.
         if mul.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
@@ -241,6 +270,46 @@ mod tests {
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_var(BitvecTy::w32(), "y"),
             ).unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod sub {
+        use super::*;
+
+        #[test]
+        fn both_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_sub(
+                b.bitvec_const(BitvecTy::w32(), 12),
+                b.bitvec_const(BitvecTy::w32(), 5)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 7).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn lhs_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_sub(
+                b.bitvec_const(BitvecTy::w32(), 0),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x")).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn rhs_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_sub(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
             assert_eq!(expr, expected);
         }
     }
