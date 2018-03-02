@@ -53,7 +53,7 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
                 other                   => Either::Right(other)
             }
         });
-        assert!(consts.len() > 0);
+        assert!(!consts.is_empty());
         use itertools::Itertools;
         // Evalute the sum of all constant expressions.
         let sum = consts.into_iter().fold1(|mut lhs, rhs| { lhs += &rhs; lhs }).unwrap();
@@ -124,7 +124,7 @@ fn simplify_mul(mul: expr::Mul) -> TransformOutcome {
                 other                   => Either::Right(other)
             }
         });
-        assert!(consts.len() > 0);
+        assert!(!consts.is_empty());
         use itertools::Itertools;
         // Evalute the product of all constant expressions.
         let product = consts.into_iter().fold1(|mut lhs, rhs| { lhs *= &rhs; lhs }).unwrap();
