@@ -77,12 +77,8 @@ impl Transformer for TermConstPropagator {
         // If both child expressions are const bitvectors we can simplify this to
         // the result of their subtraction.
         if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = sub.childs {
-            let mut lval = lhs.val;
-            let rval = rhs.val;
-            // Since `into_checked_sub` is currently bugged in `apint` we have to use `checked_sub_assign` instead.
-            // let result_sub = lval.into_checked_sub(&rval).unwrap();
-            lval.checked_sub_assign(&rval).unwrap();
-            return TransformOutcome::transformed(expr::BitvecConst::from(lval))
+            let result_udiv = lhs.val.into_checked_sub(&rhs.val).unwrap();
+            return TransformOutcome::transformed(expr::BitvecConst::from(result_udiv))
         }
         // If the left-hand side is constant zero we can simplify this subtraction
         // to the negated right-hand side.
