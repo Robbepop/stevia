@@ -23,6 +23,7 @@ string-interner = "0.6"
 num = "0.1"
 vec_map = "0.8"
 either = "1.4"
+log = "0.4.1"
 
 [badges]
 travis-ci = { repository = "Robbepop/stevia" }

@@ -11,9 +11,15 @@ extern crate string_interner;
 extern crate vec_map;
 extern crate either;
 
-#[macro_use] extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 
-#[macro_use] pub mod ast;
+#[macro_use]
+extern crate log;
+
+#[macro_use]
+pub mod ast;
+
 mod simplifier;
 
 pub use ast::prelude::{
