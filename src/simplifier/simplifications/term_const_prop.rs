@@ -565,11 +565,11 @@ mod tests {
     }
 
     macro_rules! div_test_impls {
-        ($name:ident, $builder:ident) => {
+        ($name:ident, $bitvec_div:ident) => {
             #[test]
             fn division_by_zero() {
                 let b = PlainExprTreeBuilder::default();
-                let mut expr = b.bitvec_udiv(
+                let mut expr = b.$bitvec_div(
                     b.bitvec_var(BitvecTy::w32(), "x"),
                     b.bitvec_const(BitvecTy::w32(), 0)
                 ).unwrap();
@@ -581,7 +581,7 @@ mod tests {
             #[test]
             fn division_by_one() {
                 let b = PlainExprTreeBuilder::default();
-                let mut expr = b.bitvec_udiv(
+                let mut expr = b.$bitvec_div(
                     b.bitvec_var(BitvecTy::w32(), "x"),
                     b.bitvec_const(BitvecTy::w32(), 1)
                 ).unwrap();
@@ -593,7 +593,7 @@ mod tests {
             #[test]
             fn lhs_is_zero() {
                 let b = PlainExprTreeBuilder::default();
-                let mut expr = b.bitvec_udiv(
+                let mut expr = b.$bitvec_div(
                     b.bitvec_const(BitvecTy::w32(), 0),
                     b.bitvec_var(BitvecTy::w32(), "x")
                 ).unwrap();
@@ -606,7 +606,7 @@ mod tests {
             fn both_const() {
                 fn test_for(lhs: u32, rhs: u32, result: u32) {
                     let b = PlainExprTreeBuilder::default();
-                    let mut expr = b.bitvec_udiv(
+                    let mut expr = b.$bitvec_div(
                         b.bitvec_const(BitvecTy::w32(), lhs),
                         b.bitvec_const(BitvecTy::w32(), rhs)
                     ).unwrap();
