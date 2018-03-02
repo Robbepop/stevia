@@ -149,6 +149,12 @@ impl Transformer for TermConstPropagator {
     }
 
     fn transform_udiv(&self, udiv: expr::UnsignedDiv) -> TransformOutcome {
+        // If both child expressions are constant bitvectors we can evaluate the division
+        // and replace this division expression by the result.
+        if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = udiv.childs {
+            let result_udiv = lhs.val.into_checked_udiv(&rhs.val).unwrap();
+            return TransformOutcome::transformed(expr::BitvecConst::from(result_udiv))
+        }
         if let Some(rhs) = udiv.childs.rhs.get_if_bitvec_const() {
             // Encountered division by zero. Stevia returns the left-hand side in this case
             // and issues a logged warning to the user.
@@ -463,6 +469,22 @@ mod tests {
             simplify(&mut expr);
             let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
             assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn both_const() {
+            fn test_for(lhs: u32, rhs: u32, result: u32) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.bitvec_udiv(
+                    b.bitvec_const(BitvecTy::w32(), lhs),
+                    b.bitvec_const(BitvecTy::w32(), rhs)
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bitvec_const(BitvecTy::w32(), result).unwrap();
+                assert_eq!(expr, expected);
+            }
+            test_for(35, 7, 5);
+            test_for(41, 3, 13);
         }
     }
 }
