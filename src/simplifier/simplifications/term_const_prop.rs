@@ -183,6 +183,54 @@ fn simplify_sdiv(sdiv: expr::SignedDiv) -> TransformOutcome {
     TransformOutcome::identity(sdiv)
 }
 
+fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
+    // TODO: implement
+    TransformOutcome::identity(bitand)
+}
+
+fn simplify_bitor(bitor: expr::BitOr) -> TransformOutcome {
+    // TODO: implement
+    TransformOutcome::identity(bitor)
+}
+
+fn simplify_bitxor(bitxor: expr::BitXor) -> TransformOutcome {
+    // TODO: implement
+    TransformOutcome::identity(bitxor)
+}
+
+fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
+    // TODO: implement
+    TransformOutcome::identity(shl)
+}
+
+fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
+    // TODO: implement
+    TransformOutcome::identity(lshr)
+}
+
+fn simplify_ashr(ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
+    // TODO: implement
+    TransformOutcome::identity(ashr)
+}
+
+fn simplify_slt(slt: expr::SignedLessThan) -> TransformOutcome {
+    // If both child expressions are constant we can compute the result.
+    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = slt.childs {
+        let result = lhs.val.checked_slt(&rhs.val).unwrap();
+        return TransformOutcome::transformed(expr::BoolConst::from(result))
+    }
+    TransformOutcome::identity(slt)
+}
+
+fn simplify_ult(ult: expr::UnsignedLessThan) -> TransformOutcome {
+    // If both child expressions are constant we can compute the result.
+    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ult.childs {
+        let result = lhs.val.checked_ult(&rhs.val).unwrap();
+        return TransformOutcome::transformed(expr::BoolConst::from(result))
+    }
+    TransformOutcome::identity(ult)
+}
+
 impl Transformer for TermConstPropagator {
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         simplify_neg(neg)
@@ -210,6 +258,38 @@ impl Transformer for TermConstPropagator {
 
     fn transform_sdiv(&self, sdiv: expr::SignedDiv) -> TransformOutcome {
         simplify_sdiv(sdiv)
+    }
+
+    fn transform_bitand(&self, bitand: expr::BitAnd) -> TransformOutcome {
+        simplify_bitand(bitand)
+    }
+
+    fn transform_bitor(&self, bitor: expr::BitOr) -> TransformOutcome {
+        simplify_bitor(bitor)
+    }
+
+    fn transform_bitxor(&self, bitxor: expr::BitXor) -> TransformOutcome {
+        simplify_bitxor(bitxor)
+    }
+
+    fn transform_shl(&self, shl: expr::ShiftLeft) -> TransformOutcome {
+        simplify_shl(shl)
+    }
+
+    fn transform_lshr(&self, lshr: expr::LogicalShiftRight) -> TransformOutcome {
+        simplify_lshr(lshr)
+    }
+
+    fn transform_ashr(&self, ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
+        simplify_ashr(ashr)
+    }
+
+    fn transform_slt(&self, slt: expr::SignedLessThan) -> TransformOutcome {
+        simplify_slt(slt)
+    }
+
+    fn transform_ult(&self, ult: expr::UnsignedLessThan) -> TransformOutcome {
+        simplify_ult(ult)
     }
 }
 
@@ -550,5 +630,52 @@ mod tests {
         use super::*;
 
         div_test_impls!(sdiv, bitvec_sdiv);
+    }
+
+    mod slt {
+        use super::*;
+
+        #[test]
+        fn both_const() {
+            fn test_for(lhs: i32, rhs: i32) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.bitvec_slt(
+                    b.bitvec_const(BitvecTy::w32(), lhs),
+                    b.bitvec_const(BitvecTy::w32(), rhs),
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bool_const(lhs < rhs).unwrap();
+                assert_eq!(expr, expected);
+            }
+            test_for(0, 1337);
+            test_for(15, 16);
+            test_for(15, -16);
+            test_for(42, 41);
+            test_for(7, 7);
+            test_for(-1, 0);
+            test_for(10, -10);
+        }
+    }
+
+    mod ult {
+        use super::*;
+
+        #[test]
+        fn both_const() {
+            fn test_for(lhs: u32, rhs: u32) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.bitvec_ult(
+                    b.bitvec_const(BitvecTy::w32(), lhs),
+                    b.bitvec_const(BitvecTy::w32(), rhs),
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bool_const(lhs < rhs).unwrap();
+                assert_eq!(expr, expected);
+            }
+            test_for(0, 1337);
+            test_for(15, 16);
+            test_for(42, 41);
+            test_for(7, 7);
+        }
     }
 }
