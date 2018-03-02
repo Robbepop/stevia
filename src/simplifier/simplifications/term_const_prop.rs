@@ -147,6 +147,24 @@ impl Transformer for TermConstPropagator {
         }
         TransformOutcome::identity(mul)
     }
+
+    fn transform_udiv(&self, udiv: expr::UnsignedDiv) -> TransformOutcome {
+        if let Some(rhs) = udiv.childs.rhs.get_if_bitvec_const() {
+            // Encountered division by zero. Stevia returns the left-hand side in this case
+            // and issues a logged warning to the user.
+            // Note: STP returns constant one (`1`) in this case.
+            if rhs.is_zero() {
+                warn!("Encountered a division by zero with the left-hand side being {:?}. \
+                        Stevia simply returns the left-hand side in this case.", udiv.childs.lhs);
+                return TransformOutcome::transformed(udiv.childs.lhs)
+            }
+            // Division by one can be replace by the left-hand side expression.
+            if rhs.is_one() {
+                return TransformOutcome::transformed(udiv.childs.lhs)
+            }
+        }
+        TransformOutcome::identity(udiv)
+    }
 }
 
 #[cfg(test)]
@@ -416,6 +434,34 @@ mod tests {
                 b.bitvec_var(BitvecTy::w32(), "y"),
                 b.bitvec_const(BitvecTy::w32(), 42)
             ]).unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod udiv {
+        use super::*;
+
+        #[test]
+        fn division_by_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_udiv(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn division_by_one() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_udiv(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 1)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
             assert_eq!(expr, expected);
         }
     }
