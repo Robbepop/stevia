@@ -156,9 +156,7 @@ impl Transformer for TermConstPropagator {
             return TransformOutcome::transformed(expr::BitvecConst::from(result_udiv))
         }
         if let Some(rhs) = udiv.childs.rhs.get_if_bitvec_const() {
-            // Encountered division by zero. Stevia returns the left-hand side in this case
-            // and issues a logged warning to the user.
-            // Note: STP returns constant one (`1`) in this case.
+            // Encountered a division by zero. Stevia simply returns the left-hand side in this case.
             if rhs.is_zero() {
                 warn!("Encountered a division by zero with the left-hand side being {:?}. \
                         Stevia simply returns the left-hand side in this case.", udiv.childs.lhs);
@@ -166,6 +164,13 @@ impl Transformer for TermConstPropagator {
             }
             // Division by one can be replace by the left-hand side expression.
             if rhs.is_one() {
+                return TransformOutcome::transformed(udiv.childs.lhs)
+            }
+        }
+        // If the left-hand side is zero the entire division can only result to zero.
+        if let Some(lhs) = udiv.childs.lhs.get_if_bitvec_const() {
+            // Since the left-hand side is already a zero constant we can simply take it.
+            if lhs.is_zero() {
                 return TransformOutcome::transformed(udiv.childs.lhs)
             }
         }
@@ -468,6 +473,18 @@ mod tests {
             ).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn lhs_is_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_udiv(
+                b.bitvec_const(BitvecTy::w32(), 0),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
             assert_eq!(expr, expected);
         }
 
