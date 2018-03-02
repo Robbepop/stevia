@@ -184,7 +184,48 @@ fn simplify_sdiv(sdiv: expr::SignedDiv) -> TransformOutcome {
 }
 
 fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
-    // TODO: implement
+    // If there exist a const zero child expression the entire bit-and is zero.
+    if bitand.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+        return TransformOutcome::transformed(expr::BitvecConst::zero(bitand.bitvec_ty))
+    }
+    // We need to mutate bitand perhaps.
+    let mut bitand = bitand;
+    // Remove all const bitvector child expressions that have all their bits set from this bit-and
+    // as they are the bit-and neutral element and have no effect besides wasting memory.
+    if bitand.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
+        bitand.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_all_set()));
+        match bitand.arity() {
+            0 => return TransformOutcome::transformed(expr::BitvecConst::all_set(bitand.bitvec_ty)),
+            1 => return TransformOutcome::transformed(bitand.into_childs().next().unwrap()),
+            _ => ()
+        }
+    }
+    // If there exist at least two constant child expressions within this bit-and expression
+    // we can evaluate their product and replace the constant child expressions with it.
+    if bitand.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+        // Split const and non-const child expressions.
+        let (consts, mut rest): (Vec<_>, Vec<_>) = bitand.into_childs().partition_map(|c| {
+            match c {
+                AnyExpr::BitvecConst(c) => Either::Left(c.val),
+                other                   => Either::Right(other)
+            }
+        });
+        assert!(!consts.is_empty());
+        use itertools::Itertools;
+        // Evalute the product of all constant expressions.
+        let accumulated = consts.into_iter().fold1(|mut lhs, rhs| { lhs &= &rhs; lhs }).unwrap();
+        // If the rest is empty and thus the accumulated bit-and is the only child expression remaining
+        // we can replace the entire bit-and with the result. Otherwise we just reconstruct the
+        // and expression with the accumulated bit-and.
+        let result = if rest.is_empty() {
+            AnyExpr::from(expr::BitvecConst::from(accumulated))
+        }
+        else {
+            rest.push(AnyExpr::from(expr::BitvecConst::from(accumulated)));
+            AnyExpr::from(expr::BitAnd::nary(rest).unwrap())
+        };
+        return TransformOutcome::transformed(result)
+    }
     TransformOutcome::identity(bitand)
 }
 
@@ -676,6 +717,112 @@ mod tests {
             test_for(15, 16);
             test_for(42, 41);
             test_for(7, 7);
+        }
+    }
+
+    mod bitand {
+        use super::*;
+
+        #[test]
+        fn identify_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn identify_zero_with_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_const(BitvecTy::w32(), 42),
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn binary_with_all_set() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn eliminate_ones() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_and(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+            ).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn all_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
+                b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
+                b.bitvec_const(BitvecTy::w16(), 0b_1111_1111_0000_0000_u16)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0000_0000_u16).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn some_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
+                b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
+                b.bitvec_const(BitvecTy::w16(), 0b_0110_0110_0110_0110_u16)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_and(
+                b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
+                b.bitvec_const(BitvecTy::w16(), 0b_0110_0100_0010_0110_u16) // swapped since pushed back
+            ).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn some_const_with_all_set() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_and_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 42)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_and_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 42)
+            ]).unwrap();
+            assert_eq!(expr, expected);
         }
     }
 }
