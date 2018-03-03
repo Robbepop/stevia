@@ -54,7 +54,7 @@ impl<'p> Iterator for InlChildsIter<'p> {
         // Using replace here is a trick to enable efficient correct
 		// iteration using `Iterator` and `DoubleEndedIterator` so
 		// that no element is yielded twice.
-        let elem = mem::replace(&mut self.childs[self.end], None);
+        let elem = mem::replace(&mut self.childs[self.begin], None);
         self.begin = cmp::min(self.begin + 1, 2);
         elem
     }
