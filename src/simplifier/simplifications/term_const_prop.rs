@@ -1,5 +1,6 @@
 use ast::prelude::*;
 
+use apint::{ShiftAmount};
 use either::Either;
 
 pub mod prelude {
@@ -311,35 +312,6 @@ fn simplify_bitxor(bitxor: expr::BitXor) -> TransformOutcome {
 }
 
 fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
-    // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = shl.childs {
-        let lhs_width = lhs.bitvec_ty.width();
-        match rhs.val.try_to_u32() {
-            Err(_) => {
-                warn!("Encountered right-hand side shift-amount that is larger than 2^32 with child expressions: \n\
-                       - lhs: {:?} \n\
-                       - rhs: {:?} \n\
-                       Stevia handles this by setting the shift-amount to the bitwidth of the left-hand \
-                       side thus returning constant zero.", lhs, rhs);
-                return TransformOutcome::transformed(expr::BitvecConst::zero(lhs.bitvec_ty))
-            }
-            Ok(val) => {
-                use apint;
-                let shamt = apint::ShiftAmount::from(val as usize);
-                // TODO in crate apint: make ShiftAmount::to_usize public
-                if shamt >= apint::ShiftAmount::from(lhs_width.to_usize()) {
-                    warn!("Encountered right-hand side left-shift overflow with child expressions: \n\
-                           - lhs: {:?} \n\
-                           - rhs: {:?} \n\
-                           Stevia handles this by setting the shift-amount to the bitwidth of the left-hand \
-                           side thus returning constant zero.", lhs, rhs);
-                    return TransformOutcome::transformed(expr::BitvecConst::zero(lhs.bitvec_ty))
-                }
-                let result = lhs.val.into_checked_shl(shamt).unwrap();
-                return TransformOutcome::transformed(expr::BitvecConst::from(result))
-            }
-        }
-    }
     // If the left-hand side is constant zero the entire shift-left evaluates to zero.
     if let Some(lval) = shl.childs.lhs.get_if_bitvec_const() {
         if lval.is_zero() {
@@ -349,9 +321,33 @@ fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
     }
     // If the right-hand side is constant zero the entire shift-left evaluates to the left-hand side.
     if let Some(rval) = shl.childs.rhs.get_if_bitvec_const() {
+        let width = shl.bitvec_ty.width();
         if rval.is_zero() {
             return TransformOutcome::transformed(shl.childs.lhs)
         }
+        match rval.try_to_u32() {
+            Err(_) => {
+                warn!("Encountered right-hand side left-shift shift-amount that is larger than 2^32 in: {:?} \n\
+                       Stevia handles this by returning constant zero.", shl);
+                return TransformOutcome::transformed(expr::BitvecConst::zero(shl.bitvec_ty))
+            }
+            Ok(val) => {
+                let shamt = ShiftAmount::from(val as usize);
+                // TODO in crate apint: make ShiftAmount::to_usize public
+                if shamt >= ShiftAmount::from(width.to_usize()) {
+                    warn!("Encountered right-hand side left-shift overflow with child expressions in: {:?} \n\
+                           Stevia handles this by returning constant zero.", shl);
+                    return TransformOutcome::transformed(expr::BitvecConst::zero(shl.bitvec_ty))
+                }
+            }
+        }
+    }
+    // If both child expressions are constant bitvectors we can simply evaluate the result.
+    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = shl.childs {
+        let rval = rhs.val.try_to_u32().unwrap();
+        let shamt = ShiftAmount::from(rval as usize);
+        let result = lhs.val.into_checked_shl(shamt).unwrap();
+        return TransformOutcome::transformed(expr::BitvecConst::from(result))
     }
     TransformOutcome::identity(shl)
 }
@@ -828,6 +824,30 @@ mod tests {
             ).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn rhs_overflow() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_shl(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 33)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn rhs_too_large_for_u32() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_shl(
+                b.bitvec_var(BitvecTy::w64(), "x_w64"),
+                b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w64(), 0_u64).unwrap();
             assert_eq!(expr, expected);
         }
     }
