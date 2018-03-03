@@ -333,7 +333,7 @@ fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
             Ok(val) => {
                 let shamt = ShiftAmount::from(val as usize);
                 // TODO in crate apint: make ShiftAmount::to_usize public
-                if shamt >= ShiftAmount::from(width.to_usize()) {
+                if shamt.to_usize() >= width.to_usize() {
                     warn!("Encountered right-hand side left-shift overflow with child expressions in: {:?} \n\
                            Stevia handles this by returning constant zero.", shl);
                     return TransformOutcome::transformed(expr::BitvecConst::zero(shl.bitvec_ty))
@@ -374,7 +374,7 @@ fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
             Ok(val) => {
                 let shamt = ShiftAmount::from(val as usize);
                 // TODO in crate apint: make ShiftAmount::to_usize public
-                if shamt >= ShiftAmount::from(width.to_usize()) {
+                if shamt.to_usize() >= width.to_usize() {
                     warn!("Encountered right-hand side logical right-shift overflow with child expressions in: {:?} \n\
                            Stevia handles this by returning constant zero.", lshr);
                     return TransformOutcome::transformed(expr::BitvecConst::zero(lshr.bitvec_ty))
@@ -832,8 +832,8 @@ mod tests {
                 assert_eq!(expr, expected);
             }
             test_for(1, 10);
-            // test_for(-1, 10);              // TODO in crate apint: fix shl bit truncation
-            // test_for(i32::max_value(), 2); // TODO in crate apint: fix shl bit truncation
+            test_for(-1, 10);
+            test_for(i32::max_value(), 2);
             test_for(42, 5);
             test_for(3, 3);
         }
@@ -904,8 +904,8 @@ mod tests {
             }
             test_for(1, 10);
             test_for(1337, 6);
-            // test_for(-1, 10);              // TODO in crate apint: fix shl bit truncation
-            // test_for(i32::max_value(), 2); // TODO in crate apint: fix shl bit truncation
+            test_for(-1_i32 as u32, 10);
+            test_for(u32::max_value(), 2); 
             test_for(42, 5);
             test_for(3, 3);
         }
