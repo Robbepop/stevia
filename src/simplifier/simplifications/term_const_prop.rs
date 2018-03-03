@@ -476,13 +476,37 @@ fn simplify_ult(ult: expr::UnsignedLessThan) -> TransformOutcome {
     TransformOutcome::identity(ult)
 }
 
+fn simplify_zext(zext: expr::ZeroExtend) -> TransformOutcome {
+    // If the target bitwidth is equal to the current bitwidth we can simplify this to its child.
+    if zext.ty() == zext.src.ty() {
+        return TransformOutcome::transformed(*zext.src)
+    }
+    // If child expression is constant we can compute the result.
+    let target_width = zext.bitvec_ty.width().raw_width();
+    if let box AnyExpr::BitvecConst(child) = zext.src {
+        let result = child.val.into_zero_extend(target_width).unwrap();
+        return TransformOutcome::transformed(expr::BitvecConst::from(result))
+    }
+    TransformOutcome::identity(zext)
+}
+
+fn simplify_sext(sext: expr::SignExtend) -> TransformOutcome {
+    // If the target bitwidth is equal to the current bitwidth we can simplify this to its child.
+    if sext.ty() == sext.src.ty() {
+        return TransformOutcome::transformed(*sext.src)
+    }
+    // If child expression is constant we can compute the result.
+    let target_width = sext.bitvec_ty.width().raw_width();
+    if let box AnyExpr::BitvecConst(child) = sext.src {
+        let result = child.val.into_sign_extend(target_width).unwrap();
+        return TransformOutcome::transformed(expr::BitvecConst::from(result))
+    }
+    TransformOutcome::identity(sext)
+}
+
 impl Transformer for TermConstPropagator {
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         simplify_neg(neg)
-    }
-
-    fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
-        simplify_bitnot(bitnot)
     }
 
     fn transform_bitvec_equals(&self, bitvec_equals: expr::BitvecEquals) -> TransformOutcome {
@@ -507,6 +531,10 @@ impl Transformer for TermConstPropagator {
 
     fn transform_sdiv(&self, sdiv: expr::SignedDiv) -> TransformOutcome {
         simplify_sdiv(sdiv)
+    }
+
+    fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
+        simplify_bitnot(bitnot)
     }
 
     fn transform_bitand(&self, bitand: expr::BitAnd) -> TransformOutcome {
@@ -539,6 +567,14 @@ impl Transformer for TermConstPropagator {
 
     fn transform_ult(&self, ult: expr::UnsignedLessThan) -> TransformOutcome {
         simplify_ult(ult)
+    }
+
+    fn transform_zext(&self, sext: expr::ZeroExtend) -> TransformOutcome {
+        simplify_zext(sext)
+    }
+
+    fn transform_sext(&self, sext: expr::SignExtend) -> TransformOutcome {
+        simplify_sext(sext)
     }
 }
 
@@ -1466,6 +1502,68 @@ mod tests {
                 simplify(&mut expr);
                 assert_eq!(expr, expected);
             }
+        }
+    }
+
+    mod zext {
+        use super::*;
+
+        #[test]
+        fn const_child() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_zext(
+                BitWidth::w64(),
+                b.bitvec_const(BitvecTy::w32(), 42)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w64(), 42_u64).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn same_width() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_zext(
+                BitWidth::w32(),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod sext {
+        use super::*;
+
+        #[test]
+        fn const_child() {
+            fn test_for(val: i32) {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.bitvec_sext(
+                    BitWidth::w64(),
+                    b.bitvec_const(BitvecTy::w32(), val)
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bitvec_const(BitvecTy::w64(), val as i64).unwrap();
+                assert_eq!(expr, expected);
+            }
+            test_for(42);
+            // test_for(-1337); // TODO in crate apint: fix bug
+            // test_for(-1);    // TODO in crate apint: fix bug
+            test_for(0);
+        }
+
+        #[test]
+        fn same_width() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_sext(
+                BitWidth::w32(),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
         }
     }
 }
