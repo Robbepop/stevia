@@ -276,7 +276,37 @@ fn simplify_bitor(bitor: expr::BitOr) -> TransformOutcome {
 }
 
 fn simplify_bitxor(bitxor: expr::BitXor) -> TransformOutcome {
-    // TODO: implement
+    // If both child expressions are constant bitvectors we can simply evaluate the result.
+    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = bitxor.childs {
+        let result = lhs.val.into_checked_bitxor(&rhs.val).unwrap();
+        return TransformOutcome::transformed(expr::BitvecConst::from(result))
+    }
+    if let Some(lval) = bitxor.childs.lhs.get_if_bitvec_const() {
+        // If the left-hand side is constant zero we can simplify this bit-xor
+        // to the right-hand side.
+        if lval.is_zero() {
+            return TransformOutcome::transformed(bitxor.childs.rhs)
+        }
+        // If the left-hand side is constant all-set we can simplify this bit-xor
+        // to the negated right-hand side.
+        if lval.is_all_set() {
+            let negated_rhs = expr::BitNot::new(bitxor.childs.rhs).unwrap();
+            return TransformOutcome::transformed(negated_rhs)
+        }
+    }
+    if let Some(rval) = bitxor.childs.rhs.get_if_bitvec_const() {
+        // If the right-hand side is constant zero we can simplify this bit-xor
+        // to the left-hand side.
+        if rval.is_zero() {
+            return TransformOutcome::transformed(bitxor.childs.lhs)
+        }
+        // If the right-hand side is constant all-set we can simplify this bit-xor
+        // to the negated left-hand side.
+        if rval.is_all_set() {
+            let negated_rhs = expr::BitNot::new(bitxor.childs.lhs).unwrap();
+            return TransformOutcome::transformed(negated_rhs)
+        }
+    }
     TransformOutcome::identity(bitxor)
 }
 
@@ -970,6 +1000,66 @@ mod tests {
                 b.bitvec_const(BitvecTy::w32(), 42)
             ]).unwrap();
             assert_eq!(expr, expected);
+        }
+    }
+
+    mod bitxor {
+        use super::*;
+
+        #[test]
+        fn both_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_xor(
+                b.bitvec_const(BitvecTy::w16(), 0b_1011_1001_1010_1111_u16),
+                b.bitvec_const(BitvecTy::w16(), 0b_1001_0111_0101_1100_u16)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w16(), 0b_0010_1110_1111_0011_u16).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn lhs_or_rhs_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let expected = b.bitvec_var(BitvecTy::w16(), "x_w16").unwrap();
+            {
+                let mut expr = b.bitvec_xor(
+                    b.bitvec_const(BitvecTy::w16(), 0_u16),
+                    b.bitvec_var(BitvecTy::w16(), "x_w16")
+                ).unwrap();
+                simplify(&mut expr);
+                assert_eq!(expr, expected);
+            }
+            {
+                let mut expr = b.bitvec_xor(
+                    b.bitvec_var(BitvecTy::w16(), "x_w16"),
+                    b.bitvec_const(BitvecTy::w16(), 0_u16)
+                ).unwrap();
+                simplify(&mut expr);
+                assert_eq!(expr, expected);
+            }
+        }
+
+        #[test]
+        fn lhs_or_rhs_all_set() {
+            let b = PlainExprTreeBuilder::default();
+            let expected = b.bitvec_not(b.bitvec_var(BitvecTy::w16(), "x_w16")).unwrap();
+            {
+                let mut expr = b.bitvec_xor(
+                    b.bitvec_const(BitvecTy::w16(), 0x_FFFF_u16),
+                    b.bitvec_var(BitvecTy::w16(), "x_w16")
+                ).unwrap();
+                simplify(&mut expr);
+                assert_eq!(expr, expected);
+            }
+            {
+                let mut expr = b.bitvec_xor(
+                    b.bitvec_var(BitvecTy::w16(), "x_w16"),
+                    b.bitvec_const(BitvecTy::w16(), 0x_FFFF_u16)
+                ).unwrap();
+                simplify(&mut expr);
+                assert_eq!(expr, expected);
+            }
         }
     }
 }
