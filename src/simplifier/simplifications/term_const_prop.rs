@@ -3,6 +3,8 @@ use ast::prelude::*;
 use apint::{ShiftAmount, Width};
 use either::Either;
 
+use itertools::Itertools;
+
 pub mod prelude {
     pub use super::TermConstPropagator;
 }
@@ -20,6 +22,42 @@ fn simplify_neg(neg: expr::Neg) -> TransformOutcome {
         return TransformOutcome::transformed(bv_const)
     }
     TransformOutcome::identity(neg)
+}
+
+fn simplify_bitvec_equals(equals: expr::BitvecEquals) -> TransformOutcome {
+    // If there exist at least two constant child expressions we can compare
+    // them in order to either merge them or simplify the entire equality to false.
+    if equals.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+        // Split const and non-const child expressions.
+        let (mut consts, mut rest): (Vec<_>, Vec<_>) = equals.into_childs().partition_map(|c| {
+            match c {
+                AnyExpr::BitvecConst(c) => Either::Left(c.val),
+                other                   => Either::Right(other)
+            }
+        });
+        assert!(!consts.is_empty());
+        // Do not remove duplicates since this is already done by normalization.
+        // Just look for unequal constant elements.
+        if consts.iter().all_equal() {
+            // We can simply put one of the constant elements back into the rest
+            // and return it if the rest is not empty.
+            if !rest.is_empty() {
+                rest.push(consts.pop().map(expr::BitvecConst::from).map(AnyExpr::from).unwrap());
+                return TransformOutcome::transformed(expr::BitvecEquals::nary(rest).unwrap())
+            }
+            // If the rest was empty we have shown that all elements compared equal
+            // and thus the entire bitvector equality expression evaluates to true.
+            else {
+                return TransformOutcome::transformed(expr::BoolConst::t())
+            }
+        }
+        // Some constant elements where unequal and thus the entire bitvector
+        // equality comparison evaluates to false.
+        else {
+            return TransformOutcome::transformed(expr::BoolConst::f())
+        }
+    }
+    TransformOutcome::identity(equals)
 }
 
 fn simplify_bitnot(bitnot: expr::BitNot) -> TransformOutcome {
@@ -447,6 +485,10 @@ impl Transformer for TermConstPropagator {
         simplify_bitnot(bitnot)
     }
 
+    fn transform_bitvec_equals(&self, bitvec_equals: expr::BitvecEquals) -> TransformOutcome {
+        simplify_bitvec_equals(bitvec_equals)
+    }
+
     fn transform_add(&self, add: expr::Add) -> TransformOutcome {
         simplify_add(add)
     }
@@ -541,6 +583,70 @@ mod tests {
             let mut expr = b.bitvec_not(b.bitvec_const(BitvecTy::w8(), 0b0110_1100_u8)).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_const(BitvecTy::w8(), 0b1001_0011_u8).unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod bitvec_equals {
+        use super::*;
+
+        #[test]
+        fn all_const_equal() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_equals_n(vec![
+                b.bitvec_const(BitvecTy::w32(), 5),
+                b.bitvec_const(BitvecTy::w32(), 5),
+                b.bitvec_const(BitvecTy::w32(), 5)
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bool_const(true).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn all_unequal() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_equals(
+                b.bitvec_const(BitvecTy::w32(), 5),
+                b.bitvec_const(BitvecTy::w32(), 7)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bool_const(false).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn some_unequal() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_equals_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 42),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 1337),
+                b.bitvec_var(BitvecTy::w32(), "z")
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bool_const(false).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn some_equal_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_equals_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 42),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), 42),
+                b.bitvec_var(BitvecTy::w32(), "z")
+            ]).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_equals_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_var(BitvecTy::w32(), "z"),
+                b.bitvec_const(BitvecTy::w32(), 42) // reinserted at the end
+            ]).unwrap();
             assert_eq!(expr, expected);
         }
     }
