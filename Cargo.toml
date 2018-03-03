@@ -14,7 +14,7 @@ repository = "https://github.com/robbepop/stevia"
 # documentation = "https://docs.rs/stevia"
 
 [dependencies]
-apint = "0.0.3"
+apint = "0.0.4"
 smallvec = "0.6"
 lazy_static = "1.0"
 unreachable = "1.0"
