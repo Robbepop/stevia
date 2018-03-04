@@ -504,6 +504,28 @@ fn simplify_sext(sext: expr::SignExtend) -> TransformOutcome {
     TransformOutcome::identity(sext)
 }
 
+fn simplify_concat(concat: expr::Concat) -> TransformOutcome {
+    // If the left-hand side is constant zero we can transform this concatenation expression
+    // into an equisatisfiable zero-extend expression with the same target bit width.
+    if let Some(c) = concat.childs.lhs.get_if_bitvec_const() {
+        if c.is_zero() {
+            return TransformOutcome::transformed(
+                expr::ZeroExtend::new(concat.bitvec_ty.width(), concat.childs.rhs).unwrap())
+        }
+    }
+    // If both child expressions are constant bitvectors we can simply evaluate the result.
+    let target_width = concat.bitvec_ty.width();
+    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(mut lhs), rhs: AnyExpr::BitvecConst(mut rhs) } = concat.childs {
+        lhs.val.zero_extend(target_width.raw_width()).unwrap();
+        rhs.val.zero_extend(target_width.raw_width()).unwrap();
+        let shamt = ShiftAmount::from(rhs.bitvec_ty.width().to_usize());
+        lhs.val.checked_shl_assign(shamt).unwrap();
+        lhs.val.checked_add_assign(&rhs.val).unwrap();
+        return TransformOutcome::transformed(expr::BitvecConst::from(lhs.val))
+    }
+    TransformOutcome::identity(concat)
+}
+
 impl Transformer for TermConstPropagator {
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         simplify_neg(neg)
@@ -575,6 +597,10 @@ impl Transformer for TermConstPropagator {
 
     fn transform_sext(&self, sext: expr::SignExtend) -> TransformOutcome {
         simplify_sext(sext)
+    }
+
+    fn transform_concat(&self, concat: expr::Concat) -> TransformOutcome {
+        simplify_concat(concat)
     }
 }
 
@@ -1563,6 +1589,37 @@ mod tests {
             ).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod concat {
+        use super::*;
+
+        #[test]
+        fn lhs_zero() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_concat(
+                b.bitvec_const(BitvecTy::w32(), 0),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_zext(
+                BitWidth::w64(),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn both_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_concat(
+                b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16),
+                b.bitvec_const(BitvecTy::w16(), 0x_EF01_u16)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32).unwrap();
             assert_eq!(expr, expected);
         }
     }
