@@ -879,37 +879,37 @@ mod tests {
         #[test]
         fn both_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_sub(
-                b.bitvec_const(BitvecTy::w32(), 12),
-                b.bitvec_const(BitvecTy::w32(), 5)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 7).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_sub(
+                    b.bitvec_const(BitvecTy::w32(), 12),
+                    b.bitvec_const(BitvecTy::w32(), 5)
+                ),
+                b.bitvec_const(BitvecTy::w32(), 7)
+            )
         }
 
         #[test]
         fn lhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_sub(
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x")).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_sub(
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x"))
+            )
         }
 
         #[test]
         fn rhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_sub(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_sub(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
     }
 
@@ -919,103 +919,103 @@ mod tests {
         #[test]
         fn identify_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y")
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ]),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn identify_zero_with_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 42),
-                b.bitvec_var(BitvecTy::w32(), "x"),
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 42),
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ]),
                 b.bitvec_const(BitvecTy::w32(), 0)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            )
         }
 
         #[test]
         fn binary_with_one() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 1),
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 1),
+                ]),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
         #[test]
         fn eliminate_ones() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 1),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 1)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_mul(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 1),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 1)
+                ]),
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                )
+            )
         }
 
         #[test]
         fn all_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 5),
-                b.bitvec_const(BitvecTy::w32(), 7),
-                b.bitvec_const(BitvecTy::w32(), 3)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 105).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 5),
+                    b.bitvec_const(BitvecTy::w32(), 7),
+                    b.bitvec_const(BitvecTy::w32(), 3)
+                ]),
+                b.bitvec_const(BitvecTy::w32(), 105)
+            )
         }
 
         #[test]
         fn some_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 11),
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 7)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_mul(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 77) // swapped since pushed back
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 11),
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 7)
+                ]),
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 77) // swapped since pushed back
+                )
+            )
         }
 
         #[test]
         fn some_const_with_one() {
             let b = new_builder();
-            let mut expr = b.bitvec_mul_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 1),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_mul_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_mul_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 1),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ]),
+                b.bitvec_mul_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ])
+            )
         }
     }
 
@@ -1024,50 +1024,50 @@ mod tests {
             #[test]
             fn division_by_zero() {
                 let b = new_builder();
-                let mut expr = b.$bitvec_div(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_const(BitvecTy::w32(), 0)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.$bitvec_div(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_const(BitvecTy::w32(), 0)
+                    ),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
             }
 
             #[test]
             fn division_by_one() {
                 let b = new_builder();
-                let mut expr = b.$bitvec_div(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_const(BitvecTy::w32(), 1)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.$bitvec_div(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_const(BitvecTy::w32(), 1)
+                    ),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
             }
 
             #[test]
             fn lhs_is_zero() {
                 let b = new_builder();
-                let mut expr = b.$bitvec_div(
-                    b.bitvec_const(BitvecTy::w32(), 0),
-                    b.bitvec_var(BitvecTy::w32(), "x")
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.$bitvec_div(
+                        b.bitvec_const(BitvecTy::w32(), 0),
+                        b.bitvec_var(BitvecTy::w32(), "x")
+                    ),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                )
             }
 
             #[test]
             fn both_const() {
                 fn test_for(lhs: u32, rhs: u32, result: u32) {
                     let b = new_builder();
-                    let mut expr = b.$bitvec_div(
-                        b.bitvec_const(BitvecTy::w32(), lhs),
-                        b.bitvec_const(BitvecTy::w32(), rhs)
-                    ).unwrap();
-                    simplify(&mut expr);
-                    let expected = b.bitvec_const(BitvecTy::w32(), result).unwrap();
-                    assert_eq!(expr, expected);
+                    assert_simplified(
+                        b.$bitvec_div(
+                            b.bitvec_const(BitvecTy::w32(), lhs),
+                            b.bitvec_const(BitvecTy::w32(), rhs)
+                        ),
+                        b.bitvec_const(BitvecTy::w32(), result)
+                    )
                 }
                 test_for(35, 7, 5);
                 test_for(41, 3, 13);
@@ -1092,50 +1092,50 @@ mod tests {
             #[test]
             fn division_by_zero() {
                 let b = new_builder();
-                let mut expr = b.$bitvec_div(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_const(BitvecTy::w32(), 0)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.$bitvec_div(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_const(BitvecTy::w32(), 0)
+                    ),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
             }
 
             #[test]
             fn rhs_is_one() {
                 let b = new_builder();
-                let mut expr = b.$bitvec_div(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_const(BitvecTy::w32(), 1)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.$bitvec_div(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_const(BitvecTy::w32(), 1)
+                    ),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                )
             }
 
             #[test]
             fn lhs_is_zero() {
                 let b = new_builder();
-                let mut expr = b.$bitvec_div(
-                    b.bitvec_const(BitvecTy::w32(), 0),
-                    b.bitvec_var(BitvecTy::w32(), "x")
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.$bitvec_div(
+                        b.bitvec_const(BitvecTy::w32(), 0),
+                        b.bitvec_var(BitvecTy::w32(), "x")
+                    ),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                )
             }
 
             #[test]
             fn both_const() {
                 fn test_for(lhs: u32, rhs: u32, result: u32) {
                     let b = new_builder();
-                    let mut expr = b.$bitvec_div(
-                        b.bitvec_const(BitvecTy::w32(), lhs),
-                        b.bitvec_const(BitvecTy::w32(), rhs)
-                    ).unwrap();
-                    simplify(&mut expr);
-                    let expected = b.bitvec_const(BitvecTy::w32(), result).unwrap();
-                    assert_eq!(expr, expected);
+                    assert_simplified(
+                        b.$bitvec_div(
+                            b.bitvec_const(BitvecTy::w32(), lhs),
+                            b.bitvec_const(BitvecTy::w32(), rhs)
+                        ),
+                        b.bitvec_const(BitvecTy::w32(), result)
+                    )
                 }
                 test_for(35, 7, 0);
                 test_for(41, 3, 2);
@@ -1162,13 +1162,13 @@ mod tests {
         fn both_const() {
             fn test_for(lhs: i32, rhs: u32) {
                 let b = new_builder();
-                let mut expr = b.bitvec_shl(
-                    b.bitvec_const(BitvecTy::w32(), lhs),
-                    b.bitvec_const(BitvecTy::w32(), rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w32(), lhs.wrapping_shl(rhs)).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.bitvec_shl(
+                        b.bitvec_const(BitvecTy::w32(), lhs),
+                        b.bitvec_const(BitvecTy::w32(), rhs)
+                    ),
+                    b.bitvec_const(BitvecTy::w32(), lhs.wrapping_shl(rhs))
+                )
             }
             test_for(1, 10);
             test_for(-1, 10);
@@ -1180,49 +1180,49 @@ mod tests {
         #[test]
         fn lhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_shl(
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_shl(
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn rhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_shl(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_shl(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
         #[test]
         fn rhs_overflow() {
             let b = new_builder();
-            let mut expr = b.bitvec_shl(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 33)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_shl(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 33)
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn rhs_too_large_for_u32() {
             let b = new_builder();
-            let mut expr = b.bitvec_shl(
-                b.bitvec_var(BitvecTy::w64(), "x_w64"),
-                b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w64(), 0_u64).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_shl(
+                    b.bitvec_var(BitvecTy::w64(), "x_w64"),
+                    b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
+                ),
+                b.bitvec_const(BitvecTy::w64(), 0_u64)
+            )
         }
     }
 
@@ -1233,13 +1233,13 @@ mod tests {
         fn both_const() {
             fn test_for(lhs: u32, rhs: u32) {
                 let b = new_builder();
-                let mut expr = b.bitvec_lshr(
-                    b.bitvec_const(BitvecTy::w32(), lhs),
-                    b.bitvec_const(BitvecTy::w32(), rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w32(), lhs.wrapping_shr(rhs)).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.bitvec_lshr(
+                        b.bitvec_const(BitvecTy::w32(), lhs),
+                        b.bitvec_const(BitvecTy::w32(), rhs)
+                    ),
+                    b.bitvec_const(BitvecTy::w32(), lhs.wrapping_shr(rhs))
+                )
             }
             test_for(1, 10);
             test_for(1337, 6);
@@ -1252,49 +1252,49 @@ mod tests {
         #[test]
         fn lhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_lshr(
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_lshr(
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn rhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_lshr(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_lshr(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
         #[test]
         fn rhs_overflow() {
             let b = new_builder();
-            let mut expr = b.bitvec_lshr(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 33)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_lshr(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 33)
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn rhs_too_large_for_u32() {
             let b = new_builder();
-            let mut expr = b.bitvec_lshr(
-                b.bitvec_var(BitvecTy::w64(), "x_w64"),
-                b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w64(), 0_u64).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_lshr(
+                    b.bitvec_var(BitvecTy::w64(), "x_w64"),
+                    b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
+                ),
+                b.bitvec_const(BitvecTy::w64(), 0_u64)
+            )
         }
     }
 
@@ -1305,13 +1305,13 @@ mod tests {
         fn both_const() {
             fn test_for(lhs: i32, rhs: u32) {
                 let b = new_builder();
-                let mut expr = b.bitvec_ashr(
-                    b.bitvec_const(BitvecTy::w32(), lhs),
-                    b.bitvec_const(BitvecTy::w32(), rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w32(), lhs.wrapping_shr(rhs)).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.bitvec_ashr(
+                        b.bitvec_const(BitvecTy::w32(), lhs),
+                        b.bitvec_const(BitvecTy::w32(), rhs)
+                    ),
+                    b.bitvec_const(BitvecTy::w32(), lhs.wrapping_shr(rhs))
+                )
             }
             test_for(1, 10);
             test_for(1337, 6);
@@ -1325,37 +1325,37 @@ mod tests {
         #[test]
         fn lhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_ashr(
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_ashr(
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn lhs_all_set() {
             let b = new_builder();
-            let mut expr = b.bitvec_ashr(
-                b.bitvec_const(BitvecTy::w32(), 0x_FFFF_FFFF_u32),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0x_FFFF_FFFF_u32).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_ashr(
+                    b.bitvec_const(BitvecTy::w32(), 0x_FFFF_FFFF_u32),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0x_FFFF_FFFF_u32)
+            )
         }
 
         #[test]
         fn rhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_ashr(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_ashr(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
     }
@@ -1367,13 +1367,13 @@ mod tests {
         fn both_const() {
             fn test_for(lhs: i32, rhs: i32) {
                 let b = new_builder();
-                let mut expr = b.bitvec_slt(
-                    b.bitvec_const(BitvecTy::w32(), lhs),
-                    b.bitvec_const(BitvecTy::w32(), rhs),
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bool_const(lhs < rhs).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.bitvec_slt(
+                        b.bitvec_const(BitvecTy::w32(), lhs),
+                        b.bitvec_const(BitvecTy::w32(), rhs),
+                    ),
+                    b.bool_const(lhs < rhs)
+                )
             }
             test_for(0, 1337);
             test_for(15, 16);
@@ -1392,13 +1392,13 @@ mod tests {
         fn both_const() {
             fn test_for(lhs: u32, rhs: u32) {
                 let b = new_builder();
-                let mut expr = b.bitvec_ult(
-                    b.bitvec_const(BitvecTy::w32(), lhs),
-                    b.bitvec_const(BitvecTy::w32(), rhs),
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bool_const(lhs < rhs).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.bitvec_ult(
+                        b.bitvec_const(BitvecTy::w32(), lhs),
+                        b.bitvec_const(BitvecTy::w32(), rhs),
+                    ),
+                    b.bool_const(lhs < rhs)
+                )
             }
             test_for(0, 1337);
             test_for(15, 16);
@@ -1413,103 +1413,103 @@ mod tests {
         #[test]
         fn identify_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y")
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ]),
+                b.bitvec_const(BitvecTy::w32(), 0)
+            )
         }
 
         #[test]
         fn identify_zero_with_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 42),
-                b.bitvec_var(BitvecTy::w32(), "x"),
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 42),
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ]),
                 b.bitvec_const(BitvecTy::w32(), 0)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
-            assert_eq!(expr, expected);
+            )
         }
 
         #[test]
         fn binary_with_all_set() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+                ]),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
         #[test]
         fn eliminate_all_set() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_and(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32)
+                ]),
+                b.bitvec_and(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                )
+            )
         }
 
         #[test]
         fn all_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
-                b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
-                b.bitvec_const(BitvecTy::w16(), 0b_1111_1111_0000_0000_u16)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0000_0000_u16).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
+                    b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
+                    b.bitvec_const(BitvecTy::w16(), 0b_1111_1111_0000_0000_u16)
+                ]),
+                b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0000_0000_u16)
+            )
         }
 
         #[test]
         fn some_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
-                b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
-                b.bitvec_const(BitvecTy::w16(), 0b_0110_0110_0110_0110_u16)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_and(
-                b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
-                b.bitvec_const(BitvecTy::w16(), 0b_0110_0100_0010_0110_u16) // swapped since pushed back
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
+                    b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
+                    b.bitvec_const(BitvecTy::w16(), 0b_0110_0110_0110_0110_u16)
+                ]),
+                b.bitvec_and(
+                    b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
+                    b.bitvec_const(BitvecTy::w16(), 0b_0110_0100_0010_0110_u16) // swapped since pushed back
+                )
+            )
         }
 
         #[test]
         fn some_const_with_all_set() {
             let b = new_builder();
-            let mut expr = b.bitvec_and_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_and_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ]),
+                b.bitvec_and_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ])
+            )
         }
     }
 
@@ -1519,103 +1519,103 @@ mod tests {
         #[test]
         fn identify_all_set() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
-                b.bitvec_var(BitvecTy::w32(), "y")
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ]),
+                b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32)
+            )
         }
 
         #[test]
         fn identify_all_set_with_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 42),
-                b.bitvec_var(BitvecTy::w32(), "x"),
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 42),
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32)
+                ]),
                 b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32).unwrap();
-            assert_eq!(expr, expected);
+            )
         }
 
         #[test]
         fn binary_with_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                ]),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
         #[test]
         fn eliminate_zeros() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 0)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_or(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ]),
+                b.bitvec_or(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                )
+            )
         }
 
         #[test]
         fn all_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
-                b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
-                b.bitvec_const(BitvecTy::w16(), 0b_1011_1011_0000_0000_u16)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w16(), 0b_1011_1111_1100_1011_u16).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
+                    b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
+                    b.bitvec_const(BitvecTy::w16(), 0b_1011_1011_0000_0000_u16)
+                ]),
+                b.bitvec_const(BitvecTy::w16(), 0b_1011_1111_1100_1011_u16)
+            )
         }
 
         #[test]
         fn some_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
-                b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
-                b.bitvec_const(BitvecTy::w16(), 0b_0110_0100_0110_0110_u16)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_or(
-                b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
-                b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1111_0111_u16) // swapped since pushed back
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
+                    b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
+                    b.bitvec_const(BitvecTy::w16(), 0b_0110_0100_0110_0110_u16)
+                ]),
+                b.bitvec_or(
+                    b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
+                    b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1111_0111_u16) // swapped since pushed back
+                )
+            )
         }
 
         #[test]
         fn some_const_with_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_or_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_or_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ]),
+                b.bitvec_or_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ])
+            )
         }
     }
 
@@ -1625,57 +1625,51 @@ mod tests {
         #[test]
         fn both_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_xor(
-                b.bitvec_const(BitvecTy::w16(), 0b_1011_1001_1010_1111_u16),
-                b.bitvec_const(BitvecTy::w16(), 0b_1001_0111_0101_1100_u16)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w16(), 0b_0010_1110_1111_0011_u16).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_xor(
+                    b.bitvec_const(BitvecTy::w16(), 0b_1011_1001_1010_1111_u16),
+                    b.bitvec_const(BitvecTy::w16(), 0b_1001_0111_0101_1100_u16)
+                ),
+                b.bitvec_const(BitvecTy::w16(), 0b_0010_1110_1111_0011_u16)
+            )
         }
 
         #[test]
         fn lhs_or_rhs_zero() {
             let b = new_builder();
-            let expected = b.bitvec_var(BitvecTy::w16(), "x_w16").unwrap();
-            {
-                let mut expr = b.bitvec_xor(
+            assert_simplified(
+                b.bitvec_xor(
                     b.bitvec_const(BitvecTy::w16(), 0_u16),
                     b.bitvec_var(BitvecTy::w16(), "x_w16")
-                ).unwrap();
-                simplify(&mut expr);
-                assert_eq!(expr, expected);
-            }
-            {
-                let mut expr = b.bitvec_xor(
+                ),
+                b.bitvec_var(BitvecTy::w16(), "x_w16")
+            );
+            assert_simplified(
+                b.bitvec_xor(
                     b.bitvec_var(BitvecTy::w16(), "x_w16"),
                     b.bitvec_const(BitvecTy::w16(), 0_u16)
-                ).unwrap();
-                simplify(&mut expr);
-                assert_eq!(expr, expected);
-            }
+                ),
+                b.bitvec_var(BitvecTy::w16(), "x_w16")
+            )
         }
 
         #[test]
         fn lhs_or_rhs_all_set() {
             let b = new_builder();
-            let expected = b.bitvec_not(b.bitvec_var(BitvecTy::w16(), "x_w16")).unwrap();
-            {
-                let mut expr = b.bitvec_xor(
+            assert_simplified(
+                b.bitvec_xor(
                     b.bitvec_const(BitvecTy::w16(), 0x_FFFF_u16),
                     b.bitvec_var(BitvecTy::w16(), "x_w16")
-                ).unwrap();
-                simplify(&mut expr);
-                assert_eq!(expr, expected);
-            }
-            {
-                let mut expr = b.bitvec_xor(
+                ),
+                b.bitvec_not(b.bitvec_var(BitvecTy::w16(), "x_w16"))
+            );
+            assert_simplified(
+                b.bitvec_xor(
                     b.bitvec_var(BitvecTy::w16(), "x_w16"),
                     b.bitvec_const(BitvecTy::w16(), 0x_FFFF_u16)
-                ).unwrap();
-                simplify(&mut expr);
-                assert_eq!(expr, expected);
-            }
+                ),
+                b.bitvec_not(b.bitvec_var(BitvecTy::w16(), "x_w16"))
+            )
         }
     }
 
@@ -1685,25 +1679,25 @@ mod tests {
         #[test]
         fn const_child() {
             let b = new_builder();
-            let mut expr = b.bitvec_zext(
-                BitWidth::w64(),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w64(), 42_u64).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_zext(
+                    BitWidth::w64(),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ),
+                b.bitvec_const(BitvecTy::w64(), 42_u64)
+            )
         }
 
         #[test]
         fn same_width() {
             let b = new_builder();
-            let mut expr = b.bitvec_zext(
-                BitWidth::w32(),
+            assert_simplified(
+                b.bitvec_zext(
+                    BitWidth::w32(),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
                 b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            )
         }
     }
 
@@ -1714,13 +1708,13 @@ mod tests {
         fn const_child() {
             fn test_for(val: i32) {
                 let b = new_builder();
-                let mut expr = b.bitvec_sext(
-                    BitWidth::w64(),
-                    b.bitvec_const(BitvecTy::w32(), val)
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bitvec_const(BitvecTy::w64(), val as i64).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.bitvec_sext(
+                        BitWidth::w64(),
+                        b.bitvec_const(BitvecTy::w32(), val)
+                    ),
+                    b.bitvec_const(BitvecTy::w64(), val as i64)
+                )
             }
             test_for(42);
             // test_for(-1337); // TODO in crate apint: fix bug
@@ -1731,13 +1725,13 @@ mod tests {
         #[test]
         fn same_width() {
             let b = new_builder();
-            let mut expr = b.bitvec_sext(
-                BitWidth::w32(),
+            assert_simplified(
+                b.bitvec_sext(
+                    BitWidth::w32(),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
                 b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            )
         }
     }
 
@@ -1747,28 +1741,28 @@ mod tests {
         #[test]
         fn lhs_zero() {
             let b = new_builder();
-            let mut expr = b.bitvec_concat(
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_zext(
-                BitWidth::w64(),
-                b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_concat(
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_zext(
+                    BitWidth::w64(),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
+            )
         }
 
         #[test]
         fn both_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_concat(
-                b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16),
-                b.bitvec_const(BitvecTy::w16(), 0x_EF01_u16)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_concat(
+                    b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16),
+                    b.bitvec_const(BitvecTy::w16(), 0x_EF01_u16)
+                ),
+                b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32)
+            )
         }
     }
 
@@ -1778,27 +1772,27 @@ mod tests {
         #[test]
         fn same_target_width() {
             let b = new_builder();
-            let mut expr = b.bitvec_extract_hi_lo(
-                32, // hi
-                0,  // lo
+            assert_simplified(
+                b.bitvec_extract_hi_lo(
+                    32, // hi
+                    0,  // lo
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
                 b.bitvec_var(BitvecTy::w32(), "x")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            )
         }
 
         #[test]
         fn both_const() {
             let b = new_builder();
-            let mut expr = b.bitvec_extract_hi_lo(
-                32, // hi
-                16, // lo
-                b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_extract_hi_lo(
+                    32, // hi
+                    16, // lo
+                    b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32)
+                ),
+                b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16)
+            )
         }
     }
 }
