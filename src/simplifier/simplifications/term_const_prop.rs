@@ -209,17 +209,55 @@ macro_rules! transform_div_impl {
                 return TransformOutcome::transformed($varname.childs.lhs)
             }
         }
+        TransformOutcome::identity($varname)
     }};
 }
 
 fn simplify_udiv(udiv: expr::UnsignedDiv) -> TransformOutcome {
-    transform_div_impl!(udiv, into_checked_udiv);
-    TransformOutcome::identity(udiv)
+    transform_div_impl!(udiv, into_checked_udiv)
 }
 
 fn simplify_sdiv(sdiv: expr::SignedDiv) -> TransformOutcome {
-    transform_div_impl!(sdiv, into_checked_sdiv);
-    TransformOutcome::identity(sdiv)
+    transform_div_impl!(sdiv, into_checked_sdiv)
+}
+
+macro_rules! transform_rem_impl {
+    ($varname:ident, $into_checked:ident) => {{
+        // If both child expressions are constant bitvectors we can evaluate the remainder
+        // and replace this remainder expression by the result.
+        if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.childs {
+            let result = lhs.val.$into_checked(&rhs.val).unwrap();
+            return TransformOutcome::transformed(expr::BitvecConst::from(result))
+        }
+        if let Some(rhs) = $varname.childs.rhs.get_if_bitvec_const() {
+            // Encountered a division (remainder) by zero. Stevia simply returns the left-hand side in this case.
+            if rhs.is_zero() {
+                warn!("Encountered a division (remainder) by zero with: {:?}. \
+                       Stevia simply returns the left-hand side in this case.", $varname);
+                return TransformOutcome::transformed($varname.childs.lhs)
+            }
+            // Remainder of one can be replaced by constant zero.
+            if rhs.is_one() {
+                return TransformOutcome::transformed(expr::BitvecConst::zero($varname.bitvec_ty))
+            }
+        }
+        // If the left-hand side is zero the entire division can only result to zero.
+        if let Some(lhs) = $varname.childs.lhs.get_if_bitvec_const() {
+            // Since the left-hand side is already a zero constant we can simply take it.
+            if lhs.is_zero() {
+                return TransformOutcome::transformed($varname.childs.lhs)
+            }
+        }
+        TransformOutcome::identity($varname)
+    }};
+}
+
+fn simplify_urem(urem: expr::UnsignedRemainder) -> TransformOutcome {
+    transform_rem_impl!(urem, into_checked_urem)
+}
+
+fn simplify_srem(srem: expr::SignedRemainder) -> TransformOutcome {
+    transform_rem_impl!(srem, into_checked_srem)
 }
 
 fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
@@ -569,6 +607,14 @@ impl Transformer for TermConstPropagator {
 
     fn transform_sdiv(&self, sdiv: expr::SignedDiv) -> TransformOutcome {
         simplify_sdiv(sdiv)
+    }
+
+    fn transform_urem(&self, urem: expr::UnsignedRemainder) -> TransformOutcome {
+        simplify_urem(urem)
+    }
+
+    fn transform_srem(&self, srem: expr::SignedRemainder) -> TransformOutcome {
+        simplify_srem(srem)
     }
 
     fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
@@ -1025,6 +1071,74 @@ mod tests {
         use super::*;
 
         div_test_impls!(sdiv, bitvec_sdiv);
+    }
+
+    macro_rules! rem_test_impls {
+        ($name:ident, $bitvec_div:ident) => {
+            #[test]
+            fn division_by_zero() {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.$bitvec_div(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+                assert_eq!(expr, expected);
+            }
+
+            #[test]
+            fn rhs_is_one() {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.$bitvec_div(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 1)
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
+                assert_eq!(expr, expected);
+            }
+
+            #[test]
+            fn lhs_is_zero() {
+                let b = PlainExprTreeBuilder::default();
+                let mut expr = b.$bitvec_div(
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ).unwrap();
+                simplify(&mut expr);
+                let expected = b.bitvec_const(BitvecTy::w32(), 0).unwrap();
+                assert_eq!(expr, expected);
+            }
+
+            #[test]
+            fn both_const() {
+                fn test_for(lhs: u32, rhs: u32, result: u32) {
+                    let b = PlainExprTreeBuilder::default();
+                    let mut expr = b.$bitvec_div(
+                        b.bitvec_const(BitvecTy::w32(), lhs),
+                        b.bitvec_const(BitvecTy::w32(), rhs)
+                    ).unwrap();
+                    simplify(&mut expr);
+                    let expected = b.bitvec_const(BitvecTy::w32(), result).unwrap();
+                    assert_eq!(expr, expected);
+                }
+                test_for(35, 7, 0);
+                test_for(41, 3, 2);
+            }
+        };
+    }
+
+    mod urem {
+        use super::*;
+
+        rem_test_impls!(urem, bitvec_urem);
+    }
+
+    mod srem {
+        use super::*;
+
+        rem_test_impls!(srem, bitvec_srem);
     }
 
     mod shl {
