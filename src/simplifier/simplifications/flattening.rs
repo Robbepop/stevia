@@ -95,17 +95,20 @@ mod tests {
         create_simplifier().simplify(expr)
     }
 
-    mod and {
-        use super::*;
-
-        #[test]
-        fn simple() {
+    macro_rules! impl_bool_flattening_test {
+        ($build:ident, $build_n:ident) => {{
             let b = PlainExprTreeBuilder::default();
-            let mut input = b.and(
-                b.and(b.bool_var("a"), b.bool_var("b")),
-                b.and(b.bool_var("c"), b.bool_var("d"))
+            let mut input = b.$build(
+                b.$build(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                ),
+                b.$build(
+                    b.bool_var("c"),
+                    b.bool_var("d")
+                )
             ).unwrap();
-            let expected = b.and_n(vec![
+            let expected = b.$build_n(vec![
                 b.bool_var("a"),
                 b.bool_var("b"),
                 b.bool_var("c"),
@@ -113,6 +116,15 @@ mod tests {
             ]).unwrap();
             simplify(&mut input);
             assert_eq!(input, expected);
+        }};
+    }
+
+    mod and {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            impl_bool_flattening_test!(and, and_n);
         }
     }
 
@@ -121,19 +133,49 @@ mod tests {
 
         #[test]
         fn simple() {
+            impl_bool_flattening_test!(or, or_n);
+        }
+    }
+
+    macro_rules! impl_term_flattening_test {
+        ($build:ident, $build_n:ident) => {{
             let b = PlainExprTreeBuilder::default();
-            let mut input = b.or(
-                b.or(b.bool_var("a"), b.bool_var("b")),
-                b.or(b.bool_var("c"), b.bool_var("d"))
+            let mut input = b.$build(
+                b.$build(
+                    b.bitvec_var(BitvecTy::w32(), "v"),
+                    b.bitvec_var(BitvecTy::w32(), "w")
+                ),
+                b.$build(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
             ).unwrap();
-            let expected = b.or_n(vec![
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.bool_var("c"),
-                b.bool_var("d")
+            let expected = b.$build_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "v"),
+                b.bitvec_var(BitvecTy::w32(), "w"),
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y")
             ]).unwrap();
             simplify(&mut input);
             assert_eq!(input, expected);
+        }};
+    }
+
+    mod add {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            impl_term_flattening_test!(bitvec_add, bitvec_add_n);
+        }
+    }
+
+    mod mul {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            impl_term_flattening_test!(bitvec_mul, bitvec_mul_n);
         }
     }
 
@@ -142,25 +184,7 @@ mod tests {
 
         #[test]
         fn simple() {
-            let b = PlainExprTreeBuilder::default();
-            let mut input = b.bitvec_and(
-                b.bitvec_and(
-                    b.bitvec_var(BitvecTy::w32(), "v"),
-                    b.bitvec_var(BitvecTy::w32(), "w")
-                ),
-                b.bitvec_and(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_var(BitvecTy::w32(), "y")
-                )
-            ).unwrap();
-            let expected = b.bitvec_and_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "v"),
-                b.bitvec_var(BitvecTy::w32(), "w"),
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y")
-            ]).unwrap();
-            simplify(&mut input);
-            assert_eq!(input, expected);
+            impl_term_flattening_test!(bitvec_and, bitvec_and_n);
         }
     }
 
@@ -169,25 +193,7 @@ mod tests {
 
         #[test]
         fn simple() {
-            let b = PlainExprTreeBuilder::default();
-            let mut input = b.bitvec_or(
-                b.bitvec_or(
-                    b.bitvec_var(BitvecTy::w32(), "v"),
-                    b.bitvec_var(BitvecTy::w32(), "w")
-                ),
-                b.bitvec_or(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_var(BitvecTy::w32(), "y")
-                )
-            ).unwrap();
-            let expected = b.bitvec_or_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "v"),
-                b.bitvec_var(BitvecTy::w32(), "w"),
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y")
-            ]).unwrap();
-            simplify(&mut input);
-            assert_eq!(input, expected);
+            impl_term_flattening_test!(bitvec_or, bitvec_or_n);
         }
     }
 }
