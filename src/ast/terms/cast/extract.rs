@@ -47,6 +47,11 @@ impl Extract {
         }
         Ok(Extract{hi, lo, src})
     }
+
+    /// Returns the bitvec type of this `Extract` term expression.
+    pub fn bitvec_ty(&self) -> BitvecTy {
+        BitvecTy::from(self.hi - self.lo)
+    }
 }
 
 impl Childs for Extract {
@@ -69,7 +74,7 @@ impl IntoChilds for Extract {
 
 impl HasType for Extract {
     fn ty(&self) -> Type {
-        BitvecTy::from(self.hi - self.lo).ty()
+        self.bitvec_ty().ty()
     }
 }
 
