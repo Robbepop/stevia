@@ -689,16 +689,30 @@ mod tests {
         create_simplifier().simplify(expr)
     }
 
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
     mod neg {
         use super::*;
 
         #[test]
         fn simple() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_neg(b.bitvec_const(BitvecTy::w32(), 42)).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), -42).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_neg(b.bitvec_const(BitvecTy::w32(), 42)),
+                b.bitvec_const(BitvecTy::w32(), -42)
+            )
         }
     }
 
@@ -707,11 +721,11 @@ mod tests {
 
         #[test]
         fn simple() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_not(b.bitvec_const(BitvecTy::w8(), 0b0110_1100_u8)).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w8(), 0b1001_0011_u8).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_not(b.bitvec_const(BitvecTy::w8(), 0b0110_1100_u8)),
+                b.bitvec_const(BitvecTy::w8(), 0b1001_0011_u8)
+            )
         }
     }
 
@@ -720,62 +734,62 @@ mod tests {
 
         #[test]
         fn all_const_equal() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_equals_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 5),
-                b.bitvec_const(BitvecTy::w32(), 5),
-                b.bitvec_const(BitvecTy::w32(), 5)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bool_const(true).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_equals_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 5),
+                    b.bitvec_const(BitvecTy::w32(), 5),
+                    b.bitvec_const(BitvecTy::w32(), 5)
+                ]),
+                b.bool_const(true)
+            )
         }
 
         #[test]
         fn all_unequal() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_equals(
-                b.bitvec_const(BitvecTy::w32(), 5),
-                b.bitvec_const(BitvecTy::w32(), 7)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.bool_const(false).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_equals(
+                    b.bitvec_const(BitvecTy::w32(), 5),
+                    b.bitvec_const(BitvecTy::w32(), 7)
+                ),
+                b.bool_const(false)
+            )
         }
 
         #[test]
         fn some_unequal() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_equals_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 42),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 1337),
-                b.bitvec_var(BitvecTy::w32(), "z")
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bool_const(false).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_equals_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 42),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 1337),
+                    b.bitvec_var(BitvecTy::w32(), "z")
+                ]),
+                b.bool_const(false)
+            )
         }
 
         #[test]
         fn some_equal_const() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_equals_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 42),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42),
-                b.bitvec_var(BitvecTy::w32(), "z")
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_equals_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_var(BitvecTy::w32(), "z"),
-                b.bitvec_const(BitvecTy::w32(), 42) // reinserted at the end
-            ]).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_equals_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 42),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42),
+                    b.bitvec_var(BitvecTy::w32(), "z")
+                ]),
+                b.bitvec_equals_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_var(BitvecTy::w32(), "z"),
+                    b.bitvec_const(BitvecTy::w32(), 42) // reinserted at the end
+                ])
+            )
         }
     }
 
@@ -784,78 +798,78 @@ mod tests {
 
         #[test]
         fn all_const() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_add_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 5),
-                b.bitvec_const(BitvecTy::w32(), 7),
-                b.bitvec_const(BitvecTy::w32(), 3)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_const(BitvecTy::w32(), 15).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_add_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 5),
+                    b.bitvec_const(BitvecTy::w32(), 7),
+                    b.bitvec_const(BitvecTy::w32(), 3)
+                ]),
+                b.bitvec_const(BitvecTy::w32(), 15)
+            )
         }
 
         #[test]
         fn some_const() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_add_n(vec![
-                b.bitvec_const(BitvecTy::w32(), 1337),
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_add(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 1379) // swapped since pushed back
-            ).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_add_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 1337),
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ]),
+                b.bitvec_add(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 1379) // swapped since pushed back
+                )
+            )
         }
 
         #[test]
         fn some_const_with_zero() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_add_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_add_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 42)
-            ]).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_add_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ]),
+                b.bitvec_add_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 42)
+                ])
+            )
         }
 
         #[test]
         fn binary_with_zero() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_add_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_add_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                ]),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
         }
 
         #[test]
         fn eliminate_zeros() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_add_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_const(BitvecTy::w32(), 0),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), 0)
-            ]).unwrap();
-            simplify(&mut expr);
-            let expected = b.bitvec_add(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-            ).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_add_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 0),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), 0)
+                ]),
+                b.bitvec_add(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                )
+            )
         }
     }
 
@@ -864,7 +878,7 @@ mod tests {
 
         #[test]
         fn both_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_sub(
                 b.bitvec_const(BitvecTy::w32(), 12),
                 b.bitvec_const(BitvecTy::w32(), 5)
@@ -876,7 +890,7 @@ mod tests {
 
         #[test]
         fn lhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_sub(
                 b.bitvec_const(BitvecTy::w32(), 0),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -888,7 +902,7 @@ mod tests {
 
         #[test]
         fn rhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_sub(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0)
@@ -904,7 +918,7 @@ mod tests {
 
         #[test]
         fn identify_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0),
@@ -917,7 +931,7 @@ mod tests {
 
         #[test]
         fn identify_zero_with_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_const(BitvecTy::w32(), 42),
                 b.bitvec_var(BitvecTy::w32(), "x"),
@@ -930,7 +944,7 @@ mod tests {
 
         #[test]
         fn binary_with_one() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 1),
@@ -942,7 +956,7 @@ mod tests {
 
         #[test]
         fn eliminate_ones() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 1),
@@ -959,7 +973,7 @@ mod tests {
 
         #[test]
         fn all_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_const(BitvecTy::w32(), 5),
                 b.bitvec_const(BitvecTy::w32(), 7),
@@ -972,7 +986,7 @@ mod tests {
 
         #[test]
         fn some_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_const(BitvecTy::w32(), 11),
                 b.bitvec_var(BitvecTy::w32(), "x"),
@@ -988,7 +1002,7 @@ mod tests {
 
         #[test]
         fn some_const_with_one() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_mul_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 1),
@@ -1009,7 +1023,7 @@ mod tests {
         ($name:ident, $bitvec_div:ident) => {
             #[test]
             fn division_by_zero() {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.$bitvec_div(
                     b.bitvec_var(BitvecTy::w32(), "x"),
                     b.bitvec_const(BitvecTy::w32(), 0)
@@ -1021,7 +1035,7 @@ mod tests {
 
             #[test]
             fn division_by_one() {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.$bitvec_div(
                     b.bitvec_var(BitvecTy::w32(), "x"),
                     b.bitvec_const(BitvecTy::w32(), 1)
@@ -1033,7 +1047,7 @@ mod tests {
 
             #[test]
             fn lhs_is_zero() {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.$bitvec_div(
                     b.bitvec_const(BitvecTy::w32(), 0),
                     b.bitvec_var(BitvecTy::w32(), "x")
@@ -1046,7 +1060,7 @@ mod tests {
             #[test]
             fn both_const() {
                 fn test_for(lhs: u32, rhs: u32, result: u32) {
-                    let b = PlainExprTreeBuilder::default();
+                    let b = new_builder();
                     let mut expr = b.$bitvec_div(
                         b.bitvec_const(BitvecTy::w32(), lhs),
                         b.bitvec_const(BitvecTy::w32(), rhs)
@@ -1077,7 +1091,7 @@ mod tests {
         ($name:ident, $bitvec_div:ident) => {
             #[test]
             fn division_by_zero() {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.$bitvec_div(
                     b.bitvec_var(BitvecTy::w32(), "x"),
                     b.bitvec_const(BitvecTy::w32(), 0)
@@ -1089,7 +1103,7 @@ mod tests {
 
             #[test]
             fn rhs_is_one() {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.$bitvec_div(
                     b.bitvec_var(BitvecTy::w32(), "x"),
                     b.bitvec_const(BitvecTy::w32(), 1)
@@ -1101,7 +1115,7 @@ mod tests {
 
             #[test]
             fn lhs_is_zero() {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.$bitvec_div(
                     b.bitvec_const(BitvecTy::w32(), 0),
                     b.bitvec_var(BitvecTy::w32(), "x")
@@ -1114,7 +1128,7 @@ mod tests {
             #[test]
             fn both_const() {
                 fn test_for(lhs: u32, rhs: u32, result: u32) {
-                    let b = PlainExprTreeBuilder::default();
+                    let b = new_builder();
                     let mut expr = b.$bitvec_div(
                         b.bitvec_const(BitvecTy::w32(), lhs),
                         b.bitvec_const(BitvecTy::w32(), rhs)
@@ -1147,7 +1161,7 @@ mod tests {
         #[test]
         fn both_const() {
             fn test_for(lhs: i32, rhs: u32) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.bitvec_shl(
                     b.bitvec_const(BitvecTy::w32(), lhs),
                     b.bitvec_const(BitvecTy::w32(), rhs)
@@ -1165,7 +1179,7 @@ mod tests {
 
         #[test]
         fn lhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_shl(
                 b.bitvec_const(BitvecTy::w32(), 0),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1177,7 +1191,7 @@ mod tests {
 
         #[test]
         fn rhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_shl(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0)
@@ -1189,7 +1203,7 @@ mod tests {
 
         #[test]
         fn rhs_overflow() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_shl(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 33)
@@ -1201,7 +1215,7 @@ mod tests {
 
         #[test]
         fn rhs_too_large_for_u32() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_shl(
                 b.bitvec_var(BitvecTy::w64(), "x_w64"),
                 b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
@@ -1218,7 +1232,7 @@ mod tests {
         #[test]
         fn both_const() {
             fn test_for(lhs: u32, rhs: u32) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.bitvec_lshr(
                     b.bitvec_const(BitvecTy::w32(), lhs),
                     b.bitvec_const(BitvecTy::w32(), rhs)
@@ -1237,7 +1251,7 @@ mod tests {
 
         #[test]
         fn lhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_lshr(
                 b.bitvec_const(BitvecTy::w32(), 0),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1249,7 +1263,7 @@ mod tests {
 
         #[test]
         fn rhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_lshr(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0)
@@ -1261,7 +1275,7 @@ mod tests {
 
         #[test]
         fn rhs_overflow() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_lshr(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 33)
@@ -1273,7 +1287,7 @@ mod tests {
 
         #[test]
         fn rhs_too_large_for_u32() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_lshr(
                 b.bitvec_var(BitvecTy::w64(), "x_w64"),
                 b.bitvec_const(BitvecTy::w64(), u64::max_value() / 2)
@@ -1290,7 +1304,7 @@ mod tests {
         #[test]
         fn both_const() {
             fn test_for(lhs: i32, rhs: u32) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.bitvec_ashr(
                     b.bitvec_const(BitvecTy::w32(), lhs),
                     b.bitvec_const(BitvecTy::w32(), rhs)
@@ -1310,7 +1324,7 @@ mod tests {
 
         #[test]
         fn lhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_ashr(
                 b.bitvec_const(BitvecTy::w32(), 0),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1322,7 +1336,7 @@ mod tests {
 
         #[test]
         fn lhs_all_set() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_ashr(
                 b.bitvec_const(BitvecTy::w32(), 0x_FFFF_FFFF_u32),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1334,7 +1348,7 @@ mod tests {
 
         #[test]
         fn rhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_ashr(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0)
@@ -1352,7 +1366,7 @@ mod tests {
         #[test]
         fn both_const() {
             fn test_for(lhs: i32, rhs: i32) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.bitvec_slt(
                     b.bitvec_const(BitvecTy::w32(), lhs),
                     b.bitvec_const(BitvecTy::w32(), rhs),
@@ -1377,7 +1391,7 @@ mod tests {
         #[test]
         fn both_const() {
             fn test_for(lhs: u32, rhs: u32) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.bitvec_ult(
                     b.bitvec_const(BitvecTy::w32(), lhs),
                     b.bitvec_const(BitvecTy::w32(), rhs),
@@ -1398,7 +1412,7 @@ mod tests {
 
         #[test]
         fn identify_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0),
@@ -1411,7 +1425,7 @@ mod tests {
 
         #[test]
         fn identify_zero_with_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_const(BitvecTy::w32(), 42),
                 b.bitvec_var(BitvecTy::w32(), "x"),
@@ -1424,7 +1438,7 @@ mod tests {
 
         #[test]
         fn binary_with_all_set() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
@@ -1436,7 +1450,7 @@ mod tests {
 
         #[test]
         fn eliminate_all_set() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
@@ -1453,7 +1467,7 @@ mod tests {
 
         #[test]
         fn all_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
                 b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
@@ -1466,7 +1480,7 @@ mod tests {
 
         #[test]
         fn some_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
                 b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
@@ -1482,7 +1496,7 @@ mod tests {
 
         #[test]
         fn some_const_with_all_set() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_and_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
@@ -1504,7 +1518,7 @@ mod tests {
 
         #[test]
         fn identify_all_set() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0xFFFF_FFFF_u32),
@@ -1517,7 +1531,7 @@ mod tests {
 
         #[test]
         fn identify_all_set_with_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_const(BitvecTy::w32(), 42),
                 b.bitvec_var(BitvecTy::w32(), "x"),
@@ -1530,7 +1544,7 @@ mod tests {
 
         #[test]
         fn binary_with_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0),
@@ -1542,7 +1556,7 @@ mod tests {
 
         #[test]
         fn eliminate_zeros() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0),
@@ -1559,7 +1573,7 @@ mod tests {
 
         #[test]
         fn all_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_const(BitvecTy::w16(), 0b_0001_0010_0100_1000_u16),
                 b.bitvec_const(BitvecTy::w16(), 0b_0011_0110_1100_0011_u16),
@@ -1572,7 +1586,7 @@ mod tests {
 
         #[test]
         fn some_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_const(BitvecTy::w16(), 0b_1110_1101_1011_0111_u16),
                 b.bitvec_var(BitvecTy::w16(), "x_w16"), // FIXME: we want an own symbol store per test
@@ -1588,7 +1602,7 @@ mod tests {
 
         #[test]
         fn some_const_with_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_or_n(vec![
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_const(BitvecTy::w32(), 0),
@@ -1610,7 +1624,7 @@ mod tests {
 
         #[test]
         fn both_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_xor(
                 b.bitvec_const(BitvecTy::w16(), 0b_1011_1001_1010_1111_u16),
                 b.bitvec_const(BitvecTy::w16(), 0b_1001_0111_0101_1100_u16)
@@ -1622,7 +1636,7 @@ mod tests {
 
         #[test]
         fn lhs_or_rhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let expected = b.bitvec_var(BitvecTy::w16(), "x_w16").unwrap();
             {
                 let mut expr = b.bitvec_xor(
@@ -1644,7 +1658,7 @@ mod tests {
 
         #[test]
         fn lhs_or_rhs_all_set() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let expected = b.bitvec_not(b.bitvec_var(BitvecTy::w16(), "x_w16")).unwrap();
             {
                 let mut expr = b.bitvec_xor(
@@ -1670,7 +1684,7 @@ mod tests {
 
         #[test]
         fn const_child() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_zext(
                 BitWidth::w64(),
                 b.bitvec_const(BitvecTy::w32(), 42)
@@ -1682,7 +1696,7 @@ mod tests {
 
         #[test]
         fn same_width() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_zext(
                 BitWidth::w32(),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1699,7 +1713,7 @@ mod tests {
         #[test]
         fn const_child() {
             fn test_for(val: i32) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.bitvec_sext(
                     BitWidth::w64(),
                     b.bitvec_const(BitvecTy::w32(), val)
@@ -1716,7 +1730,7 @@ mod tests {
 
         #[test]
         fn same_width() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_sext(
                 BitWidth::w32(),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1732,7 +1746,7 @@ mod tests {
 
         #[test]
         fn lhs_zero() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_concat(
                 b.bitvec_const(BitvecTy::w32(), 0),
                 b.bitvec_var(BitvecTy::w32(), "x")
@@ -1747,7 +1761,7 @@ mod tests {
 
         #[test]
         fn both_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_concat(
                 b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16),
                 b.bitvec_const(BitvecTy::w16(), 0x_EF01_u16)
@@ -1763,7 +1777,7 @@ mod tests {
 
         #[test]
         fn same_target_width() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_extract_hi_lo(
                 32, // hi
                 0,  // lo
@@ -1776,7 +1790,7 @@ mod tests {
 
         #[test]
         fn both_const() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bitvec_extract_hi_lo(
                 32, // hi
                 16, // lo
