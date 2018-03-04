@@ -526,6 +526,22 @@ fn simplify_concat(concat: expr::Concat) -> TransformOutcome {
     TransformOutcome::identity(concat)
 }
 
+fn simplify_extract(extract: expr::Extract) -> TransformOutcome {
+    // If the lo and hi range is equal to the full range this is equal to the child expression.
+    if extract.ty() == extract.src.ty() {
+        return TransformOutcome::transformed(*extract.src)
+    }
+    // If the child expression is a constant bitvector we can simply evaluate the result.
+    let lo = extract.lo;
+    let target_bitvec_ty = extract.bitvec_ty();
+    if let box AnyExpr::BitvecConst(mut child) = extract.src {
+        child.val.checked_lshr_assign(ShiftAmount::from(lo)).unwrap();
+        child.val.truncate(target_bitvec_ty.width().raw_width()).unwrap();
+        return TransformOutcome::transformed(expr::BitvecConst::from(child.val))
+    }
+    TransformOutcome::identity(extract)
+}
+
 impl Transformer for TermConstPropagator {
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         simplify_neg(neg)
@@ -601,6 +617,10 @@ impl Transformer for TermConstPropagator {
 
     fn transform_concat(&self, concat: expr::Concat) -> TransformOutcome {
         simplify_concat(concat)
+    }
+
+    fn transform_extract(&self, extract: expr::Extract) -> TransformOutcome {
+        simplify_extract(extract)
     }
 }
 
@@ -1620,6 +1640,36 @@ mod tests {
             ).unwrap();
             simplify(&mut expr);
             let expected = b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32).unwrap();
+            assert_eq!(expr, expected);
+        }
+    }
+
+    mod extract {
+        use super::*;
+
+        #[test]
+        fn same_target_width() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_extract_hi_lo(
+                32, // hi
+                0,  // lo
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert_eq!(expr, expected);
+        }
+
+        #[test]
+        fn both_const() {
+            let b = PlainExprTreeBuilder::default();
+            let mut expr = b.bitvec_extract_hi_lo(
+                32, // hi
+                16, // lo
+                b.bitvec_const(BitvecTy::w32(), 0x_ABCD_EF01_u32)
+            ).unwrap();
+            simplify(&mut expr);
+            let expected = b.bitvec_const(BitvecTy::w16(), 0x_ABCD_u16).unwrap();
             assert_eq!(expr, expected);
         }
     }
