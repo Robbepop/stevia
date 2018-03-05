@@ -43,7 +43,6 @@ fn join_equalities_bool(and: expr::And) -> TransformOutcome {
     let mut needs_update = true;
     while needs_update {
         undecided_eqs.extend(eqs.drain(1..));
-        // let mut undecided_eqs = eqs.split_off(1);
         needs_update = false;
         'outer_1: for eq in undecided_eqs.drain(..) {
             for eq_group in &mut eqs {
@@ -67,11 +66,10 @@ fn join_equalities_bool(and: expr::And) -> TransformOutcome {
 fn simplify_and(and: expr::And) -> TransformOutcome {
     // If there are two or more boolean equalities within this and expression
     // there might be possibilities to join them.
-    if and.childs().filter(|c| c.kind() == ExprKind::BoolEquals).count() >= 2 {
-        // Only do the potentially expensive computation if there is really a need for it.
-        if and.childs().tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs)) {
-            return join_equalities_bool(and)
-        }
+    if and.childs().filter(|c| c.kind() == ExprKind::BoolEquals).count() >= 2 &&
+       and.childs().tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs))
+    {
+        return join_equalities_bool(and)
     }
     TransformOutcome::identity(and)
 }
