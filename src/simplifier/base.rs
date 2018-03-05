@@ -19,7 +19,8 @@ create_modular_ast_transformer! {
     (_3, simplifications::BoolSymbolicSolver),
     (_4, simplifications::Normalizer),
     (_5, simplifications::Flattener),
-    (_6, simplifications::TermConstPropagator)
+    (_6, simplifications::TermConstPropagator),
+    (_7, simplifications::TermSymbolicSolver)
 }
 
 /// Simplifies expressions using the underlying base transformer.
