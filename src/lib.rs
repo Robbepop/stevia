@@ -1,6 +1,8 @@
 #![feature(box_patterns)]
 #![feature(conservative_impl_trait)]
 #![feature(nll)]
+#![feature(copy_closures)]
+#![feature(clone_closures)]
 
 extern crate apint;
 extern crate num;
