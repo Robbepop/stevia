@@ -29,47 +29,61 @@ fn have_overlapping_children(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
     false
 }
 
-fn join_equalities_bool(and: expr::And) -> TransformOutcome {
-    // Separate equality expressions from the rest of the children.
-    let (mut eqs, mut rest): (Vec<_>, Vec<_>) = and.into_childs().partition_map(|c| {
-        match c {
-            AnyExpr::BoolEquals(eq) => Either::Left(eq),
-            other                   => Either::Right(other)
-        }
-    });
-    // Assert that this is not called when there is nothing to do.
-    assert!(!eqs.is_empty());
-    let mut undecided_eqs = vec![];
-    let mut needs_update = true;
-    while needs_update {
-        undecided_eqs.extend(eqs.drain(1..));
-        needs_update = false;
-        'outer_1: for eq in undecided_eqs.drain(..) {
-            for eq_group in &mut eqs {
-                if eq.childs().any(|c| eq_group.childs.contains(c)) {
-                    eq_group.childs.extend(eq.into_childs());
-                    needs_update = true;
-                    continue 'outer_1;
+macro_rules! impl_join_equalities_for {
+    ($eq_type:ident, $name:ident) => {
+        fn $name(and: expr::And) -> TransformOutcome {
+            // Separate equality expressions from the rest of the children.
+            let (mut eqs, mut rest): (Vec<_>, Vec<_>) = and.into_childs().partition_map(|c| {
+                match c {
+                    AnyExpr::$eq_type(eq) => Either::Left(eq),
+                    other                 => Either::Right(other)
+                }
+            });
+            // Assert that this is not called when there is nothing to do.
+            assert!(!eqs.is_empty());
+            let mut undecided_eqs = vec![];
+            let mut needs_update = true;
+            while needs_update {
+                undecided_eqs.extend(eqs.drain(1..));
+                needs_update = false;
+                'outer: for eq in undecided_eqs.drain(..) {
+                    for eq_group in &mut eqs {
+                        if eq.childs().any(|c| eq_group.childs.contains(c)) {
+                            eq_group.childs.extend(eq.into_childs());
+                            needs_update = true;
+                            continue 'outer;
+                        }
+                    }
+                    eqs.push(eq);
                 }
             }
-            eqs.push(eq);
+            // If rest was empty and eqs has only one element we can return it and are done.
+            if rest.is_empty() && (eqs.len() == 1) {
+                return TransformOutcome::transformed(eqs.pop().unwrap())
+            }
+            rest.extend(eqs.into_iter().map(AnyExpr::from));
+            TransformOutcome::transformed(expr::And::nary(rest).unwrap())
         }
-    }
-    // If rest was empty and eqs has only one element we can return it and are done.
-    if rest.is_empty() && (eqs.len() == 1) {
-        return TransformOutcome::transformed(eqs.pop().unwrap())
-    }
-    rest.extend(eqs.into_iter().map(AnyExpr::from));
-    TransformOutcome::transformed(expr::And::nary(rest).unwrap())
+    };
 }
+
+impl_join_equalities_for!(BoolEquals, join_bool_equalities);
+impl_join_equalities_for!(BitvecEquals, join_bitvec_equalities);
 
 fn simplify_and(and: expr::And) -> TransformOutcome {
     // If there are two or more boolean equalities within this and expression
     // there might be possibilities to join them.
-    if and.childs().filter(|c| c.kind() == ExprKind::BoolEquals).count() >= 2 &&
-       and.childs().tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs))
+    if and.childs().filter(|c| c.kind() == ExprKind::BoolEquals)
+                   .tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs))
     {
-        return join_equalities_bool(and)
+        return join_bool_equalities(and)
+    }
+    // If there are two or more bitvector equalities within this and expression
+    // there might be possibilities to join them.
+    if and.childs().filter(|c| c.kind() == ExprKind::BitvecEquals)
+                   .tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs))
+    {
+        return join_bitvec_equalities(and)
     }
     TransformOutcome::identity(and)
 }
@@ -140,6 +154,29 @@ mod tests {
         }
 
         #[test]
+        fn bitvec_no_rest() {
+            let b = new_builder();
+            assert_simplified(
+                b.and(
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x1"),
+                        b.bitvec_var(BitvecTy::w32(), "x2")
+                    ),
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x2"),
+                        b.bitvec_var(BitvecTy::w32(), "x3")
+                    )
+                ),
+                b.bitvec_equals_n(vec![
+                    b.bitvec_var(BitvecTy::w32(), "x1"),
+                    b.bitvec_var(BitvecTy::w32(), "x2"),
+                    b.bitvec_var(BitvecTy::w32(), "x2"),
+                    b.bitvec_var(BitvecTy::w32(), "x3")
+                ])
+            )
+        }
+
+        #[test]
         fn bool_with_rest() {
             let b = new_builder();
             assert_simplified(
@@ -165,6 +202,37 @@ mod tests {
                         b.bool_var("e"),
                         b.bool_var("f"),
                         b.bool_var("e")
+                    ]),
+                ])
+            )
+        }
+
+        #[test]
+        fn bitvec_with_rest() {
+            let b = new_builder();
+            assert_simplified(
+                b.and_n(vec![
+                    b.bool_var("a"),
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x4"),
+                        b.bitvec_var(BitvecTy::w32(), "x5")
+                    ),
+                    b.bool_var("b"),
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x6"),
+                        b.bitvec_var(BitvecTy::w32(), "x5")
+                    ),
+                    b.bool_var("c"),
+                ]),
+                b.and_n(vec![
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.bool_var("c"),
+                    b.bitvec_equals_n(vec![
+                        b.bitvec_var(BitvecTy::w32(), "x4"),
+                        b.bitvec_var(BitvecTy::w32(), "x5"),
+                        b.bitvec_var(BitvecTy::w32(), "x6"),
+                        b.bitvec_var(BitvecTy::w32(), "x5")
                     ]),
                 ])
             )
@@ -222,6 +290,63 @@ mod tests {
                         b.bool_var("c"),
                         b.bool_var("e"),
                         b.bool_var("f"),
+                    ])
+                )
+            )
+        }
+
+        #[test]
+        fn bitvec_many_eqs() {
+            let b = new_builder();
+            assert_simplified(
+                b.and_n(vec![
+                    // Chunk 1
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x1"),
+                        b.bitvec_var(BitvecTy::w32(), "x2"),
+                    ),
+                    // Chunk 2
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x3"),
+                        b.bitvec_var(BitvecTy::w32(), "x4"),
+                    ),
+                    // Chunk 3
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x5"),
+                        b.bitvec_var(BitvecTy::w32(), "x6"),
+                    ),
+                    // Chunk 4
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x7"),
+                        b.bitvec_var(BitvecTy::w32(), "x8"),
+                    ),
+                    // Connects chunk 1 and 4
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x1"),
+                        b.bitvec_var(BitvecTy::w32(), "x8"),
+                    ),
+                    // Connects chunk 2 and 3
+                    b.bitvec_equals(
+                        b.bitvec_var(BitvecTy::w32(), "x5"),
+                        b.bitvec_var(BitvecTy::w32(), "x3"),
+                    ),
+                ]),
+                b.and(
+                    b.bitvec_equals_n(vec![
+                        b.bitvec_var(BitvecTy::w32(), "x1"),
+                        b.bitvec_var(BitvecTy::w32(), "x2"),
+                        b.bitvec_var(BitvecTy::w32(), "x1"),
+                        b.bitvec_var(BitvecTy::w32(), "x8"),
+                        b.bitvec_var(BitvecTy::w32(), "x7"),
+                        b.bitvec_var(BitvecTy::w32(), "x8"),
+                    ]),
+                    b.bitvec_equals_n(vec![
+                        b.bitvec_var(BitvecTy::w32(), "x3"),
+                        b.bitvec_var(BitvecTy::w32(), "x4"),
+                        b.bitvec_var(BitvecTy::w32(), "x5"),
+                        b.bitvec_var(BitvecTy::w32(), "x3"),
+                        b.bitvec_var(BitvecTy::w32(), "x5"),
+                        b.bitvec_var(BitvecTy::w32(), "x6"),
                     ])
                 )
             )
