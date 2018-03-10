@@ -241,13 +241,17 @@ mod tests {
         create_simplifier().simplify(expr)
     }
 
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
     mod cond {
         use super::*;
 
         #[test]
         fn const_condition() {
             fn test_for(flag: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.cond(
                     b.bool_const(flag),
                     b.bool_var("a"),
@@ -264,7 +268,7 @@ mod tests {
         #[test]
         fn const_then_else() {
             fn test_for(then_case: bool, else_case: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.cond(
                     b.bool_var("a"),
                     b.bool_const(then_case),
@@ -289,7 +293,7 @@ mod tests {
 
         #[test]
         fn then_true_lower_or() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.cond(
                 b.bool_var("a"),
                 b.bool_const(true),
@@ -305,7 +309,7 @@ mod tests {
 
         #[test]
         fn then_false_lower_and() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.cond(
                 b.bool_var("a"),
                 b.bool_const(false),
@@ -321,7 +325,7 @@ mod tests {
 
         #[test]
         fn else_true_lower_or() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.cond(
                 b.bool_var("a"),
                 b.bool_var("b"),
@@ -337,7 +341,7 @@ mod tests {
 
         #[test]
         fn else_false_lower_or() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.cond(
                 b.bool_var("a"),
                 b.bool_var("b"),
@@ -355,7 +359,7 @@ mod tests {
     #[test]
     fn bool_equals() {
         fn test_for(lhs: bool, rhs: bool) {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.bool_equals(
                 b.bool_const(lhs),
                 b.bool_const(rhs)
@@ -379,7 +383,7 @@ mod tests {
 
         #[test]
         fn drop_true() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut input = b.and_n(vec![
                 b.bool_const(true),
                 b.bool_var("a"),
@@ -396,7 +400,7 @@ mod tests {
 
         #[test]
         fn drop_true_single() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut input = b.and_n(vec![
                 b.bool_const(true),
                 b.bool_var("a"),
@@ -410,7 +414,7 @@ mod tests {
         #[test]
         fn any_all() {
             fn test_for(lhs: bool, rhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.and(
                     b.bool_const(lhs),
                     b.bool_const(rhs)
@@ -435,7 +439,7 @@ mod tests {
 
         #[test]
         fn drop_true() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut input = b.or_n(vec![
                 b.bool_const(false),
                 b.bool_var("a"),
@@ -452,7 +456,7 @@ mod tests {
 
         #[test]
         fn drop_true_single() {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut input = b.or_n(vec![
                 b.bool_const(false),
                 b.bool_var("a"),
@@ -466,7 +470,7 @@ mod tests {
         #[test]
         fn any_all() {
             fn test_for(lhs: bool, rhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.or(
                     b.bool_const(lhs),
                     b.bool_const(rhs)
@@ -492,7 +496,7 @@ mod tests {
         #[test]
         fn lhs_const() {
             fn test_for(lhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.xor(
                     b.bool_const(lhs),
                     b.bool_var("a")
@@ -512,7 +516,7 @@ mod tests {
         #[test]
         fn rhs_const() {
             fn test_for(rhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.xor(
                     b.bool_var("a"),
                     b.bool_const(rhs)
@@ -532,7 +536,7 @@ mod tests {
         #[test]
         fn pure_const() {
             fn test_for(lhs: bool, rhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.xor(
                     b.bool_const(lhs),
                     b.bool_const(rhs)
@@ -558,7 +562,7 @@ mod tests {
         #[test]
         fn both_const() {
             fn test_for(lhs: bool, rhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.implies(
                     b.bool_const(lhs),
                     b.bool_const(rhs)
@@ -580,7 +584,7 @@ mod tests {
         #[test]
         fn lhs_const() {
             fn test_for(lhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.implies(
                     b.bool_const(lhs),
                     b.bool_var("a")
@@ -600,7 +604,7 @@ mod tests {
         #[test]
         fn rhs_const() {
             fn test_for(rhs: bool) {
-                let b = PlainExprTreeBuilder::default();
+                let b = new_builder();
                 let mut expr = b.implies(
                     b.bool_var("a"),
                     b.bool_const(rhs)
@@ -621,7 +625,7 @@ mod tests {
     #[test]
     fn not() {
         fn test_for(flag: bool) {
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut expr = b.not(
                 b.bool_const(flag)
             ).unwrap();
