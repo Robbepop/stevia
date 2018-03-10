@@ -44,29 +44,60 @@ impl Transformer for InvolutionSimplifier {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use simplifier::Simplifier;
+    use simplifier::prelude::*;
+
+    create_modular_ast_transformer! {
+        struct InvolutionSimplifierTransformer;
+        (_0, InvolutionSimplifier)
+    }
+    type InvolutionSimplifierSimplifier = BaseSimplifier<InvolutionSimplifierTransformer>;
+
+    fn create_simplifier() -> InvolutionSimplifierSimplifier {
+        InvolutionSimplifierSimplifier::default()
+    }
+
+    fn simplify(expr: &mut AnyExpr) -> TransformEffect {
+        create_simplifier().simplify(expr)
+    }
+
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
 
     #[test]
     fn notnot() {
-        let b = PlainExprTreeBuilder::default();
-        let mut expr = b.not(b.not(b.bool_var("a"))).unwrap();
-        Simplifier::default().simplify(&mut expr);
-        assert_eq!(expr, b.bool_var("a").unwrap());
+        let b = new_builder();
+        assert_simplified(
+            b.not(b.not(b.bool_var("a"))),
+            b.bool_var("a")
+        )
     }
 
     #[test]
     fn negneg() {
-        let b = PlainExprTreeBuilder::default();
-        let mut expr = b.bitvec_neg(b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x"))).unwrap();
-        Simplifier::default().simplify(&mut expr);
-        assert_eq!(expr, b.bitvec_var(BitvecTy::w32(), "x").unwrap());
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_neg(b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x"))),
+            b.bitvec_var(BitvecTy::w32(), "x")
+        )
     }
 
     #[test]
     fn bitnotnot() {
-        let b = PlainExprTreeBuilder::default();
-        let mut expr = b.bitvec_not(b.bitvec_not(b.bitvec_var(BitvecTy::w32(), "x"))).unwrap();
-        Simplifier::default().simplify(&mut expr);
-        assert_eq!(expr, b.bitvec_var(BitvecTy::w32(), "x").unwrap());
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_not(b.bitvec_not(b.bitvec_var(BitvecTy::w32(), "x"))),
+            b.bitvec_var(BitvecTy::w32(), "x")
+        )
     }
 }
