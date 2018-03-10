@@ -241,6 +241,16 @@ mod tests {
         create_simplifier().simplify(expr)
     }
 
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
     fn new_builder() -> PlainExprTreeBuilder {
         PlainExprTreeBuilder::default()
     }
@@ -252,14 +262,14 @@ mod tests {
         fn const_condition() {
             fn test_for(flag: bool) {
                 let b = new_builder();
-                let mut expr = b.cond(
-                    b.bool_const(flag),
-                    b.bool_var("a"),
-                    b.bool_var("b")
-                ).unwrap();
-                simplify(&mut expr);
-                let expected = b.bool_var(if flag { "a" } else { "b" }).unwrap();
-                assert_eq!(expr, expected);
+                assert_simplified(
+                    b.cond(
+                        b.bool_const(flag),
+                        b.bool_var("a"),
+                        b.bool_var("b")
+                    ),
+                    b.bool_var(if flag { "a" } else { "b" })
+                )
             }
             test_for(true);
             test_for(false);
@@ -269,20 +279,19 @@ mod tests {
         fn const_then_else() {
             fn test_for(then_case: bool, else_case: bool) {
                 let b = new_builder();
-                let mut expr = b.cond(
+                let expr = b.cond(
                     b.bool_var("a"),
                     b.bool_const(then_case),
                     b.bool_const(else_case)
-                ).unwrap();
-                simplify(&mut expr);
+                );
                 if then_case == else_case {
-                    assert_eq!(expr, b.bool_const(then_case).unwrap());
+                    return assert_simplified(expr, b.bool_const(then_case))
                 }
                 if then_case && !else_case {
-                    assert_eq!(expr, b.bool_var("a").unwrap());
+                    return assert_simplified(expr, b.bool_var("a"))
                 }
                 if !then_case && else_case {
-                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
+                    return assert_simplified(expr, b.not(b.bool_var("a")))
                 }
             }
             test_for( true,  true);
@@ -294,65 +303,65 @@ mod tests {
         #[test]
         fn then_true_lower_or() {
             let b = new_builder();
-            let mut expr = b.cond(
-                b.bool_var("a"),
-                b.bool_const(true),
-                b.bool_var("b")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.or(
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.cond(
+                    b.bool_var("a"),
+                    b.bool_const(true),
+                    b.bool_var("b")
+                ),
+                b.or(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                )
+            )
         }
 
         #[test]
         fn then_false_lower_and() {
             let b = new_builder();
-            let mut expr = b.cond(
-                b.bool_var("a"),
-                b.bool_const(false),
-                b.bool_var("b")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.and(
-                b.not(b.bool_var("a")),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.cond(
+                    b.bool_var("a"),
+                    b.bool_const(false),
+                    b.bool_var("b")
+                ),
+                b.and(
+                    b.not(b.bool_var("a")),
+                    b.bool_var("b")
+                )
+            )
         }
 
         #[test]
         fn else_true_lower_or() {
             let b = new_builder();
-            let mut expr = b.cond(
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.bool_const(true)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.or(
-                b.not(b.bool_var("a")),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.cond(
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.bool_const(true)
+                ),
+                b.or(
+                    b.not(b.bool_var("a")),
+                    b.bool_var("b")
+                )
+            )
         }
 
         #[test]
         fn else_false_lower_or() {
             let b = new_builder();
-            let mut expr = b.cond(
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.bool_const(false)
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.and(
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.cond(
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.bool_const(false)
+                ),
+                b.and(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                )
+            )
         }
     }
 
@@ -360,17 +369,13 @@ mod tests {
     fn bool_equals() {
         fn test_for(lhs: bool, rhs: bool) {
             let b = new_builder();
-            let mut expr = b.bool_equals(
-                b.bool_const(lhs),
-                b.bool_const(rhs)
-            ).unwrap();
-            simplify(&mut expr);
-            if lhs == rhs {
-                assert_eq!(expr, b.bool_const(true).unwrap());
-            }
-            else {
-                assert_eq!(expr, b.bool_const(false).unwrap());
-            }
+            assert_simplified(
+                b.bool_equals(
+                    b.bool_const(lhs),
+                    b.bool_const(rhs)
+                ),
+                b.bool_const(lhs == rhs)
+            )
         }
         test_for( true,  true);
         test_for( true, false);
@@ -384,48 +389,44 @@ mod tests {
         #[test]
         fn drop_true() {
             let b = new_builder();
-            let mut input = b.and_n(vec![
-                b.bool_const(true),
-                b.bool_var("a"),
-                b.bool_const(true),
-                b.bool_var("b")
-            ]).unwrap();
-            simplify(&mut input);
-            let expected = b.and(
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(input, expected);
+            assert_simplified(
+                b.and_n(vec![
+                    b.bool_const(true),
+                    b.bool_var("a"),
+                    b.bool_const(true),
+                    b.bool_var("b")
+                ]),
+                b.and(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                )
+            )
         }
 
         #[test]
         fn drop_true_single() {
             let b = new_builder();
-            let mut input = b.and_n(vec![
-                b.bool_const(true),
-                b.bool_var("a"),
-                b.bool_const(true),
-            ]).unwrap();
-            simplify(&mut input);
-            let expected = b.bool_var("a").unwrap();
-            assert_eq!(input, expected);
+            assert_simplified(
+                b.and_n(vec![
+                    b.bool_const(true),
+                    b.bool_var("a"),
+                    b.bool_const(true),
+                ]),
+                b.bool_var("a")
+            )
         }
 
         #[test]
         fn any_all() {
             fn test_for(lhs: bool, rhs: bool) {
                 let b = new_builder();
-                let mut expr = b.and(
-                    b.bool_const(lhs),
-                    b.bool_const(rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                if lhs && rhs {
-                    assert_eq!(expr, b.bool_const(true).unwrap())
-                }
-                else {
-                    assert_eq!(expr, b.bool_const(false).unwrap());
-                }
+                assert_simplified(
+                    b.and(
+                        b.bool_const(lhs),
+                        b.bool_const(rhs)
+                    ),
+                    b.bool_const(lhs && rhs)
+                )
             }
             test_for( true,  true);
             test_for( true, false);
@@ -440,48 +441,44 @@ mod tests {
         #[test]
         fn drop_true() {
             let b = new_builder();
-            let mut input = b.or_n(vec![
-                b.bool_const(false),
-                b.bool_var("a"),
-                b.bool_const(false),
-                b.bool_var("b")
-            ]).unwrap();
-            simplify(&mut input);
-            let expected = b.or(
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(input, expected);
+            assert_simplified(
+                b.or_n(vec![
+                    b.bool_const(false),
+                    b.bool_var("a"),
+                    b.bool_const(false),
+                    b.bool_var("b")
+                ]),
+                b.or(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                )
+            )
         }
 
         #[test]
         fn drop_true_single() {
             let b = new_builder();
-            let mut input = b.or_n(vec![
-                b.bool_const(false),
-                b.bool_var("a"),
-                b.bool_const(false),
-            ]).unwrap();
-            simplify(&mut input);
-            let expected = b.bool_var("a").unwrap();
-            assert_eq!(input, expected);
+            assert_simplified(
+                b.or_n(vec![
+                    b.bool_const(false),
+                    b.bool_var("a"),
+                    b.bool_const(false),
+                ]),
+                b.bool_var("a")
+            )
         }
 
         #[test]
         fn any_all() {
             fn test_for(lhs: bool, rhs: bool) {
                 let b = new_builder();
-                let mut expr = b.or(
-                    b.bool_const(lhs),
-                    b.bool_const(rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                if lhs || rhs {
-                    assert_eq!(expr, b.bool_const(true).unwrap())
-                }
-                else {
-                    assert_eq!(expr, b.bool_const(false).unwrap());
-                }
+                assert_simplified(
+                    b.or(
+                        b.bool_const(lhs),
+                        b.bool_const(rhs)
+                    ),
+                    b.bool_const(lhs || rhs)
+                )
             }
             test_for( true,  true);
             test_for( true, false);
@@ -497,17 +494,18 @@ mod tests {
         fn lhs_const() {
             fn test_for(lhs: bool) {
                 let b = new_builder();
-                let mut expr = b.xor(
-                    b.bool_const(lhs),
-                    b.bool_var("a")
-                ).unwrap();
-                simplify(&mut expr);
-                if lhs {
-                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
-                }
-                else {
-                    assert_eq!(expr, b.bool_var("a").unwrap());
-                }
+                assert_simplified(
+                    b.xor(
+                        b.bool_const(lhs),
+                        b.bool_var("a")
+                    ),
+                    if lhs {
+                        b.not(b.bool_var("a"))
+                    }
+                    else {
+                        b.bool_var("a")
+                    }
+                )
             }
             test_for(true);
             test_for(false);
@@ -517,17 +515,18 @@ mod tests {
         fn rhs_const() {
             fn test_for(rhs: bool) {
                 let b = new_builder();
-                let mut expr = b.xor(
-                    b.bool_var("a"),
-                    b.bool_const(rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                if rhs {
-                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
-                }
-                else {
-                    assert_eq!(expr, b.bool_var("a").unwrap());
-                }
+                assert_simplified(
+                    b.xor(
+                        b.bool_var("a"),
+                        b.bool_const(rhs)
+                    ),
+                    if rhs {
+                        b.not(b.bool_var("a"))
+                    }
+                    else {
+                        b.bool_var("a")
+                    }
+                )
             }
             test_for(true);
             test_for(false);
@@ -537,17 +536,13 @@ mod tests {
         fn pure_const() {
             fn test_for(lhs: bool, rhs: bool) {
                 let b = new_builder();
-                let mut expr = b.xor(
-                    b.bool_const(lhs),
-                    b.bool_const(rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                if lhs ^ rhs {
-                    assert_eq!(expr, b.bool_const(true).unwrap())
-                }
-                else {
-                    assert_eq!(expr, b.bool_const(false).unwrap());
-                }
+                assert_simplified(
+                    b.xor(
+                        b.bool_const(lhs),
+                        b.bool_const(rhs)
+                    ),
+                    b.bool_const(lhs ^ rhs)
+                )
             }
             test_for( true,  true);
             test_for( true, false);
@@ -563,17 +558,13 @@ mod tests {
         fn both_const() {
             fn test_for(lhs: bool, rhs: bool) {
                 let b = new_builder();
-                let mut expr = b.implies(
-                    b.bool_const(lhs),
-                    b.bool_const(rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                if !lhs || rhs {
-                    assert_eq!(expr, b.bool_const(true).unwrap())
-                }
-                else {
-                    assert_eq!(expr, b.bool_const(false).unwrap());
-                }
+                assert_simplified(
+                    b.implies(
+                        b.bool_const(lhs),
+                        b.bool_const(rhs)
+                    ),
+                    b.bool_const(!lhs || rhs)
+                )
             }
             test_for( true,  true);
             test_for( true, false);
@@ -585,17 +576,18 @@ mod tests {
         fn lhs_const() {
             fn test_for(lhs: bool) {
                 let b = new_builder();
-                let mut expr = b.implies(
-                    b.bool_const(lhs),
-                    b.bool_var("a")
-                ).unwrap();
-                simplify(&mut expr);
-                if !lhs {
-                    assert_eq!(expr, b.bool_const(true).unwrap())
-                }
-                else {
-                    assert_eq!(expr, b.bool_var("a").unwrap());
-                }
+                assert_simplified(
+                    b.implies(
+                        b.bool_const(lhs),
+                        b.bool_var("a")
+                    ),
+                    if !lhs {
+                        b.bool_const(true)
+                    }
+                    else {
+                        b.bool_var("a")
+                    }
+                )
             }
             test_for(true);
             test_for(false);
@@ -605,17 +597,18 @@ mod tests {
         fn rhs_const() {
             fn test_for(rhs: bool) {
                 let b = new_builder();
-                let mut expr = b.implies(
-                    b.bool_var("a"),
-                    b.bool_const(rhs)
-                ).unwrap();
-                simplify(&mut expr);
-                if rhs {
-                    assert_eq!(expr, b.bool_const(true).unwrap())
-                }
-                else {
-                    assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
-                }
+                assert_simplified(
+                    b.implies(
+                        b.bool_var("a"),
+                        b.bool_const(rhs)
+                    ),
+                    if rhs {
+                        b.bool_const(true)
+                    }
+                    else {
+                        b.not(b.bool_var("a"))
+                    }
+                )
             }
             test_for(true);
             test_for(false);
@@ -626,16 +619,10 @@ mod tests {
     fn not() {
         fn test_for(flag: bool) {
             let b = new_builder();
-            let mut expr = b.not(
-                b.bool_const(flag)
-            ).unwrap();
-            simplify(&mut expr);
-            if !flag {
-                assert_eq!(expr, b.bool_const(true).unwrap())
-            }
-            else {
-                assert_eq!(expr, b.bool_const(false).unwrap());
-            }
+            assert_simplified(
+                b.not(b.bool_const(flag)),
+                b.bool_const(!flag)
+            )
         }
         test_for( true);
         test_for(false);
