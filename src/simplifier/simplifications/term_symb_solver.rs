@@ -196,4 +196,59 @@ mod tests {
             )
         )
     }
+
+    #[test]
+    fn neg_mul_to_zero() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_add_n(vec![
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ),
+                b.bitvec_neg(
+                    b.bitvec_mul(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                )
+            ]),
+            b.bitvec_const(BitvecTy::w32(), 0)
+        )
+    }
+
+    #[test]
+    fn add_neg_to_zero() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_add_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_neg(
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
+            ]),
+            b.bitvec_const(BitvecTy::w32(), 0)
+        )
+    }
+
+    #[test]
+    fn single_merge_all() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_add_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_neg(
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_const(BitvecTy::w32(), 2)
+                ),
+                b.bitvec_neg(
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
+            ]),
+            b.bitvec_var(BitvecTy::w32(), "x")
+        )
+    }
 }
