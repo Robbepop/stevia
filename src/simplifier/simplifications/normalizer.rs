@@ -225,6 +225,34 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
+    create_modular_ast_transformer! {
+        struct NormalizerTransformer;
+        (_0, Normalizer)
+    }
+    type NormalizerSimplifier = BaseSimplifier<NormalizerTransformer>;
+
+    fn create_simplifier() -> NormalizerSimplifier {
+        NormalizerSimplifier::default()
+    }
+
+    fn simplify(expr: &mut AnyExpr) -> TransformEffect {
+        create_simplifier().simplify(expr)
+    }
+
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
     fn gen_dedup_bool_symbols() -> (AnyExpr, AnyExpr, AnyExpr) {
         let b = PlainExprTreeBuilder::default();
         let sym1 = b.bool_var("a").unwrap();
@@ -304,40 +332,36 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bool_var("a").unwrap();
-            let sym2 = b.bool_var("b").unwrap();
-            let mut expr = b.bool_equals(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.bool_equals(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bool_symbols();
+            assert_simplified(
+                b.bool_equals(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.bool_equals(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
 
         #[test]
         fn dedup_many() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bool_equals_n(
-                dedup_many_bool_input()).unwrap();
-            let expected = b.bool_equals_n(
-                dedup_many_bool_expected()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bool_equals_n(dedup_many_bool_input()),
+                b.bool_equals_n(dedup_many_bool_expected())
+            )
         }
 
         #[test]
         fn dedup_single() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bool_equals_n(
-                dedup_single_bool_input()).unwrap();
-            let expected = b.bool_const(true).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bool_equals_n(dedup_single_bool_input()),
+                b.bool_const(true)
+            )
         }
     }
 
@@ -346,40 +370,37 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bool_var("a").unwrap();
-            let sym2 = b.bool_var("b").unwrap();
-            let mut expr = b.and(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.and(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bool_symbols();
+            assert_simplified(
+                b.and(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.and(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
 
         #[test]
         fn dedup_many() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.and_n(
-                dedup_many_bool_input()).unwrap();
-            let expected = b.and_n(
-                dedup_many_bool_expected()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.and_n(dedup_many_bool_input()),
+                b.and_n(dedup_many_bool_expected())
+            )
         }
 
         #[test]
         fn dedup_single() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.and_n(
-                dedup_single_bool_input()).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            let b = new_builder();
             let (expected, ..) = gen_dedup_bool_symbols();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.and_n(dedup_single_bool_input()),
+                expected
+            )
         }
     }
 
@@ -388,40 +409,37 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bool_var("a").unwrap();
-            let sym2 = b.bool_var("b").unwrap();
-            let mut expr = b.or(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.or(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bool_symbols();
+            assert_simplified(
+                b.or(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.or(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
 
         #[test]
         fn dedup_many() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.or_n(
-                dedup_many_bool_input()).unwrap();
-            let expected = b.or_n(
-                dedup_many_bool_expected()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.or_n(dedup_many_bool_input()),
+                b.or_n(dedup_many_bool_expected())
+            )
         }
 
         #[test]
         fn dedup_single() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.or_n(
-                dedup_single_bool_input()).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            let b = new_builder();
             let (expected, ..) = gen_dedup_bool_symbols();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.or_n(dedup_single_bool_input()),
+                expected
+            )
         }
     }
 
@@ -430,19 +448,18 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            let sym2 = b.bitvec_var(BitvecTy::w32(), "y").unwrap();
-            let mut expr = b.bitvec_add(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.bitvec_add(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bitvec_symbols();
+            assert_simplified(
+                b.bitvec_add(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.bitvec_add(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
     }
 
@@ -451,19 +468,18 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            let sym2 = b.bitvec_var(BitvecTy::w32(), "y").unwrap();
-            let mut expr = b.bitvec_mul(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.bitvec_mul(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bitvec_symbols();
+            assert_simplified(
+                b.bitvec_mul(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.bitvec_mul(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
     }
 
@@ -472,40 +488,37 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            let sym2 = b.bitvec_var(BitvecTy::w32(), "y").unwrap();
-            let mut expr = b.bitvec_and(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.bitvec_and(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bitvec_symbols();
+            assert_simplified(
+                b.bitvec_and(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.bitvec_and(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
 
         #[test]
         fn dedup_many() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_and_n(
-                dedup_many_bitvec_input()).unwrap();
-            let expected = b.bitvec_and_n(
-                dedup_many_bitvec_expected()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_and_n(dedup_many_bitvec_input()),
+                b.bitvec_and_n(dedup_many_bitvec_expected())
+            )
         }
 
         #[test]
         fn dedup_single() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_and_n(
-                dedup_single_bitvec_input()).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            let b = new_builder();
             let (expected, ..) = gen_dedup_bitvec_symbols();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_and_n(dedup_single_bitvec_input()),
+                expected
+            )
         }
     }
 
@@ -514,40 +527,37 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            let sym2 = b.bitvec_var(BitvecTy::w32(), "y").unwrap();
-            let mut expr = b.bitvec_or(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.bitvec_or(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bitvec_symbols();
+            assert_simplified(
+                b.bitvec_or(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.bitvec_or(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
 
         #[test]
         fn dedup_many() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_or_n(
-                dedup_many_bitvec_input()).unwrap();
-            let expected = b.bitvec_or_n(
-                dedup_many_bitvec_expected()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_or_n(dedup_many_bitvec_input()),
+                b.bitvec_or_n(dedup_many_bitvec_expected())
+            )
         }
 
         #[test]
         fn dedup_single() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_or_n(
-                dedup_single_bitvec_input()).unwrap();
-            Simplifier::default().simplify(&mut expr);
+            let b = new_builder();
             let (expected, ..) = gen_dedup_bitvec_symbols();
-            assert_eq!(expr, expected);
+            assert_simplified(
+                b.bitvec_or_n(dedup_single_bitvec_input()),
+                expected
+            )
         }
     }
 
@@ -556,40 +566,36 @@ mod tests {
 
         #[test]
         fn ordering() {
-            let b = PlainExprTreeBuilder::default();
-            let sym1 = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            let sym2 = b.bitvec_var(BitvecTy::w32(), "y").unwrap();
-            let mut expr = b.bitvec_equals(
-                sym2.clone(),
-                sym1.clone()
-            ).unwrap();
-            let expected = b.bitvec_equals(
-                sym1.clone(),
-                sym2.clone()
-            ).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            let (sym1, sym2, _) = gen_dedup_bitvec_symbols();
+            assert_simplified(
+                b.bitvec_equals(
+                    sym2.clone(),
+                    sym1.clone()
+                ),
+                b.bitvec_equals(
+                    sym1.clone(),
+                    sym2.clone()
+                )
+            )
         }
 
         #[test]
         fn dedup_many() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_equals_n(
-                dedup_many_bitvec_input()).unwrap();
-            let expected = b.bitvec_equals_n(
-                dedup_many_bitvec_expected()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_equals_n(dedup_many_bitvec_input()),
+                b.bitvec_equals_n(dedup_many_bitvec_expected())
+            )
         }
 
         #[test]
         fn dedup_single() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bitvec_equals_n(
-                dedup_single_bitvec_input()).unwrap();
-            Simplifier::default().simplify(&mut expr);
-            let expected = b.bool_const(true).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_equals_n(dedup_single_bitvec_input()),
+                b.bool_const(true)
+            )
         }
     }
 }
