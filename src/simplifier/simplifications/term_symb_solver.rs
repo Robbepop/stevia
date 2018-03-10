@@ -56,7 +56,7 @@ fn has_like_terms<'a>(add: &'a expr::Add) -> bool {
             other => update_seen(other, ApInt::one(raw_width))
         }
     }
-    return mutated;
+    mutated
 }
 
 fn simplify_add(add: expr::Add) -> TransformOutcome {
