@@ -95,9 +95,13 @@ mod tests {
         create_simplifier().simplify(expr)
     }
 
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
     macro_rules! impl_bool_flattening_test {
         ($build:ident, $build_n:ident) => {{
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut input = b.$build(
                 b.$build(
                     b.bool_var("a"),
@@ -139,7 +143,7 @@ mod tests {
 
     macro_rules! impl_term_flattening_test {
         ($build:ident, $build_n:ident) => {{
-            let b = PlainExprTreeBuilder::default();
+            let b = new_builder();
             let mut input = b.$build(
                 b.$build(
                     b.bitvec_var(BitvecTy::w32(), "v"),
