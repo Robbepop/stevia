@@ -4,6 +4,9 @@
 #![feature(copy_closures)]
 #![feature(clone_closures)]
 
+#![allow(missing_docs)]
+#![allow(dead_code)]
+
 extern crate apint;
 extern crate num;
 extern crate smallvec;
