@@ -35,18 +35,11 @@ fn has_like_terms<'a>(add: &'a expr::Add) -> bool {
     for child in add.childs() {
         match child {
             AnyExpr::Neg(neg) => update_seen(neg.single_child()),
-            AnyExpr::Mul(mul) => {
-                // TODO: Extend the entire algorithm to work for n-ary multiplication.
-                //       For example: `(+ (* 2 x y) (* 4 x y))` is currently not allowed while
-                //       it could be theoretically simplified to `(* 6 x y)`.
-                if mul.arity() != 2 {
-                    continue;
-                }
-                // Only allow multiplications with exactly one constant part.
-                // Otherwise run simplifications until only one constant part remains.
-                if mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1 {
-                    continue;
-                }
+            // TODO: Extend the entire algorithm to work for n-ary multiplication.
+            //       For example: `(+ (* 2 x y) (* 4 x y))` is currently not allowed while
+            //       it could be theoretically simplified to `(* 6 x y)`.
+            AnyExpr::Mul(mul) if (mul.arity() == 2)
+                              && (mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() == 1) => {
                 let mut mul_childs = mul.childs();
                 let lhs = mul_childs.next().unwrap();
                 let rhs = mul_childs.next().unwrap();
@@ -102,7 +95,6 @@ fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, ApInt> {
 
 fn simplify_add(add: expr::Add) -> TransformOutcome {
     if has_like_terms(&add) {
-
         fn gen_node(bvty: BitvecTy, expr: AnyExpr, occurence: ApInt) -> AnyExpr {
             if occurence.is_zero() {
                 return expr::BitvecConst::zero(bvty).into()
