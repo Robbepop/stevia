@@ -157,6 +157,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore]
     fn complex() {
         let b = new_builder();
         assert_simplified(
