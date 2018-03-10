@@ -251,4 +251,21 @@ mod tests {
             b.bitvec_var(BitvecTy::w32(), "x")
         )
     }
+
+    #[test]
+    fn minus_one_occurence() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_add_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_mul(
+                    b.bitvec_const(BitvecTy::w32(), -2_i32),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
+            ]),
+            b.bitvec_neg(
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
+        )
+    }
 }
