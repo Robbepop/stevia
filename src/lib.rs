@@ -3,6 +3,7 @@
 #![feature(nll)]
 #![feature(copy_closures)]
 #![feature(clone_closures)]
+#![feature(match_default_bindings)]
 
 #![allow(missing_docs)]
 #![allow(dead_code)]
