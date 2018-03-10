@@ -1,11 +1,9 @@
 use ast::prelude::*;
 
 use apint::ApInt;
-use itertools::Itertools;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
-use either::Either;
 
 pub mod prelude {
     pub use super::TermSymbolicSolver;
@@ -20,85 +18,42 @@ pub struct TermSymbolicSolver;
 
 impl AutoImplAnyTransformer for TermSymbolicSolver {}
 
-fn has_like_terms(add: &expr::Add) -> bool {
-    let width = add.bitvec_ty.width();
-    let mut seen_symbols: HashMap<&AnyExpr, ApInt> = HashMap::new();
+fn has_like_terms<'a>(add: &'a expr::Add) -> bool {
+    let raw_width = add.bitvec_ty.width().raw_width();
+    let mut seen_symbols: HashMap<&'a AnyExpr, ApInt> = HashMap::new();
     let mut mutated = false;
-    let (negs, rest): (Vec<_>, Vec<_>) = add.childs().partition_map(|c| {
-        match c {
-            AnyExpr::Neg(neg) => Either::Left(neg),
-            other             => Either::Right(other)
-        }
-    });
-    let (muls, rest): (Vec<_>, Vec<_>) = rest.into_iter().partition_map(|c| {
-        match c {
-            AnyExpr::Mul(mul) => Either::Left(mul),
-            other             => Either::Right(other)
-        }
-    });
-    for child in rest {
-        match seen_symbols.entry(child) {
+    let mut update_seen = |expr: &'a AnyExpr, occurence: ApInt| {
+        match seen_symbols.entry(expr) {
             Entry::Occupied(mut occupied) => {
                 occupied.get_mut()
-                        .checked_add_assign(
-                            &ApInt::one(width.raw_width())).unwrap();
+                        .checked_add_assign(&occurence).unwrap();
                 mutated = true;
             }
             Entry::Vacant(vacant) => {
-                vacant.insert(ApInt::one(width.raw_width()));
+                vacant.insert(occurence);
             }
         }
-    }
-    for neg in negs {
-        match seen_symbols.entry(neg.single_child()) {
-            Entry::Occupied(mut occupied) => {
-                occupied.get_mut()
-                        .checked_add_assign(
-                            // `ApInt::all_set` behaves as if it was -1 in twos-complement
-                            &ApInt::all_set(width.raw_width())).unwrap();
-                mutated = true;
-            }
-            Entry::Vacant(vacant) => {
-                vacant.insert(ApInt::all_set(width.raw_width()));
-            }
-        }
-    }
-    for mul in muls {
-        if mul.arity() != 2 {
-            continue;
-        }
-        if mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1 {
-            continue;
-        }
-        let mut mul_childs = mul.childs();
-        let lhs = mul_childs.next().unwrap();
-        let rhs = mul_childs.next().unwrap();
-        match (lhs, rhs) {
-            (AnyExpr::BitvecConst(lhs), rhs) => {
-                match seen_symbols.entry(rhs) {
-                    Entry::Occupied(mut occupied) => {
-                        occupied.get_mut()
-                                .checked_add_assign(&lhs.val).unwrap();
-                        mutated = true;
-                    }
-                    Entry::Vacant(vacant) => {
-                        vacant.insert(lhs.val.clone());
-                    }
+    };
+    for child in add.childs() {
+        match child {
+            AnyExpr::Neg(neg) => update_seen(neg.single_child(), ApInt::all_set(raw_width)),
+            AnyExpr::Mul(mul) => {
+                if mul.arity() != 2 {
+                    continue;
+                }
+                if mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1 {
+                    continue;
+                }
+                let mut mul_childs = mul.childs();
+                let lhs = mul_childs.next().unwrap();
+                let rhs = mul_childs.next().unwrap();
+                match (lhs, rhs) {
+                    (AnyExpr::BitvecConst(lhs), rhs) => update_seen(rhs, lhs.val.clone()),
+                    (lhs, AnyExpr::BitvecConst(rhs)) => update_seen(lhs, rhs.val.clone()),
+                    _ => ()
                 }
             }
-            (lhs, AnyExpr::BitvecConst(rhs)) => {
-                match seen_symbols.entry(lhs) {
-                    Entry::Occupied(mut occupied) => {
-                        occupied.get_mut()
-                                .checked_add_assign(&rhs.val).unwrap();
-                        mutated = true;
-                    }
-                    Entry::Vacant(vacant) => {
-                        vacant.insert(rhs.val.clone());
-                    }
-                }
-            }
-            _ => ()
+            other => update_seen(other, ApInt::one(raw_width))
         }
     }
     return mutated;
@@ -106,12 +61,6 @@ fn has_like_terms(add: &expr::Add) -> bool {
 
 fn simplify_add(add: expr::Add) -> TransformOutcome {
     if has_like_terms(&add) {
-        // let (mut eqs, mut rest): (Vec<_>, Vec<_>) = and.into_childs().partition_map(|c| {
-        //     match c {
-        //         AnyExpr::$eq_type(eq) => Either::Left(eq),
-        //         other                 => Either::Right(other)
-        //     }
-        // });
         unimplemented!()
     }
     TransformOutcome::identity(add)
