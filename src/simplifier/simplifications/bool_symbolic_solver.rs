@@ -133,36 +133,51 @@ mod tests {
         create_simplifier().simplify(expr)
     }
 
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
     mod if_then_else {
         use super::*;
 
         #[test]
         fn then_else_equals() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.cond(
-                b.bool_var("a"),
-                b.bool_var("b"),
+            let b = new_builder();
+            assert_simplified(
+                b.cond(
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.bool_var("b")
+                ),
                 b.bool_var("b")
-            ).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_var("b").unwrap());
+            )
         }
 
         #[test]
         fn not_cond() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.cond(
-                b.not(b.bool_var("a")),
-                b.bool_var("b"),
-                b.bool_var("c")
-            ).unwrap();
-            simplify(&mut expr);
-            let expected = b.cond(
-                b.bool_var("a"),
-                b.bool_var("c"),
-                b.bool_var("b")
-            ).unwrap();
-            assert_eq!(expr, expected);
+            let b = new_builder();
+            assert_simplified(
+                b.cond(
+                    b.not(b.bool_var("a")),
+                    b.bool_var("b"),
+                    b.bool_var("c")
+                ),
+                b.cond(
+                    b.bool_var("a"),
+                    b.bool_var("c"),
+                    b.bool_var("b")
+                )
+            )
         }
     }
 
@@ -171,15 +186,16 @@ mod tests {
 
         #[test]
         fn pair_contradiction() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.bool_equals_n(vec![
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.not(b.bool_var("a")),
-                b.bool_var("c")
-            ]).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_const(false).unwrap());
+            let b = new_builder();
+            assert_simplified(
+                b.bool_equals_n(vec![
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.not(b.bool_var("a")),
+                    b.bool_var("c")
+                ]),
+                b.bool_const(false)
+            )
         }
     }
 
@@ -188,15 +204,16 @@ mod tests {
 
         #[test]
         fn pair_contradiction() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.and_n(vec![
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.not(b.bool_var("a")),
-                b.bool_var("c")
-            ]).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_const(false).unwrap());
+            let b = new_builder();
+            assert_simplified(
+                b.and_n(vec![
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.not(b.bool_var("a")),
+                    b.bool_var("c")
+                ]),
+                b.bool_const(false)
+            )
         }
     }
 
@@ -205,15 +222,16 @@ mod tests {
 
         #[test]
         fn pair_contradiction() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.or_n(vec![
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.not(b.bool_var("a")),
-                b.bool_var("c")
-            ]).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_const(true).unwrap());
+            let b = new_builder();
+            assert_simplified(
+                b.or_n(vec![
+                    b.bool_var("a"),
+                    b.bool_var("b"),
+                    b.not(b.bool_var("a")),
+                    b.bool_var("c")
+                ]),
+                b.bool_const(true)
+            )
         }
     }
 
@@ -222,24 +240,26 @@ mod tests {
 
         #[test]
         fn lhs_rhs_equals() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.xor(
-                b.bool_var("a"),
-                b.bool_var("a")
-            ).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_const(false).unwrap());
+            let b = new_builder();
+            assert_simplified(
+                b.xor(
+                    b.bool_var("a"),
+                    b.bool_var("a")
+                ),
+                b.bool_const(false)
+            )
         }
 
         #[test]
         fn a_xor_not_a() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.xor(
-                b.bool_var("a"),
-                b.not(b.bool_var("a"))
-            ).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_const(true).unwrap());
+            let b = new_builder();
+            assert_simplified(
+                b.xor(
+                    b.bool_var("a"),
+                    b.not(b.bool_var("a"))
+                ),
+                b.bool_const(true)
+            )
         }
     }
 
@@ -248,35 +268,38 @@ mod tests {
 
         #[test]
         fn lhs_rhs_equals() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.implies(
-                b.bool_var("a"),
-                b.bool_var("a")
-            ).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_const(true).unwrap());
+            let b = new_builder();
+            assert_simplified(
+                b.implies(
+                    b.bool_var("a"),
+                    b.bool_var("a")
+                ),
+                b.bool_const(true)
+            )
         }
 
         #[test]
         fn not_a_implies_a() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.implies(
-                b.not(b.bool_var("a")),
+            let b = new_builder();
+            assert_simplified(
+                b.implies(
+                    b.not(b.bool_var("a")),
+                    b.bool_var("a")
+                ),
                 b.bool_var("a")
-            ).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.bool_var("a").unwrap());
+            )
         }
 
         #[test]
         fn a_implies_not_a() {
-            let b = PlainExprTreeBuilder::default();
-            let mut expr = b.implies(
-                b.bool_var("a"),
+            let b = new_builder();
+            assert_simplified(
+                b.implies(
+                    b.bool_var("a"),
+                    b.not(b.bool_var("a"))
+                ),
                 b.not(b.bool_var("a"))
-            ).unwrap();
-            simplify(&mut expr);
-            assert_eq!(expr, b.not(b.bool_var("a")).unwrap());
+            )
         }
     }
 }
