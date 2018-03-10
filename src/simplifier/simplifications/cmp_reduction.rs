@@ -87,102 +87,129 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
+    create_modular_ast_transformer! {
+        struct ComparisonReducerTransformer;
+        (_0, ComparisonReducer)
+    }
+    type ComparisonReducerSimplifier = BaseSimplifier<ComparisonReducerTransformer>;
+
+    fn create_simplifier() -> ComparisonReducerSimplifier {
+        ComparisonReducerSimplifier::default()
+    }
+
+    fn simplify(expr: &mut AnyExpr) -> TransformEffect {
+        create_simplifier().simplify(expr)
+    }
+
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
     #[test]
     fn sge() {
-        let b = PlainExprTreeBuilder::default();
-        let mut input = b.bitvec_sge(
-            b.bitvec_var(BitvecTy::w32(), "x"),
-            b.bitvec_var(BitvecTy::w32(), "y")
-        ).unwrap();
-        let expect = b.not(
-            b.bitvec_slt(
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_sge(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_var(BitvecTy::w32(), "y")
+            ),
+            b.not(
+                b.bitvec_slt(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
             )
-        ).unwrap();
-        Simplifier::default().simplify(&mut input);
-        assert_eq!(input, expect);
+        )
     }
 
     #[test]
     fn uge() {
-        let b = PlainExprTreeBuilder::default();
-        let mut input = b.bitvec_uge(
-            b.bitvec_var(BitvecTy::w32(), "x"),
-            b.bitvec_var(BitvecTy::w32(), "y")
-        ).unwrap();
-        let expect = b.not(
-            b.bitvec_ult(
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_uge(
                 b.bitvec_var(BitvecTy::w32(), "x"),
                 b.bitvec_var(BitvecTy::w32(), "y")
+            ),
+            b.not(
+                b.bitvec_ult(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
             )
-        ).unwrap();
-        Simplifier::default().simplify(&mut input);
-        assert_eq!(input, expect);
+        )
     }
 
     #[test]
     fn sgt() {
-        let b = PlainExprTreeBuilder::default();
-        let mut input = b.bitvec_sgt(
-            b.bitvec_var(BitvecTy::w32(), "x"),
-            b.bitvec_var(BitvecTy::w32(), "y")
-        ).unwrap();
-        let expect = b.bitvec_slt(
-            b.bitvec_var(BitvecTy::w32(), "y"),
-            b.bitvec_var(BitvecTy::w32(), "x")
-        ).unwrap();
-        Simplifier::default().simplify(&mut input);
-        assert_eq!(input, expect);
-    }
-
-    #[test]
-    fn ugt() {
-        let b = PlainExprTreeBuilder::default();
-        let mut input = b.bitvec_ugt(
-            b.bitvec_var(BitvecTy::w32(), "x"),
-            b.bitvec_var(BitvecTy::w32(), "y")
-        ).unwrap();
-        let expect = b.bitvec_ult(
-            b.bitvec_var(BitvecTy::w32(), "y"),
-            b.bitvec_var(BitvecTy::w32(), "x")
-        ).unwrap();
-        Simplifier::default().simplify(&mut input);
-        assert_eq!(input, expect);
-    }
-
-    #[test]
-    fn sle() {
-        let b = PlainExprTreeBuilder::default();
-        let mut input = b.bitvec_sle(
-            b.bitvec_var(BitvecTy::w32(), "x"),
-            b.bitvec_var(BitvecTy::w32(), "y")
-        ).unwrap();
-        let expect = b.not(
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_sgt(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ),
             b.bitvec_slt(
                 b.bitvec_var(BitvecTy::w32(), "y"),
                 b.bitvec_var(BitvecTy::w32(), "x")
             )
-        ).unwrap();
-        Simplifier::default().simplify(&mut input);
-        assert_eq!(input, expect);
+        )
     }
 
     #[test]
-    fn ule() {
-        let b = PlainExprTreeBuilder::default();
-        let mut input = b.bitvec_ule(
-            b.bitvec_var(BitvecTy::w32(), "x"),
-            b.bitvec_var(BitvecTy::w32(), "y")
-        ).unwrap();
-        let expect = b.not(
+    fn ugt() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_ugt(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ),
             b.bitvec_ult(
                 b.bitvec_var(BitvecTy::w32(), "y"),
                 b.bitvec_var(BitvecTy::w32(), "x")
             )
-        ).unwrap();
-        Simplifier::default().simplify(&mut input);
-        assert_eq!(input, expect);
+        )
     }
 
+    #[test]
+    fn sle() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_sle(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ),
+            b.not(
+                b.bitvec_slt(
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
+            )
+        )
+    }
+
+    #[test]
+    fn ule() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_ule(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ),
+            b.not(
+                b.bitvec_ult(
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                )
+            )
+        )
+    }
 }
