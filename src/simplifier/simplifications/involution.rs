@@ -52,6 +52,23 @@ impl Transformer for InvolutionSimplifier {
         if let box AnyExpr::Neg(negneg) = neg.child {
             return TransformOutcome::transformed(*negneg.child)
         }
+        // For negated add we can push the negation to all child expressions: `(neg (add a b))` -> `(add (-a) (-b))`
+        if let box AnyExpr::Add(add) = neg.child {
+            return TransformOutcome::transformed(
+                expr::Add::nary(
+                    add.into_childs()
+                      .map(|c| expr::Neg::new(c).unwrap())
+                      .map(AnyExpr::from))
+                      .unwrap()
+            )
+        }
+        // For negated mul we can push an extra `(-1)` child expression: `(neg (mul a b))` -> `(mul a b (-1))`
+        if let box AnyExpr::Mul(mut mul) = neg.child {
+            mul.childs.push(
+                expr::BitvecConst::all_set(mul.bitvec_ty).into()
+            );
+            return TransformOutcome::transformed(mul)
+        }
         TransformOutcome::identity(neg)
     }
 
@@ -154,6 +171,45 @@ mod tests {
         assert_simplified(
             b.bitvec_neg(b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x"))),
             b.bitvec_var(BitvecTy::w32(), "x")
+        )
+    }
+
+    #[test]
+    fn neg_add() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_neg(
+                b.bitvec_add(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
+            ),
+            b.bitvec_add(
+                b.bitvec_neg(
+                    b.bitvec_var(BitvecTy::w32(), "x")
+                ),
+                b.bitvec_neg(
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
+            )
+        )
+    }
+
+    #[test]
+    fn neg_mul() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_neg(
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
+            ),
+            b.bitvec_mul_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y"),
+                b.bitvec_const(BitvecTy::w32(), -1_i32)
+            ])
         )
     }
 
