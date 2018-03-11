@@ -178,7 +178,7 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
         }
         let bvty = add.bitvec_ty;
         let like_terms = collect_like_terms(add);
-        if like_terms.len() == 0 {
+        if like_terms.is_empty() {
             unreachable!()
         }
         if like_terms.len() == 1 {
