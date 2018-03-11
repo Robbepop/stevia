@@ -336,9 +336,12 @@ macro_rules! create_modular_ast_transformer {
 
             pub fn traverse_transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
                 let mut result = TransformEffect::Identity;
+                // Transform the current expression before all of its children.
+                result |= self.forward_transform_any_expr(expr);
                 for child in expr.childs_mut() {
                     result |= self.traverse_transform_any_expr(child);
                 }
+                // Transform the current expression again after all of its children.
                 result |= self.forward_transform_any_expr(expr);
                 result
             }
