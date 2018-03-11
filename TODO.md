@@ -2,6 +2,7 @@
 
 ## AST
 
+- Separate ModularASTTransformer clearly from RecursiveASTTraverser.
 - Add proper error management to the AST module building on top of the [failure](https://crates.io/crates/failure) crate.
 - Add an efficient recursive AST visitor and implement an AST typecheck based on it.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks. 
