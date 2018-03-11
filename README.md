@@ -58,6 +58,10 @@ These features need to be stabilized before this crate can be used on the stable
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
 - [`#![feature(conservative_impl_trait)]`][conservative-impl-trait]
 - [`#![feature(nll)]`][nll]
+- [`#![feature(copy_closures)`][copy-closures]
+- [`#![feature(clone_closures)`][clone-closures]
+- [`#![feature(match_default_bindings)`][match-default-bindings]
+
 
 ## License
 
@@ -106,3 +110,6 @@ additional terms or conditions.
 [unstable-box-patterns]: https://github.com/rust-lang/rust/issues/29641
 [conservative-impl-trait]: https://github.com/rust-lang/rust/issues/34511
 [nll]: https://github.com/rust-lang/rust/issues/43234
+[copy-closures]: https://github.com/rust-lang/rust/issues/44490
+[clone-closures]: https://github.com/rust-lang/rust/issues/44490
+[match-default-bindings]: https://github.com/rust-lang/rust/issues/42640
