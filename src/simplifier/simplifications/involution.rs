@@ -20,13 +20,35 @@ impl AutoImplAnyTransformer for InvolutionSimplifier {}
 
 impl Transformer for InvolutionSimplifier {
     fn transform_not(&self, not: expr::Not) -> TransformOutcome {
+        // If there is a pair of nested not we can remove both negations.
         if let box AnyExpr::Not(notnot) = not.child {
             return TransformOutcome::transformed(*notnot.child)
+        }
+        // For not-and we can apply De Morgan's laws: `(not (and a b))` -> `(or (not a) (not b))`
+        if let box AnyExpr::And(and) = not.child {
+            return TransformOutcome::transformed(
+                expr::Or::nary(
+                    and.into_childs()
+                       .map(|c| expr::Not::new(c).unwrap())
+                       .map(AnyExpr::from))
+                       .unwrap()
+            )
+        }
+        // For not-and we can apply De Morgan's laws: `(not (or a b))` -> `(and (not a) (not b))`
+        if let box AnyExpr::Or(or) = not.child {
+            return TransformOutcome::transformed(
+                expr::And::nary(
+                    or.into_childs()
+                      .map(|c| expr::Not::new(c).unwrap())
+                      .map(AnyExpr::from))
+                      .unwrap()
+            )
         }
         TransformOutcome::identity(not)
     }
 
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
+        // If there is a pair of nested negation we can remove both negations.
         if let box AnyExpr::Neg(negneg) = neg.child {
             return TransformOutcome::transformed(*negneg.child)
         }
@@ -34,6 +56,7 @@ impl Transformer for InvolutionSimplifier {
     }
 
     fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
+        // If there is a pair of nested bitwise-not we can remove both negations.
         if let box AnyExpr::BitNot(bitnotnot) = bitnot.child {
             return TransformOutcome::transformed(*bitnotnot.child)
         }
@@ -80,6 +103,48 @@ mod tests {
         assert_simplified(
             b.not(b.not(b.bool_var("a"))),
             b.bool_var("a")
+        )
+    }
+
+    #[test]
+    fn de_morgan_and() {
+        let b = new_builder();
+        assert_simplified(
+            b.not(
+                b.and(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                )
+            ),
+            b.or(
+                b.not(
+                    b.bool_var("a")
+                ),
+                b.not(
+                    b.bool_var("b")
+                )
+            )
+        )
+    }
+
+    #[test]
+    fn de_morgan_or() {
+        let b = new_builder();
+        assert_simplified(
+            b.not(
+                b.or(
+                    b.bool_var("a"),
+                    b.bool_var("b")
+                )
+            ),
+            b.and(
+                b.not(
+                    b.bool_var("a")
+                ),
+                b.not(
+                    b.bool_var("b")
+                )
+            )
         )
     }
 
