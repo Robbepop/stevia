@@ -21,7 +21,8 @@ create_modular_ast_transformer! {
     (_5, simplifications::Normalizer),
     (_6, simplifications::Flattener),
     (_7, simplifications::TermConstPropagator),
-    (_8, simplifications::LikeTermJoiner)
+    (_8, simplifications::TermReducer),
+    (_9, simplifications::LikeTermJoiner)
 }
 
 /// Simplifies expressions using the underlying base transformer.

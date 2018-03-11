@@ -7,6 +7,7 @@ mod involution;
 mod normalizer;
 mod flattening;
 mod term_const_prop;
+mod term_lowering;
 mod like_term_joiner;
 
 pub mod prelude {
@@ -19,6 +20,7 @@ pub mod prelude {
         InvolutionSimplifier,
         Normalizer,
         TermConstPropagator,
+        TermReducer,
         LikeTermJoiner
     };
 }
@@ -32,4 +34,5 @@ pub use self::equality_joiner::prelude::*;
 pub use self::normalizer::prelude::*;
 pub use self::flattening::prelude::*;
 pub use self::term_const_prop::prelude::*;
+pub use self::term_lowering::prelude::*;
 pub use self::like_term_joiner::prelude::*;
