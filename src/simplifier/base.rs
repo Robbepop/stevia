@@ -17,10 +17,11 @@ create_modular_ast_transformer! {
     (_1, simplifications::ComparisonReducer),
     (_2, simplifications::BoolConstPropagator),
     (_3, simplifications::BoolSymbolicSolver),
-    (_4, simplifications::Normalizer),
-    (_5, simplifications::Flattener),
-    (_6, simplifications::TermConstPropagator),
-    (_7, simplifications::LikeTermJoiner)
+    (_4, simplifications::BoolReducer),
+    (_5, simplifications::Normalizer),
+    (_6, simplifications::Flattener),
+    (_7, simplifications::TermConstPropagator),
+    (_8, simplifications::LikeTermJoiner)
 }
 
 /// Simplifies expressions using the underlying base transformer.
