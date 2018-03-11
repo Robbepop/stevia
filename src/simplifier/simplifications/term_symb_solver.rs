@@ -7,6 +7,51 @@ use std::collections::hash_map::Entry;
 
 pub mod prelude {
     pub use super::TermSymbolicSolver;
+    pub use super::MulConstSeperator;
+}
+
+/// This simplification separates a single constant element within a multiplication
+/// from the rest of the elements thus resulting in a binary top-level multiplication.
+/// 
+/// This won't recurse since the child-level multiplication won't have any constant
+/// values.
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct MulConstSeperator;
+
+impl AutoImplAnyTransformer for MulConstSeperator {}
+
+/// Deflattens n-ary multiplications with exactly one constant value into their
+/// constant part and the remaining elements.
+/// 
+/// This structural invariant is used in like-term detection and merging to merge n-ary multiplications.
+/// 
+/// The resulting multiplication (and its child elements) may be unnormalized after
+/// this operation. An additional normalization step is important if following operations
+/// depend on that structural invariant.
+fn separate_const_from_mul(mul: expr::Mul) -> TransformOutcome {
+    // Nothing to do for binary multiplications.
+    //
+    // Invariant: Arities lower than 2 are invalid for multiplication.
+    if mul.arity() == 2 {
+        return TransformOutcome::identity(mul)
+    }
+    // Nothing to do for multiplications that do not have exactly a single constant value.
+    if mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1 {
+        return TransformOutcome::identity(mul)
+    }
+    // Pop the only constant value from the mul and create a wrapping binary
+    // multiplication for the popped constant and the remaining multiplication.
+    let mut mul = mul;
+    let const_val = mul.childs.swap_remove(
+        mul.childs().position(|c| c.kind() == ExprKind::BitvecConst).unwrap());
+    let result = expr::Mul::binary(const_val, mul).unwrap();
+    TransformOutcome::transformed(result)
+}
+
+impl Transformer for MulConstSeperator {
+    fn transform_mul(&self, mul: expr::Mul) -> TransformOutcome {
+        separate_const_from_mul(mul)
+    }
 }
 
 /// This simplification procedure dissolves term expressions with symbolic simplifications.
@@ -137,10 +182,14 @@ impl Transformer for TermSymbolicSolver {
 mod tests {
     use super::*;
     use simplifier::prelude::*;
+    use simplifier::simplifications;
 
     create_modular_ast_transformer! {
         struct TermSymbolicSolverTransformer;
-        (_0, TermSymbolicSolver)
+        (_0, MulConstSeperator),
+        (_1, simplifications::Normalizer),
+        (_2, TermSymbolicSolver),
+        (_3, simplifications::Normalizer) // For testing purposes only!
     }
     type TermSymbolicSolverSimplifier = BaseSimplifier<TermSymbolicSolverTransformer>;
 
@@ -266,6 +315,31 @@ mod tests {
             b.bitvec_neg(
                 b.bitvec_var(BitvecTy::w32(), "x")
             )
+        )
+    }
+
+    #[test]
+    fn multi_sym_occurence() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_add_n(vec![
+                b.bitvec_mul_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 2_i32),
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ]),
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                )
+            ]),
+            b.bitvec_mul_n(vec![
+                    b.bitvec_const(BitvecTy::w32(), 3_i32),
+                    b.bitvec_mul(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+            ])
         )
     }
 }
