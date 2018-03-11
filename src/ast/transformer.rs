@@ -317,11 +317,8 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
 }
 
 macro_rules! create_modular_ast_transformer {
-    (struct $name:ident; $(($id:ident, $trans:ty)),+) => {
-        /// The base transformer including a collection of sub-transformers.
-        /// 
-        /// This traverses the expression tree and performs transformations
-        /// using all given transformers.
+    ($(#[$comment:meta])* struct $name:ident; $(($id:ident, $trans:ty)),+) => {
+        $(#[$comment])*
         #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
         pub struct $name {
             $($id: $trans),*
