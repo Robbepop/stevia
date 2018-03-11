@@ -1,17 +1,37 @@
 use ast::prelude::*;
 
+use simplifier::simplifications::Normalizer;
+
 use apint::ApInt;
 
 use std::collections::{HashSet, HashMap};
 use std::collections::hash_map::Entry;
 
 pub mod prelude {
-    pub use super::TermSymbolicSolver;
-    pub use super::MulConstSeperator;
+    pub use super::LikeTermJoiner;
+}
+
+create_modular_ast_transformer! {
+    /// This simplification identifies and joins like-terms in additive expressions.
+    /// 
+    /// Besides merging of like-terms this also simplifies terms like `(+ a (-a))` to `0`
+    /// during the process and other similar processing.
+    /// 
+    /// Internally it depends on separating non-const children of multiplications from their
+    /// only constant child expression. This may leave the resulting binary multiplication in 
+    /// an unnormalized state thus also requiring an additional normalization preprocessing
+    /// befor actually identifying and merging like-terms.
+    struct LikeTermJoiner;
+    (_0, MulConstSeperator),
+    (_1, Normalizer),
+    (_2, LikeTermMerger)
 }
 
 /// This simplification separates a single constant element within a multiplication
 /// from the rest of the elements thus resulting in a binary top-level multiplication.
+/// 
+/// This is required as a pre-processing step for the `LikeTermMerger` in order to
+/// identify non-binary multiplications that are like-term mergable.
 /// 
 /// This won't recurse since the child-level multiplication won't have any constant
 /// values.
@@ -54,14 +74,15 @@ impl Transformer for MulConstSeperator {
     }
 }
 
-/// This simplification procedure dissolves term expressions with symbolic simplifications.
+/// This simplification procedure detects and merges like-term expressions.
 /// 
-/// This works best if used after an expression normalization transformation and
-/// might be expensive for deeply nested expression trees that have many similarities.
+/// For optimal results this heavily depends on preprocessing its input by
+/// the `MulConstSeparator` for identifying non-binary multiplications for like-term
+/// merging which requires an additional normalization step in between.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct TermSymbolicSolver;
+pub struct LikeTermMerger;
 
-impl AutoImplAnyTransformer for TermSymbolicSolver {}
+impl AutoImplAnyTransformer for LikeTermMerger {}
 
 /// Checks if there are like-terms that can and should be combined.
 /// 
@@ -172,7 +193,7 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
     TransformOutcome::identity(add)
 }
 
-impl Transformer for TermSymbolicSolver {
+impl Transformer for LikeTermMerger {
     fn transform_add(&self, add: expr::Add) -> TransformOutcome {
         simplify_add(add)
     }
@@ -185,16 +206,14 @@ mod tests {
     use simplifier::simplifications;
 
     create_modular_ast_transformer! {
-        struct TermSymbolicSolverTransformer;
-        (_0, MulConstSeperator),
-        (_1, simplifications::Normalizer),
-        (_2, TermSymbolicSolver),
-        (_3, simplifications::Normalizer) // For testing purposes only!
+        struct LikeTermJoinerTransformer;
+        (_0, LikeTermJoiner),
+        (_1, simplifications::Normalizer) // For testing purposes only!
     }
-    type TermSymbolicSolverSimplifier = BaseSimplifier<TermSymbolicSolverTransformer>;
+    type LikeTermJoinerSimplifier = BaseSimplifier<LikeTermJoinerTransformer>;
 
-    fn create_simplifier() -> TermSymbolicSolverSimplifier {
-        TermSymbolicSolverSimplifier::default()
+    fn create_simplifier() -> LikeTermJoinerSimplifier {
+        LikeTermJoinerSimplifier::default()
     }
 
     fn simplify(expr: &mut AnyExpr) -> TransformEffect {

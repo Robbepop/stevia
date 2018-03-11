@@ -17,7 +17,7 @@ pub mod prelude {
         InvolutionSimplifier,
         Normalizer,
         TermConstPropagator,
-        TermSymbolicSolver
+        LikeTermJoiner
     };
 }
 
