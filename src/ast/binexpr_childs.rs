@@ -36,6 +36,13 @@ impl BinExprChilds {
         use std::mem;
         mem::swap(&mut self.lhs, &mut self.rhs)
     }
+
+    /// Returns a pair of both child expressions.
+    /// 
+    /// Note: Consumes `self`.
+    pub fn into_children_pair(self) -> (AnyExpr, AnyExpr) {
+        (self.lhs, self.rhs)
+    }
 }
 
 impl Childs for BinExprChilds {
