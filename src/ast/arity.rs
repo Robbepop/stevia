@@ -1,3 +1,5 @@
+use ast::prelude::*;
+
 /// Reexports all commonly used items of this module.
 pub mod prelude {
     pub use super::{
@@ -25,4 +27,13 @@ pub trait HasArity {
     fn has_childs(&self) -> bool {
         self.arity() > 0
     }
+}
+
+/// Returns the accumulated arity of the given entity and all of its childs recursively.
+/// 
+/// This is used to identify complex expressions with many recursive child expressions.
+pub fn recursive_arity<T>(expr: &T) -> usize
+    where T: HasArity + Childs
+{
+    expr.arity() + expr.childs().map(|c| recursive_arity(c)).sum::<usize>()
 }
