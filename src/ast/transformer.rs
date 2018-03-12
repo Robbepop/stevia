@@ -355,7 +355,7 @@ impl<T> TraverseTransformer<T>
 
     /// Consumes the given expression and traverse it and all of its child
     /// expressions recursively and apply a transformation pass on them.
-    pub fn into_traverse_transform(&self, expr: AnyExpr) -> TransformOutcome {
+    pub fn traverse_transform_into(&self, expr: AnyExpr) -> TransformOutcome {
         let mut expr = expr;
         let result = self.traverse_transform(&mut expr);
         TransformOutcome::new(result, expr)
