@@ -9,7 +9,8 @@ pub mod prelude {
         TransformEffect,
         AnyTransformer,
         TransformOutcome,
-        AutoImplAnyTransformer
+        AutoImplAnyTransformer,
+        TraverseTransformer
     };
 }
 
@@ -312,6 +313,76 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
             ArithmeticShiftRight(expr) => self.transform_ashr(expr),
             LogicalShiftRight(expr) => self.transform_lshr(expr),
             ShiftLeft(expr) => self.transform_shl(expr)
+        }
+    }
+}
+
+/// Can traverse any expression and all of its child expressions recursively
+/// and apply the given transformation pass on them.
+/// 
+/// Note that the internal AST transformer may be a modular transfomer that
+/// combines several AST transformers into one.
+#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct TraverseTransformer<T>
+    where T: AnyTransformer
+{
+    transformer: T
+}
+
+impl<T> TraverseTransformer<T>
+    where T: AnyTransformer
+{
+    /// Forwards the current expression to the underlying AST transformer and
+    /// all of the expression's child expressions. Accumulates the resulting
+    /// `TransformEffect` and returns it.
+    fn forward_traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
+        let mut result = TransformEffect::Identity;
+        // Transform the current expression before all of its children.
+        result |= self.transformer.transform_any_expr(expr);
+        for child in expr.childs_mut() {
+            // result |= self.transformer.transform_any_expr(child);
+            result |= self.traverse_transform(child);
+        }
+        // Transform the current expression again after all of its children.
+        result |= self.transformer.transform_any_expr(expr);
+        result
+    }
+
+    /// Traverse the given expression and all of its child expressions recursively
+    /// and apply a transformation on them.
+    pub fn traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
+        self.forward_traverse_transform(expr)
+    }
+
+    /// Consumes the given expression and traverse it and all of its child
+    /// expressions recursively and apply a transformation pass on them.
+    pub fn into_traverse_transform(&self, expr: AnyExpr) -> TransformOutcome {
+        let mut expr = expr;
+        let result = self.traverse_transform(&mut expr);
+        TransformOutcome::new(result, expr)
+    }
+}
+
+macro_rules! modular_ast_transformer {
+    ($(#[$attr:meta])* struct $name:ident { $($trans_id:ident: $trans_ty:ty),+ } ) => {
+        $(#[$attr])*
+        #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+        pub struct $name {
+            $($trans_id: $trans_ty),*
+        }
+
+        impl AnyTransformer for $name {
+            fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
+                let mut result = TransformEffect::Identity;
+                $(result |= self.$trans_id.transform_any_expr(expr));*;
+                result
+            }
+
+            fn into_transform_any_expr(&self, expr: AnyExpr) -> TransformOutcome {
+                let mut expr = expr;
+                let result = self.transform_any_expr(&mut expr);
+                TransformOutcome::new(result, expr)
+            }
         }
     }
 }

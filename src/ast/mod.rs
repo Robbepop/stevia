@@ -91,7 +91,8 @@ pub use self::transformer::{
     Transformer,
     AnyTransformer,
     TransformOutcome,
-    AutoImplAnyTransformer
+    AutoImplAnyTransformer,
+    TraverseTransformer
 };
 
 /// Re-exports all expression types.
