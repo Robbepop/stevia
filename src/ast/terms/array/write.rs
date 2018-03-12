@@ -11,7 +11,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayWrite {
     /// The two child expressions of this array read expression.
-    pub childs: P<ArrayWriteChilds>,
+    pub children: P<ArrayWriteChildren>,
     /// The type of this array expr.
     /// 
     /// This mainly stores the index bit width and value bit width.
@@ -20,7 +20,7 @@ pub struct ArrayWrite {
 
 /// The child expressions of a `Read` expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ArrayWriteChilds {
+pub struct ArrayWriteChildren {
     /// The array expression.
     /// 
     /// This must be of array type.
@@ -38,20 +38,20 @@ pub struct ArrayWriteChilds {
     pub value: AnyExpr
 }
 
-impl ArrayWriteChilds {
-    /// Creates a new `ArrayWriteChilds` object.
+impl ArrayWriteChildren {
+    /// Creates a new `ArrayWriteChildren` object.
     /// 
     /// Does not check any invariants of `ArrayWrite`.
     /// This function should be marked unsafe since it fails to hold any guarantees.
-    pub fn new(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> ArrayWriteChilds {
-        ArrayWriteChilds{array, index, value}
+    pub fn new(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> ArrayWriteChildren {
+        ArrayWriteChildren{array, index, value}
     }
 
-    /// Creates a new boxed `ArrayWriteChilds` object.
+    /// Creates a new boxed `ArrayWriteChildren` object.
     /// 
-    /// This is just a convenience wrapper around `ArrayWriteChilds::new`.
-    pub fn new_boxed(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> P<ArrayWriteChilds> {
-        P::new(ArrayWriteChilds::new(array, index, value))
+    /// This is just a convenience wrapper around `ArrayWriteChildren::new`.
+    pub fn new_boxed(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> P<ArrayWriteChildren> {
+        P::new(ArrayWriteChildren::new(array, index, value))
     }
 }
 
@@ -77,26 +77,26 @@ impl ArrayWrite {
         checks::expect_concrete_bitvec_ty(&value, array_ty.value_ty())?;
         Ok(ArrayWrite{
             widths: array_ty,
-            childs: ArrayWriteChilds::new_boxed(array, index, value)
+            children: ArrayWriteChildren::new_boxed(array, index, value)
         })
     }
 }
 
-impl Childs for ArrayWriteChilds {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::ternary(&self.array, &self.index, &self.value)
+impl Children for ArrayWriteChildren {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::ternary(&self.array, &self.index, &self.value)
     }
 }
 
-impl ChildsMut for ArrayWriteChilds {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::ternary(&mut self.array, &mut self.index, &mut self.value)
+impl ChildrenMut for ArrayWriteChildren {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::ternary(&mut self.array, &mut self.index, &mut self.value)
     }
 }
 
-impl IntoChilds for ArrayWriteChilds {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::ternary(self.array, self.index, self.value)
+impl IntoChildren for ArrayWriteChildren {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::ternary(self.array, self.index, self.value)
     }
 }
 
@@ -124,20 +124,20 @@ impl From<ArrayWrite> for AnyExpr {
     }
 }
 
-impl Childs for ArrayWrite {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl Children for ArrayWrite {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl ChildsMut for ArrayWrite {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl ChildrenMut for ArrayWrite {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl IntoChilds for ArrayWrite {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl IntoChildren for ArrayWrite {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }

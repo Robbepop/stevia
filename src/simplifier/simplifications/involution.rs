@@ -28,7 +28,7 @@ impl Transformer for InvolutionSimplifier {
         if let box AnyExpr::And(and) = not.child {
             return TransformOutcome::transformed(
                 expr::Or::nary(
-                    and.into_childs()
+                    and.into_children()
                        .map(|c| expr::Not::new(c).unwrap())
                        .map(AnyExpr::from))
                        .unwrap()
@@ -38,7 +38,7 @@ impl Transformer for InvolutionSimplifier {
         if let box AnyExpr::Or(or) = not.child {
             return TransformOutcome::transformed(
                 expr::And::nary(
-                    or.into_childs()
+                    or.into_children()
                       .map(|c| expr::Not::new(c).unwrap())
                       .map(AnyExpr::from))
                       .unwrap()
@@ -56,7 +56,7 @@ impl Transformer for InvolutionSimplifier {
         if let box AnyExpr::Add(add) = neg.child {
             return TransformOutcome::transformed(
                 expr::Add::nary(
-                    add.into_childs()
+                    add.into_children()
                       .map(|c| expr::Neg::new(c).unwrap())
                       .map(AnyExpr::from))
                       .unwrap()
@@ -64,7 +64,7 @@ impl Transformer for InvolutionSimplifier {
         }
         // For negated mul we can push an extra `(-1)` child expression: `(neg (mul a b))` -> `(mul a b (-1))`
         if let box AnyExpr::Mul(mut mul) = neg.child {
-            mul.childs.push(
+            mul.children.push(
                 expr::BitvecConst::all_set(mul.bitvec_ty).into()
             );
             return TransformOutcome::transformed(mul)

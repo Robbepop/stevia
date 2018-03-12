@@ -31,12 +31,12 @@ impl Transformer for BoolSymbolicSolver {
         // If then and else cases are equal we can lower the entire if-then-else
         // to either one. The condition can be dropped since it has no effect to
         // the result. We simply lower to the then-case in this situation.
-        if ite.childs.then_case == ite.childs.else_case {
-            return TransformOutcome::transformed(ite.childs.then_case)
+        if ite.children.then_case == ite.children.else_case {
+            return TransformOutcome::transformed(ite.children.then_case)
         }
         // If the condition is a logical-negation we can drop the negation by
         // swapping the then and else case.
-        if let box IfThenElseChilds{ cond: AnyExpr::Not(not), then_case, else_case } = ite.childs {
+        if let box IfThenElseChildren{ cond: AnyExpr::Not(not), then_case, else_case } = ite.children {
             return TransformOutcome::transformed(unsafe{
                 expr::IfThenElse::new_unchecked(
                     not.into_single_child(),
@@ -51,8 +51,8 @@ impl Transformer for BoolSymbolicSolver {
     fn transform_bool_equals(&self, bool_equals: expr::BoolEquals) -> TransformOutcome {
         // If there exists any pair that logically contradicts each other
         // then this is always false.
-        if bool_equals.childs()
-                      .cartesian_product(bool_equals.childs())
+        if bool_equals.children()
+                      .cartesian_product(bool_equals.children())
                       .any(|(lhs, rhs)| is_logical_contradiction(lhs, rhs))
         {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
@@ -63,8 +63,8 @@ impl Transformer for BoolSymbolicSolver {
     fn transform_and(&self, and: expr::And) -> TransformOutcome {
         // If there exists any pair that logically contradicts each other
         // then this is always false.
-        if and.childs()
-              .cartesian_product(and.childs())
+        if and.children()
+              .cartesian_product(and.children())
               .any(|(lhs, rhs)| is_logical_contradiction(lhs, rhs))
         {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
@@ -75,8 +75,8 @@ impl Transformer for BoolSymbolicSolver {
     fn transform_or(&self, or: expr::Or) -> TransformOutcome {
         // If there exists any pair that logically contradicts each other
         // then this is always true.
-        if or.childs()
-             .cartesian_product(or.childs())
+        if or.children()
+             .cartesian_product(or.children())
              .any(|(lhs, rhs)| is_logical_contradiction(lhs, rhs))
         {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
@@ -86,11 +86,11 @@ impl Transformer for BoolSymbolicSolver {
 
     fn transform_xor(&self, xor: expr::Xor) -> TransformOutcome {
         // If both child expressions are equal this is always false.
-        if xor.childs.lhs == xor.childs.rhs {
+        if xor.children.lhs == xor.children.rhs {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
         }
         // If both child expressions form a logical contradiction this is always true.
-        if is_logical_contradiction(&xor.childs.lhs, &xor.childs.rhs) {
+        if is_logical_contradiction(&xor.children.lhs, &xor.children.rhs) {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
         }
         TransformOutcome::identity(xor)
@@ -98,7 +98,7 @@ impl Transformer for BoolSymbolicSolver {
 
     fn transform_implies(&self, implies: expr::Implies) -> TransformOutcome {
         // If both child expressions are equal this is true.
-        if implies.childs.lhs == implies.childs.rhs {
+        if implies.children.lhs == implies.children.rhs {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
         }
         // If both child expressions form a logical contradiction this is
@@ -106,8 +106,8 @@ impl Transformer for BoolSymbolicSolver {
         // 
         // *  not(a) =>     a   -->      a
         // *      a  => not(a)  -->  not(a)
-        if is_logical_contradiction(&implies.childs.lhs, &implies.childs.rhs) {
-            return TransformOutcome::transformed(implies.childs.rhs)
+        if is_logical_contradiction(&implies.children.lhs, &implies.children.rhs) {
+            return TransformOutcome::transformed(implies.children.rhs)
         }
         TransformOutcome::identity(implies)
     }

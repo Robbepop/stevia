@@ -7,75 +7,75 @@ use std::iter::FromIterator;
 /// Re-exports commonly used items of this module.
 pub mod prelude {
     pub use super::{
-		IntoChildsIter	
+		IntoChildrenIter	
 	};
 }
 
 /// Consuming iterator over child expressions.
 /// 
 /// Can transform ownership.
-pub struct IntoChildsIter {
-	childs: smallvec::IntoIter<[AnyExpr; 3]>
+pub struct IntoChildrenIter {
+	children: smallvec::IntoIter<[AnyExpr; 3]>
 }
 
-impl FromIterator<AnyExpr> for IntoChildsIter {
-    fn from_iter<T>(iter: T) -> IntoChildsIter
+impl FromIterator<AnyExpr> for IntoChildrenIter {
+    fn from_iter<T>(iter: T) -> IntoChildrenIter
         where T: IntoIterator<Item = AnyExpr>
     {
-        IntoChildsIter{
-            childs: smallvec::SmallVec::from_iter(iter).into_iter()
+        IntoChildrenIter{
+            children: smallvec::SmallVec::from_iter(iter).into_iter()
         }
     }
 }
 
-impl<'parent> IntoChildsIter {
-	pub fn none() -> IntoChildsIter {
-        IntoChildsIter::from_iter(vec![])
+impl<'parent> IntoChildrenIter {
+	pub fn none() -> IntoChildrenIter {
+        IntoChildrenIter::from_iter(vec![])
 	}
 
-	pub fn unary(fst: AnyExpr) -> IntoChildsIter {
+	pub fn unary(fst: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
-		IntoChildsIter{
-			childs: vec.into_iter()
+		IntoChildrenIter{
+			children: vec.into_iter()
 		}
 	}
 
-	pub fn binary(fst: AnyExpr, snd: AnyExpr) -> IntoChildsIter {
+	pub fn binary(fst: AnyExpr, snd: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		vec.push(snd);
-		IntoChildsIter{
-			childs: vec.into_iter()
+		IntoChildrenIter{
+			children: vec.into_iter()
 		}
 	}
 
-	pub fn ternary(fst: AnyExpr, snd: AnyExpr, trd: AnyExpr) -> IntoChildsIter {
+	pub fn ternary(fst: AnyExpr, snd: AnyExpr, trd: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		vec.push(snd);
 		vec.push(trd);
-		IntoChildsIter{
-			childs: vec.into_iter()
+		IntoChildrenIter{
+			children: vec.into_iter()
 		}
 	}
 
-	pub fn nary(childs: Vec<AnyExpr>) -> IntoChildsIter {
-		IntoChildsIter::from_iter(childs)
+	pub fn nary(children: Vec<AnyExpr>) -> IntoChildrenIter {
+		IntoChildrenIter::from_iter(children)
 	}
 }
 
-impl Iterator for IntoChildsIter {
+impl Iterator for IntoChildrenIter {
 	type Item = AnyExpr;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.childs.next()
+		self.children.next()
 	}
 }
 
-impl DoubleEndedIterator for IntoChildsIter {
+impl DoubleEndedIterator for IntoChildrenIter {
 	fn next_back(&mut self) -> Option<Self::Item> {
-		self.childs.next_back()
+		self.children.next_back()
 	}
 }
 
@@ -86,7 +86,7 @@ mod tests {
 	#[test]
 	fn none() {
 		let bool_const = expr::BoolConst::t();
-		let mut iter = bool_const.into_childs();
+		let mut iter = bool_const.into_children();
 		assert_eq!(iter.next(), None)
 	}
 
@@ -94,7 +94,7 @@ mod tests {
 	fn unary() {
 		let b = PlainExprTreeBuilder::default();
 		let expr = b.not(b.bool_const(false)).unwrap();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next(), None);
 	}
@@ -106,7 +106,7 @@ mod tests {
 			b.bool_const(false),
 			b.bool_const(true)
 		).unwrap();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::t())));
 		assert_eq!(iter.next(), None);
@@ -124,7 +124,7 @@ mod tests {
 	#[test]
 	fn ternary() {
 		let expr = test_cond();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
@@ -145,7 +145,7 @@ mod tests {
 	#[test]
 	fn nary() {
 		let expr = big_test_expr();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(1337))));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(77))));
@@ -157,7 +157,7 @@ mod tests {
 	#[test]
 	fn ternary_next_back() {
 		let expr = test_cond();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BoolConst::f())));
@@ -167,7 +167,7 @@ mod tests {
 	#[test]
 	fn nary_next_back() {
 		let expr = big_test_expr();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(0))));
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(77))));
@@ -179,7 +179,7 @@ mod tests {
 	#[test]
 	fn ternary_next_and_next_back() {
 		let expr = test_cond();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
@@ -190,7 +190,7 @@ mod tests {
 	#[test]
 	fn nary_next_and_next_back() {
 		let expr = big_test_expr();
-		let mut iter = expr.into_childs();
+		let mut iter = expr.into_children();
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(0))));

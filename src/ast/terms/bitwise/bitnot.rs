@@ -51,21 +51,21 @@ impl BitNot {
     }
 }
 
-impl Childs for BitNot {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::unary(&self.child)
+impl Children for BitNot {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::unary(&self.child)
     }
 }
 
-impl ChildsMut for BitNot {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::unary(&mut self.child)
+impl ChildrenMut for BitNot {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::unary(&mut self.child)
     }
 }
 
-impl IntoChilds for BitNot {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::unary(*self.child)
+impl IntoChildren for BitNot {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::unary(*self.child)
     }
 }
 

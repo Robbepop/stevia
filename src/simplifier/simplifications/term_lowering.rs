@@ -12,7 +12,7 @@ impl AutoImplAnyTransformer for TermReducer {}
 
 impl Transformer for TermReducer {
     fn transform_sub(&self, sub: expr::Sub) -> TransformOutcome {
-        let (lhs, rhs) = sub.childs.into_children_pair();
+        let (lhs, rhs) = sub.children.into_children_pair();
         TransformOutcome::transformed(
             expr::Add::binary(lhs, expr::Neg::new(rhs).unwrap()).unwrap()
         )

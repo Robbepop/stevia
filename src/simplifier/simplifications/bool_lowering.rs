@@ -12,7 +12,7 @@ impl AutoImplAnyTransformer for BoolReducer {}
 
 impl Transformer for BoolReducer {
     fn transform_implies(&self, implies: expr::Implies) -> TransformOutcome {
-        let (lhs, rhs) = implies.childs.into_children_pair();
+        let (lhs, rhs) = implies.children.into_children_pair();
         TransformOutcome::transformed(
             expr::Or::binary(expr::Not::new(lhs).unwrap(), rhs).unwrap()
         )

@@ -20,8 +20,8 @@ impl AutoImplAnyTransformer for EqualityJoiner {}
 
 /// Returns `true` if `lhs` and `rhs` share at least one same child expression.
 fn have_overlapping_children(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
-    let seen = lhs.childs().collect::<HashSet<_>>();
-    for child in rhs.childs() {
+    let seen = lhs.children().collect::<HashSet<_>>();
+    for child in rhs.children() {
         if seen.contains(child) {
             return true
         }
@@ -33,7 +33,7 @@ macro_rules! impl_join_equalities_for {
     ($eq_type:ident, $name:ident) => {
         fn $name(and: expr::And) -> TransformOutcome {
             // Separate equality expressions from the rest of the children.
-            let (mut eqs, mut rest): (Vec<_>, Vec<_>) = and.into_childs().partition_map(|c| {
+            let (mut eqs, mut rest): (Vec<_>, Vec<_>) = and.into_children().partition_map(|c| {
                 match c {
                     AnyExpr::$eq_type(eq) => Either::Left(eq),
                     other                 => Either::Right(other)
@@ -48,8 +48,8 @@ macro_rules! impl_join_equalities_for {
                 needs_update = false;
                 'outer: for eq in undecided_eqs.drain(..) {
                     for eq_group in &mut eqs {
-                        if eq.childs().any(|c| eq_group.childs.contains(c)) {
-                            eq_group.childs.extend(eq.into_childs());
+                        if eq.children().any(|c| eq_group.children.contains(c)) {
+                            eq_group.children.extend(eq.into_children());
                             needs_update = true;
                             continue 'outer;
                         }
@@ -73,14 +73,14 @@ impl_join_equalities_for!(BitvecEquals, join_bitvec_equalities);
 fn simplify_and(and: expr::And) -> TransformOutcome {
     // If there are two or more boolean equalities within this and expression
     // there might be possibilities to join them.
-    if and.childs().filter(|c| c.kind() == ExprKind::BoolEquals)
+    if and.children().filter(|c| c.kind() == ExprKind::BoolEquals)
                    .tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs))
     {
         return join_bool_equalities(and)
     }
     // If there are two or more bitvector equalities within this and expression
     // there might be possibilities to join them.
-    if and.childs().filter(|c| c.kind() == ExprKind::BitvecEquals)
+    if and.children().filter(|c| c.kind() == ExprKind::BitvecEquals)
                    .tuple_combinations().any(|(lhs, rhs)| have_overlapping_children(lhs, rhs))
     {
         return join_bitvec_equalities(and)
