@@ -2,14 +2,13 @@
 
 ## AST
 
-- Separate ModularASTTransformer clearly from RecursiveASTTraverser.
 - Add proper error management to the AST module building on top of the [failure](https://crates.io/crates/failure) crate.
 - Add an efficient recursive AST visitor and implement an AST typecheck based on it.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks. 
 
 ## Long term
 
-- Find and depend on decent library implementation similar to STP's `libabc` for and-inverter-graph (AIG) computation..
+- Find and depend on decent library implementation similar to STP's `libabc` for and-inverter-graph (AIG) computation.
 - Add SMTLib2.X serialization (printer) and deserialization (parser) support.
 - Implement `simple_type_check` method to naively check the children's type of a newly created expression for validity. This can be used by factory implementations that want to check for this addional safety guard. (Maybe this is not needed if we always create new child expressions with a type-checking factory!)
 
