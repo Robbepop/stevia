@@ -159,29 +159,29 @@ macro_rules! impl_expr_kinds {
             }
         }
 
-        impl Childs for AnyExpr {
-            fn childs(&self) -> ChildsIter {
+        impl Children for AnyExpr {
+            fn children(&self) -> ChildrenIter {
 				use self::AnyExpr::*;
 				match *self {
-					$($names(ref expr) => expr.childs()),*
+					$($names(ref expr) => expr.children()),*
                 }
             }
         }
 
-        impl ChildsMut for AnyExpr {
-            fn childs_mut(&mut self) -> ChildsIterMut {
+        impl ChildrenMut for AnyExpr {
+            fn children_mut(&mut self) -> ChildrenIterMut {
 				use self::AnyExpr::*;
 				match *self {
-					$($names(ref mut expr) => expr.childs_mut()),*
+					$($names(ref mut expr) => expr.children_mut()),*
                 }
             }
         }
 
-        impl IntoChilds for AnyExpr {
-            fn into_childs(self) -> IntoChildsIter {
+        impl IntoChildren for AnyExpr {
+            fn into_children(self) -> IntoChildrenIter {
 				use self::AnyExpr::*;
 				match self {
-					$($names(expr) => expr.into_childs()),*
+					$($names(expr) => expr.into_children()),*
                 }
             }
         }

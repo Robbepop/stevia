@@ -54,21 +54,21 @@ impl Extract {
     }
 }
 
-impl Childs for Extract {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::unary(&self.src)
+impl Children for Extract {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::unary(&self.src)
     }
 }
 
-impl ChildsMut for Extract {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::unary(&mut self.src)
+impl ChildrenMut for Extract {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::unary(&mut self.src)
     }
 }
 
-impl IntoChilds for Extract {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::unary(*self.src)
+impl IntoChildren for Extract {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::unary(*self.src)
     }
 }
 

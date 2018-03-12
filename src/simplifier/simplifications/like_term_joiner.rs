@@ -57,14 +57,14 @@ fn separate_const_from_mul(mul: expr::Mul) -> TransformOutcome {
         return TransformOutcome::identity(mul)
     }
     // Nothing to do for multiplications that do not have exactly a single constant value.
-    if mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1 {
+    if mul.children().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1 {
         return TransformOutcome::identity(mul)
     }
     // Pop the only constant value from the mul and create a wrapping binary
     // multiplication for the popped constant and the remaining multiplication.
     let mut mul = mul;
-    let const_val = mul.childs.swap_remove(
-        mul.childs().position(|c| c.kind() == ExprKind::BitvecConst).unwrap());
+    let const_val = mul.children.swap_remove(
+        mul.children().position(|c| c.kind() == ExprKind::BitvecConst).unwrap());
     let result = expr::Mul::binary(const_val, mul).unwrap();
     TransformOutcome::transformed(result)
 }
@@ -99,17 +99,17 @@ fn has_like_terms<'a>(add: &'a expr::Add) -> bool {
             seen_symbols.insert(expr);
         }
     };
-    for child in add.childs() {
+    for child in add.children() {
         match child {
             AnyExpr::Neg(neg) => update_seen(neg.single_child()),
             // TODO: Extend the entire algorithm to work for n-ary multiplication.
             //       For example: `(+ (* 2 x y) (* 4 x y))` is currently not allowed while
             //       it could be theoretically simplified to `(* 6 x y)`.
             AnyExpr::Mul(mul) if (mul.arity() == 2)
-                              && (mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() == 1) => {
-                let mut mul_childs = mul.childs();
-                let lhs = mul_childs.next().unwrap();
-                let rhs = mul_childs.next().unwrap();
+                              && (mul.children().filter(|c| c.kind() == ExprKind::BitvecConst).count() == 1) => {
+                let mut mul_children = mul.children();
+                let lhs = mul_children.next().unwrap();
+                let rhs = mul_children.next().unwrap();
                 match (lhs, rhs) {
                     (AnyExpr::BitvecConst(_), rhs) => update_seen(rhs),
                     (lhs, AnyExpr::BitvecConst(_)) => update_seen(lhs),
@@ -137,17 +137,17 @@ fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, ApInt> {
             }
         }
     };
-    for child in add.into_childs() {
+    for child in add.into_children() {
         match child {
             AnyExpr::Neg(neg) => update_seen(neg.into_single_child(), ApInt::all_set(raw_width)),
             AnyExpr::Mul(mul) => {
-                if (mul.arity() != 2) || (mul.childs().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1) {
+                if (mul.arity() != 2) || (mul.children().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1) {
                     update_seen(mul.into(), ApInt::one(raw_width));
                     continue;
                 }
-                let mut mul_childs = mul.into_childs();
-                let lhs = mul_childs.next().unwrap();
-                let rhs = mul_childs.next().unwrap();
+                let mut mul_children = mul.into_children();
+                let lhs = mul_children.next().unwrap();
+                let rhs = mul_children.next().unwrap();
                 match (lhs, rhs) {
                     (AnyExpr::BitvecConst(lhs), rhs) => update_seen(rhs, lhs.val.clone()),
                     (lhs, AnyExpr::BitvecConst(rhs)) => update_seen(lhs, rhs.val.clone()),

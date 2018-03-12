@@ -2,7 +2,7 @@ use ast::prelude::*;
 
 pub mod prelude {
     pub use super::{
-        BinExprChilds
+        BinExprChildren
     };
 }
 
@@ -13,26 +13,26 @@ pub mod prelude {
 /// All binary expressions should strive to use this utility to store their
 /// child expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct BinExprChilds {
+pub struct BinExprChildren {
     pub lhs: AnyExpr,
     pub rhs: AnyExpr
 }
 
-impl BinExprChilds {
-    /// Creates a new `BinExprChilds` for the given child expressions.
+impl BinExprChildren {
+    /// Creates a new `BinExprChildren` for the given child expressions.
     #[inline]
-    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> BinExprChilds {
-        BinExprChilds{lhs, rhs}
+    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> BinExprChildren {
+        BinExprChildren{lhs, rhs}
     }
 
-    /// Creates a new boxed (on heap) `BinExprChilds` for the given child expressions.
+    /// Creates a new boxed (on heap) `BinExprChildren` for the given child expressions.
     #[inline]
-    pub fn new_boxed(lhs: AnyExpr, rhs: AnyExpr) -> P<BinExprChilds> {
-        P::new(BinExprChilds::new(lhs, rhs))
+    pub fn new_boxed(lhs: AnyExpr, rhs: AnyExpr) -> P<BinExprChildren> {
+        P::new(BinExprChildren::new(lhs, rhs))
     }
 
     /// Swaps its left-hand side child with the right-hand side child.
-    pub fn swap_childs(&mut self) {
+    pub fn swap_children(&mut self) {
         use std::mem;
         mem::swap(&mut self.lhs, &mut self.rhs)
     }
@@ -45,33 +45,33 @@ impl BinExprChilds {
     }
 }
 
-impl Childs for BinExprChilds {
+impl Children for BinExprChildren {
     /// Returns an immutable iterator over the two child expressions.
     #[inline]
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::binary(&self.lhs, &self.rhs)
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::binary(&self.lhs, &self.rhs)
     }
 }
 
-impl ChildsMut for BinExprChilds {
+impl ChildrenMut for BinExprChildren {
     /// Returns an mutable iterator over the two child expressions.
     #[inline]
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::binary(&mut self.lhs, &mut self.rhs)
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::binary(&mut self.lhs, &mut self.rhs)
     }
 }
 
-impl IntoChilds for BinExprChilds {
-    /// Consumes this `BinExprChilds` and returns an iterator over its two child expressions.
+impl IntoChildren for BinExprChildren {
+    /// Consumes this `BinExprChildren` and returns an iterator over its two child expressions.
     /// 
     /// This may be used to transfer ownership of its child expressions.
     #[inline]
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::binary(self.lhs, self.rhs)
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::binary(self.lhs, self.rhs)
     }
 }
 
-impl HasArity for BinExprChilds {
+impl HasArity for BinExprChildren {
     #[inline]
     fn arity(&self) -> usize {
         2
