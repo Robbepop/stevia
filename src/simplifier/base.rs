@@ -57,8 +57,16 @@ impl<Transformer> BaseSimplifier<Transformer>
 mod tests {
     use super::*;
 
-    fn create_simplifier() -> Simplifier {
-        Simplifier::default()
+    modular_ast_transformer! {
+        struct TestableSimplifierTransformer {
+            _0: SimplifierTransformer,
+            _1: simplifications::Normalizer
+        }
+    }
+    type TestableSimplifier = BaseSimplifier<TestableSimplifierTransformer>;
+
+    fn create_simplifier() -> TestableSimplifier {
+        TestableSimplifier::default()
     }
 
     fn simplify(expr: &mut AnyExpr) -> TransformEffect {
