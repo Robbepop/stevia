@@ -675,9 +675,10 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    create_modular_ast_transformer! {
-        struct TermConstPropagatorTransformer;
-        (_0, TermConstPropagator)
+    modular_ast_transformer! {
+        struct TermConstPropagatorTransformer {
+            _0: TermConstPropagator
+        }
     }
     type TermConstPropagatorSimplifier = BaseSimplifier<TermConstPropagatorTransformer>;
 

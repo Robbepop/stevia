@@ -86,9 +86,10 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    create_modular_ast_transformer! {
-        struct InvolutionSimplifierTransformer;
-        (_0, InvolutionSimplifier)
+    modular_ast_transformer! {
+        struct InvolutionSimplifierTransformer {
+            _0: InvolutionSimplifier
+        }
     }
     type InvolutionSimplifierSimplifier = BaseSimplifier<InvolutionSimplifierTransformer>;
 

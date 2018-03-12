@@ -87,9 +87,10 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    create_modular_ast_transformer! {
-        struct ComparisonReducerTransformer;
-        (_0, ComparisonReducer)
+    modular_ast_transformer! {
+        struct ComparisonReducerTransformer {
+            _0: ComparisonReducer
+        }
     }
     type ComparisonReducerSimplifier = BaseSimplifier<ComparisonReducerTransformer>;
 

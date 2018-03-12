@@ -225,9 +225,10 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    create_modular_ast_transformer! {
-        struct NormalizerTransformer;
-        (_0, Normalizer)
+    modular_ast_transformer! {
+        struct NormalizerTransformer {
+            _0: Normalizer
+        }
     }
     type NormalizerSimplifier = BaseSimplifier<NormalizerTransformer>;
 

@@ -118,15 +118,15 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    create_modular_ast_transformer! {
-        struct BoolSymbolicTransformer;
-
-        (_1, BoolSymbolicSolver)
+    modular_ast_transformer! {
+        struct BoolSymbolicSolverTransformer {
+            _0: BoolSymbolicSolver
+        }
     }
-    type BoolSymbolicSimplifier = BaseSimplifier<BoolSymbolicTransformer>;
+    type BoolSymbolicSolverSimplifier = BaseSimplifier<BoolSymbolicSolverTransformer>;
 
-    fn create_simplifier() -> BoolSymbolicSimplifier {
-        BoolSymbolicSimplifier::default()
+    fn create_simplifier() -> BoolSymbolicSolverSimplifier {
+        BoolSymbolicSolverSimplifier::default()
     }
 
     fn simplify(expr: &mut AnyExpr) -> TransformEffect {

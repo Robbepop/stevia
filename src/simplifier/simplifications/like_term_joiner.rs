@@ -205,10 +205,11 @@ mod tests {
     use simplifier::prelude::*;
     use simplifier::simplifications;
 
-    create_modular_ast_transformer! {
-        struct LikeTermJoinerTransformer;
-        (_0, LikeTermJoiner),
-        (_1, simplifications::Normalizer) // For testing purposes only!
+    modular_ast_transformer! {
+        struct LikeTermJoinerTransformer {
+            _0: LikeTermJoiner,
+            _1: simplifications::Normalizer // For testing purposes only!
+        }
     }
     type LikeTermJoinerSimplifier = BaseSimplifier<LikeTermJoinerTransformer>;
 
