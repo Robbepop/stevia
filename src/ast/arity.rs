@@ -37,3 +37,32 @@ pub fn recursive_arity<T>(expr: &T) -> usize
 {
     expr.arity() + expr.childs().map(|c| recursive_arity(c)).sum::<usize>()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_recursive_arity() {
+        let b = PlainExprTreeBuilder::default();
+        let input = b.and_n(vec![
+            b.bool_var("a"),
+            b.not(
+                b.or_n(vec![
+                    b.bool_var("b"),
+                    b.bool_var("c"),
+                    b.not(
+                        b.bool_var("d")
+                    )
+                ])
+            ),
+            b.xor(
+                b.not(
+                    b.bool_var("d")
+                ),
+                b.bool_var("b")
+            )
+        ]).unwrap();
+        assert_eq!(recursive_arity(&input), 11)
+    }
+}
