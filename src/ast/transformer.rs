@@ -340,7 +340,6 @@ impl<T> TraverseTransformer<T>
         // Transform the current expression before all of its children.
         result |= self.transformer.transform_any_expr(expr);
         for child in expr.childs_mut() {
-            // result |= self.transformer.transform_any_expr(child);
             result |= self.traverse_transform(child);
         }
         // Transform the current expression again after all of its children.
