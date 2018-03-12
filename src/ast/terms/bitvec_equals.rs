@@ -22,9 +22,9 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BitvecEquals {
     /// The child expressions.
-    pub childs: Vec<AnyExpr>,
+    pub children: Vec<AnyExpr>,
     /// The common bit width of all child bitvec expressions.
-    pub childs_bitvec_ty: BitvecTy
+    pub children_bitvec_ty: BitvecTy
 }
 
 impl BitvecEquals {
@@ -42,14 +42,14 @@ impl BitvecEquals {
         let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs: vec![lhs, rhs] })
+        Ok(BitvecEquals{ children_bitvec_ty: bitvec_ty, children: vec![lhs, rhs] })
     }
 
     /// Returns a new binary `BitvecEquals` expression for the given two child expressions.
     /// 
     /// # Note
     /// 
-    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// Infers the concrete bitvector type of the resulting expression from its children.
     /// 
     /// # Errors
     /// 
@@ -61,7 +61,7 @@ impl BitvecEquals {
         let lhs = lhs.into();
         let rhs = rhs.into();
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(BitvecEquals{ childs_bitvec_ty: common_ty, childs: vec![lhs, rhs] })
+        Ok(BitvecEquals{ children_bitvec_ty: common_ty, children: vec![lhs, rhs] })
     }
 
     /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
@@ -73,14 +73,14 @@ impl BitvecEquals {
     pub fn nary_with_type<E>(bitvec_ty: BitvecTy, exprs: E) -> Result<BitvecEquals, String>
         where E: IntoIterator<Item=AnyExpr>
     {
-        let childs = Vec::from_iter(exprs);
-        if childs.len() < 2 {
+        let children = Vec::from_iter(exprs);
+        if children.len() < 2 {
             return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
         }
-        for child in &childs {
+        for child in &children {
             checks::expect_concrete_bitvec_ty(child, bitvec_ty)?;
         }
-        Ok(BitvecEquals{ childs_bitvec_ty: bitvec_ty, childs })
+        Ok(BitvecEquals{ children_bitvec_ty: bitvec_ty, children })
     }
 
     /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
@@ -94,12 +94,12 @@ impl BitvecEquals {
     pub fn nary<E>(exprs: E) -> Result<BitvecEquals, String>
         where E: IntoIterator<Item=AnyExpr>
     {
-        let childs = exprs.into_iter().collect::<Vec<_>>();
-        if childs.len() < 2 {
+        let children = exprs.into_iter().collect::<Vec<_>>();
+        if children.len() < 2 {
             return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
         }
-        let childs_bitvec_ty = checks::expect_common_bitvec_ty_n(&childs)?;
-        Ok(BitvecEquals{ childs_bitvec_ty, childs })
+        let children_bitvec_ty = checks::expect_common_bitvec_ty_n(&children)?;
+        Ok(BitvecEquals{ children_bitvec_ty, children })
     }
 }
 
@@ -117,7 +117,7 @@ impl HasKind for BitvecEquals {
 
 impl HasArity for BitvecEquals {
     fn arity(&self) -> usize {
-        self.childs.len()
+        self.children.len()
     }
 }
 
@@ -127,27 +127,27 @@ impl From<BitvecEquals> for AnyExpr {
     }
 }
 
-impl Childs for BitvecEquals {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::nary(&self.childs)
+impl Children for BitvecEquals {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::nary(&self.children)
     }
 }
 
-impl ChildsMut for BitvecEquals {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::nary(&mut self.childs)
+impl ChildrenMut for BitvecEquals {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::nary(&mut self.children)
     }
 }
 
-impl IntoChilds for BitvecEquals {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::nary(self.childs)
+impl IntoChildren for BitvecEquals {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::nary(self.children)
     }
 }
 
 impl DedupChildren for BitvecEquals {
     fn dedup_children(&mut self) {
-        self.childs.dedup()
+        self.children.dedup()
     }
 }
 
@@ -155,7 +155,7 @@ impl SortChildren for BitvecEquals {
     fn sort_children_by<F>(&mut self, comparator: F)
         where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering
     {
-        self.childs.sort_unstable_by(comparator)
+        self.children.sort_unstable_by(comparator)
     }
 }
 
@@ -163,6 +163,6 @@ impl RetainChildren for BitvecEquals {
     fn retain_children<P>(&mut self, predicate: P)
         where P: FnMut(&AnyExpr) -> bool
     {
-        self.childs.retain(predicate);
+        self.children.retain(predicate);
     }
 }

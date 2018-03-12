@@ -25,12 +25,12 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ComparisonExpr<M> {
     /// The two child term expressions.
-    pub childs: P<BinExprChilds>,
+    pub children: P<BinExprChildren>,
     /// The bit width of this expression.
     /// 
     /// All child expressions must respect this bit width.
     /// This is also used to verify integrity of the bit width.
-    pub childs_bitvec_ty: BitvecTy,
+    pub children_bitvec_ty: BitvecTy,
     /// Marker to differentiate bool expressions from each
     /// other using the type system.
     marker: PhantomData<M>
@@ -51,14 +51,14 @@ impl<M> ComparisonExpr<M> {
         let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(Self{ childs_bitvec_ty: bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs), marker: PhantomData })
+        Ok(Self{ children_bitvec_ty: bitvec_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 
     /// Returns a new comparison expression for the given two child expressions.
     /// 
     /// # Note
     /// 
-    /// Infers the concrete bitvector type of the resulting expression from its childs.
+    /// Infers the concrete bitvector type of the resulting expression from its children.
     /// 
     /// # Errors
     /// 
@@ -70,7 +70,7 @@ impl<M> ComparisonExpr<M> {
         let lhs = lhs.into();
         let rhs = rhs.into();
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(Self{ childs_bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs), marker: PhantomData })
+        Ok(Self{ children_bitvec_ty: common_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 
     /// Creates a new comparison expression from the given raw parts.
@@ -80,8 +80,8 @@ impl<M> ComparisonExpr<M> {
     /// This is unsafe since it does not check the type requirements for the given child expressions
     /// thus allowing users of this API to break invariants of this type which could ultimatively
     /// lead to undefined behaviour indirectly in code depending on those invariants.
-    pub unsafe fn new_unchecked(bitvec_ty: BitvecTy, childs: P<BinExprChilds>) -> Self {
-        Self{childs_bitvec_ty: bitvec_ty, childs, marker: PhantomData}
+    pub unsafe fn new_unchecked(bitvec_ty: BitvecTy, children: P<BinExprChildren>) -> Self {
+        Self{children_bitvec_ty: bitvec_ty, children, marker: PhantomData}
     }
 }
 
@@ -89,21 +89,21 @@ impl<M> BoolExpr for ComparisonExpr<M>
     where Self: Into<AnyExpr>
 {}
 
-impl<M> Childs for ComparisonExpr<M> {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl<M> Children for ComparisonExpr<M> {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl<M> ChildsMut for ComparisonExpr<M> {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl<M> ChildrenMut for ComparisonExpr<M> {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl<M> IntoChilds for ComparisonExpr<M> {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl<M> IntoChildren for ComparisonExpr<M> {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }
 

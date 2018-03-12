@@ -15,7 +15,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Concat {
     /// The two child term expressions.
-    pub childs: P<BinExprChilds>,
+    pub children: P<BinExprChildren>,
     /// The resulting bit width.
     /// 
     /// The purpose of this is to cache the bitwidth so that
@@ -45,26 +45,26 @@ impl Concat {
             lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
         Ok(Concat{
             bitvec_ty: concat_bvty,
-            childs: BinExprChilds::new_boxed(lhs, rhs)
+            children: BinExprChildren::new_boxed(lhs, rhs)
         })
     }
 }
 
-impl Childs for Concat {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl Children for Concat {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl ChildsMut for Concat {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl ChildrenMut for Concat {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl IntoChilds for Concat {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl IntoChildren for Concat {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }
 

@@ -39,21 +39,21 @@ impl BoolConst {
 
 impl BoolExpr for BoolConst {}
 
-impl Childs for BoolConst {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::none()
+impl Children for BoolConst {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::none()
     }
 }
 
-impl ChildsMut for BoolConst {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::none()
+impl ChildrenMut for BoolConst {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::none()
     }
 }
 
-impl IntoChilds for BoolConst {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::none()
+impl IntoChildren for BoolConst {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::none()
     }
 }
 

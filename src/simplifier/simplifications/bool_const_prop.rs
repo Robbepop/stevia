@@ -14,17 +14,17 @@ impl Transformer for BoolConstPropagator {
     fn transform_cond(&self, cond: expr::IfThenElse) -> TransformOutcome {
         // Reduce to then case if condition is constant true and else case
         // if condition is constant false.
-        if let Some(flag) = cond.childs.cond.get_if_bool_const() {
+        if let Some(flag) = cond.children.cond.get_if_bool_const() {
             if flag {
-                return TransformOutcome::transformed(cond.childs.then_case)
+                return TransformOutcome::transformed(cond.children.then_case)
             } else {
-                return TransformOutcome::transformed(cond.childs.else_case)
+                return TransformOutcome::transformed(cond.children.else_case)
             }
         }
-        let opt_then_const = cond.childs.then_case.get_if_bool_const();
-        let opt_else_const = cond.childs.else_case.get_if_bool_const();
+        let opt_then_const = cond.children.then_case.get_if_bool_const();
+        let opt_else_const = cond.children.else_case.get_if_bool_const();
         if let (Some(then_const), Some(else_const)) = (opt_then_const, opt_else_const) {
-            // If both childs are of the same value the conditional will always result in
+            // If both children are of the same value the conditional will always result in
             // the same value and can be reduced to exactly that.
             if then_const == else_const {
                 return TransformOutcome::transformed(expr::BoolConst::from(then_const))
@@ -32,26 +32,26 @@ impl Transformer for BoolConstPropagator {
             // If then and else are true and false respectively we can reduce the conditional
             // to its condition.
             if then_const && !else_const {
-                return TransformOutcome::transformed(cond.childs.cond)
+                return TransformOutcome::transformed(cond.children.cond)
             }
             // If then and else are false and true respectively we can reduce the conditional
             // to the negation of its condition.
             if !then_const && else_const {
                 return TransformOutcome::transformed(
-                    unsafe{ expr::Not::new_unchecked(cond.childs.cond) })
+                    unsafe{ expr::Not::new_unchecked(cond.children.cond) })
             }
         }
         if let (Some(then_const), None) = (opt_then_const, opt_else_const) {
             if then_const {
                 // If then is true return equisatisfiable or: `(ite c ⊤ e)` ➔ `(or c e)`
                 return TransformOutcome::transformed(
-                    unsafe{ expr::Or::binary_unchecked(cond.childs.cond, cond.childs.else_case) });
+                    unsafe{ expr::Or::binary_unchecked(cond.children.cond, cond.children.else_case) });
             }
             else {
                 // If then is false return equisatisfiable and: `(ite c ⊥ e)` ➔ `(and (not c) e)`
                 return TransformOutcome::transformed(
                     unsafe{ expr::And::binary_unchecked(
-                        expr::Not::new_unchecked(cond.childs.cond), cond.childs.else_case) });
+                        expr::Not::new_unchecked(cond.children.cond), cond.children.else_case) });
             }
         }
         if let (None, Some(else_const)) = (opt_then_const, opt_else_const) {
@@ -59,12 +59,12 @@ impl Transformer for BoolConstPropagator {
                 // If else is true return equisatisfiable and: `(ite c t ⊤)` ➔ `(or (not c) t)`
                 return TransformOutcome::transformed(
                     unsafe{ expr::Or::binary_unchecked(
-                        expr::Not::new_unchecked(cond.childs.cond), cond.childs.then_case) });
+                        expr::Not::new_unchecked(cond.children.cond), cond.children.then_case) });
             }
             else {
                 // If else is false return equisatisfiable or: `(ite c t ⊥)` ➔ `(and c t)`
                 return TransformOutcome::transformed(
-                    unsafe{ expr::And::binary_unchecked(cond.childs.cond, cond.childs.then_case) });
+                    unsafe{ expr::And::binary_unchecked(cond.children.cond, cond.children.then_case) });
             }
         }
         TransformOutcome::identity(cond)
@@ -74,14 +74,14 @@ impl Transformer for BoolConstPropagator {
         // Count number of constant true and false expressions in this boolean equality.
         let (mut n_true, mut n_false) = (0, 0);
         bool_equals
-            .childs()
+            .children()
             .filter_map(|c| c.get_if_bool_const())
             .for_each(|b| if b { n_true += 1 } else { n_false += 1 } );
-        // Return constant true if either all childs are constant true or false.
+        // Return constant true if either all children are constant true or false.
         if n_true == bool_equals.arity() || n_false == bool_equals.arity() {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
         }
-        // Return constant false if there are constant true and false childs.
+        // Return constant false if there are constant true and false children.
         if n_true > 0 && n_false > 0 {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
         }
@@ -90,18 +90,18 @@ impl Transformer for BoolConstPropagator {
 
     fn transform_and(&self, and: expr::And) -> TransformOutcome {
         // If any child expression is false this is false.
-        if and.childs().any(|c| c.is_bool_const(false)) {
+        if and.children().any(|c| c.is_bool_const(false)) {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
         }
         // If all child expressions are true this is true.
-        if and.childs().all(|c| c.is_bool_const(true)) {
+        if and.children().all(|c| c.is_bool_const(true)) {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
         }
         // Remove any constant true expression if existing.
         //
         // If there is only one child expression remaining we lower the
         // and expression to this single remaining child.
-        if and.childs().any(|c| c.is_bool_const(true)) {
+        if and.children().any(|c| c.is_bool_const(true)) {
             let mut and = and;
             and.retain_children(|c| !c.is_bool_const(true));
             // The former simplifications prevent situations where there
@@ -111,7 +111,7 @@ impl Transformer for BoolConstPropagator {
                 // Only a single child expression is left after removing
                 // all constant true expressions so we lower the and expression
                 // to its only remaining expression.
-                let only_child = and.into_childs().next().unwrap();
+                let only_child = and.into_children().next().unwrap();
                 return TransformOutcome::transformed(only_child);
             }
             return TransformOutcome::transformed(and);
@@ -121,18 +121,18 @@ impl Transformer for BoolConstPropagator {
 
     fn transform_or(&self, or: expr::Or) -> TransformOutcome {
         // If any child expression is true this is true.
-        if or.childs().any(|c| c.is_bool_const(true)) {
+        if or.children().any(|c| c.is_bool_const(true)) {
             return TransformOutcome::transformed(expr::BoolConst::from(true))
         }
         // If all child expressions are false this is false.
-        if or.childs().all(|c| c.is_bool_const(false)) {
+        if or.children().all(|c| c.is_bool_const(false)) {
             return TransformOutcome::transformed(expr::BoolConst::from(false))
         }
         // Remove any constant false expression if existing.
         //
         // If there is only one child expression remaining we lower the
         // and expression to this single remaining child.
-        if or.childs().any(|c| c.is_bool_const(false)) {
+        if or.children().any(|c| c.is_bool_const(false)) {
             let mut or = or;
             or.retain_children(|c| !c.is_bool_const(false));
             // The former simplifications prevent situations where there
@@ -142,7 +142,7 @@ impl Transformer for BoolConstPropagator {
                 // Only a single child expression is left after removing
                 // all constant false expressions so we lower the and expression
                 // to its only remaining expression.
-                let only_child = or.into_childs().next().unwrap();
+                let only_child = or.into_children().next().unwrap();
                 return TransformOutcome::transformed(only_child);
             }
             return TransformOutcome::transformed(or);
@@ -159,40 +159,40 @@ impl Transformer for BoolConstPropagator {
     }
 
     fn transform_xor(&self, xor: expr::Xor) -> TransformOutcome {
-        let lhs_opt_const = xor.childs.lhs.get_if_bool_const();
-        let rhs_opt_const = xor.childs.rhs.get_if_bool_const();
-        // This is true if both constant childs are not equal.
+        let lhs_opt_const = xor.children.lhs.get_if_bool_const();
+        let rhs_opt_const = xor.children.rhs.get_if_bool_const();
+        // This is true if both constant children are not equal.
         if let (Some(c1), Some(c2)) = (lhs_opt_const, rhs_opt_const) {
             return TransformOutcome::transformed(expr::BoolConst::from(c1 != c2))
         }
         if let Some(c1) = lhs_opt_const {
             // If the left-hand side is false this is equal to the right-hand side.
             if !c1 {
-                return TransformOutcome::transformed(xor.childs.rhs)
+                return TransformOutcome::transformed(xor.children.rhs)
             }
             // If the left-hand side is true this is equal to the negated right-hand side.
             else {
                 return TransformOutcome::transformed(
-                    unsafe{ expr::Not::new_unchecked(xor.childs.rhs) } )
+                    unsafe{ expr::Not::new_unchecked(xor.children.rhs) } )
             }
         }
         if let Some(c1) = rhs_opt_const {
             // If the right-hand side is false this is equal to the right-hand side.
             if !c1 {
-                return TransformOutcome::transformed(xor.childs.lhs)
+                return TransformOutcome::transformed(xor.children.lhs)
             }
             // If the right-hand side is true this is equal to the negated right-hand side.
             else {
                 return TransformOutcome::transformed(
-                    unsafe{ expr::Not::new_unchecked(xor.childs.lhs) } )
+                    unsafe{ expr::Not::new_unchecked(xor.children.lhs) } )
             }
         }
         TransformOutcome::identity(xor)
     }
 
     fn transform_implies(&self, implies: expr::Implies) -> TransformOutcome {
-        let lhs_opt_const = implies.childs.lhs.get_if_bool_const();
-        let rhs_opt_const = implies.childs.rhs.get_if_bool_const();
+        let lhs_opt_const = implies.children.lhs.get_if_bool_const();
+        let rhs_opt_const = implies.children.rhs.get_if_bool_const();
         // If both parameters are const, simply calculate the implication.
         if let (Some(c1), Some(c2)) = (lhs_opt_const, rhs_opt_const) {
             return TransformOutcome::transformed(expr::BoolConst::from((!c1) || c2))
@@ -204,7 +204,7 @@ impl Transformer for BoolConstPropagator {
             }
             // If the left-hand side is true this is equal to the right-hand side.
             else {
-                return TransformOutcome::transformed(implies.childs.rhs)
+                return TransformOutcome::transformed(implies.children.rhs)
             }
         }
         if let Some(c1) = rhs_opt_const {
@@ -215,7 +215,7 @@ impl Transformer for BoolConstPropagator {
             // If right-hand side is false this is equal to inverted left-hand side.
             else {
                 return TransformOutcome::transformed(
-                    unsafe{ expr::Not::new_unchecked(implies.childs.lhs) } )
+                    unsafe{ expr::Not::new_unchecked(implies.children.lhs) } )
             }
         }
         TransformOutcome::identity(implies)

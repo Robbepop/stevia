@@ -16,7 +16,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinBoolExpr<M> {
     /// The two child expressions.
-    pub childs: P<BinExprChilds>,
+    pub children: P<BinExprChildren>,
     /// Marker to differentiate bool expressions from each
     /// other using the type system.
     marker: PhantomData<M>
@@ -36,27 +36,27 @@ impl<M> BinBoolExpr<M> {
         let rhs = rhs.into();
         checks::expect_bool_ty(&lhs)?;
         checks::expect_bool_ty(&rhs)?;
-        Ok(Self{ childs: BinExprChilds::new_boxed(lhs, rhs), marker: PhantomData })
+        Ok(Self{ children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 }
 
 impl<M> BoolExpr for BinBoolExpr<M> where Self: Into<AnyExpr> {}
 
-impl<M> Childs for BinBoolExpr<M> {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl<M> Children for BinBoolExpr<M> {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl<M> ChildsMut for BinBoolExpr<M> {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl<M> ChildrenMut for BinBoolExpr<M> {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl<M> IntoChilds for BinBoolExpr<M> {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl<M> IntoChildren for BinBoolExpr<M> {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }
 

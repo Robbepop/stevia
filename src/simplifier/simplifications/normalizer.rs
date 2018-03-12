@@ -67,7 +67,7 @@ fn normalization_cmp(lhs: &AnyExpr, rhs: &AnyExpr) -> Ordering {
                 Ordering::Less    => Ordering::Less,
                 Ordering::Greater => Ordering::Greater,
                 Ordering::Equal   => {
-                    for (lchild, rchild) in lhs.childs().zip(rhs.childs()) {
+                    for (lchild, rchild) in lhs.children().zip(rhs.children()) {
                         match normalization_cmp(lchild, rchild) {
                             Ordering::Less    => return Ordering::Less,
                             Ordering::Greater => return Ordering::Greater,
@@ -92,10 +92,10 @@ enum NormalizeFlag {
     Success
 }
 
-fn is_sorted_norm<'c, C>(childs: C) -> bool
+fn is_sorted_norm<'c, C>(children: C) -> bool
     where C: IntoIterator<Item=&'c AnyExpr> + 'c
 {
-    childs.into_iter()
+    children.into_iter()
           .tuple_windows()
           .all(|(lhs, rhs)| {
               let order = normalization_cmp(lhs, rhs);
@@ -104,13 +104,13 @@ fn is_sorted_norm<'c, C>(childs: C) -> bool
 }
 
 fn establish_ordering<E>(expr: &mut E) -> NormalizeFlag
-    where E: Childs + SortChildren
+    where E: Children + SortChildren
 {
-    if is_sorted_norm(expr.childs()) {
+    if is_sorted_norm(expr.children()) {
         return NormalizeFlag::Idle
     }
     expr.sort_children_by(normalization_cmp);
-    // expr.childs_vec_mut()
+    // expr.children_vec_mut()
     //     .sort_unstable_by(normalization_cmp);
     NormalizeFlag::Success
 }
@@ -119,7 +119,7 @@ fn remove_duplicates<E>(expr: &mut E) -> NormalizeFlag
     where E: DedupChildren + HasArity
 {
     let arity_before = expr.arity();
-    // expr.childs_vec_mut().dedup();
+    // expr.children_vec_mut().dedup();
     expr.dedup_children();
     let arity_after = expr.arity();
     assert!(arity_after <= arity_before);
@@ -157,7 +157,7 @@ impl NormalizeOutcome {
 }
 
 fn into_normalize<E>(expr: E) -> NormalizeOutcome
-    where E: Childs + DedupChildren + SortChildren + HasArity + Into<AnyExpr>
+    where E: Children + DedupChildren + SortChildren + HasArity + Into<AnyExpr>
 {
     let mut expr = expr;
     let ordering = establish_ordering(&mut expr);
@@ -169,7 +169,7 @@ fn into_normalize<E>(expr: E) -> NormalizeOutcome
     match expr.arity() {
         0 => unreachable!(),
         1 => NormalizeOutcome::DedupToSingle(
-                expr.into().into_childs().next().unwrap()),
+                expr.into().into_children().next().unwrap()),
         _ => NormalizeOutcome::DedupToMany(expr.into())
     }
 }

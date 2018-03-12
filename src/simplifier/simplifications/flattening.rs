@@ -30,11 +30,11 @@ impl AutoImplAnyTransformer for Flattener {}
 macro_rules! flattening_impl_for {
     ($varname:ident: $typename:ident) => {{
         // Do nothing if there exists no child expression with equal kind.
-        if $varname.childs().all(|c| c.kind() != ExprKind::$typename) {
+        if $varname.children().all(|c| c.kind() != ExprKind::$typename) {
             return TransformOutcome::identity($varname);
         }
         // There exist at least one child that can be flattened.
-        let (sames, mut rest): (Vec<_>, Vec<_>) = $varname.into_childs().partition_map(|c| {
+        let (sames, mut rest): (Vec<_>, Vec<_>) = $varname.into_children().partition_map(|c| {
             match c {
                 AnyExpr::$typename(same) => Either::Left(same),
                 other                    => Either::Right(other)
@@ -42,7 +42,7 @@ macro_rules! flattening_impl_for {
         });
         assert!(sames.len() > 0);
         for same in sames {
-            rest.extend(same.into_childs());
+            rest.extend(same.into_children());
         }
         let result = expr::$typename::nary(rest).unwrap();
         TransformOutcome::transformed(result)
