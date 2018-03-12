@@ -52,3 +52,66 @@ impl<Transformer> BaseSimplifier<Transformer>
         while self.transformer.transform_any_expr(expr) == TransformEffect::Transformed {}
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_simplifier() -> Simplifier {
+        Simplifier::default()
+    }
+
+    fn simplify(expr: &mut AnyExpr) -> TransformEffect {
+        create_simplifier().simplify(expr)
+    }
+
+    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+        where E1: IntoAnyExprOrError,
+              E2: IntoAnyExprOrError
+    {
+        let mut input = input.into_any_expr_or_error().unwrap();
+        let expected = expected.into_any_expr_or_error().unwrap();
+        simplify(&mut input);
+        assert_eq!(input, expected);
+    }
+
+    fn new_builder() -> PlainExprTreeBuilder {
+        PlainExprTreeBuilder::default()
+    }
+
+    #[test]
+    fn integration_01() {
+        let b = new_builder();
+        assert_simplified(
+            b.bitvec_add_n(vec![
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 42_i32),
+                b.bitvec_sub(
+                    b.bitvec_var(BitvecTy::w32(), "x"),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ),
+                b.bitvec_mul(
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_neg(
+                        b.bitvec_const(BitvecTy::w32(), 5_i32)
+                    )
+                ),
+                b.bitvec_neg(
+                    b.bitvec_add_n(vec![
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_const(BitvecTy::w32(), 10_u32),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    ])
+                )
+            ]),
+            b.bitvec_add_n(vec![
+                b.bitvec_const(BitvecTy::w32(), 32_u32),
+                b.bitvec_mul(
+                    b.bitvec_const(BitvecTy::w32(), -7_i32),
+                    b.bitvec_var(BitvecTy::w32(), "y")
+                ),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            ])
+        )
+    }
+}
