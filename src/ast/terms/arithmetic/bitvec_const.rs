@@ -161,21 +161,21 @@ impl From<ApInt> for BitvecConst {
     }
 }
 
-impl Childs for BitvecConst {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::none()
+impl Children for BitvecConst {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::none()
     }
 }
 
-impl ChildsMut for BitvecConst {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::none()
+impl ChildrenMut for BitvecConst {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::none()
     }
 }
 
-impl IntoChilds for BitvecConst {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::none()
+impl IntoChildren for BitvecConst {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::none()
     }
 }
 

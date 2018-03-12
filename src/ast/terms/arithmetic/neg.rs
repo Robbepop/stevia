@@ -51,21 +51,21 @@ impl Neg {
     }
 }
 
-impl Childs for Neg {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::unary(&self.child)
+impl Children for Neg {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::unary(&self.child)
     }
 }
 
-impl ChildsMut for Neg {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::unary(&mut self.child)
+impl ChildrenMut for Neg {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::unary(&mut self.child)
     }
 }
 
-impl IntoChilds for Neg {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::unary(*self.child)
+impl IntoChildren for Neg {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::unary(*self.child)
     }
 }
 

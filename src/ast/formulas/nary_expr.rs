@@ -17,7 +17,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NaryBoolExpr<M> {
     /// The child formula expressions.
-    pub childs: Vec<AnyExpr>,
+    pub children: Vec<AnyExpr>,
     /// Marker to differentiate bool expressions from each
     /// other using the type system.
     marker: PhantomData<M>
@@ -30,7 +30,7 @@ impl<M> NaryBoolExpr<M> {
     /// 
     /// This is just a convenience method and performs no type checking on its arguments.
     fn from_vec(children: Vec<AnyExpr>) -> Self {
-        Self{ childs: children, marker: PhantomData }
+        Self{ children: children, marker: PhantomData }
     }
 
     /// Returns a new n-ary formula expression with the given child expressions.
@@ -81,17 +81,17 @@ impl<M> NaryBoolExpr<M> {
     /// 
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
-    pub fn nary<I>(childs: I) -> Result<Self, String>
+    pub fn nary<I>(children: I) -> Result<Self, String>
         where I: IntoIterator<Item = AnyExpr>
     {
-        let childs = childs.into_iter().collect::<Vec<_>>();
-        if childs.len() < 2 {
+        let children = children.into_iter().collect::<Vec<_>>();
+        if children.len() < 2 {
             return Err("Requires at least 2 child expressions to create an n-ary formula expression.".into())
         }
-        if childs.iter().any(|e| e.ty() != Type::Bool) {
+        if children.iter().any(|e| e.ty() != Type::Bool) {
             return Err("Requires all child expressions to be of boolean type.".into())
         }
-        Ok(Self::from_vec(childs))
+        Ok(Self::from_vec(children))
     }
 }
 
@@ -99,21 +99,21 @@ impl<M> BoolExpr for NaryBoolExpr<M>
     where Self: Into<AnyExpr>
 {}
 
-impl<M> Childs for NaryBoolExpr<M> {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::nary(&self.childs)
+impl<M> Children for NaryBoolExpr<M> {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::nary(&self.children)
     }
 }
 
-impl<M> ChildsMut for NaryBoolExpr<M> {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::nary(&mut self.childs)
+impl<M> ChildrenMut for NaryBoolExpr<M> {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::nary(&mut self.children)
     }
 }
 
-impl<M> IntoChilds for NaryBoolExpr<M> {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::nary(self.childs)
+impl<M> IntoChildren for NaryBoolExpr<M> {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::nary(self.children)
     }
 }
 
@@ -133,13 +133,13 @@ impl<M> HasKind for NaryBoolExpr<M>
 
 impl<M> HasArity for NaryBoolExpr<M> {
     fn arity(&self) -> usize {
-        self.childs.len()
+        self.children.len()
     }
 }
 
 impl<M> DedupChildren for NaryBoolExpr<M> {
     fn dedup_children(&mut self) {
-        self.childs.dedup()
+        self.children.dedup()
     }
 }
 
@@ -147,7 +147,7 @@ impl<M> SortChildren for NaryBoolExpr<M> {
     fn sort_children_by<F>(&mut self, comparator: F)
         where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering
     {
-        self.childs.sort_unstable_by(comparator)
+        self.children.sort_unstable_by(comparator)
     }
 }
 
@@ -155,6 +155,6 @@ impl<M> RetainChildren for NaryBoolExpr<M> {
     fn retain_children<P>(&mut self, predicate: P)
         where P: FnMut(&AnyExpr) -> bool
     {
-        self.childs.retain(predicate);
+        self.children.retain(predicate);
     }
 }

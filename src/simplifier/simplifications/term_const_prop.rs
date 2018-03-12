@@ -27,9 +27,9 @@ fn simplify_neg(neg: expr::Neg) -> TransformOutcome {
 fn simplify_bitvec_equals(equals: expr::BitvecEquals) -> TransformOutcome {
     // If there exist at least two constant child expressions we can compare
     // them in order to either merge them or simplify the entire equality to false.
-    if equals.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+    if equals.children().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
         // Split const and non-const child expressions.
-        let (mut consts, mut rest): (Vec<_>, Vec<_>) = equals.into_childs().partition_map(|c| {
+        let (mut consts, mut rest): (Vec<_>, Vec<_>) = equals.into_children().partition_map(|c| {
             match c {
                 AnyExpr::BitvecConst(c) => Either::Left(c.val),
                 other                   => Either::Right(other)
@@ -74,19 +74,19 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
     let mut add = add;
     // Remove all zeros from this add as their are the additive neutral element and have
     // no effect besides wasting memory.
-    if add.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+    if add.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
         add.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_zero()));
         match add.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::zero(add.bitvec_ty)),
-            1 => return TransformOutcome::transformed(add.into_childs().next().unwrap()),
+            1 => return TransformOutcome::transformed(add.into_children().next().unwrap()),
             _ => ()
         }
     }
     // If there exist at least two constant child expressions within this and expression
     // we can evaluate their sum and replace the constant child expressions with it.
-    if add.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+    if add.children().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
         // Split const and non-const child expressions.
-        let (consts, mut rest): (Vec<_>, Vec<_>) = add.into_childs().partition_map(|c| {
+        let (consts, mut rest): (Vec<_>, Vec<_>) = add.into_children().partition_map(|c| {
             match c {
                 AnyExpr::BitvecConst(c) => Either::Left(c.val),
                 other                   => Either::Right(other)
@@ -114,23 +114,23 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
 fn simplify_sub(sub: expr::Sub) -> TransformOutcome {
     // If both child expressions are const bitvectors we can simplify this to
     // the result of their subtraction.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = sub.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = sub.children {
         let result_udiv = lhs.val.into_checked_sub(&rhs.val).unwrap();
         return TransformOutcome::transformed(expr::BitvecConst::from(result_udiv))
     }
     // If the left-hand side is constant zero we can simplify this subtraction
     // to the negated right-hand side.
-    if let Some(lval) = sub.childs.lhs.get_if_bitvec_const() {
+    if let Some(lval) = sub.children.lhs.get_if_bitvec_const() {
         if lval.is_zero() {
-            let negated_rhs = expr::Neg::new(sub.childs.rhs).unwrap();
+            let negated_rhs = expr::Neg::new(sub.children.rhs).unwrap();
             return TransformOutcome::transformed(negated_rhs)
         }
     }
     // If the right-hand side is constant zero we can simplify this subtraction
     // to the left-hand side.
-    if let Some(rval) = sub.childs.rhs.get_if_bitvec_const() {
+    if let Some(rval) = sub.children.rhs.get_if_bitvec_const() {
         if rval.is_zero() {
-            return TransformOutcome::transformed(sub.childs.lhs)
+            return TransformOutcome::transformed(sub.children.lhs)
         }
     }
     TransformOutcome::identity(sub)
@@ -138,26 +138,26 @@ fn simplify_sub(sub: expr::Sub) -> TransformOutcome {
 
 fn simplify_mul(mul: expr::Mul) -> TransformOutcome {
     // If there exist a const zero child expression the entire multiplication is zero.
-    if mul.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+    if mul.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
         return TransformOutcome::transformed(expr::BitvecConst::zero(mul.bitvec_ty))
     }
     // We need to mutate mul perhaps.
     let mut mul = mul;
     // Remove all ones from this mul as they are the multiplicative neutral element and have
     // no effect besides wasting memory.
-    if mul.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_one()).count() > 0 {
+    if mul.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_one()).count() > 0 {
         mul.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_one()));
         match mul.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::one(mul.bitvec_ty)),
-            1 => return TransformOutcome::transformed(mul.into_childs().next().unwrap()),
+            1 => return TransformOutcome::transformed(mul.into_children().next().unwrap()),
             _ => ()
         }
     }
     // If there exist at least two constant child expressions within this and expression
     // we can evaluate their product and replace the constant child expressions with it.
-    if mul.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+    if mul.children().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
         // Split const and non-const child expressions.
-        let (consts, mut rest): (Vec<_>, Vec<_>) = mul.into_childs().partition_map(|c| {
+        let (consts, mut rest): (Vec<_>, Vec<_>) = mul.into_children().partition_map(|c| {
             match c {
                 AnyExpr::BitvecConst(c) => Either::Left(c.val),
                 other                   => Either::Right(other)
@@ -186,27 +186,27 @@ macro_rules! transform_div_impl {
     ($varname:ident, $into_checked:ident) => {{
         // If both child expressions are constant bitvectors we can evaluate the division
         // and replace this division expression by the result.
-        if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.childs {
+        if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.children {
             let result = lhs.val.$into_checked(&rhs.val).unwrap();
             return TransformOutcome::transformed(expr::BitvecConst::from(result))
         }
-        if let Some(rhs) = $varname.childs.rhs.get_if_bitvec_const() {
+        if let Some(rhs) = $varname.children.rhs.get_if_bitvec_const() {
             // Encountered a division by zero. Stevia simply returns the left-hand side in this case.
             if rhs.is_zero() {
                 warn!("Encountered a division by zero with: {:?}. \
                        Stevia simply returns the left-hand side in this case.", $varname);
-                return TransformOutcome::transformed($varname.childs.lhs)
+                return TransformOutcome::transformed($varname.children.lhs)
             }
             // Division by one can be replace by the left-hand side expression.
             if rhs.is_one() {
-                return TransformOutcome::transformed($varname.childs.lhs)
+                return TransformOutcome::transformed($varname.children.lhs)
             }
         }
         // If the left-hand side is zero the entire division can only result to zero.
-        if let Some(lhs) = $varname.childs.lhs.get_if_bitvec_const() {
+        if let Some(lhs) = $varname.children.lhs.get_if_bitvec_const() {
             // Since the left-hand side is already a zero constant we can simply take it.
             if lhs.is_zero() {
-                return TransformOutcome::transformed($varname.childs.lhs)
+                return TransformOutcome::transformed($varname.children.lhs)
             }
         }
         TransformOutcome::identity($varname)
@@ -225,16 +225,16 @@ macro_rules! transform_rem_impl {
     ($varname:ident, $into_checked:ident) => {{
         // If both child expressions are constant bitvectors we can evaluate the remainder
         // and replace this remainder expression by the result.
-        if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.childs {
+        if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.children {
             let result = lhs.val.$into_checked(&rhs.val).unwrap();
             return TransformOutcome::transformed(expr::BitvecConst::from(result))
         }
-        if let Some(rhs) = $varname.childs.rhs.get_if_bitvec_const() {
+        if let Some(rhs) = $varname.children.rhs.get_if_bitvec_const() {
             // Encountered a division (remainder) by zero. Stevia simply returns the left-hand side in this case.
             if rhs.is_zero() {
                 warn!("Encountered a division (remainder) by zero with: {:?}. \
                        Stevia simply returns the left-hand side in this case.", $varname);
-                return TransformOutcome::transformed($varname.childs.lhs)
+                return TransformOutcome::transformed($varname.children.lhs)
             }
             // Remainder of one can be replaced by constant zero.
             if rhs.is_one() {
@@ -242,10 +242,10 @@ macro_rules! transform_rem_impl {
             }
         }
         // If the left-hand side is zero the entire division can only result to zero.
-        if let Some(lhs) = $varname.childs.lhs.get_if_bitvec_const() {
+        if let Some(lhs) = $varname.children.lhs.get_if_bitvec_const() {
             // Since the left-hand side is already a zero constant we can simply take it.
             if lhs.is_zero() {
-                return TransformOutcome::transformed($varname.childs.lhs)
+                return TransformOutcome::transformed($varname.children.lhs)
             }
         }
         TransformOutcome::identity($varname)
@@ -262,26 +262,26 @@ fn simplify_srem(srem: expr::SignedRemainder) -> TransformOutcome {
 
 fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
     // If there exist a const zero child expression the entire bit-and is zero.
-    if bitand.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+    if bitand.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
         return TransformOutcome::transformed(expr::BitvecConst::zero(bitand.bitvec_ty))
     }
     // We need to mutate bitand perhaps.
     let mut bitand = bitand;
     // Remove all const bitvector child expressions that have all their bits set from this bit-and
     // as they are the bit-and neutral element and have no effect besides wasting memory.
-    if bitand.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
+    if bitand.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
         bitand.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_all_set()));
         match bitand.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::all_set(bitand.bitvec_ty)),
-            1 => return TransformOutcome::transformed(bitand.into_childs().next().unwrap()),
+            1 => return TransformOutcome::transformed(bitand.into_children().next().unwrap()),
             _ => ()
         }
     }
     // If there exist at least two constant child expressions within this bit-and expression
     // we can evaluate their bit-and result and replace the constant child expressions with it.
-    if bitand.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+    if bitand.children().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
         // Split const and non-const child expressions.
-        let (consts, mut rest): (Vec<_>, Vec<_>) = bitand.into_childs().partition_map(|c| {
+        let (consts, mut rest): (Vec<_>, Vec<_>) = bitand.into_children().partition_map(|c| {
             match c {
                 AnyExpr::BitvecConst(c) => Either::Left(c.val),
                 other                   => Either::Right(other)
@@ -308,26 +308,26 @@ fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
 
 fn simplify_bitor(bitor: expr::BitOr) -> TransformOutcome {
     // If there exist a const all-set child expression the entire bit-or is all-set.
-    if bitor.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
+    if bitor.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
         return TransformOutcome::transformed(expr::BitvecConst::all_set(bitor.bitvec_ty))
     }
     // We need to mutate bitor perhaps.
     let mut bitor = bitor;
     // Remove all const bitvector child expressions that have all their bits unset from this bit-or
     // as they are the bit-or neutral element and have no effect besides wasting memory.
-    if bitor.childs().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_unset()).count() > 0 {
+    if bitor.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_unset()).count() > 0 {
         bitor.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_all_unset()));
         match bitor.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::all_set(bitor.bitvec_ty)),
-            1 => return TransformOutcome::transformed(bitor.into_childs().next().unwrap()),
+            1 => return TransformOutcome::transformed(bitor.into_children().next().unwrap()),
             _ => ()
         }
     }
     // If there exist at least two constant child expressions within this bit-or expression
     // we can evaluate their bit-or result and replace the constant child expressions with it.
-    if bitor.childs().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
+    if bitor.children().filter(|c| c.get_if_bitvec_const().is_some()).count() >= 2 {
         // Split const and non-const child expressions.
-        let (consts, mut rest): (Vec<_>, Vec<_>) = bitor.into_childs().partition_map(|c| {
+        let (consts, mut rest): (Vec<_>, Vec<_>) = bitor.into_children().partition_map(|c| {
             match c {
                 AnyExpr::BitvecConst(c) => Either::Left(c.val),
                 other                   => Either::Right(other)
@@ -354,33 +354,33 @@ fn simplify_bitor(bitor: expr::BitOr) -> TransformOutcome {
 
 fn simplify_bitxor(bitxor: expr::BitXor) -> TransformOutcome {
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = bitxor.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = bitxor.children {
         let result = lhs.val.into_checked_bitxor(&rhs.val).unwrap();
         return TransformOutcome::transformed(expr::BitvecConst::from(result))
     }
-    if let Some(lval) = bitxor.childs.lhs.get_if_bitvec_const() {
+    if let Some(lval) = bitxor.children.lhs.get_if_bitvec_const() {
         // If the left-hand side is constant zero we can simplify this bit-xor
         // to the right-hand side.
         if lval.is_zero() {
-            return TransformOutcome::transformed(bitxor.childs.rhs)
+            return TransformOutcome::transformed(bitxor.children.rhs)
         }
         // If the left-hand side is constant all-set we can simplify this bit-xor
         // to the negated right-hand side.
         if lval.is_all_set() {
-            let negated_rhs = expr::BitNot::new(bitxor.childs.rhs).unwrap();
+            let negated_rhs = expr::BitNot::new(bitxor.children.rhs).unwrap();
             return TransformOutcome::transformed(negated_rhs)
         }
     }
-    if let Some(rval) = bitxor.childs.rhs.get_if_bitvec_const() {
+    if let Some(rval) = bitxor.children.rhs.get_if_bitvec_const() {
         // If the right-hand side is constant zero we can simplify this bit-xor
         // to the left-hand side.
         if rval.is_zero() {
-            return TransformOutcome::transformed(bitxor.childs.lhs)
+            return TransformOutcome::transformed(bitxor.children.lhs)
         }
         // If the right-hand side is constant all-set we can simplify this bit-xor
         // to the negated left-hand side.
         if rval.is_all_set() {
-            let negated_rhs = expr::BitNot::new(bitxor.childs.lhs).unwrap();
+            let negated_rhs = expr::BitNot::new(bitxor.children.lhs).unwrap();
             return TransformOutcome::transformed(negated_rhs)
         }
     }
@@ -389,16 +389,16 @@ fn simplify_bitxor(bitxor: expr::BitXor) -> TransformOutcome {
 
 fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
     // If the left-hand side is constant zero the entire shift-left evaluates to zero.
-    if let Some(lval) = shl.childs.lhs.get_if_bitvec_const() {
+    if let Some(lval) = shl.children.lhs.get_if_bitvec_const() {
         if lval.is_zero() {
             return TransformOutcome::transformed(expr::BitvecConst::zero(lval.width().into()))
         }
     }
     // If the right-hand side is constant zero the entire shift-left evaluates to the left-hand side.
-    if let Some(rval) = shl.childs.rhs.get_if_bitvec_const() {
+    if let Some(rval) = shl.children.rhs.get_if_bitvec_const() {
         let width = shl.bitvec_ty.width();
         if rval.is_zero() {
-            return TransformOutcome::transformed(shl.childs.lhs)
+            return TransformOutcome::transformed(shl.children.lhs)
         }
         match rval.try_to_u32() {
             Err(_) => {
@@ -418,7 +418,7 @@ fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = shl.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = shl.children {
         let rval = rhs.val.try_to_u32().unwrap();
         let shamt = ShiftAmount::from(rval as usize);
         let result = lhs.val.into_checked_shl(shamt).unwrap();
@@ -429,16 +429,16 @@ fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
 
 fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
     // If the left-hand side is constant zero the entire shift-right evaluates to zero.
-    if let Some(lval) = lshr.childs.lhs.get_if_bitvec_const() {
+    if let Some(lval) = lshr.children.lhs.get_if_bitvec_const() {
         if lval.is_zero() {
             return TransformOutcome::transformed(expr::BitvecConst::zero(lval.width().into()))
         }
     }
-    if let Some(rval) = lshr.childs.rhs.get_if_bitvec_const() {
+    if let Some(rval) = lshr.children.rhs.get_if_bitvec_const() {
         let width = lshr.bitvec_ty.width();
         // If the right-hand side is constant zero the entire shift-left evaluates to the left-hand side.
         if rval.is_zero() {
-            return TransformOutcome::transformed(lshr.childs.lhs)
+            return TransformOutcome::transformed(lshr.children.lhs)
         }
         // If the right-hand side represents an invalid shift amount the result is zero.
         match rval.try_to_u32() {
@@ -459,7 +459,7 @@ fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = lshr.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = lshr.children {
         let rval = rhs.val.try_to_u32().unwrap();
         let shamt = ShiftAmount::from(rval as usize);
         let result = lhs.val.into_checked_lshr(shamt).unwrap();
@@ -469,7 +469,7 @@ fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
 }
 
 fn simplify_ashr(ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
-    if let Some(lval) = ashr.childs.lhs.get_if_bitvec_const() {
+    if let Some(lval) = ashr.children.lhs.get_if_bitvec_const() {
         // If the left-hand side is constant zero the entire shift-right evaluates to zero.
         if lval.is_zero() {
             return TransformOutcome::transformed(expr::BitvecConst::zero(lval.width().into()))
@@ -480,14 +480,14 @@ fn simplify_ashr(ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
             return TransformOutcome::transformed(expr::BitvecConst::all_set(lval.width().into()))
         }
     }
-    if let Some(rval) = ashr.childs.rhs.get_if_bitvec_const() {
+    if let Some(rval) = ashr.children.rhs.get_if_bitvec_const() {
         // If the right-hand side is constant zero the entire arithmetical shift-left evaluates to the left-hand side.
         if rval.is_zero() {
-            return TransformOutcome::transformed(ashr.childs.lhs)
+            return TransformOutcome::transformed(ashr.children.lhs)
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ashr.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ashr.children {
         let rval = rhs.val.try_to_u32().unwrap();
         let shamt = ShiftAmount::from(rval as usize);
         let result = lhs.val.into_checked_ashr(shamt).unwrap();
@@ -498,7 +498,7 @@ fn simplify_ashr(ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
 
 fn simplify_slt(slt: expr::SignedLessThan) -> TransformOutcome {
     // If both child expressions are constant we can compute the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = slt.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = slt.children {
         let result = lhs.val.checked_slt(&rhs.val).unwrap();
         return TransformOutcome::transformed(expr::BoolConst::from(result))
     }
@@ -507,7 +507,7 @@ fn simplify_slt(slt: expr::SignedLessThan) -> TransformOutcome {
 
 fn simplify_ult(ult: expr::UnsignedLessThan) -> TransformOutcome {
     // If both child expressions are constant we can compute the result.
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ult.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ult.children {
         let result = lhs.val.checked_ult(&rhs.val).unwrap();
         return TransformOutcome::transformed(expr::BoolConst::from(result))
     }
@@ -545,15 +545,15 @@ fn simplify_sext(sext: expr::SignExtend) -> TransformOutcome {
 fn simplify_concat(concat: expr::Concat) -> TransformOutcome {
     // If the left-hand side is constant zero we can transform this concatenation expression
     // into an equisatisfiable zero-extend expression with the same target bit width.
-    if let Some(c) = concat.childs.lhs.get_if_bitvec_const() {
+    if let Some(c) = concat.children.lhs.get_if_bitvec_const() {
         if c.is_zero() {
             return TransformOutcome::transformed(
-                expr::ZeroExtend::new(concat.bitvec_ty.width(), concat.childs.rhs).unwrap())
+                expr::ZeroExtend::new(concat.bitvec_ty.width(), concat.children.rhs).unwrap())
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
     let target_width = concat.bitvec_ty.width();
-    if let box BinExprChilds{ lhs: AnyExpr::BitvecConst(mut lhs), rhs: AnyExpr::BitvecConst(mut rhs) } = concat.childs {
+    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(mut lhs), rhs: AnyExpr::BitvecConst(mut rhs) } = concat.children {
         lhs.val.zero_extend(target_width.raw_width()).unwrap();
         rhs.val.zero_extend(target_width.raw_width()).unwrap();
         let shamt = ShiftAmount::from(rhs.bitvec_ty.width().to_usize());

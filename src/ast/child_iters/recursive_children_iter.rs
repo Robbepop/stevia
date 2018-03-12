@@ -4,10 +4,10 @@ pub mod prelude {
     pub use super::{
         YieldEvent,
         AnyExprAndEvent,
-        RecursiveChildsIter,
-        childs_recursive_with_event,
-        childs_recursive_entering,
-        childs_recursive_leaving
+        RecursiveChildrenIter,
+        children_recursive_with_event,
+        children_recursive_entering,
+        children_recursive_leaving
     };
 }
 
@@ -17,17 +17,17 @@ pub mod prelude {
 /// # Note
 /// 
 /// - This iterates twice over all expression. Once for entering and once for leaving.
-pub fn childs_recursive_with_event(expr: &AnyExpr) -> RecursiveChildsIter {
-    RecursiveChildsIter::new(expr)
+pub fn children_recursive_with_event(expr: &AnyExpr) -> RecursiveChildrenIter {
+    RecursiveChildrenIter::new(expr)
 }
 
 /// Iterate recursively over the given `AnyExpr` and all of its child expressions.
 /// 
 /// # Note
 /// 
-/// - Yields parent expressions before their childs.
-pub fn childs_recursive_entering(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> {
-    childs_recursive_with_event(expr)
+/// - Yields parent expressions before their children.
+pub fn children_recursive_entering(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> {
+    children_recursive_with_event(expr)
         .filter_map(|expr_and_event| match expr_and_event.event {
             YieldEvent::Entering => Some(expr_and_event.expr),
             YieldEvent::Leaving  => None
@@ -38,9 +38,9 @@ pub fn childs_recursive_entering(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr>
 /// 
 /// # Note
 /// 
-/// - Yields parent expressions after their childs.
-pub fn childs_recursive_leaving(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> {
-    childs_recursive_with_event(expr)
+/// - Yields parent expressions after their children.
+pub fn children_recursive_leaving(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> {
+    children_recursive_with_event(expr)
         .filter_map(|expr_and_event| match expr_and_event.event {
             YieldEvent::Leaving  => Some(expr_and_event.expr),
             YieldEvent::Entering => None
@@ -48,25 +48,25 @@ pub fn childs_recursive_leaving(expr: &AnyExpr) -> impl Iterator<Item=&AnyExpr> 
 }
 
 /// States if a yielded expression in the recursive iteration
-/// is entering scope (childs are not yet yielded) or leaving scope
-/// (childs have been yielded).
+/// is entering scope (children are not yet yielded) or leaving scope
+/// (children have been yielded).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum YieldEvent {
     /// States that the expression was just entered.
     /// 
-    /// At this point none of the expression's childs have
+    /// At this point none of the expression's children have
     /// been yielded by the iterator.
     Entering,
     /// States that the expression was just left.
     /// 
-    /// At this point all of the expression's childs have
+    /// At this point all of the expression's children have
     /// been yielded by the iterator.
     Leaving
 }
 
 /// Iterates over all expressions of an AST recursively.
 #[derive(Debug, Clone)]
-pub struct RecursiveChildsIter<'it> {
+pub struct RecursiveChildrenIter<'it> {
     path: Vec<AnyExprAndEvent<'it>>
 }
 
@@ -93,18 +93,18 @@ impl<'it> AnyExprAndEvent<'it> {
     }
 }
 
-impl<'it> RecursiveChildsIter<'it> {
-    /// Returns a new `RecursiveChildsIter` for the given child iterable.
+impl<'it> RecursiveChildrenIter<'it> {
+    /// Returns a new `RecursiveChildrenIter` for the given child iterable.
     /// 
     /// This iterator iterates over all expressions (inclusive the given expression)
     /// recursively. Every expression is yielded twice, once with an entering event
     /// and once with a leaving event.
-    pub fn new(expr: &AnyExpr) -> RecursiveChildsIter {
-        RecursiveChildsIter{ path: vec![AnyExprAndEvent::entering(expr)] }
+    pub fn new(expr: &AnyExpr) -> RecursiveChildrenIter {
+        RecursiveChildrenIter{ path: vec![AnyExprAndEvent::entering(expr)] }
     }
 }
 
-impl<'it> Iterator for RecursiveChildsIter<'it> {
+impl<'it> Iterator for RecursiveChildrenIter<'it> {
     type Item = AnyExprAndEvent<'it>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -114,7 +114,7 @@ impl<'it> Iterator for RecursiveChildsIter<'it> {
                 YieldEvent::Leaving => Some(item),
                 YieldEvent::Entering => {
                     self.path.push(AnyExprAndEvent::leaving(item.expr));
-                    for child in item.expr.childs().rev() {
+                    for child in item.expr.children().rev() {
                         self.path.push(AnyExprAndEvent::entering(child));
                     }
                     Some(AnyExprAndEvent::entering(item.expr))
@@ -147,7 +147,7 @@ mod tests {
 
         let b = PlainExprTreeBuilder::default();
         let expr = create_ast().unwrap();
-        let mut rec_iter = childs_recursive_with_event(&expr);
+        let mut rec_iter = children_recursive_with_event(&expr);
 
         assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&create_ast().unwrap())));
         assert_eq!(rec_iter.next(),

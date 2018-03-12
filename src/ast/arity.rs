@@ -24,18 +24,18 @@ pub trait HasArity {
 
     /// Returns `true` if `self` has child expressions.
     #[inline]
-    fn has_childs(&self) -> bool {
+    fn has_children(&self) -> bool {
         self.arity() > 0
     }
 }
 
-/// Returns the accumulated arity of the given entity and all of its childs recursively.
+/// Returns the accumulated arity of the given entity and all of its children recursively.
 /// 
 /// This is used to identify complex expressions with many recursive child expressions.
 pub fn recursive_arity<T>(expr: &T) -> usize
-    where T: HasArity + Childs
+    where T: HasArity + Children
 {
-    expr.arity() + expr.childs().map(|c| recursive_arity(c)).sum::<usize>()
+    expr.arity() + expr.children().map(|c| recursive_arity(c)).sum::<usize>()
 }
 
 #[cfg(test)]

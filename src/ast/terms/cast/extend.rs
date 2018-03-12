@@ -51,21 +51,21 @@ impl<M> ExtendExpr<M> {
     }
 }
 
-impl<M> Childs for ExtendExpr<M> {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::unary(&self.src)
+impl<M> Children for ExtendExpr<M> {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::unary(&self.src)
     }
 }
 
-impl<M> ChildsMut for ExtendExpr<M> {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::unary(&mut self.src)
+impl<M> ChildrenMut for ExtendExpr<M> {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::unary(&mut self.src)
     }
 }
 
-impl<M> IntoChilds for ExtendExpr<M> {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::unary(*self.src)
+impl<M> IntoChildren for ExtendExpr<M> {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::unary(*self.src)
     }
 }
 

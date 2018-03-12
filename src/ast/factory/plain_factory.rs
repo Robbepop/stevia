@@ -53,16 +53,16 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::And::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::And::nary(childs).map(AnyExpr::from)
+    fn and_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::And::nary(children).map(AnyExpr::from)
 	}
 
     fn bool_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
 		expr::BoolEquals::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bool_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::BoolEquals::nary(childs).map(AnyExpr::from)
+    fn bool_equals_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::BoolEquals::nary(children).map(AnyExpr::from)
 	}
 
     fn implies(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -77,8 +77,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Or::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::Or::nary(childs).map(AnyExpr::from)
+    fn or_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::Or::nary(children).map(AnyExpr::from)
 	}
 
     fn xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -97,8 +97,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::BitvecEquals::binary(lhs, rhs).map(AnyExpr::from)
     }
 
-    fn bitvec_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-        expr::BitvecEquals::nary(childs).map(AnyExpr::from)
+    fn bitvec_equals_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+        expr::BitvecEquals::nary(children).map(AnyExpr::from)
     }
 
     fn bitvec_const<V>(self, ty: BitvecTy, value: V) -> Result<AnyExpr>
@@ -120,8 +120,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Add::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_add_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::Add::nary(childs).map(AnyExpr::from)
+    fn bitvec_add_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::Add::nary(children).map(AnyExpr::from)
 	}
 
     fn bitvec_sub(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -132,8 +132,8 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::Mul::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_mul_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::Mul::nary(childs).map(AnyExpr::from)
+    fn bitvec_mul_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::Mul::nary(children).map(AnyExpr::from)
 	}
 
     fn bitvec_sdiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
@@ -164,16 +164,16 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		expr::BitAnd::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::BitAnd::nary(childs).map(AnyExpr::from)
+    fn bitvec_and_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::BitAnd::nary(children).map(AnyExpr::from)
 	}
 
     fn bitvec_or(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
 		expr::BitOr::binary(lhs, rhs).map(AnyExpr::from)
 	}
 
-    fn bitvec_or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr> {
-		expr::BitOr::nary(childs).map(AnyExpr::from)
+    fn bitvec_or_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr> {
+		expr::BitOr::nary(children).map(AnyExpr::from)
 	}
 
     fn bitvec_xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr> {
