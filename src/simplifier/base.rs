@@ -10,19 +10,19 @@ pub mod prelude {
 
 pub type Simplifier = BaseSimplifier<SimplifierTransformer>;
 
-create_modular_ast_transformer! {
-    struct SimplifierTransformer;
-
-    (_0, simplifications::InvolutionSimplifier),
-    (_1, simplifications::ComparisonReducer),
-    (_2, simplifications::BoolConstPropagator),
-    (_3, simplifications::BoolSymbolicSolver),
-    (_4, simplifications::BoolReducer),
-    (_5, simplifications::Normalizer),
-    (_6, simplifications::Flattener),
-    (_7, simplifications::TermConstPropagator),
-    (_8, simplifications::TermReducer),
-    (_9, simplifications::LikeTermJoiner)
+modular_ast_transformer! {
+    struct SimplifierTransformer {
+        _0: simplifications::InvolutionSimplifier,
+        _1: simplifications::ComparisonReducer,
+        _2: simplifications::BoolConstPropagator,
+        _3: simplifications::BoolSymbolicSolver,
+        _4: simplifications::BoolReducer,
+        _5: simplifications::Normalizer,
+        _6: simplifications::Flattener,
+        _7: simplifications::TermConstPropagator,
+        _8: simplifications::TermReducer,
+        _9: simplifications::LikeTermJoiner
+    }
 }
 
 /// Simplifies expressions using the underlying base transformer.
@@ -30,8 +30,8 @@ create_modular_ast_transformer! {
 pub struct BaseSimplifier<Transformer>
     where Transformer: AnyTransformer
 {
-    /// The base transformer for expressions used by this simplifier.
-    transformer: Transformer
+    /// The AST traverse transformer that traverses and transforms expressions.
+    traverser: TraverseTransformer<Transformer>
 }
 
 impl<Transformer> BaseSimplifier<Transformer>
@@ -39,7 +39,7 @@ impl<Transformer> BaseSimplifier<Transformer>
 {
     /// Simplifies the given expression for a single step.
     pub fn simplify(&self, expr: &mut AnyExpr) -> TransformEffect {
-        self.transformer.transform_any_expr(expr)
+        self.traverser.traverse_transform(expr)
     }
 
     /// Simplifies the given expression until no more simplification can
@@ -49,7 +49,7 @@ impl<Transformer> BaseSimplifier<Transformer>
     /// 
     /// This might be a slow operation but always results in the best simplification.
     pub fn exhaustive_simplify(&self, expr: &mut AnyExpr) {
-        while self.transformer.transform_any_expr(expr) == TransformEffect::Transformed {}
+        while self.traverser.traverse_transform(expr) == TransformEffect::Transformed {}
     }
 }
 
