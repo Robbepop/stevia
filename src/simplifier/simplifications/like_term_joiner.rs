@@ -11,7 +11,7 @@ pub mod prelude {
     pub use super::LikeTermJoiner;
 }
 
-create_modular_ast_transformer! {
+modular_ast_transformer! {
     /// This simplification identifies and joins like-terms in additive expressions.
     /// 
     /// Besides merging of like-terms this also simplifies terms like `(+ a (-a))` to `0`
@@ -21,10 +21,11 @@ create_modular_ast_transformer! {
     /// only constant child expression. This may leave the resulting binary multiplication in 
     /// an unnormalized state thus also requiring an additional normalization preprocessing
     /// befor actually identifying and merging like-terms.
-    struct LikeTermJoiner;
-    (_0, MulConstSeperator),
-    (_1, Normalizer),
-    (_2, LikeTermMerger)
+    struct LikeTermJoiner {
+        _0: MulConstSeperator,
+        _1: Normalizer,
+        _2: LikeTermMerger
+    }
 }
 
 /// This simplification separates a single constant element within a multiplication
