@@ -104,6 +104,11 @@ pub struct ArrayTy {
 }
 
 impl ArrayTy {
+	/// Creates a new array-type from the given index-type and value-type.
+	pub fn new(index_ty: BitvecTy, value_ty: BitvecTy) -> ArrayTy {
+		ArrayTy{ index_ty, value_ty }
+	}
+
 	/// Returns the index bit width of this array type.
 	pub fn index_width(self) -> BitWidth { self.index_ty.width() }
 	/// Returns the value bit width of this array type.
