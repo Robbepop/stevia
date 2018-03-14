@@ -121,6 +121,13 @@ impl IfThenElse {
     pub fn as_childs_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
         self.childs.as_childs_tuple_mut()
     }
+
+    /// Returns the tuple of child expressions.
+    /// 
+    /// Note: Consumes this if-then-else expression.
+    pub fn into_children_tuple(self) -> (AnyExpr, AnyExpr, AnyExpr) {
+        self.childs.into_childs_tuple()
+    }
 }
 
 impl Childs for IfThenElseChilds {
