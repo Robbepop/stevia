@@ -14,6 +14,7 @@ pub mod prelude {
     pub use super::{
         BinTermExpr,
         NaryTermExpr,
+        ArrayReadChilds,
 
         BitWidth,
         BitvecConst,

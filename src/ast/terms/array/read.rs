@@ -3,7 +3,8 @@ use ast::terms::checks;
 
 pub mod prelude {
     pub use super::{
-        ArrayRead
+        ArrayRead,
+        ArrayReadChilds
     };
 }
 
@@ -67,7 +68,10 @@ impl ArrayRead {
         let index = index.into();
         let array_ty = checks::expect_array_ty(&array)?;
         checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
-        Ok(ArrayRead{ bitvec_ty: array_ty.value_ty(), childs: ArrayReadChilds::new_boxed(array, index) })
+        Ok(ArrayRead{
+            bitvec_ty: array_ty.value_ty(),
+            childs: ArrayReadChilds::new_boxed(array, index)
+        })
     }
 }
 

@@ -62,7 +62,8 @@ pub use self::formulas::{
 pub use self::terms::{
     BitWidth,
     BinTermExpr,
-    NaryTermExpr
+    NaryTermExpr,
+    ArrayReadChilds,
 };
 pub use self::any_expr::{
     AnyExpr,
