@@ -126,7 +126,7 @@ impl IfThenElse {
     /// 
     /// Note: Consumes this if-then-else expression.
     pub fn into_children_tuple(self) -> (AnyExpr, AnyExpr, AnyExpr) {
-        self.childs.into_childs_tuple()
+        self.children.into_children_tuple()
     }
 }
 

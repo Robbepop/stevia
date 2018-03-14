@@ -4,7 +4,7 @@ use ast::terms::checks;
 pub mod prelude {
     pub use super::{
         ArrayRead,
-        ArrayReadChilds
+        ArrayReadChildren
     };
 }
 

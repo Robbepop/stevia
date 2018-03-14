@@ -20,7 +20,7 @@ pub struct ArrayReadIteLifter;
 impl AutoImplAnyTransformer for ArrayReadIteLifter {}
 
 fn array_read_ite_lifting(read: expr::ArrayRead) -> TransformOutcome {
-    if let box ArrayReadChilds{ index, array: AnyExpr::IfThenElse(ite) } = read.childs {
+    if let box ArrayReadChildren{ index, array: AnyExpr::IfThenElse(ite) } = read.children {
         let (cond, then_case, else_case) = ite.into_children_tuple();
         return TransformOutcome::transformed(
             expr::IfThenElse::new(

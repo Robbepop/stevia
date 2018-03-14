@@ -63,7 +63,7 @@ pub use self::terms::{
     BitWidth,
     BinTermExpr,
     NaryTermExpr,
-    ArrayReadChilds,
+    ArrayReadChildren,
 };
 pub use self::any_expr::{
     AnyExpr,

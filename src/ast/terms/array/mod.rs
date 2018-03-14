@@ -4,7 +4,7 @@ mod write;
 pub mod prelude {
     pub use super::{
         ArrayRead,
-        ArrayReadChilds,
+        ArrayReadChildren,
         ArrayWrite,
     };
 }
