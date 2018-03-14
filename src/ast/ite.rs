@@ -4,7 +4,7 @@ use ast::prelude::*;
 pub mod prelude {
     pub use super::{
         IfThenElse,
-        IfThenElseChilds
+        IfThenElseChildren
     };
 }
 
@@ -12,14 +12,14 @@ pub mod prelude {
 /// 
 /// # Note
 /// 
-/// - This has a `Type` that is dependend on its childs.
+/// - This has a `Type` that is dependend on its children.
 /// - Its condition is always of boolean type.
-/// - Its `then_case` and `else_case` childs are asserted
+/// - Its `then_case` and `else_case` children are asserted
 ///   to be of same `Type` as their parent `IfThenElse` expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct IfThenElse{
     /// The children of this expression.
-	pub childs: P<IfThenElseChilds>,
+	pub children: P<IfThenElseChildren>,
     /// The type of this expression.
 	pub ty: Type
 }
@@ -34,7 +34,7 @@ pub struct IfThenElse{
 /// This also has the positive effect of storing all child
 /// expressions densely in the memory.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct IfThenElseChilds {
+pub struct IfThenElseChildren {
     /// The condition of the parent `IfThenElse` expression.
     /// 
     /// This must always be of boolean type.
@@ -53,14 +53,14 @@ pub struct IfThenElseChilds {
 	pub else_case: AnyExpr
 }
 
-impl IfThenElseChilds {
-    /// Consumes `self` and returns both of its childs as tuple.
-    pub fn into_childs_tuple(self) -> (AnyExpr, AnyExpr, AnyExpr) {
+impl IfThenElseChildren {
+    /// Consumes `self` and returns both of its children as tuple.
+    pub fn into_children_tuple(self) -> (AnyExpr, AnyExpr, AnyExpr) {
         (self.cond, self.then_case, self.else_case)
     }
 
     /// Returns a tuple of mutable references to the child expressions.
-    pub fn as_childs_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
+    pub fn as_children_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
         (&mut self.cond, &mut self.then_case, &mut self.else_case)
     }
 
@@ -108,18 +108,18 @@ impl IfThenElse {
         let common_ty = common_ty(&then_case, &else_case).unwrap();
         IfThenElse{
             ty: common_ty,
-            childs: P::new(IfThenElseChilds{cond, then_case, else_case})
+            children: P::new(IfThenElseChildren{cond, then_case, else_case})
         }
     }
 
     /// Swaps then and else case child expressions.
     pub fn swap_then_else(&mut self) {
-        self.childs.swap_then_else()
+        self.children.swap_then_else()
     }
 
     /// Returns a tuple of mutable references to the child expressions.
-    pub fn as_childs_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
-        self.childs.as_childs_tuple_mut()
+    pub fn as_children_tuple_mut(&mut self) -> (&mut AnyExpr, &mut AnyExpr, &mut AnyExpr) {
+        self.children.as_children_tuple_mut()
     }
 
     /// Returns the tuple of child expressions.
@@ -130,21 +130,21 @@ impl IfThenElse {
     }
 }
 
-impl Childs for IfThenElseChilds {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::ternary(&self.cond, &self.then_case, &self.else_case)
+impl Children for IfThenElseChildren {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::ternary(&self.cond, &self.then_case, &self.else_case)
     }
 }
 
-impl ChildsMut for IfThenElseChilds {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::ternary(&mut self.cond, &mut self.then_case, &mut self.else_case)
+impl ChildrenMut for IfThenElseChildren {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::ternary(&mut self.cond, &mut self.then_case, &mut self.else_case)
     }
 }
 
-impl IntoChilds for IfThenElseChilds {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::ternary(self.cond, self.then_case, self.else_case)
+impl IntoChildren for IfThenElseChildren {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::ternary(self.cond, self.then_case, self.else_case)
     }
 }
 
@@ -172,20 +172,20 @@ impl From<IfThenElse> for AnyExpr {
     }
 }
 
-impl Childs for IfThenElse {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl Children for IfThenElse {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl ChildsMut for IfThenElse {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl ChildrenMut for IfThenElse {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl IntoChilds for IfThenElse {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl IntoChildren for IfThenElse {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }

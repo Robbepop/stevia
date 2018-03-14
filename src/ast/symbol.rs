@@ -186,20 +186,20 @@ impl From<Symbol> for AnyExpr {
     }
 }
 
-impl Childs for Symbol {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::none()
+impl Children for Symbol {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::none()
     }
 }
 
-impl ChildsMut for Symbol {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::none()
+impl ChildrenMut for Symbol {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::none()
     }
 }
 
-impl IntoChilds for Symbol {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::none()
+impl IntoChildren for Symbol {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::none()
     }
 }

@@ -12,18 +12,18 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayRead {
     /// The two child expressions of this array read expression.
-    pub childs: P<ArrayReadChilds>,
+    pub children: P<ArrayReadChildren>,
     /// The bit width of this read expression.
     /// 
     /// This is a cache for the value bit width of the child
     /// array expression to prevent the indirection over the
-    /// childs structure if this value is used often.
+    /// children structure if this value is used often.
     pub bitvec_ty: BitvecTy
 }
 
 /// The child expressions of a `Read` expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub struct ArrayReadChilds {
+pub struct ArrayReadChildren {
     /// The array expression.
     /// 
     /// This must be of array type.
@@ -34,20 +34,20 @@ pub struct ArrayReadChilds {
     pub index: AnyExpr
 }
 
-impl ArrayReadChilds {
-    /// Creates a new `ArrayReadChilds` object.
+impl ArrayReadChildren {
+    /// Creates a new `ArrayReadChildren` object.
     /// 
     /// Does not check any invariants of `ArrayRead`.
     /// This function should be marked unsafe since it fails to hold any guarantees.
-    pub fn new(array: AnyExpr, index: AnyExpr) -> ArrayReadChilds {
-        ArrayReadChilds{array, index}
+    pub fn new(array: AnyExpr, index: AnyExpr) -> ArrayReadChildren {
+        ArrayReadChildren{array, index}
     }
 
-    /// Creates a new boxed `ArrayReadChilds` object.
+    /// Creates a new boxed `ArrayReadChildren` object.
     /// 
-    /// This is just a convenience wrapper around `ArrayReadChilds::new`.
-    pub fn new_boxed(array: AnyExpr, index: AnyExpr) -> P<ArrayReadChilds> {
-        P::new(ArrayReadChilds::new(array, index))
+    /// This is just a convenience wrapper around `ArrayReadChildren::new`.
+    pub fn new_boxed(array: AnyExpr, index: AnyExpr) -> P<ArrayReadChildren> {
+        P::new(ArrayReadChildren::new(array, index))
     }
 }
 
@@ -70,26 +70,26 @@ impl ArrayRead {
         checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
         Ok(ArrayRead{
             bitvec_ty: array_ty.value_ty(),
-            childs: ArrayReadChilds::new_boxed(array, index)
+            children: ArrayReadChildren::new_boxed(array, index)
         })
     }
 }
 
-impl Childs for ArrayReadChilds {
-    fn childs(&self) -> ChildsIter {
-        ChildsIter::binary(&self.array, &self.index)
+impl Children for ArrayReadChildren {
+    fn children(&self) -> ChildrenIter {
+        ChildrenIter::binary(&self.array, &self.index)
     }
 }
 
-impl ChildsMut for ArrayReadChilds {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        ChildsIterMut::binary(&mut self.array, &mut self.index)
+impl ChildrenMut for ArrayReadChildren {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        ChildrenIterMut::binary(&mut self.array, &mut self.index)
     }
 }
 
-impl IntoChilds for ArrayReadChilds {
-    fn into_childs(self) -> IntoChildsIter {
-        IntoChildsIter::binary(self.array, self.index)
+impl IntoChildren for ArrayReadChildren {
+    fn into_children(self) -> IntoChildrenIter {
+        IntoChildrenIter::binary(self.array, self.index)
     }
 }
 
@@ -117,20 +117,20 @@ impl From<ArrayRead> for AnyExpr {
     }
 }
 
-impl Childs for ArrayRead {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl Children for ArrayRead {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl ChildsMut for ArrayRead {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl ChildrenMut for ArrayRead {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl IntoChilds for ArrayRead {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl IntoChildren for ArrayRead {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }

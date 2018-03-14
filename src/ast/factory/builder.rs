@@ -79,11 +79,11 @@ pub trait ExprTreeFactory {
     /// Create a new binary and expression with the given child expressions.
     fn and(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary and expression with the given child expressions.
-    fn and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn and_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary boolean equality expression with the given child expressions.
     fn bool_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary boolean equality expression with the given child expressions.
-    fn bool_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn bool_equals_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary implies expression with the given child expressions.
     fn implies(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new logical not expression for the given child expression.
@@ -91,7 +91,7 @@ pub trait ExprTreeFactory {
     /// Creates a new binary or expression for the given child expressions.
     fn or(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary or expression for the given child expressions.
-    fn or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn or_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary or expression for the given child expressions.
     fn xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
 
@@ -105,7 +105,7 @@ pub trait ExprTreeFactory {
     /// Creates a new binary bitvec equality expression with the given child expressions.
     fn bitvec_equals(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary bitvec equality expression with the given child expressions.
-    fn bitvec_equals_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn bitvec_equals_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new bitvec constant with the given type and value.
     fn bitvec_const<V>(self, ty: BitvecTy, value: V) -> Result<AnyExpr>
         where V: Into<expr::BitvecConst>;
@@ -114,13 +114,13 @@ pub trait ExprTreeFactory {
     /// Creates a new binary bitvec add expression with the given child expressions.
     fn bitvec_add(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary bitvec add expression with the given child expressions.
-    fn bitvec_add_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn bitvec_add_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary bitvec subtract expression for the given child expressions.
     fn bitvec_sub(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new binary bitvec multiply expression with the given child expressions.
     fn bitvec_mul(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary bitvec multiply expression with the given child expressions.
-    fn bitvec_mul_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn bitvec_mul_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary bitvec signed division expression for the given child expressions.
     fn bitvec_sdiv(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new binary bitvec signed modulo expression for the given child expressions.
@@ -137,11 +137,11 @@ pub trait ExprTreeFactory {
     /// Create a new binary bitwise and expression with the given child expressions.
     fn bitvec_and(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary bitwise and expression with the given child expressions.
-    fn bitvec_and_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn bitvec_and_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Create a new binary bitwise or expression with the given child expressions.
     fn bitvec_or(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
     /// Creates a new n-ary bitwise or expression with the given child expressions.
-    fn bitvec_or_n(self, childs: Vec<AnyExpr>) -> Result<AnyExpr>;
+    fn bitvec_or_n(self, children: Vec<AnyExpr>) -> Result<AnyExpr>;
     /// Creates a new binary bitvec xor expression for the given child expressions.
     fn bitvec_xor(self, lhs: AnyExpr, rhs: AnyExpr) -> Result<AnyExpr>;
 
@@ -225,16 +225,16 @@ impl<F> ExprTreeBuilder<F>
     /// 
     /// This is just a utility method that helps with unwrapping the given
     /// child expressions before forwarding them to the factory method.
-    fn create_nary_expr<I, E, C>(self, constructor: C, childs: I) -> Result<AnyExpr>
+    fn create_nary_expr<I, E, C>(self, constructor: C, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError,
               C: Fn(F, Vec<AnyExpr>) -> Result<AnyExpr>
     {
-        let childs = childs
+        let children = children
             .into_iter()
             .map(|c| c.into_any_expr_or_error())
             .collect::<Result<Vec<AnyExpr>>>()?;
-        constructor(self.factory(), childs)
+        constructor(self.factory(), children)
     }
 }
 
@@ -295,11 +295,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary and expression with the given child expressions.
-    pub fn and_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn and_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::and_n, childs)
+        self.create_nary_expr(F::and_n, children)
     }
 
     /// Creates a new binary boolean equality expression with the given child expressions.
@@ -311,11 +311,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary boolean equality expression with the given child expressions.
-    pub fn bool_equals_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn bool_equals_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::bool_equals_n, childs)
+        self.create_nary_expr(F::bool_equals_n, children)
     }
 
     /// Creates a new binary implies expression with the given child expressions.
@@ -343,11 +343,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary or expression with the given child expressions.
-    pub fn or_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn or_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::or_n, childs)
+        self.create_nary_expr(F::or_n, children)
     }
 
     /// Creates a new binary xor expression with the given child expressions.
@@ -414,11 +414,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary bitvec add expression with the given child expressions.
-    pub fn bitvec_add_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn bitvec_add_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::bitvec_add_n, childs)
+        self.create_nary_expr(F::bitvec_add_n, children)
     }
 
     /// Creates a new binary bitvec subtract expression with the given child expressions.
@@ -438,11 +438,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary bitvec multiply expression with the given child expressions.
-    pub fn bitvec_mul_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn bitvec_mul_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::bitvec_mul_n, childs)
+        self.create_nary_expr(F::bitvec_mul_n, children)
     }
 
     /// Creates a new binary signed division expression with the given child expressions.
@@ -499,11 +499,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary bitwise and expression with the given child expressions.
-    pub fn bitvec_and_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn bitvec_and_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::bitvec_and_n, childs)
+        self.create_nary_expr(F::bitvec_and_n, children)
     }
 
     /// Creates a new binary bitwise or expression with the given child expressions.
@@ -515,11 +515,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary bitwise or expression with the given child expressions.
-    pub fn bitvec_or_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn bitvec_or_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::bitvec_or_n, childs)
+        self.create_nary_expr(F::bitvec_or_n, children)
     }
 
     /// Create a new bitwise not expression for the given child expression.
@@ -592,11 +592,11 @@ impl<F> ExprTreeBuilder<F>
     }
 
     /// Creates a new n-ary bitvector equality expression with the given child expressions.
-    pub fn bitvec_equals_n<I, E>(self, childs: I) -> Result<AnyExpr>
+    pub fn bitvec_equals_n<I, E>(self, children: I) -> Result<AnyExpr>
         where I: IntoIterator<Item=E>,
               E: IntoAnyExprOrError
     {
-        self.create_nary_expr(F::bitvec_equals_n, childs)
+        self.create_nary_expr(F::bitvec_equals_n, children)
     }
 
     /// Creates a new binary signed greater-than-or-equals expression with the given child expressions.

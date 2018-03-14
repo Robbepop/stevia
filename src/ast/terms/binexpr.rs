@@ -17,7 +17,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinTermExpr<M> {
     /// The two child term expressions.
-    pub childs: P<BinExprChilds>,
+    pub children: P<BinExprChildren>,
     /// The bit width of this expression.
     /// 
     /// All child expressions must respect this bit width.
@@ -43,7 +43,7 @@ impl<M> BinTermExpr<M> {
         let rhs = rhs.into();
         checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
         checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(Self{ bitvec_ty, childs: BinExprChilds::new_boxed(lhs, rhs), marker: PhantomData })
+        Ok(Self{ bitvec_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 
     /// Returns a new binary term expression for the two given child term expressions.
@@ -63,25 +63,25 @@ impl<M> BinTermExpr<M> {
         let lhs = lhs.into();
         let rhs = rhs.into();
         let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(Self{ bitvec_ty: common_ty, childs: BinExprChilds::new_boxed(lhs, rhs), marker: PhantomData })
+        Ok(Self{ bitvec_ty: common_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 }
 
-impl<M> Childs for BinTermExpr<M> {
-    fn childs(&self) -> ChildsIter {
-        self.childs.childs()
+impl<M> Children for BinTermExpr<M> {
+    fn children(&self) -> ChildrenIter {
+        self.children.children()
     }
 }
 
-impl<M> ChildsMut for BinTermExpr<M> {
-    fn childs_mut(&mut self) -> ChildsIterMut {
-        self.childs.childs_mut()
+impl<M> ChildrenMut for BinTermExpr<M> {
+    fn children_mut(&mut self) -> ChildrenIterMut {
+        self.children.children_mut()
     }
 }
 
-impl<M> IntoChilds for BinTermExpr<M> {
-    fn into_childs(self) -> IntoChildsIter {
-        self.childs.into_childs()
+impl<M> IntoChildren for BinTermExpr<M> {
+    fn into_children(self) -> IntoChildrenIter {
+        self.children.into_children()
     }
 }
 

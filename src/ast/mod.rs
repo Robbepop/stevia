@@ -1,6 +1,6 @@
 mod arity;
 mod child_iters;
-mod binexpr_childs;
+mod binexpr_children;
 mod factory;
 mod ty;
 mod expr_kind;
@@ -27,27 +27,27 @@ pub use self::ty::{
     common_ty,
     have_common_ty,
 };
-pub use self::binexpr_childs::{
-    BinExprChilds
+pub use self::binexpr_children::{
+    BinExprChildren
 };
 pub use self::ite::{
-    IfThenElseChilds
+    IfThenElseChildren
 };
 pub use self::child_iters::{
-    ChildsIter,
-    ChildsIterMut,
-    IntoChildsIter,
-    Childs,
-    ChildsMut,
-    IntoChilds,
+    ChildrenIter,
+    ChildrenIterMut,
+    IntoChildrenIter,
+    Children,
+    ChildrenMut,
+    IntoChildren,
 
     YieldEvent,
     AnyExprAndEvent,
-    RecursiveChildsIter,
+    RecursiveChildrenIter,
 
-    childs_recursive_with_event,
-    childs_recursive_entering,
-    childs_recursive_leaving
+    children_recursive_with_event,
+    children_recursive_entering,
+    children_recursive_leaving
 };
 pub use self::factory::{
     IntoAnyExprOrError,
