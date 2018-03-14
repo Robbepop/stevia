@@ -12,8 +12,12 @@ pub mod prelude {
 /// Lifts if-then-else expressions that are childs of array-reads and have
 /// an array-write child themself.
 /// 
-/// This does not increase the size of the AST and is important to constitute
-/// array-read and array-write elimination transformations.
+/// Note that the current implementation might grow the AST by an exponential
+/// factor in the worst case. This can be avoided by inserting indirections that
+/// are to be cloned instead of potentially expensive sub-trees of the AST.
+/// However, this has yet to be implemented which requires another architectural
+/// enhancement on the side of the general simplifier design to allow for
+/// post-processing steps.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayReadIteLifter;
 
