@@ -89,6 +89,32 @@ mod tests {
             b.array_read(
                 b.cond(
                     b.bool_var("cond"),
+                    b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr1"),
+                    b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr2")
+                ),
+                b.bitvec_var(BitvecTy::w32(), "idx_j")
+            ),
+            b.cond(
+                b.bool_var("cond"),
+                b.array_read(
+                    b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr1"),
+                    b.bitvec_var(BitvecTy::w32(), "idx_j")
+                ),
+                b.array_read(
+                    b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr2"),
+                    b.bitvec_var(BitvecTy::w32(), "idx_j")
+                )
+            )
+        )
+    }
+
+    #[test]
+    fn write_in_ite() {
+        let b = new_builder();
+        assert_simplified(
+            b.array_read(
+                b.cond(
+                    b.bool_var("cond"),
                     b.array_write(
                         b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr1"),
                         b.bitvec_var(BitvecTy::w32(), "idx_i"),
