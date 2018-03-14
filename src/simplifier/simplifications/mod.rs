@@ -9,6 +9,7 @@ mod flattening;
 mod term_const_prop;
 mod term_lowering;
 mod like_term_joiner;
+mod read_ite_lifting;
 
 pub mod prelude {
     pub use super::{
@@ -36,3 +37,4 @@ pub use self::flattening::prelude::*;
 pub use self::term_const_prop::prelude::*;
 pub use self::term_lowering::prelude::*;
 pub use self::like_term_joiner::prelude::*;
+pub use self::read_ite_lifting::prelude::*;
