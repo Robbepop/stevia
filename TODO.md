@@ -1,7 +1,9 @@
 # TODO-List for Stevia
 
-## AST
+## Short term
 
+- Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
+- Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
 - Add proper error management to the AST module building on top of the [failure](https://crates.io/crates/failure) crate.
 - Add an efficient recursive AST visitor and implement an AST typecheck based on it.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks. 
