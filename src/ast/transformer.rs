@@ -332,10 +332,9 @@ pub struct TraverseTransformer<T>
 impl<T> TraverseTransformer<T>
     where T: AnyExprTransformer
 {
-    /// Forwards the current expression to the underlying AST transformer and
-    /// all of the expression's child expressions. Accumulates the resulting
-    /// `TransformEffect` and returns it.
-    fn forward_traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
+    /// Traverse the given expression and all of its child expressions recursively
+    /// and apply a transformation on them.
+    pub fn traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
         let mut result = TransformEffect::Identity;
         // Transform the current expression before all of its children.
         result |= self.transformer.transform_any_expr(expr);
@@ -345,12 +344,6 @@ impl<T> TraverseTransformer<T>
         // Transform the current expression again after all of its children.
         result |= self.transformer.transform_any_expr(expr);
         result
-    }
-
-    /// Traverse the given expression and all of its child expressions recursively
-    /// and apply a transformation on them.
-    pub fn traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
-        self.forward_traverse_transform(expr)
     }
 
     /// Consumes the given expression and traverse it and all of its child
