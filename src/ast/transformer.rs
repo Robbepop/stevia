@@ -69,6 +69,12 @@ impl TransformOutcome {
     }
 }
 
+/// Types implementing this trait are capable to modify any concrete expression type.
+/// 
+/// All transformation routines return a `TransformOutcome` that can be used by
+/// a process that drives the transformations to check whether transformations
+/// have been applied or not. This is useful for exhaustive transformations that
+/// apply transform steps until nothing is left that can be further processed.
 pub trait Transformer {
     fn transform_cond(&self, cond: expr::IfThenElse) -> TransformOutcome {
         TransformOutcome::identity(cond)
