@@ -5,10 +5,10 @@ use std::ops::BitOrAssign;
 
 pub mod prelude {
     pub use super::{
-        Transformer,
         TransformEffect,
-        AnyExprTransformer,
         TransformOutcome,
+        Transformer,
+        AnyExprTransformer,
         AutoImplAnyExprTransformer,
         TraverseTransformer
     };
@@ -257,7 +257,7 @@ pub trait AnyExprTransformer {
 
 /// Implement this to activate automatic default implementation
 /// of the `AnyTransformer` trait.
-pub trait AutoImplAnyExprTransformer {}
+pub trait AutoImplAnyExprTransformer: Transformer {}
 
 impl<T> AnyExprTransformer for T where T: Transformer + AutoImplAnyExprTransformer {
     fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
