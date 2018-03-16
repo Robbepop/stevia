@@ -6,50 +6,51 @@
 
 ---
 
-This is a brave attempt to write a simple [SMT][smt-wiki] solver in the [Rust][rust-home] ([github][rust-repo]) programming language based on the design of [STP][stp-home] ([github][stp-repo]) and [Boolector][boolector-home].
+This is a brave attempt to write a simple [SMT][smt-wiki] solver in the [Rust][rust-home] ([github][rust-repo]) programming language.
+
+It is based on the design of:
+
+- [STP][stp-home] ([github][stp-repo])
+- [Boolector][boolector-home].
 
 Currently the solver is in very early development phase.
 
+## Supported Theories (SMT)
+
+- Bitvectors of fixed bit-width and modulo-two arithmetics.
+- Extensional arrays, indexed by bitvectors with bitvector values.
+- Only supports quantifier-free inputs.
+
+The combined theory in SMT notation is called `QF_ABV`.
+
 ## Very future goals are
 
-- Support for [SMTLib 2.6][smtlib-home].
-- Theories of quantifier-free bitvectors and arrays: `QF_ABV`
+- Support inputs specified in [SMTLib 2.6][smtlib-home].
 - Comprehensive documentation for all important parts of the code.
-- Eventually be able to keep up with other SMT solvers like STP.
+- Eventually be able to keep up with efficient SMT solvers like STP.
 - C API to enable bindings for other languages.
 - Use an efficient SAT solver under the hood, like [candy][candy-repo] and [JamSat][jamsat-repo].
 
 ## Simplifications
 
-Stevia will support a great machinery of simplifications to its input formulas.
-An early example of what is possible now:
+Stevia supports word-level transformations, called simplifications, that it applies throughout the solving process.
+
+Below is an early example of what is possible by now. Keep in mind that this is still a WIP and there is certainly
+more to come in future versions of the simplifier.
+
+LISP syntax of an arithmetic instance:
 
 ```lisp
-(=
-  (=
-    (=
-      false
-      (= (_ :32  42) (_ :32 1337) )
-    )
-    (= (_ :32 42) (_ :32 42) )
-  )
-  (=
-    (= (not true) (= true (not true) ) )
-    (= ; Here is the break: true is not false!
-      (and true true)
-      (= (_ :64 100) (-(-(_ :64 100))) )
-    )
-  )
-)
+(+ x 42 (- x y) (* y (-5)) (- (+ x 10 y)))
 ```
 
-Is getting simplified to this:
+Is simplified to:
 
 ```lisp
-false
+(+ 32 (* -7 y) x)
 ```
 
-Keep in mind that this is still a pretty naive simplification. More to come in future versions of Stevia!
+This output can then be further processed by other simplification and solving processes.
 
 ## Unstable Features Used
 
