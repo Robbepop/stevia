@@ -246,7 +246,7 @@ pub trait AnyTransformer {
     /// 
     /// Returns the resulting expression after the transformation and a state
     /// indicating whether the consumed expression was actually transformed.
-    fn into_transform_any_expr(&self, expr: AnyExpr) -> TransformOutcome;
+    fn transform_any_expr_into(&self, expr: AnyExpr) -> TransformOutcome;
 }
 
 /// Implement this to activate automatic default implementation
@@ -258,12 +258,12 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);
 		let TransformOutcome{result, expr: transformed} =
-            self.into_transform_any_expr(input);
+            self.transform_any_expr_into(input);
         mem::replace(expr, transformed);
         result
     }
 
-    fn into_transform_any_expr(&self, expr: AnyExpr) -> TransformOutcome {
+    fn transform_any_expr_into(&self, expr: AnyExpr) -> TransformOutcome {
         use self::AnyExpr::*;
         match expr {
             IfThenElse(expr) => self.transform_cond(expr),
@@ -377,7 +377,7 @@ macro_rules! modular_ast_transformer {
                 result
             }
 
-            fn into_transform_any_expr(&self, expr: AnyExpr) -> TransformOutcome {
+            fn transform_any_expr_into(&self, expr: AnyExpr) -> TransformOutcome {
                 let mut expr = expr;
                 let result = self.transform_any_expr(&mut expr);
                 TransformOutcome::new(result, expr)
