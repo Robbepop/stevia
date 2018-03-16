@@ -24,7 +24,7 @@ fn is_logical_contradiction(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
     false
 }
 
-impl AutoImplAnyTransformer for BoolSymbolicSolver {}
+impl AutoImplAnyExprTransformer for BoolSymbolicSolver {}
 
 impl Transformer for BoolSymbolicSolver {
     fn transform_cond(&self, ite: expr::IfThenElse) -> TransformOutcome {

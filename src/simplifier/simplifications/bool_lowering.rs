@@ -8,7 +8,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolReducer;
 
-impl AutoImplAnyTransformer for BoolReducer {}
+impl AutoImplAnyExprTransformer for BoolReducer {}
 
 impl Transformer for BoolReducer {
     fn transform_implies(&self, implies: expr::Implies) -> TransformOutcome {

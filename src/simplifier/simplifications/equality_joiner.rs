@@ -16,7 +16,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct EqualityJoiner;
 
-impl AutoImplAnyTransformer for EqualityJoiner {}
+impl AutoImplAnyExprTransformer for EqualityJoiner {}
 
 /// Returns `true` if `lhs` and `rhs` share at least one same child expression.
 fn have_overlapping_children(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {

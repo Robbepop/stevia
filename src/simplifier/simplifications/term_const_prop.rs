@@ -13,7 +13,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermConstPropagator;
 
-impl AutoImplAnyTransformer for TermConstPropagator {}
+impl AutoImplAnyExprTransformer for TermConstPropagator {}
 
 fn simplify_neg(neg: expr::Neg) -> TransformOutcome {
     // If the child expression is a constant value, simply negate it.

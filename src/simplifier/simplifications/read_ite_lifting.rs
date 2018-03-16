@@ -21,7 +21,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayReadIteLifter;
 
-impl AutoImplAnyTransformer for ArrayReadIteLifter {}
+impl AutoImplAnyExprTransformer for ArrayReadIteLifter {}
 
 fn array_read_ite_lifting(read: expr::ArrayRead) -> TransformOutcome {
     if let box ArrayReadChildren{ index, array: AnyExpr::IfThenElse(ite) } = read.children {

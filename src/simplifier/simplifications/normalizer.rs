@@ -11,7 +11,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Normalizer;
 
-impl AutoImplAnyTransformer for Normalizer {}
+impl AutoImplAnyExprTransformer for Normalizer {}
 
 fn normalization_cmp(lhs: &AnyExpr, rhs: &AnyExpr) -> Ordering {
     use self::AnyExpr::{

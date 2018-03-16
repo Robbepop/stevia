@@ -39,7 +39,7 @@ modular_ast_transformer! {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct MulConstSeperator;
 
-impl AutoImplAnyTransformer for MulConstSeperator {}
+impl AutoImplAnyExprTransformer for MulConstSeperator {}
 
 /// Deflattens n-ary multiplications with exactly one constant value into their
 /// constant part and the remaining elements.
@@ -83,7 +83,7 @@ impl Transformer for MulConstSeperator {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct LikeTermMerger;
 
-impl AutoImplAnyTransformer for LikeTermMerger {}
+impl AutoImplAnyExprTransformer for LikeTermMerger {}
 
 /// Checks if there are like-terms that can and should be combined.
 /// 

@@ -8,7 +8,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermReducer;
 
-impl AutoImplAnyTransformer for TermReducer {}
+impl AutoImplAnyExprTransformer for TermReducer {}
 
 impl Transformer for TermReducer {
     fn transform_sub(&self, sub: expr::Sub) -> TransformOutcome {

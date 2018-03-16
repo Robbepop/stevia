@@ -25,7 +25,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Flattener;
 
-impl AutoImplAnyTransformer for Flattener {}
+impl AutoImplAnyExprTransformer for Flattener {}
 
 macro_rules! flattening_impl_for {
     ($varname:ident: $typename:ident) => {{

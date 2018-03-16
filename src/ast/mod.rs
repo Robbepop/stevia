@@ -92,7 +92,7 @@ pub use self::transformer::{
     Transformer,
     AnyExprTransformer,
     TransformOutcome,
-    AutoImplAnyTransformer,
+    AutoImplAnyExprTransformer,
     TraverseTransformer
 };
 

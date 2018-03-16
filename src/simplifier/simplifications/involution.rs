@@ -16,7 +16,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct InvolutionSimplifier;
 
-impl AutoImplAnyTransformer for InvolutionSimplifier {}
+impl AutoImplAnyExprTransformer for InvolutionSimplifier {}
 
 impl Transformer for InvolutionSimplifier {
     fn transform_not(&self, not: expr::Not) -> TransformOutcome {

@@ -9,7 +9,7 @@ pub mod prelude {
         TransformEffect,
         AnyExprTransformer,
         TransformOutcome,
-        AutoImplAnyTransformer,
+        AutoImplAnyExprTransformer,
         TraverseTransformer
     };
 }
@@ -251,9 +251,9 @@ pub trait AnyExprTransformer {
 
 /// Implement this to activate automatic default implementation
 /// of the `AnyTransformer` trait.
-pub trait AutoImplAnyTransformer {}
+pub trait AutoImplAnyExprTransformer {}
 
-impl<T> AnyExprTransformer for T where T: Transformer + AutoImplAnyTransformer {
+impl<T> AnyExprTransformer for T where T: Transformer + AutoImplAnyExprTransformer {
     fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);

@@ -8,7 +8,7 @@ pub mod prelude {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolConstPropagator;
 
-impl AutoImplAnyTransformer for BoolConstPropagator {}
+impl AutoImplAnyExprTransformer for BoolConstPropagator {}
 
 impl Transformer for BoolConstPropagator {
     fn transform_cond(&self, cond: expr::IfThenElse) -> TransformOutcome {
