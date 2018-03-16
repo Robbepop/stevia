@@ -90,7 +90,7 @@ pub use self::arity::{
 pub use self::transformer::{
     TransformEffect,
     Transformer,
-    AnyTransformer,
+    AnyExprTransformer,
     TransformOutcome,
     AutoImplAnyTransformer,
     TraverseTransformer

@@ -28,14 +28,14 @@ modular_ast_transformer! {
 /// Simplifies expressions using the underlying base transformer.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BaseSimplifier<Transformer>
-    where Transformer: AnyTransformer
+    where Transformer: AnyExprTransformer
 {
     /// The AST traverse transformer that traverses and transforms expressions.
     traverser: TraverseTransformer<Transformer>
 }
 
 impl<Transformer> BaseSimplifier<Transformer>
-    where Transformer: AnyTransformer
+    where Transformer: AnyExprTransformer
 {
     /// Simplifies the given expression for a single step.
     pub fn simplify(&self, expr: &mut AnyExpr) -> TransformEffect {

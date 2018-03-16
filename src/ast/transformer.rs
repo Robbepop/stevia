@@ -7,7 +7,7 @@ pub mod prelude {
     pub use super::{
         Transformer,
         TransformEffect,
-        AnyTransformer,
+        AnyExprTransformer,
         TransformOutcome,
         AutoImplAnyTransformer,
         TraverseTransformer
@@ -236,7 +236,7 @@ pub trait Transformer {
 }
 
 /// Expression transformers that may transform `AnyExpr` instances.
-pub trait AnyTransformer {
+pub trait AnyExprTransformer {
     /// Transforms the given mutable `AnyExpr` inplace.
     /// 
     /// Returns a state indicating whether the given expression was actually transformed.
@@ -253,7 +253,7 @@ pub trait AnyTransformer {
 /// of the `AnyTransformer` trait.
 pub trait AutoImplAnyTransformer {}
 
-impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
+impl<T> AnyExprTransformer for T where T: Transformer + AutoImplAnyTransformer {
     fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);
@@ -324,13 +324,13 @@ impl<T> AnyTransformer for T where T: Transformer + AutoImplAnyTransformer {
 /// combines several AST transformers into one.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TraverseTransformer<T>
-    where T: AnyTransformer
+    where T: AnyExprTransformer
 {
     transformer: T
 }
 
 impl<T> TraverseTransformer<T>
-    where T: AnyTransformer
+    where T: AnyExprTransformer
 {
     /// Forwards the current expression to the underlying AST transformer and
     /// all of the expression's child expressions. Accumulates the resulting
@@ -370,7 +370,7 @@ macro_rules! modular_ast_transformer {
             $($trans_id: $trans_ty),*
         }
 
-        impl AnyTransformer for $name {
+        impl AnyExprTransformer for $name {
             fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
                 let mut result = TransformEffect::Identity;
                 $(result |= self.$trans_id.transform_any_expr(expr));*;
