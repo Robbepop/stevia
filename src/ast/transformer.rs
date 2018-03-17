@@ -247,9 +247,6 @@ pub trait Transformer {
         self.transform_sub(sub)
     }
 
-
-
-
     fn transform_udiv(&self, udiv: expr::UnsignedDiv) -> TransformOutcome {
         TransformOutcome::identity(udiv)
     }
@@ -518,9 +515,9 @@ pub struct TraverseTransformer<T>
 impl<T> TraverseTransformer<T>
     where T: AnyExprTransformer
 {
-    /// Traverse the given expression and all of its child expressions recursively
-    /// and apply a transformation on them.
-    pub fn traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
+    /// Traverses the given expression and all of its child expressions recursively and
+    /// applies a transformation process upon entering and leaving any expression node.
+    fn recursive_traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
         let mut result = TransformEffect::Identity;
         // Transform the current expression before all of its children.
         result |= self.transformer.transform_any_expr(expr, TransformEvent::Entering);
@@ -532,12 +529,20 @@ impl<T> TraverseTransformer<T>
         result
     }
 
+    /// Forwards to recursively traverse and transform the given expression and also
+    /// performs a post-processing step for the given root node.
+    pub fn traverse_transform(&self, root: &mut AnyExpr) -> TransformEffect {
+        let effect = self.recursive_traverse_transform(root);
+        self.transformer.transform_any_expr(root, TransformEvent::PostProcessing);
+        effect
+    }
+
     /// Consumes the given expression and traverse it and all of its child
     /// expressions recursively and apply a transformation pass on them.
-    pub fn traverse_transform_into(&self, expr: AnyExpr) -> TransformOutcome {
-        let mut expr = expr;
-        let result = self.traverse_transform(&mut expr);
-        TransformOutcome::new(result, expr)
+    pub fn traverse_transform_into(&self, root: AnyExpr) -> TransformOutcome {
+        let mut root = root;
+        let result = self.traverse_transform(&mut root);
+        TransformOutcome::new(result, root)
     }
 }
 
