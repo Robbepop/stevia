@@ -7,6 +7,7 @@ pub mod prelude {
     pub use super::{
         TransformEffect,
         TransformOutcome,
+        TransformEvent,
         Transformer,
         AnyExprTransformer,
         AutoImplAnyExprTransformer,
@@ -69,6 +70,24 @@ impl TransformOutcome {
     }
 }
 
+/// An event information that is attached to transformations.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum TransformEvent {
+    /// When the expression is initially visited by the transformer for a given simplification step.
+    /// 
+    /// This happens before visitng the expression's children.
+    Entering,
+    /// When the expression is visited the second time by the transformer for a given simplification step.
+    ///
+    /// This happens after visiting the expression's children.
+    Leaving,
+    /// After all simplifications have been made there is a post-processing sweep starting from the
+    /// root expressions for all transformations.
+    /// 
+    /// Some transformations require a post processing step to finalize their simplifications.
+    PostProcessing
+}
+
 /// Types implementing this trait are capable to modify any concrete expression type.
 /// 
 /// All transformation routines return a `TransformOutcome` that can be used by
@@ -80,164 +99,331 @@ pub trait Transformer {
         TransformOutcome::identity(cond)
     }
 
+    fn transform_cond_with_event(&self, cond: expr::IfThenElse, _: TransformEvent) -> TransformOutcome {
+        self.transform_cond(cond)
+    }
+
     fn transform_var(&self, bool_var: expr::Symbol) -> TransformOutcome {
         TransformOutcome::identity(bool_var)
+    }
+
+    fn transform_var_with_event(&self, bool_var: expr::Symbol, _: TransformEvent) -> TransformOutcome {
+        self.transform_var(bool_var)
     }
 
     fn transform_bool_const(&self, bool_const: expr::BoolConst) -> TransformOutcome {
         TransformOutcome::identity(bool_const)
     }
 
+    fn transform_bool_const_with_event(&self, bool_const: expr::BoolConst, _: TransformEvent) -> TransformOutcome {
+        self.transform_bool_const(bool_const)
+    }
+
     fn transform_bool_equals(&self, bool_equals: expr::BoolEquals) -> TransformOutcome {
         TransformOutcome::identity(bool_equals)
+    }
+
+    fn transform_bool_equals_with_event(&self, bool_equals: expr::BoolEquals, _: TransformEvent) -> TransformOutcome {
+        self.transform_bool_equals(bool_equals)
     }
 
     fn transform_and(&self, and: expr::And) -> TransformOutcome {
         TransformOutcome::identity(and)
     }
 
+    fn transform_and_with_event(&self, and: expr::And, _: TransformEvent) -> TransformOutcome {
+        self.transform_and(and)
+    }
+
     fn transform_or(&self, or: expr::Or) -> TransformOutcome {
         TransformOutcome::identity(or)
+    }
+
+    fn transform_or_with_event(&self, or: expr::Or, _: TransformEvent) -> TransformOutcome {
+        self.transform_or(or)
     }
 
     fn transform_not(&self, not: expr::Not) -> TransformOutcome {
         TransformOutcome::identity(not)
     }
 
+    fn transform_not_with_event(&self, not: expr::Not, _: TransformEvent) -> TransformOutcome {
+        self.transform_not(not)
+    }
+
     fn transform_xor(&self, xor: expr::Xor) -> TransformOutcome {
         TransformOutcome::identity(xor)
+    }
+
+    fn transform_xor_with_event(&self, xor: expr::Xor, _: TransformEvent) -> TransformOutcome {
+        self.transform_xor(xor)
     }
 
     fn transform_implies(&self, implies: expr::Implies) -> TransformOutcome {
         TransformOutcome::identity(implies)
     }
 
+    fn transform_implies_with_event(&self, implies: expr::Implies, _: TransformEvent) -> TransformOutcome {
+        self.transform_implies(implies)
+    }
+
     fn transform_array_read(&self, array_read: expr::ArrayRead) -> TransformOutcome {
         TransformOutcome::identity(array_read)
+    }
+
+    fn transform_array_read_with_event(&self, array_read: expr::ArrayRead, _: TransformEvent) -> TransformOutcome {
+        self.transform_array_read(array_read)
     }
 
     fn transform_array_write(&self, array_write: expr::ArrayWrite) -> TransformOutcome {
         TransformOutcome::identity(array_write)
     }
 
+    fn transform_array_write_with_event(&self, array_write: expr::ArrayWrite, _: TransformEvent) -> TransformOutcome {
+        self.transform_array_write(array_write)
+    }
+
     fn transform_bitvec_const(&self, bitvec_const: expr::BitvecConst) -> TransformOutcome {
         TransformOutcome::identity(bitvec_const)
+    }
+
+    fn transform_bitvec_const_with_event(&self, bitvec_const: expr::BitvecConst, _: TransformEvent) -> TransformOutcome {
+        self.transform_bitvec_const(bitvec_const)
     }
 
     fn transform_add(&self, add: expr::Add) -> TransformOutcome {
         TransformOutcome::identity(add)
     }
 
+    fn transform_add_with_event(&self, add: expr::Add, _: TransformEvent) -> TransformOutcome {
+        self.transform_add(add)
+    }
+
     fn transform_mul(&self, mul: expr::Mul) -> TransformOutcome {
         TransformOutcome::identity(mul)
+    }
+
+    fn transform_mul_with_event(&self, mul: expr::Mul, _: TransformEvent) -> TransformOutcome {
+        self.transform_mul(mul)
     }
 
     fn transform_neg(&self, neg: expr::Neg) -> TransformOutcome {
         TransformOutcome::identity(neg)
     }
 
+    fn transform_neg_with_event(&self, neg: expr::Neg, _: TransformEvent) -> TransformOutcome {
+        self.transform_neg(neg)
+    }
+
     fn transform_sdiv(&self, sdiv: expr::SignedDiv) -> TransformOutcome {
         TransformOutcome::identity(sdiv)
+    }
+
+    fn transform_sdiv_with_event(&self, sdiv: expr::SignedDiv, _: TransformEvent) -> TransformOutcome {
+        self.transform_sdiv(sdiv)
     }
 
     fn transform_smod(&self, smod: expr::SignedModulo) -> TransformOutcome {
         TransformOutcome::identity(smod)
     }
 
+    fn transform_smod_with_event(&self, smod: expr::SignedModulo, _: TransformEvent) -> TransformOutcome {
+        self.transform_smod(smod)
+    }
+
     fn transform_srem(&self, srem: expr::SignedRemainder) -> TransformOutcome {
         TransformOutcome::identity(srem)
+    }
+
+    fn transform_srem_with_event(&self, srem: expr::SignedRemainder, _: TransformEvent) -> TransformOutcome {
+        self.transform_srem(srem)
     }
 
     fn transform_sub(&self, sub: expr::Sub) -> TransformOutcome {
         TransformOutcome::identity(sub)
     }
 
+    fn transform_sub_with_event(&self, sub: expr::Sub, _: TransformEvent) -> TransformOutcome {
+        self.transform_sub(sub)
+    }
+
+
+
+
     fn transform_udiv(&self, udiv: expr::UnsignedDiv) -> TransformOutcome {
         TransformOutcome::identity(udiv)
+    }
+
+    fn transform_udiv_with_event(&self, udiv: expr::UnsignedDiv, _: TransformEvent) -> TransformOutcome {
+        self.transform_udiv(udiv)
     }
 
     fn transform_urem(&self, urem: expr::UnsignedRemainder) -> TransformOutcome {
         TransformOutcome::identity(urem)
     }
 
+    fn transform_urem_with_event(&self, urem: expr::UnsignedRemainder, _: TransformEvent) -> TransformOutcome {
+        self.transform_urem(urem)
+    }
+
     fn transform_bitnot(&self, bitnot: expr::BitNot) -> TransformOutcome {
         TransformOutcome::identity(bitnot)
+    }
+
+    fn transform_bitnot_with_event(&self, bitnot: expr::BitNot, _: TransformEvent) -> TransformOutcome {
+        self.transform_bitnot(bitnot)
     }
 
     fn transform_bitand(&self, bitand: expr::BitAnd) -> TransformOutcome {
         TransformOutcome::identity(bitand)
     }
 
+    fn transform_bitand_with_event(&self, bitand: expr::BitAnd, _: TransformEvent) -> TransformOutcome {
+        self.transform_bitand(bitand)
+    }
+
     fn transform_bitor(&self, bitor: expr::BitOr) -> TransformOutcome {
         TransformOutcome::identity(bitor)
+    }
+
+    fn transform_bitor_with_event(&self, bitor: expr::BitOr, _: TransformEvent) -> TransformOutcome {
+        self.transform_bitor(bitor)
     }
 
     fn transform_bitxor(&self, bitxor: expr::BitXor) -> TransformOutcome {
         TransformOutcome::identity(bitxor)
     }
 
+    fn transform_bitxor_with_event(&self, bitxor: expr::BitXor, _: TransformEvent) -> TransformOutcome {
+        self.transform_bitxor(bitxor)
+    }
+
     fn transform_concat(&self, concat: expr::Concat) -> TransformOutcome {
         TransformOutcome::identity(concat)
+    }
+
+    fn transform_concat_with_event(&self, concat: expr::Concat, _: TransformEvent) -> TransformOutcome {
+        self.transform_concat(concat)
     }
 
     fn transform_extract(&self, extract: expr::Extract) -> TransformOutcome {
         TransformOutcome::identity(extract)
     }
 
+    fn transform_extract_with_event(&self, extract: expr::Extract, _: TransformEvent) -> TransformOutcome {
+        self.transform_extract(extract)
+    }
+
     fn transform_sext(&self, sext: expr::SignExtend) -> TransformOutcome {
         TransformOutcome::identity(sext)
+    }
+
+    fn transform_sext_with_event(&self, sext: expr::SignExtend, _: TransformEvent) -> TransformOutcome {
+        self.transform_sext(sext)
     }
 
     fn transform_zext(&self, zext: expr::ZeroExtend) -> TransformOutcome {
         TransformOutcome::identity(zext)
     }
 
+    fn transform_zext_with_event(&self, zext: expr::ZeroExtend, _: TransformEvent) -> TransformOutcome {
+        self.transform_zext(zext)
+    }
+
     fn transform_bitvec_equals(&self, bitvec_equals: expr::BitvecEquals) -> TransformOutcome {
         TransformOutcome::identity(bitvec_equals)
+    }
+
+    fn transform_bitvec_equals_with_event(&self, bitvec_equals: expr::BitvecEquals, _: TransformEvent) -> TransformOutcome {
+        self.transform_bitvec_equals(bitvec_equals)
     }
 
     fn transform_sge(&self, sge: expr::SignedGreaterEquals) -> TransformOutcome {
         TransformOutcome::identity(sge)
     }
 
+    fn transform_sge_with_event(&self, sge: expr::SignedGreaterEquals, _: TransformEvent) -> TransformOutcome {
+        self.transform_sge(sge)
+    }
+
     fn transform_sgt(&self, sgt: expr::SignedGreaterThan) -> TransformOutcome {
         TransformOutcome::identity(sgt)
+    }
+
+    fn transform_sgt_with_event(&self, sgt: expr::SignedGreaterThan, _: TransformEvent) -> TransformOutcome {
+        self.transform_sgt(sgt)
     }
 
     fn transform_sle(&self, sle: expr::SignedLessEquals) -> TransformOutcome {
         TransformOutcome::identity(sle)
     }
 
+    fn transform_sle_with_event(&self, sle: expr::SignedLessEquals, _: TransformEvent) -> TransformOutcome {
+        self.transform_sle(sle)
+    }
+
     fn transform_slt(&self, slt: expr::SignedLessThan) -> TransformOutcome {
         TransformOutcome::identity(slt)
+    }
+
+    fn transform_slt_with_event(&self, slt: expr::SignedLessThan, _: TransformEvent) -> TransformOutcome {
+        self.transform_slt(slt)
     }
 
     fn transform_uge(&self, uge: expr::UnsignedGreaterEquals) -> TransformOutcome {
         TransformOutcome::identity(uge)
     }
 
+    fn transform_uge_with_event(&self, uge: expr::UnsignedGreaterEquals, _: TransformEvent) -> TransformOutcome {
+        self.transform_uge(uge)
+    }
+
     fn transform_ugt(&self, ugt: expr::UnsignedGreaterThan) -> TransformOutcome {
         TransformOutcome::identity(ugt)
+    }
+
+    fn transform_ugt_with_event(&self, ugt: expr::UnsignedGreaterThan, _: TransformEvent) -> TransformOutcome {
+        self.transform_ugt(ugt)
     }
 
     fn transform_ule(&self, ule: expr::UnsignedLessEquals) -> TransformOutcome {
         TransformOutcome::identity(ule)
     }
 
+    fn transform_ule_with_event(&self, ule: expr::UnsignedLessEquals, _: TransformEvent) -> TransformOutcome {
+        self.transform_ule(ule)
+    }
+
     fn transform_ult(&self, ult: expr::UnsignedLessThan) -> TransformOutcome {
         TransformOutcome::identity(ult)
+    }
+
+    fn transform_ult_with_event(&self, ult: expr::UnsignedLessThan, _: TransformEvent) -> TransformOutcome {
+        self.transform_ult(ult)
     }
 
     fn transform_ashr(&self, ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
         TransformOutcome::identity(ashr)
     }
 
+    fn transform_ashr_with_event(&self, ashr: expr::ArithmeticShiftRight, _: TransformEvent) -> TransformOutcome {
+        self.transform_ashr(ashr)
+    }
+
     fn transform_lshr(&self, lshr: expr::LogicalShiftRight) -> TransformOutcome {
         TransformOutcome::identity(lshr)
     }
 
+    fn transform_lshr_with_event(&self, lshr: expr::LogicalShiftRight, _: TransformEvent) -> TransformOutcome {
+        self.transform_lshr(lshr)
+    }
+
     fn transform_shl(&self, shl: expr::ShiftLeft) -> TransformOutcome {
         TransformOutcome::identity(shl)
+    }
+
+    fn transform_shl_with_event(&self, shl: expr::ShiftLeft, _: TransformEvent) -> TransformOutcome {
+        self.transform_shl(shl)
     }
 }
 
@@ -246,13 +432,13 @@ pub trait AnyExprTransformer {
     /// Transforms the given mutable `AnyExpr` inplace.
     /// 
     /// Returns a state indicating whether the given expression was actually transformed.
-    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect;
+    fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect;
 
     /// Consumed the given `AnyExpr` and transforms it.
     /// 
     /// Returns the resulting expression after the transformation and a state
     /// indicating whether the consumed expression was actually transformed.
-    fn transform_any_expr_into(&self, expr: AnyExpr) -> TransformOutcome;
+    fn transform_any_expr_into(&self, expr: AnyExpr, event: TransformEvent) -> TransformOutcome;
 }
 
 /// Implement this to activate automatic default implementation
@@ -260,65 +446,59 @@ pub trait AnyExprTransformer {
 pub trait AutoImplAnyExprTransformer: Transformer {}
 
 impl<T> AnyExprTransformer for T where T: AutoImplAnyExprTransformer {
-    fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
+    fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);
 		let TransformOutcome{result, expr: transformed} =
-            self.transform_any_expr_into(input);
+            self.transform_any_expr_into(input, event);
         mem::replace(expr, transformed);
         result
     }
 
-    fn transform_any_expr_into(&self, expr: AnyExpr) -> TransformOutcome {
+    fn transform_any_expr_into(&self, expr: AnyExpr, event: TransformEvent) -> TransformOutcome {
         use self::AnyExpr::*;
         match expr {
-            IfThenElse(expr) => self.transform_cond(expr),
-            Symbol(expr) => self.transform_var(expr),
-            BoolConst(expr) => self.transform_bool_const(expr),
-            BoolEquals(expr) => self.transform_bool_equals(expr),
-            Not(expr) => self.transform_not(expr),
-            And(expr) => self.transform_and(expr),
-            Or(expr) => self.transform_or(expr),
-            Xor(expr) => self.transform_xor(expr),
-            Implies(expr) => self.transform_implies(expr),
-
-            ArrayRead(expr) => self.transform_array_read(expr),
-            ArrayWrite(expr) => self.transform_array_write(expr),
-
-            Add(expr) => self.transform_add(expr),
-            BitvecConst(expr) => self.transform_bitvec_const(expr),
-            Mul(expr) => self.transform_mul(expr),
-            Neg(expr) => self.transform_neg(expr),
-            SignedDiv(expr) => self.transform_sdiv(expr),
-            SignedModulo(expr) => self.transform_smod(expr),
-            SignedRemainder(expr) => self.transform_srem(expr),
-            Sub(expr) => self.transform_sub(expr),
-            UnsignedDiv(expr) => self.transform_udiv(expr),
-            UnsignedRemainder(expr) => self.transform_urem(expr),
-
-            BitAnd(expr) => self.transform_bitand(expr),
-            BitNot(expr) => self.transform_bitnot(expr),
-            BitOr(expr) => self.transform_bitor(expr),
-            BitXor(expr) => self.transform_bitxor(expr),
-
-            Concat(expr) => self.transform_concat(expr),
-            Extract(expr) => self.transform_extract(expr),
-            SignExtend(expr) => self.transform_sext(expr),
-            ZeroExtend(expr) => self.transform_zext(expr),
-
-            BitvecEquals(expr) => self.transform_bitvec_equals(expr),
-            SignedGreaterEquals(expr) => self.transform_sge(expr),
-            SignedGreaterThan(expr) => self.transform_sgt(expr),
-            SignedLessEquals(expr) => self.transform_sle(expr),
-            SignedLessThan(expr) => self.transform_slt(expr),
-            UnsignedGreaterEquals(expr) => self.transform_uge(expr),
-            UnsignedGreaterThan(expr) => self.transform_ugt(expr),
-            UnsignedLessEquals(expr) => self.transform_ule(expr),
-            UnsignedLessThan(expr) => self.transform_ult(expr),
-
-            ArithmeticShiftRight(expr) => self.transform_ashr(expr),
-            LogicalShiftRight(expr) => self.transform_lshr(expr),
-            ShiftLeft(expr) => self.transform_shl(expr)
+            IfThenElse(expr) => self.transform_cond_with_event(expr, event),
+            Symbol(expr) => self.transform_var_with_event(expr, event),
+            BoolConst(expr) => self.transform_bool_const_with_event(expr, event),
+            BoolEquals(expr) => self.transform_bool_equals_with_event(expr, event),
+            Not(expr) => self.transform_not_with_event(expr, event),
+            And(expr) => self.transform_and_with_event(expr, event),
+            Or(expr) => self.transform_or_with_event(expr, event),
+            Xor(expr) => self.transform_xor_with_event(expr, event),
+            Implies(expr) => self.transform_implies_with_event(expr, event),
+            ArrayRead(expr) => self.transform_array_read_with_event(expr, event),
+            ArrayWrite(expr) => self.transform_array_write_with_event(expr, event),
+            Add(expr) => self.transform_add_with_event(expr, event),
+            BitvecConst(expr) => self.transform_bitvec_const_with_event(expr, event),
+            Mul(expr) => self.transform_mul_with_event(expr, event),
+            Neg(expr) => self.transform_neg_with_event(expr, event),
+            SignedDiv(expr) => self.transform_sdiv_with_event(expr, event),
+            SignedModulo(expr) => self.transform_smod_with_event(expr, event),
+            SignedRemainder(expr) => self.transform_srem_with_event(expr, event),
+            Sub(expr) => self.transform_sub_with_event(expr, event),
+            UnsignedDiv(expr) => self.transform_udiv_with_event(expr, event),
+            UnsignedRemainder(expr) => self.transform_urem_with_event(expr, event),
+            BitAnd(expr) => self.transform_bitand_with_event(expr, event),
+            BitNot(expr) => self.transform_bitnot_with_event(expr, event),
+            BitOr(expr) => self.transform_bitor_with_event(expr, event),
+            BitXor(expr) => self.transform_bitxor_with_event(expr, event),
+            Concat(expr) => self.transform_concat_with_event(expr, event),
+            Extract(expr) => self.transform_extract_with_event(expr, event),
+            SignExtend(expr) => self.transform_sext_with_event(expr, event),
+            ZeroExtend(expr) => self.transform_zext_with_event(expr, event),
+            BitvecEquals(expr) => self.transform_bitvec_equals_with_event(expr, event),
+            SignedGreaterEquals(expr) => self.transform_sge_with_event(expr, event),
+            SignedGreaterThan(expr) => self.transform_sgt_with_event(expr, event),
+            SignedLessEquals(expr) => self.transform_sle_with_event(expr, event),
+            SignedLessThan(expr) => self.transform_slt_with_event(expr, event),
+            UnsignedGreaterEquals(expr) => self.transform_uge_with_event(expr, event),
+            UnsignedGreaterThan(expr) => self.transform_ugt_with_event(expr, event),
+            UnsignedLessEquals(expr) => self.transform_ule_with_event(expr, event),
+            UnsignedLessThan(expr) => self.transform_ult_with_event(expr, event),
+            ArithmeticShiftRight(expr) => self.transform_ashr_with_event(expr, event),
+            LogicalShiftRight(expr) => self.transform_lshr_with_event(expr, event),
+            ShiftLeft(expr) => self.transform_shl_with_event(expr, event)
         }
     }
 }
@@ -343,12 +523,12 @@ impl<T> TraverseTransformer<T>
     pub fn traverse_transform(&self, expr: &mut AnyExpr) -> TransformEffect {
         let mut result = TransformEffect::Identity;
         // Transform the current expression before all of its children.
-        result |= self.transformer.transform_any_expr(expr);
+        result |= self.transformer.transform_any_expr(expr, TransformEvent::Entering);
         for child in expr.children_mut() {
             result |= self.traverse_transform(child);
         }
         // Transform the current expression again after all of its children.
-        result |= self.transformer.transform_any_expr(expr);
+        result |= self.transformer.transform_any_expr(expr, TransformEvent::Leaving);
         result
     }
 
@@ -370,15 +550,15 @@ macro_rules! modular_ast_transformer {
         }
 
         impl AnyExprTransformer for $name {
-            fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
+            fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect {
                 let mut result = TransformEffect::Identity;
-                $(result |= self.$trans_id.transform_any_expr(expr));*;
+                $(result |= self.$trans_id.transform_any_expr(expr, event));*;
                 result
             }
 
-            fn transform_any_expr_into(&self, expr: AnyExpr) -> TransformOutcome {
+            fn transform_any_expr_into(&self, expr: AnyExpr, event: TransformEvent) -> TransformOutcome {
                 let mut expr = expr;
-                let result = self.transform_any_expr(&mut expr);
+                let result = self.transform_any_expr(&mut expr, event);
                 TransformOutcome::new(result, expr)
             }
         }
