@@ -532,8 +532,8 @@ impl<T> TraverseTransformer<T>
     /// Forwards to recursively traverse and transform the given expression and also
     /// performs a post-processing step for the given root node.
     pub fn traverse_transform(&self, root: &mut AnyExpr) -> TransformEffect {
-        let effect = self.recursive_traverse_transform(root);
-        self.transformer.transform_any_expr(root, TransformEvent::PostProcessing);
+        let mut effect = self.recursive_traverse_transform(root);
+        effect |= self.transformer.transform_any_expr(root, TransformEvent::PostProcessing);
         effect
     }
 
