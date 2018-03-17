@@ -30,7 +30,7 @@ impl<M> NaryBoolExpr<M> {
     /// 
     /// This is just a convenience method and performs no type checking on its arguments.
     fn from_vec(children: Vec<AnyExpr>) -> Self {
-        Self{ children: children, marker: PhantomData }
+        Self{ children, marker: PhantomData }
     }
 
     /// Returns a new n-ary formula expression with the given child expressions.
