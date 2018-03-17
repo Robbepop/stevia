@@ -259,7 +259,7 @@ pub trait AnyExprTransformer {
 /// of the `AnyTransformer` trait.
 pub trait AutoImplAnyExprTransformer: Transformer {}
 
-impl<T> AnyExprTransformer for T where T: Transformer + AutoImplAnyExprTransformer {
+impl<T> AnyExprTransformer for T where T: AutoImplAnyExprTransformer {
     fn transform_any_expr(&self, expr: &mut AnyExpr) -> TransformEffect {
         let temp = AnyExpr::from(expr::BoolConst::f());
 		let input = mem::replace(expr, temp);
