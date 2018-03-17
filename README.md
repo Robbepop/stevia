@@ -18,7 +18,7 @@ Currently the solver is in very early development phase.
 ## Supported Theories (SMT)
 
 - Bitvectors of fixed bit-width and modulo-two arithmetics.
-- Extensional arrays, indexed by bitvectors with bitvector values.
+- Non-extensional arrays, indexed by bitvectors with bitvector values.
 - Only supports quantifier-free inputs.
 
 The combined theory in SMT notation is called `QF_ABV`.
