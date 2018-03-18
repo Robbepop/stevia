@@ -1,7 +1,6 @@
 use ast::prelude::*;
 
-use chashmap::CHashMap;
-use std::rc::Rc;
+use std::collections::HashMap;
 
 pub mod prelude {
     pub use super::{
@@ -25,21 +24,9 @@ pub mod prelude {
 /// 
 /// # Problems with the current Design
 /// 
-/// Currently we use the `chashmap` crate from `crates.io`. This is a published utility
-/// of the Redox `tfs` (next-generation file system) library. As of today (2018-03-18)
-/// it is missing an important feature for better parity with `std::collections::HashMap`
-/// that is required by this implementation since otherwise the compiler incorrectly
-/// infers lifetimes of many parts of the program.
-/// 
-/// Another problem is that there currently is no elegant solution to how the seen-hashmap
-/// is used throughout the recursive traversal of the expression tree.
-/// Upon encountering an if-then-else expression we clone the hashmap exactly once for the
-/// else-case part. The then-case part simply takes over the current hashmap, updates it,
-/// traverses through the sub-tree recursively and finally removes the entry from the hashmap
-/// again to not confuse other parts of the expression tree. This has the advantage of just
-/// a single deep-clone per if-then-else expression and the huge disadvantage of the
-/// interdependency between disjoint subtrees. This could be fixed by two deep-clones per if-then-else
-/// or probably by yet another traversal strategy that may even remove all deep-clones.
+/// Since we are using a single hashmap that is constantly updated during traversal of the
+/// expression tree we cannot easily process this in parallel if we wish to in future version
+/// of stevia.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct IfConstraintPropagator;
 
@@ -53,7 +40,7 @@ impl AnyExprTransformer for IfConstraintPropagator {
         if event != TransformEvent::PostProcessing {
             return TransformEffect::Identity
         }
-        propagate_if_constraint(expr, Rc::new(CHashMap::new()))
+        propagate_if_constraint(expr, &mut HashMap::new())
     }
 
     fn transform_any_expr_into(&self, expr: AnyExpr, event: TransformEvent) -> TransformOutcome {
@@ -68,23 +55,23 @@ impl AnyExprTransformer for IfConstraintPropagator {
 /// This effectively splits the seen map into a then-case and else-case for true and false
 /// polarity of the condition respectively and continues to traverse recursively through
 /// the given expression sub tree.
-fn split_if_costraint<'e>(cond: &'e mut expr::IfThenElse, seen: Rc<CHashMap<&'e AnyExpr, bool>>) -> TransformEffect {
-    // Create a deep clone of the hashmap and insert the condition with
-    // polarity of true and false for then and else cases respectively.
-    let seen_then: &CHashMap<&'e AnyExpr, bool> = &*seen;
-    let seen_then = Rc::new(seen_then.clone());
-    let seen_else = seen;
+fn split_if_costraint<'e>(cond: &'e mut expr::IfThenElse, seen: &mut HashMap<&'e AnyExpr, bool>) -> TransformEffect {
     let (cond, then_case, else_case) = cond.as_children_tuple_mut();
-    seen_then.insert(&*cond, true);
-    seen_else.insert(&*cond, false);
-    // Now recursively propagate the new constraint (and all constraints before)
-    // through then and else cases with their respective polarities.
     let mut effect = TransformEffect::Identity;
-    effect |= propagate_if_constraint(then_case, seen_then);
-    effect |= propagate_if_constraint(else_case, seen_else.clone());
+
+    // Traverse through then-case with `true` polarity.
+    seen.insert(&*cond, true);
+    effect |= propagate_if_constraint(then_case, seen);
+
+    // Traverse through else-case with `false` polarity.
+    // seen.upsert(&*cond, || false, |v| *v = false);
+    *seen.get_mut(&*cond).unwrap() = false;
+    effect |= propagate_if_constraint(else_case, seen);
+
     // Remove item from moved-only hashtable to not confuse other siblings
     // of the expression tree.
-    seen_else.remove(&*cond);
+    seen.remove(&*cond);
+
     effect
 }
 
@@ -92,7 +79,7 @@ fn split_if_costraint<'e>(cond: &'e mut expr::IfThenElse, seen: Rc<CHashMap<&'e 
 /// given expression tree.
 /// Upon encountering another if-then-else structure the propagation is split for
 /// then-case and else-case respectively and propagated further.
-fn propagate_if_constraint<'e>(expr: &'e mut AnyExpr, seen: Rc<CHashMap<&'e AnyExpr, bool>>) -> TransformEffect {
+fn propagate_if_constraint<'e>(expr: &'e mut AnyExpr, seen: &mut HashMap<&'e AnyExpr, bool>) -> TransformEffect {
     // Replace the current expression with a constant value if it was already seen.
     // 
     // Since conditions of if-expressions are always of boolean type this replacement
@@ -115,7 +102,7 @@ fn propagate_if_constraint<'e>(expr: &'e mut AnyExpr, seen: Rc<CHashMap<&'e AnyE
     // their transform effects.
     let mut effect = TransformEffect::Identity;
     for child in expr.children_mut() {
-        effect |= propagate_if_constraint(child, seen.clone())
+        effect |= propagate_if_constraint(child, seen)
     }
     effect
 }

@@ -24,11 +24,6 @@ num = "0.1"
 vec_map = "0.8"
 either = "1.4"
 log = "0.4.1"
-# chashmap = { git = 'https://github.com/nathanaeljones/tfs' }
-chashmap = "2.2.0"
-
-[patch.crates-io]
-chashmap = { git = 'https://github.com/nathanaeljones/tfs' }
 
 [badges]
 travis-ci = { repository = "Robbepop/stevia" }
