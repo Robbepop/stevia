@@ -94,7 +94,8 @@ pub use self::transformer::{
     TransformOutcome,
     AnyExprTransformer,
     AutoImplAnyExprTransformer,
-    TraverseTransformer
+    TraverseTransformer,
+    forward_transform_any_expr_into
 };
 
 /// Re-exports all expression types.

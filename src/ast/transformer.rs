@@ -11,7 +11,8 @@ pub mod prelude {
         Transformer,
         AnyExprTransformer,
         AutoImplAnyExprTransformer,
-        TraverseTransformer
+        TraverseTransformer,
+        forward_transform_any_expr_into
     };
 }
 
@@ -442,6 +443,55 @@ pub trait AnyExprTransformer {
 /// of the `AnyTransformer` trait.
 pub trait AutoImplAnyExprTransformer: Transformer {}
 
+pub fn forward_transform_any_expr_into<T>(transformer: &T, expr: AnyExpr, event: TransformEvent) -> TransformOutcome
+    where T: Transformer
+{
+    use self::AnyExpr::*;
+    match expr {
+        IfThenElse(expr) => transformer.transform_cond_with_event(expr, event),
+        Symbol(expr) => transformer.transform_var_with_event(expr, event),
+        BoolConst(expr) => transformer.transform_bool_const_with_event(expr, event),
+        BoolEquals(expr) => transformer.transform_bool_equals_with_event(expr, event),
+        Not(expr) => transformer.transform_not_with_event(expr, event),
+        And(expr) => transformer.transform_and_with_event(expr, event),
+        Or(expr) => transformer.transform_or_with_event(expr, event),
+        Xor(expr) => transformer.transform_xor_with_event(expr, event),
+        Implies(expr) => transformer.transform_implies_with_event(expr, event),
+        ArrayRead(expr) => transformer.transform_array_read_with_event(expr, event),
+        ArrayWrite(expr) => transformer.transform_array_write_with_event(expr, event),
+        Add(expr) => transformer.transform_add_with_event(expr, event),
+        BitvecConst(expr) => transformer.transform_bitvec_const_with_event(expr, event),
+        Mul(expr) => transformer.transform_mul_with_event(expr, event),
+        Neg(expr) => transformer.transform_neg_with_event(expr, event),
+        SignedDiv(expr) => transformer.transform_sdiv_with_event(expr, event),
+        SignedModulo(expr) => transformer.transform_smod_with_event(expr, event),
+        SignedRemainder(expr) => transformer.transform_srem_with_event(expr, event),
+        Sub(expr) => transformer.transform_sub_with_event(expr, event),
+        UnsignedDiv(expr) => transformer.transform_udiv_with_event(expr, event),
+        UnsignedRemainder(expr) => transformer.transform_urem_with_event(expr, event),
+        BitAnd(expr) => transformer.transform_bitand_with_event(expr, event),
+        BitNot(expr) => transformer.transform_bitnot_with_event(expr, event),
+        BitOr(expr) => transformer.transform_bitor_with_event(expr, event),
+        BitXor(expr) => transformer.transform_bitxor_with_event(expr, event),
+        Concat(expr) => transformer.transform_concat_with_event(expr, event),
+        Extract(expr) => transformer.transform_extract_with_event(expr, event),
+        SignExtend(expr) => transformer.transform_sext_with_event(expr, event),
+        ZeroExtend(expr) => transformer.transform_zext_with_event(expr, event),
+        BitvecEquals(expr) => transformer.transform_bitvec_equals_with_event(expr, event),
+        SignedGreaterEquals(expr) => transformer.transform_sge_with_event(expr, event),
+        SignedGreaterThan(expr) => transformer.transform_sgt_with_event(expr, event),
+        SignedLessEquals(expr) => transformer.transform_sle_with_event(expr, event),
+        SignedLessThan(expr) => transformer.transform_slt_with_event(expr, event),
+        UnsignedGreaterEquals(expr) => transformer.transform_uge_with_event(expr, event),
+        UnsignedGreaterThan(expr) => transformer.transform_ugt_with_event(expr, event),
+        UnsignedLessEquals(expr) => transformer.transform_ule_with_event(expr, event),
+        UnsignedLessThan(expr) => transformer.transform_ult_with_event(expr, event),
+        ArithmeticShiftRight(expr) => transformer.transform_ashr_with_event(expr, event),
+        LogicalShiftRight(expr) => transformer.transform_lshr_with_event(expr, event),
+        ShiftLeft(expr) => transformer.transform_shl_with_event(expr, event)
+    }
+}
+
 impl<T> AnyExprTransformer for T where T: AutoImplAnyExprTransformer {
     fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect {
         let temp = AnyExpr::from(expr::BoolConst::f());
@@ -453,50 +503,7 @@ impl<T> AnyExprTransformer for T where T: AutoImplAnyExprTransformer {
     }
 
     fn transform_any_expr_into(&self, expr: AnyExpr, event: TransformEvent) -> TransformOutcome {
-        use self::AnyExpr::*;
-        match expr {
-            IfThenElse(expr) => self.transform_cond_with_event(expr, event),
-            Symbol(expr) => self.transform_var_with_event(expr, event),
-            BoolConst(expr) => self.transform_bool_const_with_event(expr, event),
-            BoolEquals(expr) => self.transform_bool_equals_with_event(expr, event),
-            Not(expr) => self.transform_not_with_event(expr, event),
-            And(expr) => self.transform_and_with_event(expr, event),
-            Or(expr) => self.transform_or_with_event(expr, event),
-            Xor(expr) => self.transform_xor_with_event(expr, event),
-            Implies(expr) => self.transform_implies_with_event(expr, event),
-            ArrayRead(expr) => self.transform_array_read_with_event(expr, event),
-            ArrayWrite(expr) => self.transform_array_write_with_event(expr, event),
-            Add(expr) => self.transform_add_with_event(expr, event),
-            BitvecConst(expr) => self.transform_bitvec_const_with_event(expr, event),
-            Mul(expr) => self.transform_mul_with_event(expr, event),
-            Neg(expr) => self.transform_neg_with_event(expr, event),
-            SignedDiv(expr) => self.transform_sdiv_with_event(expr, event),
-            SignedModulo(expr) => self.transform_smod_with_event(expr, event),
-            SignedRemainder(expr) => self.transform_srem_with_event(expr, event),
-            Sub(expr) => self.transform_sub_with_event(expr, event),
-            UnsignedDiv(expr) => self.transform_udiv_with_event(expr, event),
-            UnsignedRemainder(expr) => self.transform_urem_with_event(expr, event),
-            BitAnd(expr) => self.transform_bitand_with_event(expr, event),
-            BitNot(expr) => self.transform_bitnot_with_event(expr, event),
-            BitOr(expr) => self.transform_bitor_with_event(expr, event),
-            BitXor(expr) => self.transform_bitxor_with_event(expr, event),
-            Concat(expr) => self.transform_concat_with_event(expr, event),
-            Extract(expr) => self.transform_extract_with_event(expr, event),
-            SignExtend(expr) => self.transform_sext_with_event(expr, event),
-            ZeroExtend(expr) => self.transform_zext_with_event(expr, event),
-            BitvecEquals(expr) => self.transform_bitvec_equals_with_event(expr, event),
-            SignedGreaterEquals(expr) => self.transform_sge_with_event(expr, event),
-            SignedGreaterThan(expr) => self.transform_sgt_with_event(expr, event),
-            SignedLessEquals(expr) => self.transform_sle_with_event(expr, event),
-            SignedLessThan(expr) => self.transform_slt_with_event(expr, event),
-            UnsignedGreaterEquals(expr) => self.transform_uge_with_event(expr, event),
-            UnsignedGreaterThan(expr) => self.transform_ugt_with_event(expr, event),
-            UnsignedLessEquals(expr) => self.transform_ule_with_event(expr, event),
-            UnsignedLessThan(expr) => self.transform_ult_with_event(expr, event),
-            ArithmeticShiftRight(expr) => self.transform_ashr_with_event(expr, event),
-            LogicalShiftRight(expr) => self.transform_lshr_with_event(expr, event),
-            ShiftLeft(expr) => self.transform_shl_with_event(expr, event)
-        }
+        forward_transform_any_expr_into(self, expr, event)
     }
 }
 
