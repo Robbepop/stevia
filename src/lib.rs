@@ -16,6 +16,7 @@ extern crate itertools;
 extern crate string_interner;
 extern crate vec_map;
 extern crate either;
+extern crate chashmap;
 
 #[macro_use]
 extern crate lazy_static;
