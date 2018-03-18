@@ -24,6 +24,24 @@ pub mod prelude {
 /// into the standard transformation procedure and can only work as a post-processing step.
 /// The reason for this is that it requires a more controled way of traversing through the
 /// expression tree that is currently not supported by the transformer architecture.
+/// 
+/// # Problems with the current Design
+/// 
+/// Currently we use the `chashmap` crate from `crates.io`. This is a published utility
+/// of the Redox `tfs` (next-generation file system) library. As of today (2018-03-18)
+/// it is missing an important feature for better parity with `std::collections::HashMap`
+/// that is required by this implementation since otherwise the compiler incorrectly
+/// infers lifetimes of many parts of the program.
+/// 
+/// Another problem is that there currently is no elegant solution to how the seen-hashmap
+/// is used throughout the recursive traversal of the expression tree.
+/// Upon encountering an if-then-else expression we clone the hashmap exactly once for the
+/// else-case part. The then-case part simply takes over the current hashmap, updates it,
+/// traverses through the sub-tree recursively and finally removes the entry from the hashmap
+/// again to not confuse other parts of the expression tree. This has the advantage of just
+/// a single deep-clone per if-then-else expression and the huge disadvantage of the
+/// interdependency between disjoint subtrees. This could be fixed by two deep-clones per if-then-else
+/// or probably by yet another traversal strategy that may even remove all deep-clones.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct IfConstraintPropagator;
 
@@ -47,6 +65,11 @@ impl AnyExprTransformer for IfConstraintPropagator {
     }
 }
 
+/// Called upon encountering a new if-then-else construct during if-constraint propagation.
+/// 
+/// This effectively splits the seen map into a then-case and else-case for true and false
+/// polarity of the condition respectively and continues to traverse recursively through
+/// the given expression sub tree.
 fn split_if_costraint<'e>(cond: &'e mut expr::IfThenElse, seen: Rc<CHashMap<&'e AnyExpr, bool>>) -> TransformEffect {
     // Create a deep clone of the hashmap and insert the condition with
     // polarity of true and false for then and else cases respectively.
@@ -67,6 +90,10 @@ fn split_if_costraint<'e>(cond: &'e mut expr::IfThenElse, seen: Rc<CHashMap<&'e 
     effect
 }
 
+/// Propagates the constraints that have already been seen recursively through the
+/// given expression tree.
+/// Upon encountering another if-then-else structure the propagation is split for
+/// then-case and else-case respectively and propagated further.
 fn propagate_if_constraint<'e>(expr: &'e mut AnyExpr, seen: Rc<CHashMap<&'e AnyExpr, bool>>) -> TransformEffect {
     // Replace the current expression with a constant value if it was already seen.
     // 
