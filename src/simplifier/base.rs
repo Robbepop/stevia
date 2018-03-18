@@ -12,16 +12,17 @@ pub type Simplifier = BaseSimplifier<SimplifierTransformer>;
 
 modular_ast_transformer! {
     struct SimplifierTransformer {
-        _0: simplifications::InvolutionSimplifier,
-        _1: simplifications::ComparisonReducer,
-        _2: simplifications::BoolConstPropagator,
-        _3: simplifications::BoolSymbolicSolver,
-        _4: simplifications::BoolReducer,
-        _5: simplifications::Normalizer,
-        _6: simplifications::Flattener,
-        _7: simplifications::TermConstPropagator,
-        _8: simplifications::TermReducer,
-        _9: simplifications::LikeTermJoiner
+        _00: simplifications::InvolutionSimplifier,
+        _01: simplifications::ComparisonReducer,
+        _02: simplifications::BoolConstPropagator,
+        _03: simplifications::BoolSymbolicSolver,
+        _04: simplifications::BoolReducer,
+        _05: simplifications::Normalizer,
+        _06: simplifications::Flattener,
+        _07: simplifications::TermConstPropagator,
+        _08: simplifications::TermReducer,
+        _09: simplifications::LikeTermJoiner,
+        _10: simplifications::IfConstraintPropagator
     }
 }
 
