@@ -1,7 +1,5 @@
 use ast::prelude::*;
 
-// use std::collections::HashMap;
-// use std::collections::hash_map::Entry::*;
 use chashmap::CHashMap;
 use std::rc::Rc;
 
