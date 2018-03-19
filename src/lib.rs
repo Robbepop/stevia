@@ -26,6 +26,8 @@ extern crate log;
 #[macro_use]
 pub mod ast;
 
+mod printer;
+
 mod simplifier;
 
 pub use ast::prelude::{
