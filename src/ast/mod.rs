@@ -10,6 +10,7 @@ mod terms;
 mod ite;
 mod symbol;
 mod bool_expr;
+mod visitor;
 
 #[macro_use]
 mod transformer;
@@ -23,9 +24,13 @@ pub use self::ty::{
     Type,
     TypeKind,
     HasType,
-
     common_ty,
     have_common_ty,
+};
+pub use self::visitor::{
+    VisitEvent,
+    RecursiveTraverseVisitor,
+    Visitor
 };
 pub use self::binexpr_children::{
     BinExprChildren
