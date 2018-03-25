@@ -4,11 +4,19 @@ use simplifier::simplifications;
 pub mod prelude {
     pub use super::{
         Simplifier,
-        BaseSimplifier
+        BaseSimplifier,
+        simplify
     };
 }
 
 pub type Simplifier = BaseSimplifier<SimplifierTransformer>;
+
+/// Simplifies the given expression until no further simplification can be applied.
+pub fn simplify<'e, E>(expr: E)
+    where E: Into<&'e mut AnyExpr>
+{
+    Simplifier::default().exhaustive_simplify(expr.into())
+}
 
 modular_ast_transformer! {
     struct SimplifierTransformer {

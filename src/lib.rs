@@ -30,9 +30,8 @@ mod printer;
 
 mod simplifier;
 
-pub use ast::prelude::{
-    TransformEffect
-};
 pub use simplifier::prelude::{
-    Simplifier
+    simplify
 };
+
+pub use printer::print_smtlib2;

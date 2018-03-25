@@ -5,7 +5,8 @@ mod simplifications;
 pub mod prelude {
     pub use super::{
         Simplifier,
-        BaseSimplifier
+        BaseSimplifier,
+        simplify
     };
 }
 
