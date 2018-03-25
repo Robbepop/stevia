@@ -290,6 +290,10 @@ mod tests {
         let mut sink = String::new();
         print_smtlib2(&mut sink, &expr);
         let expected = String::from(
+        // How to improve the current testing situation:
+        //
+        // - use library macros such as include_str! or include_bytes!
+        // - use something like the "\x20" hack here https://internals.rust-lang.org/t/allow-escaping-space-in-strings/6825
 "\
 (and
   (or
