@@ -9,7 +9,10 @@ use ast::prelude::*;
 
 use std::fmt;
 
-pub fn print_smtlib2(out: &mut fmt::Write, expr: &AnyExpr) {
+pub fn print_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
+    where E: Into<&'e AnyExpr>
+{
+    let expr = expr.into();
     let mut traverser = RecursiveTraverseVisitor::new(
         SMTLibPrinter::new(out));
     traverser.traverse_visit(expr);
