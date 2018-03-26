@@ -1,3 +1,5 @@
+//! Internal expression data structures and utilities associated to it.
+
 mod arity;
 mod child_iters;
 mod binexpr_children;
