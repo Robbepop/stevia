@@ -34,4 +34,4 @@ pub use simplifier::prelude::{
     simplify
 };
 
-pub use printer::print_smtlib2;
+pub use printer::write_smtlib2;

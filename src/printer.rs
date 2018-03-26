@@ -9,7 +9,8 @@ use ast::prelude::*;
 
 use std::fmt;
 
-pub fn print_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
+/// Writes the given expression tree into the given writer in the SMTLib2 syntax format.
+pub fn write_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
     where E: Into<&'e AnyExpr>
 {
     let expr = expr.into();
@@ -291,7 +292,7 @@ mod tests {
             )
         ).unwrap();
         let mut sink = String::new();
-        print_smtlib2(&mut sink, &expr);
+        write_smtlib2(&mut sink, &expr);
         let expected = String::from(
         // How to improve the current testing situation:
         //
