@@ -64,6 +64,8 @@ impl ArrayWrite {
     /// - If the given `array` is not of array type.
     /// - If the given `index` is not of bitvec type and does not match the
     ///   index bit width of the given array.
+    /// - If the given `value` is not of bitvec type and does not match the
+    ///   value bit width of the given array.
     pub fn new<A, I, V>(array: A, index: I, value: V) -> Result<ArrayWrite, String>
         where A: Into<AnyExpr>,
               I: Into<AnyExpr>,
