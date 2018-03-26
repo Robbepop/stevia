@@ -90,7 +90,9 @@ pub use self::bool_expr::{
     RetainChildren
 };
 pub use self::arity::{
-    HasArity
+    HasArity,
+    recursive_arity,
+    exceeds_recursive_arity
 };
 pub use self::transformer::{
     TransformEffect,

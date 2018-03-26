@@ -3,7 +3,9 @@ use ast::prelude::*;
 /// Reexports all commonly used items of this module.
 pub mod prelude {
     pub use super::{
-        HasArity
+        HasArity,
+        recursive_arity,
+        exceeds_recursive_arity
     };
 }
 
@@ -36,6 +38,32 @@ pub fn recursive_arity<T>(expr: &T) -> usize
     where T: HasArity + Children
 {
     expr.arity() + expr.children().map(|c| recursive_arity(c)).sum::<usize>()
+}
+
+/// Returns `true` if the given expression tree exceeds a recursive arity of `min_arity`.
+/// 
+/// # Note
+/// 
+/// This operation is generally more efficient than querying for the same upper arity bound
+/// with `recursive_arity` and should be preferred.
+pub fn exceeds_recursive_arity<T>(min_arity: usize, expr: &T) -> bool
+    where T: HasArity + Children
+{
+    fn exceeds_recursive_arity_of<T>(actual_arity: &mut usize, min_arity: usize, expr: &T) -> bool
+        where T: HasArity + Children
+    {
+        *actual_arity += expr.arity();
+        if *actual_arity >= min_arity {
+            return true
+        }
+        for child in expr.children() {
+            if exceeds_recursive_arity_of(actual_arity, min_arity, child) {
+                return true
+            }
+        }
+        false
+    }
+    exceeds_recursive_arity_of(&mut 0, min_arity, expr)
 }
 
 #[cfg(test)]
