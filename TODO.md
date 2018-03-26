@@ -2,6 +2,7 @@
 
 ## Short term
 
+- Write unit tests for `exceeds_recursive_arity`.
 - Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
 - Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
 - Add proper error management to the AST module building on top of the [failure](https://crates.io/crates/failure) crate.
