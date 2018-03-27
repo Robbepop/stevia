@@ -15,21 +15,21 @@ pub fn write_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
 {
     let expr = expr.into();
     let mut traverser = RecursiveTraverseVisitor::new(
-        SMTLibPrinter::new(out));
+        SMTLibWriter::new(out));
     traverser.traverse_visit(expr);
 }
 
 /// Visitor for expression trees that prints the expression tree in SMTLib 2.5 format.
-struct SMTLibPrinter<'out> {
+struct SMTLibWriter<'out> {
     /// Current level of indentation.
     indent: String,
     /// The stream to print the given expression tree into.
     out : &'out mut fmt::Write
 }
 
-impl<'out> SMTLibPrinter<'out> {
-    fn new(out: &mut fmt::Write) -> SMTLibPrinter {
-        SMTLibPrinter{ indent: String::new(), out }
+impl<'out> SMTLibWriter<'out> {
+    fn new(out: &mut fmt::Write) -> SMTLibWriter {
+        SMTLibWriter{ indent: String::new(), out }
     }
 
     fn inc_indent(&mut self) {
@@ -79,7 +79,7 @@ impl<'out> SMTLibPrinter<'out> {
     }
 }
 
-impl<'out> Visitor for SMTLibPrinter<'out> {
+impl<'out> Visitor for SMTLibWriter<'out> {
     fn visit_cond(&mut self, _: &expr::IfThenElse, event: VisitEvent) {
         self.write_block(event, format!("(ite"))
     }
