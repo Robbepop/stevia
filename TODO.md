@@ -6,7 +6,7 @@
 - Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
 - Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
 - Add proper error management to the AST module building on top of the [failure](https://crates.io/crates/failure) crate.
-- Implement an AST typecheck based on it.
+- Implement an AST typecheck based on AST Visitor and type error module.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks. 
 
 ## Long term
