@@ -57,10 +57,10 @@ This output can then be further processed by other simplification and solving pr
 These features need to be stabilized before this crate can be used on the stable channel.
 
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
-- [`#![feature(conservative_impl_trait)]`][conservative-impl-trait]
-- [`#![feature(copy_closures)`][copy-closures] (stabilized since 1.26)
-- [`#![feature(clone_closures)`][clone-closures] (stabilized since 1.26)
-- [`#![feature(match_default_bindings)`][match-default-bindings]
+- [`#![feature(conservative_impl_trait)]`][conservative-impl-trait] (stable in 1.26)
+- [`#![feature(copy_closures)`][copy-closures] (stable in 1.26)
+- [`#![feature(clone_closures)`][clone-closures] (stable in 1.26)
+- [`#![feature(match_default_bindings)`][match-default-bindings] (stable in 1.26)
 - [`#![feature(nll)]`][nll]
 
 ## License
