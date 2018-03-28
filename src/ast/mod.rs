@@ -25,6 +25,7 @@ pub use self::ty::{
     BitvecTy,
     Type,
     TypeKind,
+    TypeError,
     TypeResult,
     HasType,
     common_ty,
