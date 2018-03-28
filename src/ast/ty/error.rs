@@ -1,5 +1,6 @@
 use ast::prelude::*;
 
+use std::result;
 use std::error;
 use std::fmt;
 
@@ -7,9 +8,13 @@ use std::fmt;
 pub mod prelude {
 	pub use super::{
         TypeError,
-		TypeErrorKind
+		TypeErrorKind,
+		TypeResult
 	};
 }
+
+/// A special `Result` type where the error part is always a `TypeError`.
+pub type TypeResult<T> = result::Result<T, TypeError>;
 
 /// The concrete type of a `TypeError`.
 /// 
