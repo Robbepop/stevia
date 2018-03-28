@@ -2,9 +2,16 @@ use ast::prelude::*;
 
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
-    pub use super::{common_ty, expect_array_ty, expect_bitvec_ty, expect_bool_ty,
-                    expect_common_bitvec_ty, expect_common_bitvec_ty_n, expect_concrete_bitvec_ty,
-                    have_common_ty};
+    pub use super::{
+        common_ty,
+        expect_array_ty,
+        expect_bitvec_ty,
+        expect_bool_ty,
+        expect_common_bitvec_ty,
+        expect_common_bitvec_ty_n,
+        expect_concrete_bitvec_ty,
+        have_common_ty,
+    };
 }
 
 /// Returns `true` if the `Type`s of `lhs` and `rhs` are equal.
