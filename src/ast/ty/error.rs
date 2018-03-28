@@ -41,15 +41,6 @@ pub enum TypeErrorKind {
 		lhs: AnyExpr,
 		/// The right hand-side expression with an unequal type to the left hand-side expression.
 		rhs: AnyExpr
-    },
-	/// Error upon encountering an n-ary expression that was provided with too few child expressions.
-    TooFewChildren{
-		/// The minimum number of expected child expressions.
-		expected_min: usize,
-		/// The actual number of given child expressions.
-		actual_num: usize,
-		/// The expression that has too few child expressions.
-		expr: AnyExpr
     }
 }
 
@@ -89,14 +80,6 @@ impl TypeError {
 		// TODO 2018-03-26: debug assert `lhs` and `rhs` for common type (may panic)
 		TypeError::new(TypeErrorKind::TypeMismatch{ lhs: lhs.into(), rhs: rhs.into() })
 	}
-
-	/// Returns a `TypeError` that indicates that the given expression has too few child expressions.
-	pub fn too_few_children<E>(expected_min: usize, actual_num: usize, expr: E) -> TypeError
-		where E: Into<AnyExpr>
-	{
-		// TODO 2018-03-26: debug assert `expr` for too few children (may panic)
-		TypeError::new(TypeErrorKind::TooFewChildren{ expected_min, actual_num, expr: expr.into() })
-	}
 }
 
 impl fmt::Display for TypeError {
@@ -116,11 +99,6 @@ impl fmt::Display for TypeError {
 				           and right expression (= {:?}) of type (= {:?})",
 				       lhs, lhs.ty(), rhs, rhs.ty())
 			}
-			TooFewChildren{expected_min, actual_num, expr} => {
-				write!(f, "Too few children for expression (= {:?}), found {:?} children but \
-				           expected at least {:?}.",
-				       expr, actual_num, expected_min)
-			}
 		}
 	}
 }
@@ -137,9 +115,6 @@ impl error::Error for TypeError {
 			}
 			TypeMismatch{..} => {
 				"Unexpected type mismatch for expressions"
-			}
-			TooFewChildren{..} => {
-				"Too few children for expression"
 			}
 		}
 	}

@@ -5,6 +5,7 @@ mod child_iters;
 mod binexpr_children;
 mod factory;
 mod ty;
+mod error;
 mod expr_kind;
 mod any_expr;
 mod formulas;
