@@ -38,18 +38,18 @@ pub enum TypeErrorKind {
 	/// Error upon encountering two expressions with different types when the same type was expected.
     TypeMismatch{
 		/// The left hand-side expression with an unequal type to the right hand-side expression.
-        lhs: AnyExpr,
+		lhs: AnyExpr,
 		/// The right hand-side expression with an unequal type to the left hand-side expression.
-        rhs: AnyExpr
+		rhs: AnyExpr
     },
 	/// Error upon encountering an n-ary expression that was provided with too few child expressions.
     TooFewChildren{
 		/// The minimum number of expected child expressions.
-        expected_min: usize,
+		expected_min: usize,
 		/// The actual number of given child expressions.
 		actual_num: usize,
 		/// The expression that has too few child expressions.
-        expr: AnyExpr
+		expr: AnyExpr
     }
 }
 
