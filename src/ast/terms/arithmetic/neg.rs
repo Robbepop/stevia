@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 
 pub mod prelude {
     pub use super::{
@@ -29,7 +28,7 @@ impl Neg {
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        checks::expect_concrete_bitvec_ty(&*child, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&*child, bitvec_ty)?;
         Ok(Neg{bitvec_ty, child})
     }
 
@@ -46,7 +45,7 @@ impl Neg {
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        let bitvec_ty = checks::expect_bitvec_ty(&*child)?;
+        let bitvec_ty = expect_bitvec_ty(&*child)?;
         Ok(Neg{bitvec_ty, child})
     }
 }

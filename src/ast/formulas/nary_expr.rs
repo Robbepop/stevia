@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::formulas::checks;
 use ast::terms::ExprMarker;
 
 use std::marker::PhantomData;
@@ -50,8 +49,8 @@ impl<M> NaryBoolExpr<M> {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        checks::expect_bool_ty(&lhs)?;
-        checks::expect_bool_ty(&rhs)?;
+        expect_bool_ty(&lhs)?;
+        expect_bool_ty(&rhs)?;
         Ok(Self::from_vec(vec![lhs, rhs]))
     }
 

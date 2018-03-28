@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 
 pub mod prelude {
     pub use super::{
@@ -39,8 +38,8 @@ impl Concat {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let lhs_bvty = checks::expect_bitvec_ty(&lhs)?;
-        let rhs_bvty = checks::expect_bitvec_ty(&rhs)?;
+        let lhs_bvty = expect_bitvec_ty(&lhs)?;
+        let rhs_bvty = expect_bitvec_ty(&rhs)?;
         let concat_bvty = BitvecTy::from(
             lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
         Ok(Concat{

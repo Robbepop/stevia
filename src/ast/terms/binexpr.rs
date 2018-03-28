@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 use ast::terms::ExprMarker;
 
 use std::marker::PhantomData;
@@ -41,8 +40,8 @@ impl<M> BinTermExpr<M> {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
-        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(Self{ bitvec_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 
@@ -62,7 +61,7 @@ impl<M> BinTermExpr<M> {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(Self{ bitvec_ty: common_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
     }
 }

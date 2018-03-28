@@ -28,6 +28,12 @@ pub use self::ty::{
     HasType,
     common_ty,
     have_common_ty,
+    expect_bool_ty,
+    expect_array_ty,
+    expect_bitvec_ty,
+    expect_concrete_bitvec_ty,
+    expect_common_bitvec_ty,
+    expect_common_bitvec_ty_n
 };
 pub use self::visitor::{
     VisitEvent,

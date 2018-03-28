@@ -1,6 +1,5 @@
 mod binexpr;
 mod nary_expr;
-mod checks;
 mod bool_const;
 mod bool_equals;
 mod not;

@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 
 pub mod prelude {
     pub use super::{
@@ -39,7 +38,7 @@ impl Extract {
         if !(lo < hi) {
             return Err(format!("Expected lo (={:?}) < hi (={:?}) for creation of Extract term expression.", lo, hi))
         }
-        let src_width = checks::expect_bitvec_ty(&*src)?;
+        let src_width = expect_bitvec_ty(&*src)?;
         if BitvecTy::from(hi) > src_width {
             return Err(format!(
                 "Encountered hi-overflow for new Extract term expression with source bit width of {:?} and hi position of {:?}.",

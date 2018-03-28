@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 
 use std::iter::FromIterator;
 use std::cmp::Ordering;
@@ -40,8 +39,8 @@ impl BitvecEquals {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(BitvecEquals{ children_bitvec_ty: bitvec_ty, children: vec![lhs, rhs] })
     }
 
@@ -60,7 +59,7 @@ impl BitvecEquals {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(BitvecEquals{ children_bitvec_ty: common_ty, children: vec![lhs, rhs] })
     }
 
@@ -78,7 +77,7 @@ impl BitvecEquals {
             return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
         }
         for child in &children {
-            checks::expect_concrete_bitvec_ty(child, bitvec_ty)?;
+            expect_concrete_bitvec_ty(child, bitvec_ty)?;
         }
         Ok(BitvecEquals{ children_bitvec_ty: bitvec_ty, children })
     }
@@ -98,7 +97,7 @@ impl BitvecEquals {
         if children.len() < 2 {
             return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
         }
-        let children_bitvec_ty = checks::expect_common_bitvec_ty_n(&children)?;
+        let children_bitvec_ty = expect_common_bitvec_ty_n(&children)?;
         Ok(BitvecEquals{ children_bitvec_ty, children })
     }
 }

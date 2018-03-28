@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 
 pub mod prelude {
     pub use super::{
@@ -66,8 +65,8 @@ impl ArrayRead {
     {
         let array = array.into();
         let index = index.into();
-        let array_ty = checks::expect_array_ty(&array)?;
-        checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
+        let array_ty = expect_array_ty(&array)?;
+        expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
         Ok(ArrayRead{
             bitvec_ty: array_ty.value_ty(),
             children: ArrayReadChildren::new_boxed(array, index)

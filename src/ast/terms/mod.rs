@@ -1,6 +1,5 @@
 mod binexpr;
 mod nary_expr;
-mod checks;
 mod bit_width;
 mod arithmetic;
 mod bitwise;

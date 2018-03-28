@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 use ast::terms::ExprMarker;
 
 use std::marker::PhantomData;
@@ -41,7 +40,7 @@ impl<M> ExtendExpr<M> {
         where E: IntoBoxedAnyExpr
     {
         let src = src.into_boxed_any_expr();
-        let src_bvty = checks::expect_bitvec_ty(&*src)?;
+        let src_bvty = expect_bitvec_ty(&*src)?;
         if target_width < src_bvty.width() {
             return Err(format!(
                 "Encountered target width (={:?}) that is smaller than the source width (={:?}) upon extend expression construction.",

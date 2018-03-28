@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 use ast::terms::ExprMarker;
 
 use std::marker::PhantomData;
@@ -45,8 +44,8 @@ impl<M> NaryTermExpr<M> {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        checks::expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
-        checks::expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
+        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
         Ok(Self{ bitvec_ty, children: vec![lhs, rhs], marker: PhantomData })
     }
 
@@ -67,7 +66,7 @@ impl<M> NaryTermExpr<M> {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = checks::expect_common_bitvec_ty(&lhs, &rhs)?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(Self{ bitvec_ty: common_ty, children: vec![lhs, rhs], marker: PhantomData })
     }
 
@@ -90,7 +89,7 @@ impl<M> NaryTermExpr<M> {
         }
         if children
             .iter()
-            .any(|c| checks::expect_concrete_bitvec_ty(c, bitvec_ty).is_err())
+            .any(|c| expect_concrete_bitvec_ty(c, bitvec_ty).is_err())
         {
             return Err(
                 "Requires all child expressions to be of bitvec type with the expected bit width."
@@ -117,7 +116,7 @@ impl<M> NaryTermExpr<M> {
         if children.len() < 2 {
             return Err("Require at least 2 child expressions to create a new n-ary term expression.".into())
         }
-        let bitvec_ty = checks::expect_common_bitvec_ty_n(&children)?;
+        let bitvec_ty = expect_common_bitvec_ty_n(&children)?;
         Ok(Self{ bitvec_ty, children, marker: PhantomData })
     }
 }

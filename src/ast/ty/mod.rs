@@ -10,10 +10,16 @@ pub mod prelude {
 		HasType,
 		Type,
 		TypeKind,
+		TypeError,
+		TypeErrorKind,
+		TypeResult,
 		have_common_ty,
 		common_ty,
-        TypeError,
-		TypeErrorKind
+		expect_array_ty,
+		expect_bitvec_ty,
+		expect_concrete_bitvec_ty,
+		expect_common_bitvec_ty,
+		expect_common_bitvec_ty_n
     };
 }
 

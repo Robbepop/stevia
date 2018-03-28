@@ -1,5 +1,4 @@
 use ast::prelude::*;
-use ast::terms::checks;
 
 pub mod prelude {
     pub use super::{
@@ -74,9 +73,9 @@ impl ArrayWrite {
         let array = array.into();
         let index = index.into();
         let value = value.into();
-        let array_ty = checks::expect_array_ty(&array)?;
-        checks::expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
-        checks::expect_concrete_bitvec_ty(&value, array_ty.value_ty())?;
+        let array_ty = expect_array_ty(&array)?;
+        expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
+        expect_concrete_bitvec_ty(&value, array_ty.value_ty())?;
         Ok(ArrayWrite{
             widths: array_ty,
             children: ArrayWriteChildren::new_boxed(array, index, value)
