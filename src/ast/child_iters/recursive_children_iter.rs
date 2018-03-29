@@ -131,7 +131,7 @@ mod tests {
 
     #[test]
     fn simple() {
-        fn create_ast() -> Result<AnyExpr, String> {
+        fn create_ast() -> AnyExpr {
             let b = PlainExprTreeBuilder::default();
             b.or(
                 b.and(
@@ -142,14 +142,14 @@ mod tests {
                     b.bool_const(false),
                     b.bool_const(true)
                 )
-            )
+            ).unwrap()
         }
 
         let b = PlainExprTreeBuilder::default();
-        let expr = create_ast().unwrap();
+        let expr = create_ast();
         let mut rec_iter = children_recursive_with_event(&expr);
 
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&create_ast().unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::entering(&create_ast())));
         assert_eq!(rec_iter.next(),
             Some(AnyExprAndEvent::entering(&
                 b.and(
@@ -186,7 +186,7 @@ mod tests {
                     b.bool_const(true)
                 ).unwrap()
             )));
-        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&create_ast().unwrap())));
+        assert_eq!(rec_iter.next(), Some(AnyExprAndEvent::leaving(&create_ast())));
         assert_eq!(rec_iter.next(), None);
     }
 }
