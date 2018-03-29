@@ -15,6 +15,7 @@ pub mod prelude {
 		TypeResult,
 		have_common_ty,
 		common_ty,
+		expect_common_ty,
 		expect_array_ty,
 		expect_bitvec_ty,
 		expect_concrete_bitvec_ty,

@@ -10,90 +10,101 @@ pub mod prelude {
 }
 
 /// A special `Result` type where the error part is always a `TypeError`.
-pub type TypeResult<T> = result::Result<T, TypeError>;
+pub type TypeResult<T, H> = result::Result<T, TypeError<H>>;
 
 /// The concrete type of a `TypeError`.
 ///
 /// This also stores some additional helpful information about the specific error.
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub enum TypeErrorKind {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum TypeErrorKind<T>
+where
+	T: HasType + fmt::Debug
+{
+	/// Error upon iterator yielding no element for n-ary type checking.
+	UnexpectedEmptyIter,
 	/// Error upon encountering an unexpected type kind of an expression.
 	UnexpectedTypeKind {
 		/// The expected type kind.
 		kind: TypeKind,
 		/// The expression with the unexpected type kind.
-		expr: AnyExpr,
+		expr: T,
 	},
 	/// Error upon encountering an unexpected type of an expression.
 	UnexpectedType {
 		/// The expected type.
 		ty: Type,
 		/// The expression with the unexpected type.
-		expr: AnyExpr,
+		expr: T,
 	},
 	/// Error upon encountering two expressions with different types when the same type was expected.
 	TypeMismatch {
 		/// The left hand-side expression with an unequal type to the right hand-side expression.
-		lhs: AnyExpr,
+		lhs: T,
 		/// The right hand-side expression with an unequal type to the left hand-side expression.
-		rhs: AnyExpr,
+		rhs: T,
 	},
 }
 
 /// An error that may be returned by type checking procedures.
-#[derive(Debug, PartialEq, Eq, Hash)]
-pub struct TypeError {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct TypeError<T>
+where
+	T: HasType + fmt::Debug
+{
 	// The concrete type of this error.
-	pub kind: TypeErrorKind,
+	pub kind: TypeErrorKind<T>,
 }
 
-impl TypeError {
+impl<T> TypeError<T>
+where
+	T: HasType + fmt::Debug
+{
 	/// Creates a new `TypeError` from the given `TypeErrorKind`.
-	fn new(kind: TypeErrorKind) -> TypeError {
+	fn new(kind: TypeErrorKind<T>) -> Self {
 		TypeError { kind }
 	}
 
+	pub fn unexpected_empty_iter() -> Self {
+		TypeError::new(TypeErrorKind::UnexpectedEmptyIter)
+	}
+
 	/// Returns a `TypeError` that indicates an unexpected type kind for the given expression.
-	pub fn unexpected_type_kind<E>(kind: TypeKind, expr: E) -> TypeError
-	where
-		E: Into<AnyExpr>,
-	{
+	pub fn unexpected_type_kind(kind: TypeKind, typed: T) -> Self {
 		TypeError::new(TypeErrorKind::UnexpectedTypeKind {
 			kind,
-			expr: expr.into(),
+			expr: typed,
 		})
 	}
 
 	/// Returns a `TypeError` that indicates an unexpected type for the given expression.
-	pub fn unexpected_type<T, E>(ty: T, expr: E) -> TypeError
+	pub fn unexpected_type<H>(ty: H, typed: T) -> Self
 	where
-		T: Into<Type>,
-		E: Into<AnyExpr>,
+		H: Into<Type>
 	{
 		TypeError::new(TypeErrorKind::UnexpectedType {
 			ty: ty.into(),
-			expr: expr.into(),
+			expr: typed,
 		})
 	}
 
 	/// Returns a `TypeError` that indicates an unexpected type mismatch between the given `lhs` and `rhs` expressions.
-	pub fn type_mismatch<L, R>(lhs: L, rhs: R) -> TypeError
-	where
-		L: Into<AnyExpr>,
-		R: Into<AnyExpr>,
-	{
+	pub fn type_mismatch(lhs: T, rhs: T) -> Self {
 		// TODO 2018-03-26: debug assert `lhs` and `rhs` for common type (may panic)
 		TypeError::new(TypeErrorKind::TypeMismatch {
-			lhs: lhs.into(),
-			rhs: rhs.into(),
+			lhs,
+			rhs
 		})
 	}
 }
 
-impl fmt::Display for TypeError {
+impl<T> fmt::Display for TypeError<T>
+where
+	T: HasType + fmt::Debug
+{
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		use self::TypeErrorKind::*;
 		match &self.kind {
+			UnexpectedEmptyIter => write!(f, "Unexpected empty iterator for n-ary type checking procedure."),
 			UnexpectedTypeKind { kind, expr } => write!(
 				f,
 				"Unexpected type kind (= {:?}) for expression (= {:?}), expected type kind: {:?}",
@@ -121,10 +132,14 @@ impl fmt::Display for TypeError {
 	}
 }
 
-impl error::Error for TypeError {
+impl<T> error::Error for TypeError<T>
+where
+	T: HasType + fmt::Debug
+{
 	fn description(&self) -> &str {
 		use self::TypeErrorKind::*;
 		match self.kind {
+			UnexpectedEmptyIter => "Unexpected empty iterator",
 			UnexpectedTypeKind { .. } => "Unexpected type kind for expression",
 			UnexpectedType { .. } => "Unexpected type for expression",
 			TypeMismatch { .. } => "Unexpected type mismatch for expressions",

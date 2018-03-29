@@ -21,6 +21,11 @@ mod transformer;
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
+pub use self::error::{
+    ExprError,
+    ExprErrorKind,
+    ExprResult
+};
 pub use self::ty::{
     ArrayTy,
     BitvecTy,
@@ -31,6 +36,7 @@ pub use self::ty::{
     HasType,
     common_ty,
     have_common_ty,
+    expect_common_ty,
     expect_bool_ty,
     expect_array_ty,
     expect_bitvec_ty,
