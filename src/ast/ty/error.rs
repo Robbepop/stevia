@@ -18,7 +18,7 @@ pub type TypeResult<T, H> = result::Result<T, TypeError<H>>;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum TypeErrorKind<T>
 where
-	T: HasType + fmt::Debug
+	T: HasType + fmt::Debug,
 {
 	/// Error upon iterator yielding no element for n-ary type checking.
 	UnexpectedEmptyIter,
@@ -49,19 +49,34 @@ where
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TypeError<T>
 where
-	T: HasType + fmt::Debug
+	T: HasType + fmt::Debug,
 {
 	// The concrete type of this error.
 	pub kind: TypeErrorKind<T>,
+	// Optional context for this error.
+	pub context: Option<String>,
 }
 
 impl<T> TypeError<T>
 where
-	T: HasType + fmt::Debug
+	T: HasType + fmt::Debug,
 {
+	/// Adds a context string for additional information about the error.
+	pub fn context<S>(self, context: S) -> Self
+	where
+		S: Into<String>,
+	{
+		let mut this = self;
+		this.context = Some(context.into());
+		this
+	}
+
 	/// Creates a new `TypeError` from the given `TypeErrorKind`.
 	fn new(kind: TypeErrorKind<T>) -> Self {
-		TypeError { kind }
+		TypeError {
+			kind,
+			context: None,
+		}
 	}
 
 	pub fn unexpected_empty_iter() -> Self {
@@ -70,16 +85,13 @@ where
 
 	/// Returns a `TypeError` that indicates an unexpected type kind for the given expression.
 	pub fn unexpected_type_kind(kind: TypeKind, typed: T) -> Self {
-		TypeError::new(TypeErrorKind::UnexpectedTypeKind {
-			kind,
-			expr: typed,
-		})
+		TypeError::new(TypeErrorKind::UnexpectedTypeKind { kind, expr: typed })
 	}
 
 	/// Returns a `TypeError` that indicates an unexpected type for the given expression.
 	pub fn unexpected_type<H>(ty: H, typed: T) -> Self
 	where
-		H: Into<Type>
+		H: Into<Type>,
 	{
 		TypeError::new(TypeErrorKind::UnexpectedType {
 			ty: ty.into(),
@@ -90,43 +102,46 @@ where
 	/// Returns a `TypeError` that indicates an unexpected type mismatch between the given `lhs` and `rhs` expressions.
 	pub fn type_mismatch(lhs: T, rhs: T) -> Self {
 		// TODO 2018-03-26: debug assert `lhs` and `rhs` for common type (may panic)
-		TypeError::new(TypeErrorKind::TypeMismatch {
-			lhs,
-			rhs
-		})
+		TypeError::new(TypeErrorKind::TypeMismatch { lhs, rhs })
 	}
 }
 
 impl<T> fmt::Display for TypeError<T>
 where
-	T: HasType + fmt::Debug
+	T: HasType + fmt::Debug,
 {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		use self::TypeErrorKind::*;
 		match &self.kind {
-			UnexpectedEmptyIter => write!(f, "Unexpected empty iterator for n-ary type checking procedure."),
+			UnexpectedEmptyIter => write!(
+				f,
+				"Unexpected empty iterator for n-ary type checking procedure. Context: {:?}", self.context
+			),
 			UnexpectedTypeKind { kind, expr } => write!(
 				f,
-				"Unexpected type kind (= {:?}) for expression (= {:?}), expected type kind: {:?}",
+				"Unexpected type kind (= {:?}) for expression (= {:?}), expected type kind: {:?} Context: {:?}",
 				expr.ty().kind(),
 				expr,
-				kind
+				kind,
+				self.context
 			),
 			UnexpectedType { ty, expr } => write!(
 				f,
-				"Unexpected type (= {:?}) for expression (= {:?}), expected type: {:?}",
+				"Unexpected type (= {:?}) for expression (= {:?}), expected type: {:?} Context: {:?}",
 				expr.ty(),
 				expr,
-				ty
+				ty,
+				self.context
 			),
 			TypeMismatch { lhs, rhs } => write!(
 				f,
 				"Unexpected type mismatch of left expression (= {:?}) of type (= {:?}) \
-				 and right expression (= {:?}) of type (= {:?})",
+				 and right expression (= {:?}) of type (= {:?}). Context: {:?}",
 				lhs,
 				lhs.ty(),
 				rhs,
-				rhs.ty()
+				rhs.ty(),
+				self.context
 			),
 		}
 	}
@@ -134,7 +149,7 @@ where
 
 impl<T> error::Error for TypeError<T>
 where
-	T: HasType + fmt::Debug
+	T: HasType + fmt::Debug,
 {
 	fn description(&self) -> &str {
 		use self::TypeErrorKind::*;
