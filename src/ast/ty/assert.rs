@@ -1,5 +1,7 @@
 use ast::prelude::*;
 
+use std::fmt;
+
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
     pub use super::{
@@ -9,6 +11,7 @@ pub mod prelude {
         expect_bool_ty,
         expect_common_bitvec_ty,
         expect_common_bitvec_ty_n,
+        expect_common_ty,
         expect_concrete_bitvec_ty,
         have_common_ty,
     };
@@ -47,6 +50,22 @@ where
         (Array(a1), Array(a2)) if a1 == a2 => Some(Array(a1)),
         _ => None,
     }
+}
+
+/// Checks if the given typed params share the same type.
+///
+/// # Returns
+///
+/// The type of both typed params.
+///
+/// # Errors
+///
+/// - If the given typed params do not have the same type.
+pub fn expect_common_ty<T>(lhs: &T, rhs: &T) -> TypeResult<Type, T>
+where
+    T: HasType + Clone + fmt::Debug,
+{
+    common_ty(lhs, rhs).ok_or(TypeError::type_mismatch(lhs.clone(), rhs.clone()))
 }
 
 /// Checks if the given typed param is of boolean type.
