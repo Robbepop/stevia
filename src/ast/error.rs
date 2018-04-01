@@ -44,6 +44,12 @@ pub enum ExprErrorKind {
 pub struct ExprError {
 	// The kind of this error.
 	pub kind: ExprErrorKind,
+	/// The optional context of this error.
+	/// 
+	/// # Note
+	/// 
+	/// Used for additional information about the error.
+	pub context: Option<String>
 }
 
 impl From<TypeError<AnyExpr>> for ExprError {
@@ -53,9 +59,18 @@ impl From<TypeError<AnyExpr>> for ExprError {
 }
 
 impl ExprError {
+	pub fn context<C>(self, context: C) -> Self
+	where
+		C: Into<String>
+	{
+		let mut this = self;
+		this.context = Some(context.into());
+		this
+	}
+
 	/// Creates a new `ExprError` from the given `ExprErrorKind`.
 	fn new(kind: ExprErrorKind) -> Self {
-		ExprError { kind }
+		ExprError { kind, context: None }
 	}
 
 	/// Returns an `ExprError` that indicates that the given expression has too few child expressions.
