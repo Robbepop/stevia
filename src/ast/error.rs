@@ -58,16 +58,20 @@ impl ExprError {
 		ExprError { kind }
 	}
 
-	/// Returns a `ExprError` that indicates that the given expression has too few child expressions.
+	/// Returns an `ExprError` that indicates that the given expression has too few child expressions.
 	pub fn too_few_children<E>(expected_min: usize, actual_num: usize, expr: E) -> Self
 	where
 		E: Into<AnyExpr>,
 	{
-		// TODO 2018-03-26: debug assert `expr` for too few children (may panic)
+		let expr = expr.into();
+		debug_assert!(expr.arity() < expected_min);
+		debug_assert!(expr.arity() == actual_num);
 		ExprError::new(ExprErrorKind::TooFewChildren {
 			expected_min,
 			actual_num,
-			expr: expr.into(),
+			expr: expr,
+		})
+	}
 
 	/// Returns an `ExprError` that indicates that two mismatching types were to be associated to the same symbol.
 	pub fn unmatching_symbol_types<T1, T2, S>(assoc_ty: T1, current_ty: T2, symbol: S) -> Self
