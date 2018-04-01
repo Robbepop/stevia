@@ -24,7 +24,8 @@ pub type P<T> = Box<T>;
 pub use self::error::{
     ExprError,
     ExprErrorKind,
-    ExprResult
+    ExprResult,
+    expect_matching_symbol_type
 };
 pub use self::ty::{
     ArrayTy,
@@ -120,6 +121,9 @@ pub use self::transformer::{
     AutoImplAnyExprTransformer,
     TraverseTransformer,
     forward_transform_any_expr_into
+};
+pub use self::symbol::{
+    SymbolName
 };
 
 /// Re-exports all expression types.
