@@ -102,6 +102,56 @@ pub enum ExprKind {
     ArrayWrite
 }
 
+impl ExprKind {
+    /// Returns the camel-case name of the expression kind.
+    pub fn camel_name(self) -> &'static str {
+        use self::ExprKind::*;
+        match self {
+            IfThenElse => "IfThenElse",
+            Symbol => "Symbol",
+            BoolConst => "BoolConst",
+            BoolEquals => "BoolEquals",
+            Not => "Not",
+            And => "And",
+            Or => "Or",
+            Implies => "Implies",
+            Xor => "Xor",
+            BitvecConst => "BitvecConst",
+            BitvecEquals => "BitvecEquals",
+            Neg => "Neg",
+            Add => "Add",
+            Mul => "Mul",
+            Sub => "Sub",
+            UnsignedDiv => "UnsignedDiv",
+            SignedDiv => "SignedDiv",
+            SignedModulo => "SignedModulo",
+            UnsignedRemainder => "UnsignedRemainder",
+            SignedRemainder => "SignedRemainder",
+            BitNot => "BitNot",
+            BitAnd => "BitAnd",
+            BitOr => "BitOr",
+            BitXor => "BitXor",
+            SignedGreaterEquals => "SignedGreaterEquals",
+            SignedGreaterThan => "SignedGreaterThan",
+            SignedLessEquals => "SignedLessEquals",
+            SignedLessThan => "SignedLessThan",
+            UnsignedGreaterEquals => "UnsignedGreaterEquals",
+            UnsignedGreaterThan => "UnsignedGreaterThan",
+            UnsignedLessEquals => "UnsignedLessEquals",
+            UnsignedLessThan => "UnsignedLessThan",
+            ShiftLeft => "ShiftLeft",
+            LogicalShiftRight => "LogicalShiftRight",
+            ArithmeticShiftRight => "ArithmeticShiftRight",
+            Concat => "Concat",
+            Extract => "Extract",
+            SignExtend => "SignExtend",
+            ZeroExtend => "ZeroExtend",
+            ArrayRead => "ArrayRead",
+            ArrayWrite => "ArrayWrite"
+        }
+    }
+}
+
 /// This trait should be implemented by all expressions and structures that
 /// represent an expression kind.
 /// 
