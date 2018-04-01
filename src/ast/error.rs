@@ -6,7 +6,7 @@ use std::fmt;
 
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
-	pub use super::{ExprError, ExprErrorKind, ExprResult};
+	pub use super::{expect_matching_symbol_type, ExprError, ExprErrorKind, ExprResult};
 }
 
 /// A special `Result` type where the error part is always a `ExprError`.
@@ -27,6 +27,15 @@ pub enum ExprErrorKind {
 		actual_num: usize,
 		/// The expression that has too few child expressions.
 		expr: AnyExpr,
+	},
+	/// Error upon encountering type mismatch for the same symbol.
+	UnmatchingSymbolTypes {
+		/// The former associated type of the symbol.
+		assoc_ty: Type,
+		/// The to-be-associated type of the symbol.
+		current_ty: Type,
+		/// The symbol of the type mismatch.
+		symbol: SymbolName,
 	},
 }
 
@@ -59,6 +68,21 @@ impl ExprError {
 			expected_min,
 			actual_num,
 			expr: expr.into(),
+
+	/// Returns an `ExprError` that indicates that two mismatching types were to be associated to the same symbol.
+	pub fn unmatching_symbol_types<T1, T2, S>(assoc_ty: T1, current_ty: T2, symbol: S) -> Self
+	where
+		T1: Into<Type>,
+		T2: Into<Type>,
+		S: Into<SymbolName>,
+	{
+		let assoc_ty = assoc_ty.into();
+		let current_ty = current_ty.into();
+		debug_assert_ne!(assoc_ty, current_ty);
+		ExprError::new(ExprErrorKind::UnmatchingSymbolTypes {
+			assoc_ty: assoc_ty,
+			current_ty: current_ty,
+			symbol: symbol.into(),
 		})
 	}
 }
@@ -78,6 +102,15 @@ impl fmt::Display for ExprError {
 				 expected at least {:?}.",
 				expr, actual_num, expected_min
 			),
+			UnmatchingSymbolTypes {
+				assoc_ty,
+				current_ty,
+				symbol,
+			} => write!(
+				f,
+				"Unmatching associated type (= {:?}) and new type (= {:?}) for the same symbol (= {:?}).",
+				assoc_ty, current_ty, symbol
+			),
 		}
 	}
 }
@@ -88,6 +121,29 @@ impl error::Error for ExprError {
 		match &self.kind {
 			TypeError(type_error) => type_error.description(),
 			TooFewChildren { .. } => "Too few children for expression",
+			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol"
 		}
 	}
+}
+
+pub fn expect_matching_symbol_type<T1, T2, S>(
+	assoc_ty: T1,
+	current_ty: T2,
+	symbol: S,
+) -> ExprResult<()>
+where
+	T1: Into<Type>,
+	T2: Into<Type>,
+	S: Into<SymbolName>,
+{
+	let assoc_ty = assoc_ty.into();
+	let current_ty = current_ty.into();
+	if assoc_ty != current_ty {
+		return Err(ExprError::unmatching_symbol_types(
+			assoc_ty,
+			current_ty,
+			symbol.into(),
+		));
+	}
+	Ok(())
 }
