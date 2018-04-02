@@ -29,28 +29,6 @@ pub struct NaryTermExpr<M> {
 impl<M> NaryTermExpr<M> {
     /// Returns a new n-ary term expression for the given two child expressions.
     /// 
-    /// # Notes
-    /// 
-    /// Since the given two child expressions are the child expressions of the resulting
-    /// n-ary term expression it will actually be a binary term expression upon construction.
-    /// 
-    /// # Errors
-    /// 
-    /// - If `lhs` or `rhs` are not of bitvec type.
-    /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary_with_type<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<Self, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
-    {
-        let lhs = lhs.into();
-        let rhs = rhs.into();
-        expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
-        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(Self{ bitvec_ty, children: vec![lhs, rhs], marker: PhantomData })
-    }
-
-    /// Returns a new n-ary term expression for the given two child expressions.
-    /// 
     /// # Note
     /// 
     /// - Infers the concrete bitvector type of the resulting expression from its children.
@@ -68,35 +46,6 @@ impl<M> NaryTermExpr<M> {
         let rhs = rhs.into();
         let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(Self{ bitvec_ty: common_ty, children: vec![lhs, rhs], marker: PhantomData })
-    }
-
-    /// Creates a new n-ary term expression for all of the child
-    /// expressions yielded by the given iterator and with the given bit width.
-    ///
-    /// # Errors
-    ///
-    /// - If the given iterator yields less than two child expressions.
-    /// - If not all yielded child expressions are of bitvec type with
-    ///   the required bit width.
-    pub fn nary_with_type<I>(bitvec_ty: BitvecTy, children: I) -> Result<Self, String>
-        where I: IntoIterator<Item = AnyExpr>,
-    {
-        let children = children.into_iter().collect::<Vec<_>>();
-        if children.len() < 2 {
-            return Err(
-                "Requires at least two child expressions to create an n-ary term expression.".into(),
-            );
-        }
-        if children
-            .iter()
-            .any(|c| expect_concrete_bitvec_ty(c, bitvec_ty).is_err())
-        {
-            return Err(
-                "Requires all child expressions to be of bitvec type with the expected bit width."
-                    .into(),
-            );
-        }
-        Ok(Self{ bitvec_ty, children, marker: PhantomData })
     }
 
     /// Creates a new n-ary term expression from the given iterator over expressions.

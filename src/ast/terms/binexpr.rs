@@ -28,23 +28,6 @@ pub struct BinTermExpr<M> {
 }
 
 impl<M> BinTermExpr<M> {
-    /// Returns a new binary term expression with the given child term expressions.
-    /// 
-    /// # Errors
-    /// 
-    /// - If any of the two given child expressions is not of bitvec type or
-    ///   has an unmatching bit width to the given bit width.
-    pub fn new_with_type<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<Self, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
-    {
-        let lhs = lhs.into();
-        let rhs = rhs.into();
-        expect_concrete_bitvec_ty(&lhs, bitvec_ty)?;
-        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(Self{ bitvec_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
-    }
-
     /// Returns a new binary term expression for the two given child term expressions.
     /// 
     /// # Note

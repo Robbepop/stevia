@@ -1,6 +1,5 @@
 use ast::prelude::*;
 
-use std::iter::FromIterator;
 use std::cmp::Ordering;
 
 /// Re-exports all commonly used items of this module.
@@ -29,23 +28,6 @@ pub struct BitvecEquals {
 impl BitvecEquals {
     /// Returns a new binary `BitvecEquals` expression for the given two child expressions.
     /// 
-    /// # Errors
-    /// 
-    /// - If `lhs` or `rhs` are not of bitvec type.
-    /// - If `lhs` or `rhs` are of bitvec type but do not have matching bit widths.
-    pub fn binary_with_type<E1, E2>(bitvec_ty: BitvecTy, lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
-    {
-        let lhs = lhs.into();
-        let rhs = rhs.into();
-        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        expect_concrete_bitvec_ty(&rhs, bitvec_ty)?;
-        Ok(BitvecEquals{ children_bitvec_ty: bitvec_ty, children: vec![lhs, rhs] })
-    }
-
-    /// Returns a new binary `BitvecEquals` expression for the given two child expressions.
-    /// 
     /// # Note
     /// 
     /// Infers the concrete bitvector type of the resulting expression from its children.
@@ -61,25 +43,6 @@ impl BitvecEquals {
         let rhs = rhs.into();
         let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
         Ok(BitvecEquals{ children_bitvec_ty: common_ty, children: vec![lhs, rhs] })
-    }
-
-    /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
-    /// 
-    /// # Errors
-    /// 
-    /// - If the given iterator iterates over less than two expressions.
-    /// - If not all iterated expressions are of bitvec type with the given bit width.
-    pub fn nary_with_type<E>(bitvec_ty: BitvecTy, exprs: E) -> Result<BitvecEquals, String>
-        where E: IntoIterator<Item=AnyExpr>
-    {
-        let children = Vec::from_iter(exprs);
-        if children.len() < 2 {
-            return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
-        }
-        for child in &children {
-            expect_concrete_bitvec_ty(child, bitvec_ty)?;
-        }
-        Ok(BitvecEquals{ children_bitvec_ty: bitvec_ty, children })
     }
 
     /// Creates a new n-ary `BitvecEquals` expression from the given iterator over expressions.
