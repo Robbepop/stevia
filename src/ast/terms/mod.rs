@@ -65,10 +65,3 @@ pub use self::bitvec_equals::prelude::*;
 pub use self::shift::prelude::*;
 pub use self::cast::prelude::*;
 pub use self::array::prelude::*;
-
-use ast::prelude::*;
-
-pub trait ExprMarker {
-    /// The static kind of the expression.
-    const EXPR_KIND: ExprKind;
-}

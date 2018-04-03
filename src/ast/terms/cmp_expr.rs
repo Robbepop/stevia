@@ -1,5 +1,5 @@
 use ast::prelude::*;
-use ast::terms::ExprMarker;
+use ast::ExprMarker;
 
 use std::marker::PhantomData;
 
@@ -111,7 +111,7 @@ impl<M> HasArity for ComparisonExpr<M> {
 
 mod marker {
     use ast::prelude::*;
-    use ast::terms::ExprMarker;
+    use ast::ExprMarker;
 
     macro_rules! gen_expr_marker {
         ($name:ident, $kind:expr) => {

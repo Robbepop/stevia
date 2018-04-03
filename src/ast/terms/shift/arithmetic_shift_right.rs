@@ -8,7 +8,7 @@ pub mod prelude {
 
 mod marker {
     use ast::prelude::*;
-    use ast::terms::ExprMarker;
+    use ast::ExprMarker;
 
     #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
     pub struct ArithmeticShiftRightMarker;

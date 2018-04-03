@@ -1,5 +1,5 @@
 use ast::prelude::*;
-use ast::terms::ExprMarker;
+use ast::ExprMarker;
 
 use std::marker::PhantomData;
 
@@ -90,7 +90,7 @@ impl<M> HasArity for ExtendExpr<M> {
 
 mod marker {
     use ast::prelude::*;
-    use ast::terms::ExprMarker;
+    use ast::ExprMarker;
 
     #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
     pub struct SignExtendMarker;

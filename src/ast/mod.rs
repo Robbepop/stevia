@@ -21,6 +21,11 @@ mod transformer;
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
+pub trait ExprMarker {
+    /// The static kind of the expression.
+    const EXPR_KIND: ExprKind;
+}
+
 pub use self::error::{
     ExprError,
     ExprErrorKind,
