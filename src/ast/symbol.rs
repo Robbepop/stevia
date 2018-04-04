@@ -44,7 +44,7 @@ impl TypeMap {
     /// 
     /// This is used to verify that symbols with the same identifier are
     /// associated to the same underlying type.
-    fn check_or_intern(&self, name: SymbolName, ty: Type) -> Result<(), String> {
+    fn check_or_intern(&self, name: SymbolName, ty: Type) -> ExprResult<()> {
         use string_interner::Symbol;
         use vec_map::Entry::{Vacant, Occupied};
         let mut locked_map = TYPE_MAP.access.lock().unwrap();
@@ -53,10 +53,7 @@ impl TypeMap {
                 slot.insert(ty);
             }
             Occupied(value) => {
-                if *value.get() != ty {
-                    return Err(String::from(
-                        "Tried to create symbols with different types but the same name."))
-                }
+                expect_matching_symbol_type(*value.get(), ty, name)?;
             }
         };
         Ok(())
@@ -153,7 +150,7 @@ impl Symbol {
     /// 
     /// - If the given type does not match the type cached in the
     ///   type context for symbols.
-    pub fn new<S>(identifier: S, ty: Type) -> Result<Symbol, String>
+    pub fn new<S>(identifier: S, ty: Type) -> ExprResult<Symbol>
         where S: Into<String> + AsRef<str>
     {
         let name = SYMBOL_INTERNER.get_or_intern(identifier);

@@ -1,38 +1,41 @@
 use ast::prelude::*;
 
 pub mod prelude {
-    pub use super::{
-        Neg
-    };
+    pub use super::Neg;
 }
 
 /// The arithmetic negation term expression.
-/// 
+///
 /// This negate the inner term expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Neg {
     /// The inner child formula expression.
     pub child: P<AnyExpr>,
     /// The bit width of this term expression.
-    pub bitvec_ty: BitvecTy
+    pub bitvec_ty: BitvecTy,
 }
 
 impl Neg {
     /// Creates a new `Neg` term expression for the given child expression.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Infers the bitvector type for this expression from its child expression.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If the given child expression is not of bitvec type.
-    pub fn new<E>(child: E) -> Result<Neg, String>
-        where E: IntoBoxedAnyExpr
+    pub fn new<E>(child: E) -> ExprResult<Self>
+    where
+        E: IntoBoxedAnyExpr,
     {
         let child = child.into_boxed_any_expr();
-        let bitvec_ty = expect_bitvec_ty(&*child)?;
-        Ok(Neg{bitvec_ty, child})
+        let bitvec_ty = expect_bitvec_ty(&*child).map_err(|e| {
+            e.context(
+                "Expected the child expression of the Neg expression to be of bitvector type.",
+            )
+        })?;
+        Ok(Neg { bitvec_ty, child })
     }
 }
 

@@ -35,13 +35,15 @@ impl BitvecEquals {
     /// # Errors
     /// 
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> Result<BitvecEquals, String>
+    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> ExprResult<BitvecEquals>
         where E1: Into<AnyExpr>,
               E2: Into<AnyExpr>
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| e.context(
+            "Expected both child expressions of the binary bitvector \
+             equality expression to be of the same bitvector type."))?;
         Ok(BitvecEquals{ children_bitvec_ty: common_ty, children: vec![lhs, rhs] })
     }
 
@@ -53,15 +55,20 @@ impl BitvecEquals {
     /// 
     /// - If the given iterator yields less than two expressions.
     /// - If not all yielded expressions are of the same bitvec type.
-    pub fn nary<E>(exprs: E) -> Result<BitvecEquals, String>
+    pub fn nary<E>(exprs: E) -> ExprResult<BitvecEquals>
         where E: IntoIterator<Item=AnyExpr>
     {
         let children = exprs.into_iter().collect::<Vec<_>>();
-        if children.len() < 2 {
-            return Err("Require at least 2 child expressions to create a new BitvecEquals expression.".into())
+        let children_bitvec_ty = expect_common_bitvec_ty_n(&children).map_err(|e| e.context(
+            "Expected all child expressions of the n-ary bitvector \
+             equality expression to be of the same bitvector type."))?;
+        let bveq = BitvecEquals{ children_bitvec_ty, children };
+        if bveq.arity() < 2 {
+            return Err(ExprError::too_few_children(2, bveq.arity(), bveq).context(
+                "Expected at least 2 child expressions for the n-ary \
+                 bitvector equality expression."))
         }
-        let children_bitvec_ty = expect_common_bitvec_ty_n(&children)?;
-        Ok(BitvecEquals{ children_bitvec_ty, children })
+        Ok(bveq)
     }
 }
 

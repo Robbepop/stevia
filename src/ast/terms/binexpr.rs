@@ -5,47 +5,59 @@ use std::marker::PhantomData;
 
 /// Re-exports all commonly used items of this module.
 pub mod prelude {
-    pub use super::{
-        BinTermExpr
-    };
+    pub use super::BinTermExpr;
 }
 
 /// Generic binary term expression.
-/// 
+///
 /// Used by concrete binary term expressions as base template.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinTermExpr<M> {
     /// The two child term expressions.
     pub children: P<BinExprChildren>,
     /// The bit width of this expression.
-    /// 
+    ///
     /// All child expressions must respect this bit width.
     /// This is also used to verify integrity of the bit width.
     pub bitvec_ty: BitvecTy,
     /// Marker to differentiate term expressions from each
     /// other using the type system.
-    marker: PhantomData<M>
+    marker: PhantomData<M>,
 }
 
-impl<M> BinTermExpr<M> {
+impl<M> BinTermExpr<M>
+where
+    M: ExprMarker,
+{
     /// Returns a new binary term expression for the two given child term expressions.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Infers the concrete bitvector type of the resulting expression from the
     /// given child expressions.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If the given `lhs` or `rhs` do not share a common bitvec type.
-    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Self, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
+    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> ExprResult<Self>
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(Self{ bitvec_ty: common_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
+            e.context(format!(
+                "Expected both child expressions of the binary {:?} expression \
+                 to be of the same bitvector type.",
+                M::EXPR_KIND.camel_name()
+            ))
+        })?;
+        Ok(Self {
+            bitvec_ty: common_ty,
+            children: BinExprChildren::new_boxed(lhs, rhs),
+            marker: PhantomData,
+        })
     }
 }
 
@@ -74,7 +86,8 @@ impl<M> HasType for BinTermExpr<M> {
 }
 
 impl<M> HasKind for BinTermExpr<M>
-    where M: ExprMarker
+where
+    M: ExprMarker,
 {
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND

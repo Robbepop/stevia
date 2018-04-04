@@ -27,11 +27,12 @@ impl BitNot {
     /// # Errors
     /// 
     /// - If the given child expression is not of bitvec type.
-    pub fn new<E>(child: E) -> Result<BitNot, String>
+    pub fn new<E>(child: E) -> ExprResult<Self>
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        let bitvec_ty = expect_bitvec_ty(&*child)?;
+        let bitvec_ty = expect_bitvec_ty(&*child).map_err(|e| e.context(
+            "Expected the child expression of the BitNot expression to be of bitvector type."))?;
         Ok(BitNot{bitvec_ty, child})
     }
 }

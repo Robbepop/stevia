@@ -12,64 +12,83 @@ pub mod prelude {
         UnsignedGreaterEquals,
         UnsignedGreaterThan,
         UnsignedLessEquals,
-        UnsignedLessThan
+        UnsignedLessThan,
     };
 }
 
 /// Generic comparison term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Used by concrete binary formula expressions as base template.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ComparisonExpr<M> {
     /// The two child term expressions.
     pub children: P<BinExprChildren>,
     /// The bit width of this expression.
-    /// 
+    ///
     /// All child expressions must respect this bit width.
     /// This is also used to verify integrity of the bit width.
     pub children_bitvec_ty: BitvecTy,
     /// Marker to differentiate bool expressions from each
     /// other using the type system.
-    marker: PhantomData<M>
+    marker: PhantomData<M>,
 }
 
-impl<M> ComparisonExpr<M> {
+impl<M> ComparisonExpr<M>
+where
+    M: ExprMarker,
+{
     /// Returns a new comparison expression for the given two child expressions.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Infers the concrete bitvector type of the resulting expression from its children.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Self, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
+    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> ExprResult<Self>
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(Self{ children_bitvec_ty: common_ty, children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
+            e.context(format!(
+                "Expect common type among children of comparison expression of type {:?}.",
+                M::EXPR_KIND.camel_name()
+            ))
+        })?;
+        Ok(Self {
+            children_bitvec_ty: common_ty,
+            children: BinExprChildren::new_boxed(lhs, rhs),
+            marker: PhantomData,
+        })
     }
 
     /// Creates a new comparison expression from the given raw parts.
-    /// 
+    ///
     /// # Safety
-    /// 
+    ///
     /// This is unsafe since it does not check the type requirements for the given child expressions
     /// thus allowing users of this API to break invariants of this type which could ultimatively
     /// lead to undefined behaviour indirectly in code depending on those invariants.
     pub unsafe fn new_unchecked(bitvec_ty: BitvecTy, children: P<BinExprChildren>) -> Self {
-        Self{children_bitvec_ty: bitvec_ty, children, marker: PhantomData}
+        Self {
+            children_bitvec_ty: bitvec_ty,
+            children,
+            marker: PhantomData,
+        }
     }
 }
 
 impl<M> BoolExpr for ComparisonExpr<M>
-    where Self: Into<AnyExpr>
-{}
+where
+    Self: Into<AnyExpr>,
+{
+}
 
 impl<M> Children for ComparisonExpr<M> {
     fn children(&self) -> ChildrenIter {
@@ -96,7 +115,8 @@ impl<M> HasType for ComparisonExpr<M> {
 }
 
 impl<M> HasKind for ComparisonExpr<M>
-    where M: ExprMarker
+where
+    M: ExprMarker,
 {
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND
@@ -141,23 +161,23 @@ mod marker {
 pub type SignedGreaterEquals = ComparisonExpr<marker::SignedGreaterEqualsMarker>;
 
 /// Binary signed greater-than term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Greater equals comparison is different for signed and unsigned parameters.
 pub type SignedGreaterThan = ComparisonExpr<marker::SignedGreaterThanMarker>;
 
 /// Binary signed less-than-or-equals term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Less equals comparison is different for signed and unsigned parameters.
 pub type SignedLessEquals = ComparisonExpr<marker::SignedLessEqualsMarker>;
 
 /// Binary signed less-than term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Less equals comparison is different for signed and unsigned parameters.
 pub type SignedLessThan = ComparisonExpr<marker::SignedLessThanMarker>;
 
@@ -169,23 +189,23 @@ pub type SignedLessThan = ComparisonExpr<marker::SignedLessThanMarker>;
 pub type UnsignedGreaterEquals = ComparisonExpr<marker::UnsignedGreaterEqualsMarker>;
 
 /// Binary unsigned greater-than term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Greater equals comparison is different for signed and unsigned parameters.
 pub type UnsignedGreaterThan = ComparisonExpr<marker::UnsignedGreaterThanMarker>;
 
 /// Binary unsigned less-than-or-equals term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Less equals comparison is different for signed and unsigned parameters.
 pub type UnsignedLessEquals = ComparisonExpr<marker::UnsignedLessEqualsMarker>;
 
 /// Binary unsigned less-than term expression.
-/// 
+///
 /// # Note
-/// 
+///
 /// Less equals comparison is different for signed and unsigned parameters.
 pub type UnsignedLessThan = ComparisonExpr<marker::UnsignedLessThanMarker>;
 

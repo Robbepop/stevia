@@ -4,13 +4,11 @@ use ast::ExprMarker;
 use std::marker::PhantomData;
 
 pub mod prelude {
-    pub use super::{
-        BinBoolExpr
-    };
+    pub use super::BinBoolExpr;
 }
 
 /// Generic binary formula expression.
-/// 
+///
 /// Used by concrete binary formula expressions as base template.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinBoolExpr<M> {
@@ -18,28 +16,49 @@ pub struct BinBoolExpr<M> {
     pub children: P<BinExprChildren>,
     /// Marker to differentiate bool expressions from each
     /// other using the type system.
-    marker: PhantomData<M>
+    marker: PhantomData<M>,
 }
 
-impl<M> BinBoolExpr<M> {
+impl<M> BinBoolExpr<M>
+where
+    M: ExprMarker,
+{
     /// Returns a new binary formula expression with the given child expressions.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If `lhs` or `rhs` are not of bool type.
-    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Self, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
+    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> ExprResult<Self>
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        expect_bool_ty(&lhs)?;
-        expect_bool_ty(&rhs)?;
-        Ok(Self{ children: BinExprChildren::new_boxed(lhs, rhs), marker: PhantomData })
+        expect_bool_ty(&lhs).map_err(|e| {
+            e.context(format!(
+                "Expected boolean type for the left hand-side expression of the {:?} expression.",
+                M::EXPR_KIND.camel_name()
+            ))
+        })?;
+        expect_bool_ty(&rhs).map_err(|e| {
+            e.context(format!(
+                "Expected boolean type for the right hand-side expression of the {:?} expression.",
+                M::EXPR_KIND.camel_name()
+            ))
+        })?;
+        Ok(Self {
+            children: BinExprChildren::new_boxed(lhs, rhs),
+            marker: PhantomData,
+        })
     }
 }
 
-impl<M> BoolExpr for BinBoolExpr<M> where Self: Into<AnyExpr> {}
+impl<M> BoolExpr for BinBoolExpr<M>
+where
+    Self: Into<AnyExpr>,
+{
+}
 
 impl<M> Children for BinBoolExpr<M> {
     fn children(&self) -> ChildrenIter {
@@ -66,7 +85,8 @@ impl<M> HasType for BinBoolExpr<M> {
 }
 
 impl<M> HasKind for BinBoolExpr<M>
-    where M: ExprMarker
+where
+    M: ExprMarker,
 {
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND

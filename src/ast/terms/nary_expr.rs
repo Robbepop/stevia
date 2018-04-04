@@ -10,7 +10,7 @@ pub mod prelude {
 }
 
 /// Generic n-ary term expression.
-/// 
+///
 /// Used by concrete binary term expressions as base template.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct NaryTermExpr<M> {
@@ -23,50 +23,82 @@ pub struct NaryTermExpr<M> {
     pub bitvec_ty: BitvecTy,
     /// Marker to differentiate term expressions from each
     /// other using the type system.
-    marker: PhantomData<M>
+    marker: PhantomData<M>,
 }
 
-impl<M> NaryTermExpr<M> {
+impl<M> NaryTermExpr<M>
+where
+    M: ExprMarker,
+{
     /// Returns a new n-ary term expression for the given two child expressions.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// - Infers the concrete bitvector type of the resulting expression from its children.
     /// - Since the given two child expressions are the child expressions of the resulting
     ///   n-ary term expression it will actually be a binary term expression upon construction.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If `lhs` or `rhs` do not share a common bitvec type.
-    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> Result<Self, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
+    pub fn binary<E1, E2>(lhs: E1, rhs: E2) -> ExprResult<Self>
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)?;
-        Ok(Self{ bitvec_ty: common_ty, children: vec![lhs, rhs], marker: PhantomData })
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
+            e.context(format!(
+                "Expected all child expressions of the binary {:?} expression \
+                 to be of the same bitvector type.",
+                M::EXPR_KIND.camel_name()
+            ))
+        })?;
+        Ok(Self {
+            bitvec_ty: common_ty,
+            children: vec![lhs, rhs],
+            marker: PhantomData,
+        })
     }
 
     /// Creates a new n-ary term expression from the given iterator over expressions.
-    /// 
+    ///
     /// # Notes
-    /// 
+    ///
     /// This automatically infers the common bitvector type of its given child expressions.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If the given iterator yields less than two expressions.
     /// - If not all yielded expressions are of the same bitvec type.
-    pub fn nary<E>(exprs: E) -> Result<Self, String>
-        where E: IntoIterator<Item=AnyExpr>
+    pub fn nary<E>(exprs: E) -> ExprResult<Self>
+    where
+        E: IntoIterator<Item = AnyExpr>,
+        AnyExpr: From<Self>,
     {
         let children = exprs.into_iter().collect::<Vec<_>>();
-        if children.len() < 2 {
-            return Err("Require at least 2 child expressions to create a new n-ary term expression.".into())
+        let bitvec_ty = expect_common_bitvec_ty_n(&children).map_err(|e| {
+            e.context(format!(
+                "Expected all child expressions of the n-ary {:?} expression \
+                 to be of the same bitvector type.",
+                M::EXPR_KIND.camel_name()
+            ))
+        })?;
+        let nary_expr = Self {
+            bitvec_ty,
+            children,
+            marker: PhantomData,
+        };
+        if nary_expr.arity() < 2 {
+            return Err(
+                ExprError::too_few_children(2, nary_expr.arity(), nary_expr).context(format!(
+                    "Expected at least 2 child expressions for the n-ary {:?} expression.",
+                    M::EXPR_KIND.camel_name()
+                )),
+            );
         }
-        let bitvec_ty = expect_common_bitvec_ty_n(&children)?;
-        Ok(Self{ bitvec_ty, children, marker: PhantomData })
+        Ok(nary_expr)
     }
 }
 
@@ -95,7 +127,8 @@ impl<M> HasType for NaryTermExpr<M> {
 }
 
 impl<M> HasKind for NaryTermExpr<M>
-    where M: ExprMarker
+where
+    M: ExprMarker,
 {
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND
@@ -116,7 +149,8 @@ impl<M> DedupChildren for NaryTermExpr<M> {
 
 impl<M> SortChildren for NaryTermExpr<M> {
     fn sort_children_by<F>(&mut self, comparator: F)
-        where F: FnMut(&AnyExpr, &AnyExpr) -> Ordering
+    where
+        F: FnMut(&AnyExpr, &AnyExpr) -> Ordering,
     {
         self.children.sort_unstable_by(comparator)
     }
@@ -124,7 +158,8 @@ impl<M> SortChildren for NaryTermExpr<M> {
 
 impl<M> RetainChildren for NaryTermExpr<M> {
     fn retain_children<P>(&mut self, predicate: P)
-        where P: FnMut(&AnyExpr) -> bool
+    where
+        P: FnMut(&AnyExpr) -> bool,
     {
         self.children.retain(predicate);
     }

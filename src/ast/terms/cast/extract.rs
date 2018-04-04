@@ -1,17 +1,15 @@
 use ast::prelude::*;
 
 pub mod prelude {
-    pub use super::{
-        Extract
-    };
+    pub use super::Extract;
 }
 
 /// Binary concatenate term expression.
-/// 
+///
 /// Concatenates the given bitvec term expressions together.
 /// The resulting term expression has a width that is equal to
 /// the sum of the bit width of both child term expressions.
-/// 
+///
 /// The extracted bits are [lo, hi) of the source term expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Extract {
@@ -20,31 +18,32 @@ pub struct Extract {
     /// The index of the hi bit position where lo < hi.
     pub hi: usize,
     /// The index of the lo bit position where lo < hi.
-    pub lo: usize
+    pub lo: usize,
 }
 
 impl Extract {
     /// Returns a new `Extract` term expression for the given source child term expression
     /// in the range of [lo, hi) that are also given as term expressions.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If any of the two given child expressions is not of bitvec type or
     ///   has an unmatching bit width to the given bit width.
-    pub fn new<E>(src: E, hi: usize, lo: usize) -> Result<Extract, String>
-        where E: IntoBoxedAnyExpr
+    pub fn new<E>(src: E, hi: usize, lo: usize) -> ExprResult<Extract>
+    where
+        E: IntoBoxedAnyExpr,
     {
         let src = src.into_boxed_any_expr();
+        let src_width = expect_bitvec_ty(&*src).map_err(|e| e.context(format!(
+            "Encountered non-bitvector type for the child expression of an extract expression.")))?;
+        let extract = Extract { hi, lo, src };
         if !(lo < hi) {
-            return Err(format!("Expected lo (={:?}) < hi (={:?}) for creation of Extract term expression.", lo, hi))
+            return Err(ExprError::extract_lo_greater_equal_hi(extract));
         }
-        let src_width = expect_bitvec_ty(&*src)?;
         if BitvecTy::from(hi) > src_width {
-            return Err(format!(
-                "Encountered hi-overflow for new Extract term expression with source bit width of {:?} and hi position of {:?}.",
-                src_width, hi))
+            return Err(ExprError::extract_hi_overflow(extract));
         }
-        Ok(Extract{hi, lo, src})
+        Ok(extract)
     }
 
     /// Returns the bitvec type of this `Extract` term expression.

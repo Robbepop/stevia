@@ -1,45 +1,49 @@
 use ast::prelude::*;
 
 pub mod prelude {
-    pub use super::{
-        Not
-    };
+    pub use super::Not;
 }
 
 /// The logical Not formula expression.
-/// 
+///
 /// This negate the inner boolean expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Not {
     /// The inner child formula expression.
-    pub child: P<AnyExpr>
+    pub child: P<AnyExpr>,
 }
 
 impl Not {
     /// Creates a new `Not` formula expression for the given child expression.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If the given child expression is not of boolean type.
-    pub fn new<E>(child: E) -> Result<Not, String>
-        where E: IntoBoxedAnyExpr
+    pub fn new<E>(child: E) -> ExprResult<Not>
+    where
+        E: IntoBoxedAnyExpr,
     {
         let child = child.into_boxed_any_expr();
-        if child.ty() != Type::Bool {
-            return Err("Requires inner expression to be of boolean type for Not formula expression.".into())
-        }
-        Ok(Not{child})
+        expect_bool_ty(&*child).map_err(|e| {
+            e.context(
+                "Expected boolean type for the single child expression of this Not expression.",
+            )
+        })?;
+        Ok(Not { child })
     }
 
     /// Creates a new `Not` formula expression for the given child expression.
-    /// 
+    ///
     /// # Unsafe
-    /// 
+    ///
     /// This is unsafe since it does not type-check its argument.
     pub unsafe fn new_unchecked<E>(child: E) -> Not
-        where E: IntoBoxedAnyExpr
+    where
+        E: IntoBoxedAnyExpr,
     {
-        Not{child: child.into_boxed_any_expr()}
+        Not {
+            child: child.into_boxed_any_expr(),
+        }
     }
 }
 

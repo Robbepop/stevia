@@ -73,13 +73,13 @@ where
 /// # Errors
 ///
 /// - If the given typed param is not of boolean type.
-pub fn expect_bool_ty<T>(genval: &T) -> Result<(), String>
+pub fn expect_bool_ty<T>(genval: &T) -> TypeResult<(), T>
 where
-    T: HasType,
+    T: HasType + Clone + fmt::Debug,
 {
     match genval.ty() {
         Type::Bool => Ok(()),
-        _ => Err("Expected boolean type.".into()),
+        _ => Err(TypeError::unexpected_type(Type::Bool, genval.clone())),
     }
 }
 
@@ -89,13 +89,16 @@ where
 /// # Errors
 ///
 /// - If the given typed param is not of array type.
-pub fn expect_array_ty<T>(genval: &T) -> Result<ArrayTy, String>
+pub fn expect_array_ty<T>(genval: &T) -> TypeResult<ArrayTy, T>
 where
-    T: HasType,
+    T: HasType + Clone + fmt::Debug,
 {
     match genval.ty() {
         Type::Array(array_ty) => Ok(array_ty),
-        _ => Err("Expected array type.".into()),
+        _ => Err(TypeError::unexpected_type_kind(
+            TypeKind::Array,
+            genval.clone(),
+        )),
     }
 }
 
@@ -105,13 +108,16 @@ where
 /// # Errors
 ///
 /// - If the given typed param is not of bitvec type.
-pub fn expect_bitvec_ty<T>(genval: &T) -> Result<BitvecTy, String>
+pub fn expect_bitvec_ty<T>(genval: &T) -> TypeResult<BitvecTy, T>
 where
-    T: HasType,
+    T: HasType + Clone + fmt::Debug,
 {
     match genval.ty() {
         Type::Bitvec(width) => Ok(width),
-        _ => Err("Expected bitvec type.".into()),
+        _ => Err(TypeError::unexpected_type_kind(
+            TypeKind::Bitvec,
+            genval.clone(),
+        )),
     }
 }
 
@@ -122,15 +128,15 @@ where
 ///
 /// - If the given typed param is not of bitvec type.
 /// - If the given typed param is of bitvec type but has not the expected bit width.
-pub fn expect_concrete_bitvec_ty<T>(genval: &T, req_bitvec_ty: BitvecTy) -> Result<(), String>
+pub fn expect_concrete_bitvec_ty<T>(genval: &T, req_bitvec_ty: BitvecTy) -> TypeResult<(), T>
 where
-    T: HasType,
+    T: HasType + Clone + fmt::Debug,
 {
     let act_bitvec_ty = expect_bitvec_ty(genval)?;
     if act_bitvec_ty != req_bitvec_ty {
-        return Err(format!(
-            "Expected bitvec with an expected bit width of {:?}",
-            req_bitvec_ty
+        return Err(TypeError::unexpected_type(
+            req_bitvec_ty.ty(),
+            genval.clone(),
         ));
     }
     Ok(())
@@ -142,18 +148,14 @@ where
 ///
 /// - If the given typed params are not of bitvector type.
 /// - If the given typed params are not of the same bitvector type.
-pub fn expect_common_bitvec_ty<L, R>(lhs: &L, rhs: &R) -> Result<BitvecTy, String>
+pub fn expect_common_bitvec_ty<T>(lhs: &T, rhs: &T) -> TypeResult<BitvecTy, T>
 where
-    L: HasType,
-    R: HasType,
+    T: HasType + Clone + fmt::Debug,
 {
     let lhs_bvty = expect_bitvec_ty(lhs)?;
     let rhs_bvty = expect_bitvec_ty(rhs)?;
     if lhs_bvty != rhs_bvty {
-        return Err(format!(
-            "Expected equal bitvector types for {:?} and {:?}.",
-            lhs_bvty, rhs_bvty
-        ));
+        return Err(TypeError::type_mismatch(lhs.clone(), rhs.clone()));
     }
     Ok(lhs_bvty)
 }
@@ -164,18 +166,18 @@ where
 ///
 /// - If the given iterator yields no elements.
 /// - If not all yielded typed items are of the same bitvector type.
-pub fn expect_common_bitvec_ty_n<'t, I, T>(ty_iter: I) -> Result<BitvecTy, String>
+pub fn expect_common_bitvec_ty_n<'t, I, T>(ty_iter: I) -> TypeResult<BitvecTy, T>
 where
     I: IntoIterator<Item = &'t T>,
-    T: HasType + 't,
+    T: HasType + Clone + fmt::Debug + 't,
 {
     let mut ty_iter = ty_iter.into_iter();
     match ty_iter.next() {
-        None => Err("Expected at least one item in the given iterator over typed entities.".into()),
+        None => Err(TypeError::unexpected_empty_iter()),
         Some(ty) => {
-            let head_bvty = expect_bitvec_ty(&ty.ty())?;
+            let head_bvty = expect_bitvec_ty(ty)?;
             for ty in ty_iter {
-                expect_concrete_bitvec_ty(&ty.ty(), head_bvty)?;
+                expect_concrete_bitvec_ty(ty, head_bvty)?;
             }
             Ok(head_bvty)
         }

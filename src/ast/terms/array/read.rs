@@ -1,10 +1,7 @@
 use ast::prelude::*;
 
 pub mod prelude {
-    pub use super::{
-        ArrayRead,
-        ArrayReadChildren
-    };
+    pub use super::{ArrayRead, ArrayReadChildren};
 }
 
 /// Array read-from-index expression.
@@ -13,37 +10,37 @@ pub struct ArrayRead {
     /// The two child expressions of this array read expression.
     pub children: P<ArrayReadChildren>,
     /// The bit width of this read expression.
-    /// 
+    ///
     /// This is a cache for the value bit width of the child
     /// array expression to prevent the indirection over the
     /// children structure if this value is used often.
-    pub bitvec_ty: BitvecTy
+    pub bitvec_ty: BitvecTy,
 }
 
 /// The child expressions of a `Read` expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayReadChildren {
     /// The array expression.
-    /// 
+    ///
     /// This must be of array type.
     pub array: AnyExpr,
     /// The index where the array shall be read.
-    /// 
+    ///
     /// This must be of bitvec type.
-    pub index: AnyExpr
+    pub index: AnyExpr,
 }
 
 impl ArrayReadChildren {
     /// Creates a new `ArrayReadChildren` object.
-    /// 
+    ///
     /// Does not check any invariants of `ArrayRead`.
     /// This function should be marked unsafe since it fails to hold any guarantees.
     pub fn new(array: AnyExpr, index: AnyExpr) -> ArrayReadChildren {
-        ArrayReadChildren{array, index}
+        ArrayReadChildren { array, index }
     }
 
     /// Creates a new boxed `ArrayReadChildren` object.
-    /// 
+    ///
     /// This is just a convenience wrapper around `ArrayReadChildren::new`.
     pub fn new_boxed(array: AnyExpr, index: AnyExpr) -> P<ArrayReadChildren> {
         P::new(ArrayReadChildren::new(array, index))
@@ -53,23 +50,35 @@ impl ArrayReadChildren {
 impl ArrayRead {
     /// Returns a new `ArrayRead` expression for the given array expression
     /// and reading at the given term expression index.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If the given `array` is not of array type.
     /// - If the given `index` is not of bitvec type and does not match the
     ///   index bit width of the given array.
-    pub fn new<E1, E2>(array: E1, index: E2) -> Result<ArrayRead, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
+    pub fn new<E1, E2>(array: E1, index: E2) -> ExprResult<ArrayRead>
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
     {
         let array = array.into();
         let index = index.into();
-        let array_ty = expect_array_ty(&array)?;
-        expect_concrete_bitvec_ty(&index, array_ty.index_ty())?;
-        Ok(ArrayRead{
+        let array_ty = expect_array_ty(&array).map_err(|e| {
+            e.context(
+                "Expected the left hand-side expression of the ArrayRead \
+                 expression to be of array type.",
+            )
+        })?;
+        expect_concrete_bitvec_ty(&index, array_ty.index_ty()).map_err(|e| {
+            e.context(
+                "Expected the right hand-side expression of the ArrayRead \
+                 expression to be of the same bitvector type as the index-type \
+                 of the left hand-side array expression.",
+            )
+        })?;
+        Ok(ArrayRead {
             bitvec_ty: array_ty.value_ty(),
-            children: ArrayReadChildren::new_boxed(array, index)
+            children: ArrayReadChildren::new_boxed(array, index),
         })
     }
 }

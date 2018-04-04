@@ -1,13 +1,11 @@
 use ast::prelude::*;
 
 pub mod prelude {
-    pub use super::{
-        Concat
-    };
+    pub use super::Concat;
 }
 
 /// Binary concatenate term expression.
-/// 
+///
 /// Concatenates the given bitvec term expressions together.
 /// The resulting term expression has a width that is equal to
 /// the sum of the bit width of both child term expressions.
@@ -16,35 +14,39 @@ pub struct Concat {
     /// The two child term expressions.
     pub children: P<BinExprChildren>,
     /// The resulting bit width.
-    /// 
+    ///
     /// The purpose of this is to cache the bitwidth so that
     /// it does not have to be recomputed all the time over.
-    /// 
+    ///
     /// Caching this value is useful since the bit width cannot
     /// change during the lifetime of this expression.
-    pub bitvec_ty: BitvecTy
+    pub bitvec_ty: BitvecTy,
 }
 
 impl Concat {
     /// Returns a new `Concat` (concatenate) term expression with the
     /// given child term expressions.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// - If any of the two given child expressions is not of bitvec type.
-    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> Result<Concat, String>
-        where E1: Into<AnyExpr>,
-              E2: Into<AnyExpr>
+    pub fn new<E1, E2>(lhs: E1, rhs: E2) -> ExprResult<Concat>
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let lhs_bvty = expect_bitvec_ty(&lhs)?;
-        let rhs_bvty = expect_bitvec_ty(&rhs)?;
-        let concat_bvty = BitvecTy::from(
-            lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
-        Ok(Concat{
+        let lhs_bvty = expect_bitvec_ty(&lhs).map_err(|e| {
+            e.context("Expected bitvector type for the left hand-side child expression of the concat expression.")
+        })?;
+        let rhs_bvty = expect_bitvec_ty(&rhs).map_err(|e| {
+            e.context("Expected bitvector type for the right hand-side child expression of the concat expression.")
+        })?;
+        let concat_bvty = BitvecTy::from(lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
+        Ok(Concat {
             bitvec_ty: concat_bvty,
-            children: BinExprChildren::new_boxed(lhs, rhs)
+            children: BinExprChildren::new_boxed(lhs, rhs),
         })
     }
 }

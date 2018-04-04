@@ -77,7 +77,7 @@ impl IfThenElse {
     /// 
     /// - If the given condition is not of boolean type.
     /// - If the given then-case and else-case do not have a common type.
-    pub fn new<E1, E2, E3>(cond: E1, then_case: E2, else_case: E3) -> Result<IfThenElse, String>
+    pub fn new<E1, E2, E3>(cond: E1, then_case: E2, else_case: E3) -> ExprResult<IfThenElse>
         where E1: Into<AnyExpr>,
               E2: Into<AnyExpr>,
               E3: Into<AnyExpr>
@@ -85,12 +85,10 @@ impl IfThenElse {
         let cond = cond.into();
         let then_case = then_case.into();
         let else_case = else_case.into();
-        if cond.ty() != Type::Bool {
-            return Err("The condition of an if-then-else expression must be of boolean type.".into())
-        }
-        if !have_common_ty(&then_case, &else_case) {
-            return Err("The types of the then-case and else-case of an if-then-else expression must be the same.".into())
-        }
+        expect_bool_ty(&cond).map_err(|e| e.context(
+            "The condition of an if-then-else expression must be of boolean type."))?;
+        expect_common_ty(&then_case, &else_case).map_err(|e| e.context(
+            "The types of the then-case and else-case of an if-then-else expression must be the same."))?;
         Ok(unsafe{IfThenElse::new_unchecked(cond, then_case, else_case)})
     }
 
