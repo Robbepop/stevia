@@ -53,6 +53,26 @@ pub enum ExprErrorKind {
 		/// The extract expression with invalid invariants.
 		expr: expr::Extract,
 	},
+	/// Error upon encountering target bitvector type with invalid bitwidth for extend sign-expression.
+	SignExtendToSmaller {
+		/// The target bitvector type that invalidly has a smaller bitwidth than the
+		/// source bitwidth of the given sign-extend expression.
+		target_ty: BitvecTy,
+		/// The source bitvector type.
+		source_ty: BitvecTy,
+		/// The sign-extend expression with invalid invariants.
+		expr: expr::SignExtend,
+	},
+	/// Error upon encountering target bitvector type with invalid bitwidth for extend zero-expression.
+	ZeroExtendToSmaller {
+		/// The target bitvector type that invalidly has a smaller bitwidth than the
+		/// source bitwidth of the given zero-extend expression.
+		target_ty: BitvecTy,
+		/// The source bitvector type.
+		source_ty: BitvecTy,
+		/// The zero-extend expression with invalid invariants.
+		expr: expr::ZeroExtend,
+	},
 }
 
 /// An error that may be returned by expression checking procedures.
@@ -142,6 +162,26 @@ impl ExprError {
 			expr: extract,
 		})
 	}
+
+	/// Returns an `ExprError` that indicates that the target bitvector type has a bitwidth
+	/// less-than the bitwidth of the child expression of the sign-extend expression.
+	pub fn sign_extend_to_smaller(source_ty: BitvecTy, extend: expr::SignExtend) -> Self {
+		ExprError::new(ExprErrorKind::SignExtendToSmaller {
+			target_ty: extend.bitvec_ty,
+			source_ty: source_ty,
+			expr: extend
+		})
+	}
+
+	/// Returns an `ExprError` that indicates that the target bitvector type has a bitwidth
+	/// less-than the bitwidth of the child expression of the zero-extend expression.
+	pub fn zero_extend_to_smaller(source_ty: BitvecTy, extend: expr::ZeroExtend) -> Self {
+		ExprError::new(ExprErrorKind::ZeroExtendToSmaller {
+			target_ty: extend.bitvec_ty,
+			source_ty: source_ty,
+			expr: extend
+		})
+	}
 }
 
 impl fmt::Display for ExprError {
@@ -177,7 +217,17 @@ impl fmt::Display for ExprError {
 				f,
 				"Encountered bitwidth (= {:?}) overflowing hi-bits (= {:?}) in extract expression: {:?}",
 				expr.bitvec_ty(), hi, expr
-			)
+			),
+			SignExtendToSmaller { target_ty, source_ty, expr } => write!(
+				f,
+				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of sign-extend expression: {:?}",
+				target_ty.width(), source_ty.width(), expr
+			),
+			ZeroExtendToSmaller { target_ty, source_ty, expr } => write!(
+				f,
+				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of zero-extend expression: {:?}",
+				target_ty.width(), source_ty.width(), expr
+			),
 		}
 	}
 }
@@ -194,6 +244,12 @@ impl error::Error for ExprError {
 			}
 			ExtractHiOverflow { .. } => {
 				"Encountered extract expression with bitwidth overflowing hi-bits"
+			}
+			SignExtendToSmaller { .. } => {
+				"Encountered sign-extend expression with a target bitwidth that is smaller than the current bitwidth"
+			}
+			ZeroExtendToSmaller { .. } => {
+				"Encountered zero-extend expression with a target bitwidth that is smaller than the current bitwidth"
 			}
 		}
 	}
