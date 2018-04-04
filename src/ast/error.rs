@@ -37,6 +37,7 @@ pub enum ExprErrorKind {
 		/// The symbol of the type mismatch.
 		symbol: SymbolName,
 	},
+	/// Error upon encountering lo-bits greater-than or equal-to hi-bits of extraction.
 	ExtractLoGreaterEqualHi {
 		/// The lo-bits that are greater-than or equal-to the hi-bits.
 		lo: usize,
@@ -45,6 +46,7 @@ pub enum ExprErrorKind {
 		/// The extract expression with invalid invariants.
 		expr: expr::Extract,
 	},
+	/// Error upon encountering overflowing hi-bits.
 	ExtractHiOverflow {
 		/// The hi-bits that are greater-than the expressions bitwidth.
 		hi: usize,
