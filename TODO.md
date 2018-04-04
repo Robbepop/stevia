@@ -2,10 +2,10 @@
 
 ## Short term
 
+- Move CastError types out of ExprError types just as it was done with TypeError types.
 - Write unit tests for `exceeds_recursive_arity`.
 - Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
 - Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
-- Add proper error management to the AST module building on top of the [failure](https://crates.io/crates/failure) crate.
 - Implement an AST typecheck based on AST Visitor and type error module.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks. 
 
@@ -24,4 +24,4 @@
 - Find a decent design for an `expr_tree!` macro that simplifies creation of expression trees via factories and a syntax similar to SMTLIB2.0.
 - Find out what scopes `push` & `pop` in STP are and how to incorporate them into this SMT solver.
 	- STP has a stack of vectors that acts as assertion scope level. Users may wish to add or remove such scopes to add or remove entire
-	   groups of assertions that have been added to the removed scope level. The STP scope design is inefficient and should not be taken over to Stevia. Stevia should model this concept with a single vector for the assertions and another vector for entry points to new scope levels.
+	  groups of assertions that have been added to the removed scope level. The STP scope design is inefficient and should not be taken over to Stevia. Stevia should model this  concept with a single vector for the assertions and another vector for entry points to new scope levels.
