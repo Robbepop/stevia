@@ -45,6 +45,12 @@ pub enum ExprErrorKind {
 		/// The extract expression with invalid invariants.
 		expr: expr::Extract,
 	},
+	ExtractHiOverflow {
+		/// The hi-bits that are greater-than the expressions bitwidth.
+		hi: usize,
+		/// The extract expression with invalid invariants.
+		expr: expr::Extract,
+	},
 }
 
 /// An error that may be returned by expression checking procedures.
@@ -125,6 +131,15 @@ impl ExprError {
 			expr: extract,
 		})
 	}
+
+	/// Returns an `ExprError` that indicates that the `hi` part of an extract expression
+	/// was incorrectly overflowing the bitwidth of the extract expression's child expression.
+	pub fn extract_hi_overflow(extract: expr::Extract) -> Self {
+		ExprError::new(ExprErrorKind::ExtractHiOverflow {
+			hi: extract.hi,
+			expr: extract,
+		})
+	}
 }
 
 impl fmt::Display for ExprError {
@@ -156,6 +171,11 @@ impl fmt::Display for ExprError {
 				"Encountered lo-bits (= {:?}) less-than or equal to hi-bits (= {:?}) in extract expression: {:?}",
 				hi, lo, expr
 			),
+			ExtractHiOverflow { hi, expr } => write!(
+				f,
+				"Encountered bitwidth (= {:?}) overflowing hi-bits (= {:?}) in extract expression: {:?}",
+				expr.bitvec_ty(), hi, expr
+			)
 		}
 	}
 }
@@ -169,6 +189,9 @@ impl error::Error for ExprError {
 			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol",
 			ExtractLoGreaterEqualHi { .. } => {
 				"Encountered extract expression with lo-bits less-than or equal to hi-bits"
+			}
+			ExtractHiOverflow { .. } => {
+				"Encountered extract expression with bitwidth overflowing hi-bits"
 			}
 		}
 	}
