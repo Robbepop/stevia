@@ -37,6 +37,14 @@ pub enum ExprErrorKind {
 		/// The symbol of the type mismatch.
 		symbol: SymbolName,
 	},
+	ExtractLoGreaterEqualHi {
+		/// The lo-bits that are greater-than or equal-to the hi-bits.
+		lo: usize,
+		/// The hi-bits that are accidentally less-than the lo-bits.
+		hi: usize,
+		/// The extract expression with invalid invariants.
+		expr: expr::Extract,
+	},
 }
 
 /// An error that may be returned by expression checking procedures.
@@ -107,6 +115,16 @@ impl ExprError {
 			symbol: symbol.into(),
 		})
 	}
+
+	/// Returns an `ExprError` that indicates that the `lo` part of an extract expression
+	/// was incorrectly greater-than or equal-to the `hi` part.
+	pub fn extract_lo_greater_equal_hi(extract: expr::Extract) -> Self {
+		ExprError::new(ExprErrorKind::ExtractLoGreaterEqualHi {
+			lo: extract.lo,
+			hi: extract.hi,
+			expr: extract,
+		})
+	}
 }
 
 impl fmt::Display for ExprError {
@@ -133,6 +151,11 @@ impl fmt::Display for ExprError {
 				"Unmatching associated type (= {:?}) and new type (= {:?}) for the same symbol (= {:?}).",
 				assoc_ty, current_ty, symbol
 			),
+			ExtractLoGreaterEqualHi { lo, hi, expr } => write!(
+				f,
+				"Encountered lo-bits (= {:?}) less-than or equal to hi-bits (= {:?}) in extract expression: {:?}",
+				hi, lo, expr
+			),
 		}
 	}
 }
@@ -143,7 +166,10 @@ impl error::Error for ExprError {
 		match &self.kind {
 			TypeError(type_error) => type_error.description(),
 			TooFewChildren { .. } => "Too few children for expression",
-			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol"
+			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol",
+			ExtractLoGreaterEqualHi { .. } => {
+				"Encountered extract expression with lo-bits less-than or equal to hi-bits"
+			}
 		}
 	}
 }
