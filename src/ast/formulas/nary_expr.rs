@@ -56,13 +56,13 @@ where
         let rhs = rhs.into();
         expect_bool_ty(&lhs).map_err(|e| {
             e.context(format!(
-                "Expected boolean type for the left hand-side expression of the binary {:?} expression.",
+                "Expected boolean type for the left hand-side expression of the binary {} expression.",
                 M::EXPR_KIND.camel_name()
             ))
         })?;
         expect_bool_ty(&rhs).map_err(|e| {
             e.context(format!(
-                "Expected boolean type for the right hand-side expression of the binary {:?} expression.",
+                "Expected boolean type for the right hand-side expression of the binary {} expression.",
                 M::EXPR_KIND.camel_name()
             ))
         })?;
@@ -116,7 +116,7 @@ where
         for (n, child) in children.iter().enumerate() {
             expect_bool_ty(child).map_err(|e| {
                 e.context(format!(
-                    "Expected boolean type for the child expression at index {:?} of the {:?} expression.",
+                    "Expected boolean type for the child expression at index {:?} of the {} expression.",
                     n,
                     M::EXPR_KIND.camel_name()
                 ))

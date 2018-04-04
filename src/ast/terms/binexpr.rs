@@ -48,7 +48,7 @@ where
         let rhs = rhs.into();
         let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
             e.context(format!(
-                "Expected both child expressions of the binary {:?} expression \
+                "Expected both child expressions of the binary {} expression \
                  to be of the same bitvector type.",
                 M::EXPR_KIND.camel_name()
             ))

@@ -50,7 +50,7 @@ where
         let rhs = rhs.into();
         let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
             e.context(format!(
-                "Expected all child expressions of the binary {:?} expression \
+                "Expected all child expressions of the binary {} expression \
                  to be of the same bitvector type.",
                 M::EXPR_KIND.camel_name()
             ))
@@ -80,7 +80,7 @@ where
         let children = exprs.into_iter().collect::<Vec<_>>();
         let bitvec_ty = expect_common_bitvec_ty_n(&children).map_err(|e| {
             e.context(format!(
-                "Expected all child expressions of the n-ary {:?} expression \
+                "Expected all child expressions of the n-ary {} expression \
                  to be of the same bitvector type.",
                 M::EXPR_KIND.camel_name()
             ))
@@ -93,7 +93,7 @@ where
         if nary_expr.arity() < 2 {
             return Err(
                 ExprError::too_few_children(2, nary_expr.arity(), nary_expr).context(format!(
-                    "Expected at least 2 child expressions for the n-ary {:?} expression.",
+                    "Expected at least 2 child expressions for the n-ary {} expression.",
                     M::EXPR_KIND.camel_name()
                 )),
             );

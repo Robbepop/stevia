@@ -57,7 +57,7 @@ where
         let rhs = rhs.into();
         let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
             e.context(format!(
-                "Expect common type among children of comparison expression of type {:?}.",
+                "Expect common type among children of comparison expression of type {}.",
                 M::EXPR_KIND.camel_name()
             ))
         })?;
