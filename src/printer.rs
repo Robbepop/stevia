@@ -282,32 +282,38 @@ mod tests {
         PlainExprTreeBuilder::default()
     }
 
-    #[test]
-    fn simple() {
-        let b = new_builder();
-        let expr = b.and(
-            b.or_n(vec![
-                b.bool_var("a"),
-                b.not(
-                    b.bool_var("b")
-                ),
-                b.bool_const(false)
-            ]),
-            b.cond(
-                b.bool_var("c"),
-                b.bool_const(true),
-                b.not(
-                    b.bool_var("d")
-                )
-            )
-        ).unwrap();
+    fn assert_written_eq_string<E, S>(expr: E, expected_str: S)
+        where E: IntoAnyExprOrError,
+              S: Into<String>
+    {
+        let expr = expr.into_any_expr_or_error().unwrap();
         let mut sink = String::new();
         write_smtlib2(&mut sink, &expr);
-        let expected = String::from(
-        // How to improve the current testing situation:
-        //
-        // - use library macros such as include_str! or include_bytes!
-        // - use something like the "\x20" hack here https://internals.rust-lang.org/t/allow-escaping-space-in-strings/6825
+        let expected_str = expected_str.into();
+        println!("\n{}", sink);
+        assert_eq!(sink, expected_str);
+    }
+
+    #[test]
+    fn complex() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.and(
+                b.or_n(vec![
+                    b.bool_var("a"),
+                    b.not(
+                        b.bool_var("b")
+                    ),
+                    b.bool_const(false)
+                ]),
+                b.cond(
+                    b.bool_var("c"),
+                    b.bool_const(true),
+                    b.not(
+                        b.bool_var("d")
+                    )
+                )
+            ),
 "\
 (and
   (or
@@ -326,8 +332,6 @@ mod tests {
   )
 )
 "
-        );
-        println!("\n{}", sink);
-        assert_eq!(sink, expected);
+        )
     }
 }
