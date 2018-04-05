@@ -125,5 +125,32 @@ mod tests {
         }
     }
 
+    mod exceeds_recursive_arity {
+        use super::*;
+
+        #[test]
+        fn arity_1() {
+            let expr = dummy_expr_with_arity_1();
+            assert!(!exceeds_recursive_arity(42, &expr));
+            assert!(!exceeds_recursive_arity( 1, &expr));
+            assert!( exceeds_recursive_arity( 0, &expr));
+        }
+
+        #[test]
+        fn arity_4() {
+            let expr = dummy_expr_with_arity_4();
+            assert!(!exceeds_recursive_arity(42, &expr));
+            assert!(!exceeds_recursive_arity( 4, &expr));
+            assert!( exceeds_recursive_arity( 3, &expr));
+            assert!( exceeds_recursive_arity( 0, &expr));
+        }
+        #[test]
+        fn arity_12() {
+            let expr = dummy_expr_with_arity_12();
+            assert!(!exceeds_recursive_arity(42, &expr));
+            assert!(!exceeds_recursive_arity(12, &expr));
+            assert!( exceeds_recursive_arity(11, &expr));
+            assert!( exceeds_recursive_arity( 0, &expr));
+        }
     }
 }
