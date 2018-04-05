@@ -102,7 +102,7 @@ impl<'out> SMTLibWriter<'out> {
             }
             Type::Bitvec(bv_ty) => {
                 self.write(
-                    format!("(_ {} (_ Bitvec {}))",
+                    format!("({} (_ Bitvec {}))",
                         resolved_name,
                         bv_ty.width().raw_width().to_usize())
                     )
