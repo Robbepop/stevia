@@ -251,6 +251,68 @@ mod tests {
     }
 
     #[test]
+    fn write_bool_const() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.bool_const(true),
+            "true"
+        );
+        assert_written_eq_string(
+            b.bool_const(false),
+            "false"
+        );
+    }
+
+    #[test]
+    fn write_bitvec_const() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.bitvec_const(BitvecTy::w8(), 0_u8),
+            "0"
+        );
+        assert_written_eq_string(
+            b.bitvec_const(BitvecTy::w32(), 42_u32),
+            "42"
+        );
+        assert_written_eq_string(
+            b.bitvec_const(BitvecTy::w64(), 1337_u64),
+            "1337"
+        );
+    }
+
+    #[test]
+    fn write_bool_var() {
+        let b = new_builder();
+        assert_written_eq_string(b.bool_var("a"), "(a Bool)");
+    }
+
+    #[test]
+    fn write_bitvec_var() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.bitvec_var(BitvecTy::w32(), "x"),
+            "(x (_ Bitvec 32))"
+        );
+        assert_written_eq_string(
+            b.bitvec_var(BitvecTy::w64(), "x64"),
+            "(x64 (_ Bitvec 64))"
+        );
+    }
+
+    #[test]
+    fn write_array_var() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "array_32_8"),
+            "(array_32_8 (_ Bitvec 32) (_ Bitvec 8))"
+        );
+        assert_written_eq_string(
+            b.array_var(ArrayTy::new(BitvecTy::w64(), BitvecTy::w64()), "array_64_64"),
+            "(array_64_64 (_ Bitvec 64) (_ Bitvec 64))"
+        );
+    }
+
+    #[test]
     fn simple_inline_and() {
         let b = new_builder();
         assert_written_eq_string(
