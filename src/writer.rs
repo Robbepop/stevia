@@ -109,7 +109,7 @@ impl<'out> SMTLibWriter<'out> {
             }
             Type::Array(array_ty) => {
                 self.write(
-                    format!("({} (_ Bitvec {}) (_ Bitvec {})",
+                    format!("({} (_ Bitvec {}) (_ Bitvec {}))",
                         resolved_name,
                         array_ty.index_ty().width().raw_width().to_usize(),
                         array_ty.value_ty().width().raw_width().to_usize()
