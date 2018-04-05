@@ -50,6 +50,11 @@ impl<V> RecursiveTraverseVisitor<V>
         RecursiveTraverseVisitor{ visitor }
     }
 
+    /// Consumes `self` and returns the inner visitor.
+    pub fn into_visitor(self) -> V {
+        self.visitor
+    }
+
     /// Traverses and visits the given expression tree using
     /// recursive visiting strategy where each expression node
     /// is visited twice upon entering and leaving the node
