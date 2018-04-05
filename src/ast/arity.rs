@@ -70,10 +70,23 @@ pub fn exceeds_recursive_arity<T>(min_arity: usize, expr: &T) -> bool
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_recursive_arity() {
+    fn dummy_expr_with_arity_1() -> AnyExpr {
         let b = PlainExprTreeBuilder::default();
-        let input = b.and_n(vec![
+        b.bool_const(true).unwrap()
+    }
+
+    fn dummy_expr_with_arity_4() -> AnyExpr {
+        let b = PlainExprTreeBuilder::default();
+        b.cond(
+            b.bool_var("a"),
+            b.bitvec_var(BitvecTy::w32(), "x"),
+            b.bitvec_var(BitvecTy::w32(), "y"),
+        ).unwrap()
+    }
+
+    fn dummy_expr_with_arity_12() -> AnyExpr {
+        let b = PlainExprTreeBuilder::default();
+        b.and_n(vec![
             b.bool_var("a"),
             b.not(
                 b.or_n(vec![
@@ -90,7 +103,27 @@ mod tests {
                 ),
                 b.bool_var("b")
             )
-        ]).unwrap();
-        assert_eq!(recursive_arity(&input), 11)
+        ]).unwrap()
+    }
+
+    mod recursive_arity {
+        use super::*;
+
+        #[test]
+        fn arity_1() {
+            assert_eq!(recursive_arity(&dummy_expr_with_arity_1()), 1)
+        }
+
+        #[test]
+        fn arity_4() {
+            assert_eq!(recursive_arity(&dummy_expr_with_arity_4()), 4)
+        }
+
+        #[test]
+        fn arity_12() {
+            assert_eq!(recursive_arity(&dummy_expr_with_arity_12()), 12)
+        }
+    }
+
     }
 }
