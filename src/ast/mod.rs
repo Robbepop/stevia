@@ -38,6 +38,7 @@ pub use self::ty::{
     Type,
     TypeKind,
     TypeError,
+    TypeErrorKind,
     TypeResult,
     HasType,
     common_ty,
