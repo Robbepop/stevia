@@ -3,7 +3,6 @@
 ## Short term
 
 - Write unit tests for the `write_smtlib2` function.
-- Write unit tests for the `exceeds_recursive_arity` function.
 - Implement an AST typecheck based on AST Visitor and type error module.
 - Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
 - Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
