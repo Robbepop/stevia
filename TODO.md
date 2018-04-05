@@ -2,8 +2,7 @@
 
 ## Short term
 
-- Write unit tests for the `write_smtlib2` function.
-- Implement an AST typecheck based on AST Visitor and type error module.
+- Implement an expression tree consistency checker for the ast module.
 - Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
 - Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
 
@@ -11,7 +10,6 @@
 
 - Find and depend on decent library implementation similar to STP's `libabc` for and-inverter-graph (AIG) computation.
 - Add SMTLib2.X serialization (printer) and deserialization (parser) support.
-- Implement `simple_type_check` method to naively check the children's type of a newly created expression for validity. This can be used by factory implementations that want to check for this addional safety guard. (Maybe this is not needed if we always create new child expressions with a type-checking factory!)
 - Improve doc-comments of some expressions. E.g. remove the ` ticks.
 
 ## Considerations
