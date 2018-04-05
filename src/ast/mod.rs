@@ -92,6 +92,9 @@ pub use self::terms::{
     BinTermExpr,
     NaryTermExpr,
     ArrayReadChildren,
+    CastError,
+    CastErrorKind,
+    CastResult,
 };
 pub use self::any_expr::{
     AnyExpr,

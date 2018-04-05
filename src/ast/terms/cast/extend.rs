@@ -49,7 +49,7 @@ impl ZeroExtend {
             marker: PhantomData,
         };
         if target_width < src_bvty.width() {
-            return Err(ExprError::zero_extend_to_smaller(src_bvty, extend));
+            return Err(CastError::zero_extend_to_smaller(src_bvty, extend).into());
         }
         Ok(extend)
     }
@@ -78,7 +78,7 @@ impl SignExtend {
             marker: PhantomData,
         };
         if target_width < src_bvty.width() {
-            return Err(ExprError::sign_extend_to_smaller(src_bvty, extend));
+            return Err(CastError::sign_extend_to_smaller(src_bvty, extend).into());
         }
         Ok(extend)
     }

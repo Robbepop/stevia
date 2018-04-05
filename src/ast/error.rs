@@ -17,6 +17,8 @@ pub type ExprResult<T> = result::Result<T, ExprError>;
 /// This also stores some additional helpful information about the specific error.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ExprErrorKind {
+	/// Errors that are caused by cast violations.
+	CastError(CastError),
 	/// Errors that are caused by type violations.
 	TypeError(TypeError<AnyExpr>),
 	/// Error upon encountering an n-ary expression that was provided with too few child expressions.
@@ -37,42 +39,6 @@ pub enum ExprErrorKind {
 		/// The symbol of the type mismatch.
 		symbol: SymbolName,
 	},
-	/// Error upon encountering lo-bits greater-than or equal-to hi-bits of extraction.
-	ExtractLoGreaterEqualHi {
-		/// The lo-bits that are greater-than or equal-to the hi-bits.
-		lo: usize,
-		/// The hi-bits that are accidentally less-than the lo-bits.
-		hi: usize,
-		/// The extract expression with invalid invariants.
-		expr: expr::Extract,
-	},
-	/// Error upon encountering overflowing hi-bits.
-	ExtractHiOverflow {
-		/// The hi-bits that are greater-than the expressions bitwidth.
-		hi: usize,
-		/// The extract expression with invalid invariants.
-		expr: expr::Extract,
-	},
-	/// Error upon encountering target bitvector type with invalid bitwidth for extend sign-expression.
-	SignExtendToSmaller {
-		/// The target bitvector type that invalidly has a smaller bitwidth than the
-		/// source bitwidth of the given sign-extend expression.
-		target_ty: BitvecTy,
-		/// The source bitvector type.
-		source_ty: BitvecTy,
-		/// The sign-extend expression with invalid invariants.
-		expr: expr::SignExtend,
-	},
-	/// Error upon encountering target bitvector type with invalid bitwidth for extend zero-expression.
-	ZeroExtendToSmaller {
-		/// The target bitvector type that invalidly has a smaller bitwidth than the
-		/// source bitwidth of the given zero-extend expression.
-		target_ty: BitvecTy,
-		/// The source bitvector type.
-		source_ty: BitvecTy,
-		/// The zero-extend expression with invalid invariants.
-		expr: expr::ZeroExtend,
-	},
 }
 
 /// An error that may be returned by expression checking procedures.
@@ -86,6 +52,12 @@ pub struct ExprError {
 	///
 	/// Used for additional information about the error.
 	pub context: Option<String>,
+}
+
+impl From<CastError> for ExprError {
+	fn from(cast_error: CastError) -> Self {
+		ExprError::new(ExprErrorKind::CastError(cast_error))
+	}
 }
 
 impl From<TypeError<AnyExpr>> for ExprError {
@@ -143,51 +115,13 @@ impl ExprError {
 			symbol: symbol.into(),
 		})
 	}
-
-	/// Returns an `ExprError` that indicates that the `lo` part of an extract expression
-	/// was incorrectly greater-than or equal-to the `hi` part.
-	pub fn extract_lo_greater_equal_hi(extract: expr::Extract) -> Self {
-		ExprError::new(ExprErrorKind::ExtractLoGreaterEqualHi {
-			lo: extract.lo,
-			hi: extract.hi,
-			expr: extract,
-		})
-	}
-
-	/// Returns an `ExprError` that indicates that the `hi` part of an extract expression
-	/// was incorrectly overflowing the bitwidth of the extract expression's child expression.
-	pub fn extract_hi_overflow(extract: expr::Extract) -> Self {
-		ExprError::new(ExprErrorKind::ExtractHiOverflow {
-			hi: extract.hi,
-			expr: extract,
-		})
-	}
-
-	/// Returns an `ExprError` that indicates that the target bitvector type has a bitwidth
-	/// less-than the bitwidth of the child expression of the sign-extend expression.
-	pub fn sign_extend_to_smaller(source_ty: BitvecTy, extend: expr::SignExtend) -> Self {
-		ExprError::new(ExprErrorKind::SignExtendToSmaller {
-			target_ty: extend.bitvec_ty,
-			source_ty: source_ty,
-			expr: extend
-		})
-	}
-
-	/// Returns an `ExprError` that indicates that the target bitvector type has a bitwidth
-	/// less-than the bitwidth of the child expression of the zero-extend expression.
-	pub fn zero_extend_to_smaller(source_ty: BitvecTy, extend: expr::ZeroExtend) -> Self {
-		ExprError::new(ExprErrorKind::ZeroExtendToSmaller {
-			target_ty: extend.bitvec_ty,
-			source_ty: source_ty,
-			expr: extend
-		})
-	}
 }
 
 impl fmt::Display for ExprError {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		use self::ExprErrorKind::*;
 		match &self.kind {
+			CastError(cast_error) => write!(f, "{}", cast_error),
 			TypeError(type_error) => write!(f, "{}", type_error),
 			TooFewChildren {
 				expected_min,
@@ -208,26 +142,6 @@ impl fmt::Display for ExprError {
 				"Unmatching associated type (= {:?}) and new type (= {:?}) for the same symbol (= {:?}).",
 				assoc_ty, current_ty, symbol
 			),
-			ExtractLoGreaterEqualHi { lo, hi, expr } => write!(
-				f,
-				"Encountered lo-bits (= {:?}) less-than or equal to hi-bits (= {:?}) in extract expression: {:?}",
-				hi, lo, expr
-			),
-			ExtractHiOverflow { hi, expr } => write!(
-				f,
-				"Encountered bitwidth (= {:?}) overflowing hi-bits (= {:?}) in extract expression: {:?}",
-				expr.bitvec_ty(), hi, expr
-			),
-			SignExtendToSmaller { target_ty, source_ty, expr } => write!(
-				f,
-				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of sign-extend expression: {:?}",
-				target_ty.width(), source_ty.width(), expr
-			),
-			ZeroExtendToSmaller { target_ty, source_ty, expr } => write!(
-				f,
-				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of zero-extend expression: {:?}",
-				target_ty.width(), source_ty.width(), expr
-			),
 		}
 	}
 }
@@ -236,21 +150,10 @@ impl error::Error for ExprError {
 	fn description(&self) -> &str {
 		use self::ExprErrorKind::*;
 		match &self.kind {
+			CastError(cast_error) => cast_error.description(),
 			TypeError(type_error) => type_error.description(),
 			TooFewChildren { .. } => "Too few children for expression",
 			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol",
-			ExtractLoGreaterEqualHi { .. } => {
-				"Encountered extract expression with lo-bits less-than or equal to hi-bits"
-			}
-			ExtractHiOverflow { .. } => {
-				"Encountered extract expression with bitwidth overflowing hi-bits"
-			}
-			SignExtendToSmaller { .. } => {
-				"Encountered sign-extend expression with a target bitwidth that is smaller than the current bitwidth"
-			}
-			ZeroExtendToSmaller { .. } => {
-				"Encountered zero-extend expression with a target bitwidth that is smaller than the current bitwidth"
-			}
 		}
 	}
 }

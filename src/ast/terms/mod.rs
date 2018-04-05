@@ -11,6 +11,10 @@ mod array;
 
 pub mod prelude {
     pub use super::{
+        CastError,
+        CastErrorKind,
+        CastResult,
+
         BinTermExpr,
         NaryTermExpr,
         ArrayReadChildren,

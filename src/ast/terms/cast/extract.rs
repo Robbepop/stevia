@@ -38,10 +38,10 @@ impl Extract {
             "Encountered non-bitvector type for the child expression of an extract expression.")))?;
         let extract = Extract { hi, lo, src };
         if !(lo < hi) {
-            return Err(ExprError::extract_lo_greater_equal_hi(extract));
+            return Err(CastError::extract_lo_greater_equal_hi(extract).into());
         }
         if BitvecTy::from(hi) > src_width {
-            return Err(ExprError::extract_hi_overflow(extract));
+            return Err(CastError::extract_hi_overflow(extract).into());
         }
         Ok(extract)
     }
