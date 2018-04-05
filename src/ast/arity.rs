@@ -37,7 +37,7 @@ pub trait HasArity {
 pub fn recursive_arity<T>(expr: &T) -> usize
     where T: HasArity + Children
 {
-    expr.arity() + expr.children().map(|c| recursive_arity(c)).sum::<usize>()
+    1 + expr.children().map(|c| recursive_arity(c)).sum::<usize>()
 }
 
 /// Returns `true` if the given expression tree exceeds a recursive arity of `min_arity`.
