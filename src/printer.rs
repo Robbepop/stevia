@@ -19,6 +19,16 @@ pub fn write_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
     traverser.traverse_visit(expr);
 }
 
+const MAX_INLINE_RECURSIVE_ARITY: usize = 4;
+
+/// Returns `true` if the given expression is inline writable.
+fn is_inline_writable<E>(expr: &E) -> bool
+where
+    E: HasArity + Children
+{
+    exceeds_recursive_arity(MAX_INLINE_RECURSIVE_ARITY, expr)
+}
+
 /// Visitor for expression trees that prints the expression tree in SMTLib 2.5 format.
 struct SMTLibWriter<'out> {
     /// Current level of indentation.
