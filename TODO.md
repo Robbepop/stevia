@@ -2,11 +2,11 @@
 
 ## Short term
 
-- Move CastError types out of ExprError types just as it was done with TypeError types.
-- Write unit tests for `exceeds_recursive_arity`.
+- Write unit tests for the `write_smtlib2` function.
+- Write unit tests for the `exceeds_recursive_arity` function.
+- Implement an AST typecheck based on AST Visitor and type error module.
 - Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
 - Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
-- Implement an AST typecheck based on AST Visitor and type error module.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks. 
 
 ## Long term
