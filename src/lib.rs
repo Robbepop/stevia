@@ -26,7 +26,7 @@ extern crate log;
 #[macro_use]
 pub mod ast;
 
-mod printer;
+mod writer;
 
 mod simplifier;
 
@@ -34,4 +34,4 @@ pub use simplifier::prelude::{
     simplify
 };
 
-pub use printer::write_smtlib2;
+pub use writer::write_smtlib2;
