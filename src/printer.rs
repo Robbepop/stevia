@@ -1,12 +1,5 @@
 use ast::prelude::*;
 
-// SMTLib2.5 syntax for sorts (a.k.a. types).
-// ==========================================
-//
-// - `(_ Bitvec m)`: A bitvector type with a bit-width of m.
-// - `Bool`: A boolean type.
-// - `(Array i v)`: An array type wih index bit-width of i and value bit-width of v.
-
 use std::fmt;
 
 /// Writes the given expression tree into the given writer in the SMTLib2 syntax format.
@@ -14,263 +7,226 @@ pub fn write_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
     where E: Into<&'e AnyExpr>
 {
     let expr = expr.into();
-    let mut traverser = RecursiveTraverseVisitor::new(
-        SMTLibWriter::new(out));
-    traverser.traverse_visit(expr);
-}
-
-const MAX_INLINE_RECURSIVE_ARITY: usize = 4;
-
-/// Returns `true` if the given expression is inline writable.
-fn is_inline_writable<E>(expr: &E) -> bool
-where
-    E: HasArity + Children
-{
-    exceeds_recursive_arity(MAX_INLINE_RECURSIVE_ARITY, expr)
+    SMTLibWriter::new(out).write_expr(expr)
 }
 
 /// Visitor for expression trees that prints the expression tree in SMTLib 2.5 format.
 struct SMTLibWriter<'out> {
     /// Current level of indentation.
-    indent: String,
+    indent: usize,
+    /// The maximum recursive arity before writing expressions inline.
+    max_inline_recursive_arity: usize,
+    /// The spaces written per indentation.
+    spaces_per_indentation: usize,
     /// The stream to print the given expression tree into.
     out : &'out mut fmt::Write
 }
 
 impl<'out> SMTLibWriter<'out> {
+    /// Create a new `SMTLibWriter` for the given buffer.
     fn new(out: &mut fmt::Write) -> SMTLibWriter {
-        SMTLibWriter{ indent: String::new(), out }
+        SMTLibWriter{
+            indent: 0,
+            max_inline_recursive_arity: 4,
+            spaces_per_indentation: 2,
+            out
+        }
     }
 
+    /// Returns `true` if the given expression is inline writable.
+    fn is_inline_writable<E>(&self, expr: &E) -> bool
+    where
+        E: HasArity + Children
+    {
+        !exceeds_recursive_arity(self.max_inline_recursive_arity, expr)
+    }
+
+    /// Increases the indentation by 1.
     fn inc_indent(&mut self) {
-        self.indent.push(' ');
-        self.indent.push(' ');
+        self.indent += 1;
     }
 
+    /// Decreases the indentation by 1.
     fn dec_indent(&mut self) {
-        self.indent.pop();
-        self.indent.pop();
+        self.indent -= 1;
     }
 
-    fn write_line<S>(&mut self, line: S)
-        where S: AsRef<str>
-    {
-        writeln!(self.out, "{}{}", self.indent, line.as_ref()).unwrap();
+    /// Writes the current indentation into the buffer.
+    fn write_ident(&mut self) {
+        for _ in 0..self.indent {
+            for _ in 0..self.spaces_per_indentation {
+                write!(self.out, " ").unwrap();
+            }
+        }
     }
 
+    /// Writes a simple line break into the buffer.
+    fn writeln(&mut self) {
+        writeln!(self.out).unwrap();
+    }
+
+    /// Writes the given content string into the buffer.
     fn write<S>(&mut self, content: S)
-        where S: AsRef<str>
+    where
+        S: AsRef<str>
     {
-        write!(self.out, "{}", content.as_ref()).unwrap();
+        write!(self.out, "{}", content.as_ref()).unwrap()
     }
 
-	fn write_inline<S>(&mut self, event: VisitEvent, content: S)
-        where S: AsRef<str>
-    {
-        if let VisitEvent::Entering = event {
-            self.write_line(content);
-        }
-	}
-
-	fn write_block<S>(&mut self, event: VisitEvent, tag: S)
-        where S: AsRef<str>
-    {
-		use self::VisitEvent::*;
-		match event {
-			Entering => {
-                self.write_line(tag);
-				self.inc_indent();
-			},
-			Leaving => {
-				self.dec_indent();
-                self.write_line(")");
-			}
-		}
-    }
-}
-
-impl<'out> Visitor for SMTLibWriter<'out> {
-    fn visit_cond(&mut self, _: &expr::IfThenElse, event: VisitEvent) {
-        self.write_block(event, format!("(ite"))
+    /// Writes the given boolean constant expression into the buffer.
+    fn write_bool_const(&mut self, bool_const: &expr::BoolConst) {
+        self.write(format!("{}", bool_const.val))
     }
 
-    fn visit_var(&mut self, var: &expr::Symbol, event: VisitEvent) {
-        let resolved_name: &str = &var.name;
-        match var.ty() {
-            Type::Bool => {
-                self.write_inline(event, format!("({} Bool)", resolved_name));
-            }
-            Type::Bitvec(bv_ty) => {
-                self.write_inline(event, format!("(_ {} (_ Bitvec {}))",
-                    resolved_name, bv_ty.width().raw_width().to_usize()));
-            }
-            Type::Array(array_ty) => {
-                self.write_inline(event, format!("({} (_ Bitvec {}) (_ Bitvec {})",
-                    resolved_name,
-                    array_ty.index_ty().width().raw_width().to_usize(),
-                    array_ty.value_ty().width().raw_width().to_usize()));
-            }
-        }
-    }
-
-    fn visit_bool_const(&mut self, bool_const: &expr::BoolConst, event: VisitEvent) {
-        self.write_inline(event, format!("{}", bool_const.val));
-    }
-
-    fn visit_bool_equals(&mut self, _bool_equals: &expr::BoolEquals, event: VisitEvent) {
-        self.write_block(event, format!("(="))
-    }
-
-    fn visit_and(&mut self, _and: &expr::And, event: VisitEvent) {
-        self.write_block(event, format!("(and"))
-    }
-
-    fn visit_or(&mut self, _or: &expr::Or, event: VisitEvent) {
-        self.write_block(event, format!("(or"))
-    }
-
-    fn visit_not(&mut self, _not: &expr::Not, event: VisitEvent) {
-        self.write_block(event, format!("(not"))
-    }
-
-    fn visit_xor(&mut self, _xor: &expr::Xor, event: VisitEvent) {
-        self.write_block(event, format!("(xor"))
-    }
-
-    fn visit_implies(&mut self, _implies: &expr::Implies, event: VisitEvent) {
-        self.write_block(event, format!("(=>"))
-    }
-
-    fn visit_array_read(&mut self, _array_read: &expr::ArrayRead, event: VisitEvent) {
-        self.write_block(event, format!("(read"))
-    }
-
-    fn visit_array_write(&mut self, _array_write: &expr::ArrayWrite, event: VisitEvent) {
-        self.write_block(event, format!("(write"))
-    }
-
-    fn visit_bitvec_const(&mut self, bitvec_const: &expr::BitvecConst, event: VisitEvent) {
+    /// Write the given bitvector constant expression into the buffer.
+    fn write_bitvec_const(&mut self, bitvec_const: &expr::BitvecConst) {
         let print_str = match bitvec_const.val.try_to_i64() {
             Ok(val) => format!("{}", val),
             Err(_) => String::from("(Error bv_val_overflow)")
         };
-        self.write_inline(event, print_str)
+        self.write(print_str);
     }
 
-    fn visit_add(&mut self, _add: &expr::Add, event: VisitEvent) {
-        self.write_block(event, format!("(bvadd"))
+    /// Writes the given variable expression into the buffer.
+    ///
+    /// # SMTLib2.5 syntax for sorts (a.k.a. types)
+    ///
+    /// - `Bool`: A boolean type.
+    /// - `(_ Bitvec m)`: A bitvector type with a bit-width of m.
+    /// - `(Array i v)`: An array type wih index bit-width of i and value bit-width of v.
+    fn write_var(&mut self, var: &expr::Symbol) {
+        let resolved_name: &str = &var.name;
+        match var.ty() {
+            Type::Bool => {
+                self.write(format!("({} Bool)", resolved_name))
+            }
+            Type::Bitvec(bv_ty) => {
+                self.write(
+                    format!("(_ {} (_ Bitvec {}))",
+                        resolved_name,
+                        bv_ty.width().raw_width().to_usize())
+                    )
+            }
+            Type::Array(array_ty) => {
+                self.write(
+                    format!("({} (_ Bitvec {}) (_ Bitvec {})",
+                        resolved_name,
+                        array_ty.index_ty().width().raw_width().to_usize(),
+                        array_ty.value_ty().width().raw_width().to_usize()
+                    )
+                )
+            }
+        }
     }
 
-    fn visit_mul(&mut self, _mul: &expr::Mul, event: VisitEvent) {
-        self.write_block(event, format!("(bvmul"))
+    /// Writes the given expression inline into the buffer.
+    /// 
+    /// This method won't create new line breaks.
+    fn write_expr_inline(&mut self, expr: &AnyExpr) {
+        use ast::AnyExpr::*;
+        self.write(" ");
+        match expr {
+            BoolConst(bool_const) => return self.write_bool_const(bool_const),
+            BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
+            Symbol(symbol)        => return self.write_var(symbol),
+            expr => {
+                self.write(format!("({}", expr.kind().smtlib2_name()))
+            }
+        }
+        for child in expr.children() {
+            self.write_expr_inline(child)
+        }
+        self.write(")")
     }
 
-    fn visit_neg(&mut self, _neg: &expr::Neg, event: VisitEvent) {
-        self.write_block(event, format!("(-"))
+    /// Writes the given expression into the buffer.
+    /// 
+    /// This writes the expression on its own line.
+    fn write_expr(&mut self, expr: &AnyExpr) {
+        if self.indent > 0 {
+            self.writeln();
+        }
+        self.write_ident();
+        use ast::AnyExpr::*;
+        match expr {
+            BoolConst(bool_const) => return self.write_bool_const(bool_const),
+            BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
+            Symbol(symbol)        => return self.write_var(symbol),
+            expr => {
+                self.write(format!("({}", expr.kind().smtlib2_name()))
+            }
+        }
+        if self.is_inline_writable(expr) {
+            for child in expr.children() {
+                self.write_expr_inline(child)
+            }
+            self.write(")")
+        } else {
+            self.inc_indent();
+            for child in expr.children() {
+                self.write_expr(child)
+            }
+            self.dec_indent();
+            self.writeln();
+            self.write_ident();
+            self.write(")")
+        }
     }
+}
 
-    fn visit_sdiv(&mut self, _sdiv: &expr::SignedDiv, event: VisitEvent) {
-        self.write_block(event, format!("(bvsdiv"))
-    }
-
-    fn visit_smod(&mut self, _smod: &expr::SignedModulo, event: VisitEvent) {
-        self.write_block(event, format!("(bvsmod"))
-    }
-
-    fn visit_srem(&mut self, _srem: &expr::SignedRemainder, event: VisitEvent) {
-        self.write_block(event, format!("(bvsrem"))
-    }
-
-    fn visit_sub(&mut self, _sub: &expr::Sub, event: VisitEvent) {
-        self.write_block(event, format!("(bvsub"))
-    }
-
-    fn visit_udiv(&mut self, _udiv: &expr::UnsignedDiv, event: VisitEvent) {
-        self.write_block(event, format!("(bvudiv"))
-    }
-
-    fn visit_urem(&mut self, _urem: &expr::UnsignedRemainder, event: VisitEvent) {
-        self.write_block(event, format!("(bvurem"))
-    }
-
-    fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, event: VisitEvent) {
-        self.write_block(event, format!("(bvnot"))
-    }
-
-    fn visit_bitand(&mut self, _bitand: &expr::BitAnd, event: VisitEvent) {
-        self.write_block(event, format!("(bvand"))
-    }
-
-    fn visit_bitor(&mut self, _bitor: &expr::BitOr, event: VisitEvent) {
-        self.write_block(event, format!("(bvor"))
-    }
-
-    fn visit_bitxor(&mut self, _bitxor: &expr::BitXor, event: VisitEvent) {
-        self.write_block(event, format!("(bvxor"))
-    }
-
-    fn visit_concat(&mut self, _concat: &expr::Concat, event: VisitEvent) {
-        self.write_block(event, format!("(concat"))
-    }
-
-    fn visit_extract(&mut self, _extract: &expr::Extract, event: VisitEvent) {
-        self.write_block(event, format!("(extract"))
-    }
-
-    fn visit_sext(&mut self, _sext: &expr::SignExtend, event: VisitEvent) {
-        self.write_block(event, format!("(bvsext"))
-    }
-
-    fn visit_zext(&mut self, _zext: &expr::ZeroExtend, event: VisitEvent) {
-        self.write_block(event, format!("(bvzext"))
-    }
-
-    fn visit_bitvec_equals(&mut self, _bitvec_equals: &expr::BitvecEquals, event: VisitEvent) {
-        self.write_block(event, format!("(="))
-    }
-
-    fn visit_sge(&mut self, _sge: &expr::SignedGreaterEquals, event: VisitEvent) {
-        self.write_block(event, format!("(bvsge"))
-    }
-
-    fn visit_sgt(&mut self, _sgt: &expr::SignedGreaterThan, event: VisitEvent) {
-        self.write_block(event, format!("(bvsgt"))
-    }
-
-    fn visit_sle(&mut self, _sle: &expr::SignedLessEquals, event: VisitEvent) {
-        self.write_block(event, format!("(bvsle"))
-    }
-
-    fn visit_slt(&mut self, _slt: &expr::SignedLessThan, event: VisitEvent) {
-        self.write_block(event, format!("(bvslt"))
-    }
-
-    fn visit_uge(&mut self, _uge: &expr::UnsignedGreaterEquals, event: VisitEvent) {
-        self.write_block(event, format!("(bvuge"))
-    }
-
-    fn visit_ugt(&mut self, _ugt: &expr::UnsignedGreaterThan, event: VisitEvent) {
-        self.write_block(event, format!("(bvugt"))
-    }
-
-    fn visit_ule(&mut self, _ule: &expr::UnsignedLessEquals, event: VisitEvent) {
-        self.write_block(event, format!("(bvule"))
-    }
-
-    fn visit_ult(&mut self, _ult: &expr::UnsignedLessThan, event: VisitEvent) {
-        self.write_block(event, format!("(bvult"))
-    }
-
-    fn visit_ashr(&mut self, _ashr: &expr::ArithmeticShiftRight, event: VisitEvent) {
-        self.write_block(event, format!("(bvashr"))
-    }
-
-    fn visit_lshr(&mut self, _lshr: &expr::LogicalShiftRight, event: VisitEvent) {
-        self.write_block(event, format!("(bvlshr"))
-    }
-
-    fn visit_shl(&mut self, _shl: &expr::ShiftLeft, event: VisitEvent) {
-        self.write_block(event, format!("(bvshl"))
+impl ExprKind {
+    /// Returns the SMTLib 2.5 name of the associated expression.
+    /// 
+    /// # Note
+    /// 
+    /// Some expressions such as boolean constants, bitvector constants and symbols
+    /// do not have a specified SMTLib 2.5 name and will have a well-fitting replacement
+    /// string returned.
+    pub fn smtlib2_name(self) -> &'static str {
+        use ast::ExprKind::*;
+        match self {
+            Symbol => "symbol",
+            BoolConst => "boolconst",
+            BitvecConst => "bvconst",
+            IfThenElse => "cond",
+            BoolEquals => "bveq",
+            Not => "not",
+            And => "and",
+            Or => "or",
+            Implies => "=>",
+            Xor => "xor",
+            BitvecEquals => "bveq",
+            Neg => "bvneg",
+            Add => "bvadd",
+            Mul => "bvmul",
+            Sub => "bvsub",
+            UnsignedDiv => "bvudiv",
+            SignedDiv => "bvsdiv",
+            SignedModulo => "bvsmod",
+            UnsignedRemainder => "bvurem",
+            SignedRemainder => "bvsrem",
+            BitNot => "bvnot",
+            BitAnd => "bvand",
+            BitOr => "bvor",
+            BitXor => "bvxor",
+            SignedGreaterEquals => "bvsge",
+            SignedGreaterThan => "bvsgt",
+            SignedLessEquals => "bvsle",
+            SignedLessThan => "bvslt",
+            UnsignedGreaterEquals => "bvuge",
+            UnsignedGreaterThan => "bvugt",
+            UnsignedLessEquals => "bvule",
+            UnsignedLessThan => "bvult",
+            ShiftLeft => "bvshl",
+            LogicalShiftRight => "bvlshr",
+            ArithmeticShiftRight => "bvashr",
+            Concat => "concat",
+            Extract => "extract",
+            SignExtend => "sext",
+            ZeroExtend => "zext",
+            ArrayRead => "read",
+            ArrayWrite => "write"
+        }
     }
 }
 
@@ -292,6 +248,39 @@ mod tests {
         let expected_str = expected_str.into();
         println!("\n{}", sink);
         assert_eq!(sink, expected_str);
+    }
+
+    #[test]
+    fn simple_inline_and() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.and_n(vec![
+                b.bool_var("a"),
+                b.bool_var("b"),
+                b.bool_var("c")
+            ]),
+            "(and (a Bool) (b Bool) (c Bool))"
+        )
+    }
+
+    #[test]
+    fn simple_block_and() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.and_n(vec![
+                b.bool_var("a"),
+                b.bool_var("b"),
+                b.bool_var("c"),
+                b.bool_var("d")
+            ]),
+"\
+(and
+  (a Bool)
+  (b Bool)
+  (c Bool)
+  (d Bool)
+)"
+        )
     }
 
     #[test]
@@ -318,20 +307,15 @@ mod tests {
 (and
   (or
     (a Bool)
-    (not
-      (b Bool)
-    )
+    (not (b Bool))
     false
   )
-  (ite
+  (cond
     (c Bool)
     true
-    (not
-      (d Bool)
-    )
+    (not (d Bool))
   )
-)
-"
+)"
         )
     }
 }
