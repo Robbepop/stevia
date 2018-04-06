@@ -3,14 +3,14 @@
 ## Short term
 
 - Implement an expression tree consistency checker for the ast module.
-- Replace global static `StringInterner` instance with non-global non-static `Solver` (or `Context`) instance.
-- Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
+- Add `Context` to replace global static `StringInterner` and `HashMap` for symbol types.
 
 ## Long term
 
 - Find and depend on decent library implementation similar to STP's `libabc` for and-inverter-graph (AIG) computation.
 - Add SMTLib2.X serialization (printer) and deserialization (parser) support.
 - Improve doc-comments of some expressions. E.g. remove the ` ticks.
+- Make `StringInterner` mechanics more suitable for SMTLib2.0 shadowing and namespaces.
 
 ## Considerations
 
