@@ -5,8 +5,8 @@
 #![feature(clone_closures)]
 #![feature(match_default_bindings)]
 
-#![allow(missing_docs)]
-#![allow(dead_code)]
+// #![allow(missing_docs)]
+// #![allow(dead_code)]
 
 extern crate apint;
 extern crate num;
