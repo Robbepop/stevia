@@ -1,18 +1,18 @@
 //! Internal expression data structures and utilities associated to it.
 
+mod any_expr;
 mod arity;
-mod child_iters;
 mod binexpr_children;
-mod factory;
-mod ty;
+mod bool_expr;
+mod child_iters;
 mod error;
 mod expr_kind;
-mod any_expr;
+mod factory;
 mod formulas;
-mod terms;
 mod ite;
 mod symbol;
-mod bool_expr;
+mod terms;
+mod ty;
 mod visitor;
 
 #[macro_use]
@@ -137,59 +137,61 @@ pub use self::symbol::{
 
 /// Re-exports all expression types.
 pub mod expr {
-    pub use super::ite::{
-        IfThenElse
-    };
-    pub use super::symbol::{
-        Symbol
-    };
-    pub use super::formulas::{
-        BoolConst,
-        BoolEquals,
-        Not,
-        And,
-        Or,
-        Xor,
-        Implies
-    };
-    pub use super::terms::{
-        BitvecConst,
-        BitvecEquals,
-        Neg,
-        Add,
-        Mul,
-        Sub,
-        UnsignedDiv,
-        SignedDiv,
-        SignedModulo,
-        UnsignedRemainder,
-        SignedRemainder,
+    pub use super::{
+        ite::{
+            IfThenElse
+        },
+        symbol::{
+            Symbol
+        },
+        formulas::{
+            BoolConst,
+            BoolEquals,
+            Not,
+            And,
+            Or,
+            Xor,
+            Implies
+        },
+        terms::{
+            BitvecConst,
+            BitvecEquals,
+            Neg,
+            Add,
+            Mul,
+            Sub,
+            UnsignedDiv,
+            SignedDiv,
+            SignedModulo,
+            UnsignedRemainder,
+            SignedRemainder,
 
-        BitNot,
-        BitAnd,
-        BitOr,
-        BitXor,
+            BitNot,
+            BitAnd,
+            BitOr,
+            BitXor,
 
-        SignedGreaterEquals,
-        SignedGreaterThan,
-        SignedLessEquals,
-        SignedLessThan,
-        UnsignedGreaterEquals,
-        UnsignedGreaterThan,
-        UnsignedLessEquals,
-        UnsignedLessThan,
+            SignedGreaterEquals,
+            SignedGreaterThan,
+            SignedLessEquals,
+            SignedLessThan,
+            UnsignedGreaterEquals,
+            UnsignedGreaterThan,
+            UnsignedLessEquals,
+            UnsignedLessThan,
 
-        ShiftLeft,
-        LogicalShiftRight,
-        ArithmeticShiftRight,
+            ShiftLeft,
+            LogicalShiftRight,
+            ArithmeticShiftRight,
 
-        Concat,
-        Extract,
-        SignExtend,
-        ZeroExtend,
+            Concat,
+            Extract,
+            SignExtend,
+            ZeroExtend,
 
-        ArrayRead,
-        ArrayWrite
+            ArrayRead,
+            ArrayWrite
+        }
     };
 }
 
