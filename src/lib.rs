@@ -24,6 +24,9 @@ extern crate lazy_static;
 extern crate log;
 
 #[macro_use]
+extern crate indoc;
+
+#[macro_use]
 pub mod ast;
 
 mod writer;

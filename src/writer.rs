@@ -335,13 +335,14 @@ mod tests {
                 b.bool_var("c"),
                 b.bool_var("d")
             ]),
-"\
-(and
-  (a Bool)
-  (b Bool)
-  (c Bool)
-  (d Bool)
-)"
+            indoc!("
+                (and
+                  (a Bool)
+                  (b Bool)
+                  (c Bool)
+                  (d Bool)
+                )"
+            )
         )
     }
 
@@ -359,6 +360,21 @@ mod tests {
     }
 
     #[test]
+    fn nested_nots() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.not(
+                b.not(
+                    b.not(
+                        b.bool_var("a")
+                    )
+                )
+            ),
+            "(not (not (not (a Bool))))"
+        )
+    }
+
+    #[test]
     fn nested_adds() {
         let b = new_builder();
         assert_written_eq_string(
@@ -372,14 +388,14 @@ mod tests {
                     b.bitvec_var(BitvecTy::w32(), "y2")
                 )
             ),
-"\
-(bvadd
-  (bvadd (x1 (_ Bitvec 32)) (x2 (_ Bitvec 32)))
-  (bvadd (y1 (_ Bitvec 32)) (y2 (_ Bitvec 32)))
-)"
+            indoc!("
+                (bvadd
+                  (bvadd (x1 (_ Bitvec 32)) (x2 (_ Bitvec 32)))
+                  (bvadd (y1 (_ Bitvec 32)) (y2 (_ Bitvec 32)))
+                )"
+            )
         )
     }
-
 
     #[test]
     fn complex() {
@@ -401,19 +417,20 @@ mod tests {
                     )
                 )
             ),
-"\
-(and
-  (or
-    (a Bool)
-    (not (b Bool))
-    false
-  )
-  (cond
-    (c Bool)
-    true
-    (not (d Bool))
-  )
-)"
+            indoc!("
+                (and
+                  (or
+                    (a Bool)
+                    (not (b Bool))
+                    false
+                  )
+                  (cond
+                    (c Bool)
+                    true
+                    (not (d Bool))
+                  )
+                )"
+            )
         )
     }
 }
