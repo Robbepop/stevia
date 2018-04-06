@@ -346,6 +346,42 @@ mod tests {
     }
 
     #[test]
+    fn simple_inline_add() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.bitvec_add_n(vec![
+                b.bitvec_const(BitvecTy::w32(), 42_u32),
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_const(BitvecTy::w32(), 1337_u32)
+            ]),
+            "(bvadd 42 (x (_ Bitvec 32)) 1337)"
+        )
+    }
+
+    #[test]
+    fn nested_adds() {
+        let b = new_builder();
+        assert_written_eq_string(
+            b.bitvec_add(
+                b.bitvec_add(
+                    b.bitvec_var(BitvecTy::w32(), "x1"),
+                    b.bitvec_var(BitvecTy::w32(), "x2")
+                ),
+                b.bitvec_add(
+                    b.bitvec_var(BitvecTy::w32(), "y1"),
+                    b.bitvec_var(BitvecTy::w32(), "y2")
+                )
+            ),
+"\
+(bvadd
+  (bvadd (x1 (_ Bitvec 32)) (x2 (_ Bitvec 32)))
+  (bvadd (y1 (_ Bitvec 32)) (y2 (_ Bitvec 32)))
+)"
+        )
+    }
+
+
+    #[test]
     fn complex() {
         let b = new_builder();
         assert_written_eq_string(
