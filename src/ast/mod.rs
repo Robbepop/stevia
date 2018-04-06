@@ -5,6 +5,7 @@ mod arity;
 mod binexpr_children;
 mod bool_expr;
 mod child_iters;
+mod context;
 mod error;
 mod expr_kind;
 mod factory;
