@@ -27,6 +27,11 @@ pub trait ExprMarker {
     const EXPR_KIND: ExprKind;
 }
 
+pub use self::context::{
+    Context,
+    SymbolInterner,
+    TypeMap
+};
 pub use self::error::{
     ExprError,
     ExprErrorKind,
