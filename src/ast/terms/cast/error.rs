@@ -114,7 +114,7 @@ impl CastError {
 	pub fn sign_extend_to_smaller(source_ty: BitvecTy, extend: expr::SignExtend) -> Self {
 		CastError::new(CastErrorKind::SignExtendToSmaller {
 			target_ty: extend.bitvec_ty,
-			source_ty: source_ty,
+			source_ty,
 			expr: extend
 		})
 	}
@@ -124,7 +124,7 @@ impl CastError {
 	pub fn zero_extend_to_smaller(source_ty: BitvecTy, extend: expr::ZeroExtend) -> Self {
 		CastError::new(CastErrorKind::ZeroExtendToSmaller {
 			target_ty: extend.bitvec_ty,
-			source_ty: source_ty,
+			source_ty,
 			expr: extend
 		})
 	}

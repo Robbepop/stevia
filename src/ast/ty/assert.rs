@@ -65,7 +65,7 @@ pub fn expect_common_ty<T>(lhs: &T, rhs: &T) -> TypeResult<Type, T>
 where
     T: HasType + Clone + fmt::Debug,
 {
-    common_ty(lhs, rhs).ok_or(TypeError::type_mismatch(lhs.clone(), rhs.clone()))
+    common_ty(lhs, rhs).ok_or_else(|| TypeError::type_mismatch(lhs.clone(), rhs.clone()))
 }
 
 /// Checks if the given typed param is of boolean type.

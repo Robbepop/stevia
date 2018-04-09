@@ -120,6 +120,7 @@ impl SymbolInterner {
     }
 
     /// Returns the associated string representation for the given symbol name.
+    #[allow(needless_lifetimes)]
     pub fn resolve_symbol<'a>(&'a self, name: SymbolName) -> Option<&'a str> {
         self.access
             .lock()

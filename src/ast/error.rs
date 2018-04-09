@@ -95,7 +95,7 @@ impl ExprError {
 		ExprError::new(ExprErrorKind::TooFewChildren {
 			expected_min,
 			actual_num,
-			expr: expr,
+			expr,
 		})
 	}
 
@@ -110,8 +110,8 @@ impl ExprError {
 		let current_ty = current_ty.into();
 		debug_assert_ne!(assoc_ty, current_ty);
 		ExprError::new(ExprErrorKind::UnmatchingSymbolTypes {
-			assoc_ty: assoc_ty,
-			current_ty: current_ty,
+			assoc_ty,
+			current_ty,
 			symbol: symbol.into(),
 		})
 	}

@@ -84,12 +84,10 @@ fn propagate_if_constraint<'e>(expr: &'e mut AnyExpr, seen: &mut HashMap<&'e Any
     // 
     // Since conditions of if-expressions are always of boolean type this replacement
     // is only applicable for boolean expressions.
-    if expr.ty() == Type::Bool {
-        if seen.contains_key(&*expr) {
-            let polarity: bool = *seen.get(&*expr).unwrap();
-            *expr = AnyExpr::from(expr::BoolConst::from(polarity));
-            return TransformEffect::Transformed
-        }
+    if expr.ty() == Type::Bool && seen.contains_key(&*expr) {
+        let polarity: bool = *seen.get(&*expr).unwrap();
+        *expr = AnyExpr::from(expr::BoolConst::from(polarity));
+        return TransformEffect::Transformed
     }
     // For If-Then-Else expressions split traversing and memorize its condition if its
     // condition wasn't already seen.
