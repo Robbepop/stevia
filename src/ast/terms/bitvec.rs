@@ -343,11 +343,11 @@ impl Bitvec {
         let target_width = BitWidth::from(
             self.width().len_bits() +
             rhs.width().len_bits());
-        self.sext(target_width)
+        self.zext(target_width)
             .and_then(|v| v.shl(rhs.width().len_bits()))
             .and_then(|v| {
                 let rhs = rhs.clone()
-                             .sext(target_width)
+                             .zext(target_width)
                              .unwrap();
                 v.bitor(&rhs)
             })
