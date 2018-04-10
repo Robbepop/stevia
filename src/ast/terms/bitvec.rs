@@ -503,3 +503,29 @@ impl Bitvec {
         self.raw_val().try_to_i128()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod concat {
+        use super::*;
+
+        #[test]
+        fn u32_to_u64() {
+            let lhs = Bitvec::from(0x_1234_5678_u32);
+            let rhs = Bitvec::from(0x_ABCD_7543_u32);
+            let expected = Bitvec::from(0x_1234_5678_ABCD_7543_u64);
+            assert_eq!(lhs.concat(&rhs), expected);
+        }
+
+        #[test]
+        fn u16_to_u32() {
+            let lhs = Bitvec::from(0x_ABCD_u16);
+            let rhs = Bitvec::from(0x_EF01_u16);
+            let expected = Bitvec::from(0x_ABCD_EF01_u32);
+            assert_eq!(lhs.concat(&rhs), expected);
+        }
+    }
+
+}
