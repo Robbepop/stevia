@@ -102,6 +102,9 @@ pub use self::terms::{
     CastError,
     CastErrorKind,
     CastResult,
+    Bitvec,
+    BitvecError,
+    BitvecResult
 };
 pub use self::any_expr::{
     AnyExpr,

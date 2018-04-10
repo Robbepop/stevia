@@ -8,6 +8,13 @@ mod bitvec_equals;
 mod shift;
 mod cast;
 mod array;
+mod bitvec;
+
+pub use self::bitvec::{
+    Bitvec,
+    BitvecError,
+    BitvecResult
+};
 
 pub mod prelude {
     pub use super::{
