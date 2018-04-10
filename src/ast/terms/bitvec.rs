@@ -311,6 +311,64 @@ impl Bitvec {
 }
 
 impl Bitvec {
+    /// Zero-extends `self` to the target bitwidth and returns the result.
+    /// 
+    /// # Errors
+    /// 
+    /// If the given target width is invalid for this operation and `self`.
+    pub fn zext(self, target_width: BitWidth) -> BitvecResult<Self> {
+        self.into_raw_val()
+            .into_zero_extend(target_width.raw_width())
+            .map(Bitvec::from)
+    }
+
+    /// Sign-extends `self` to the target bitwidth and returns the result.
+    /// 
+    /// # Errors
+    /// 
+    /// If the given target width is invalid for this operation and `self`.
+    pub fn sext(self, target_width: BitWidth) -> BitvecResult<Self> {
+        self.into_raw_val()
+            .into_sign_extend(target_width.raw_width())
+            .map(Bitvec::from)
+    }
+
+    /// Concatenates `self` and `rhs` and returns the result.
+    /// 
+    /// # Note
+    /// 
+    /// The lower-bits of the resulting bitvector are represented
+    /// by `rhs` while the upper bits are represented by `self`.
+    pub fn concat(self, rhs: &Bitvec) -> Self {
+        let target_width = BitWidth::from(
+            self.width().len_bits() +
+            rhs.width().len_bits());
+        self.sext(target_width)
+            .and_then(|v| v.shl(rhs.width().len_bits()))
+            .and_then(|v| {
+                let rhs = rhs.clone()
+                             .sext(target_width)
+                             .unwrap();
+                v.bitor(&rhs)
+            })
+            .map(Bitvec::from)
+            .unwrap()
+    }
+
+    /// Extracts the bits in the closed range of `[lo, hi]` of `self` and returns the result.
+    /// 
+    /// # Errors
+    /// 
+    /// If `lo` and `hi` are invalid bit bounds.
+    pub fn extract(self, lo: usize, hi: usize) -> BitvecResult<Self> {
+        let target_width = BitWidth::from(hi - lo);
+        self.lshr(lo)
+            .and_then(|v| v.into_raw_val().into_truncate(target_width.raw_width()))
+            .map(Bitvec::from)
+    }
+}
+
+impl Bitvec {
     /// Left-shifts `self` by the given `shamt` amount of bits.
     /// 
     /// # Errors
