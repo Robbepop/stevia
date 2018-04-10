@@ -132,6 +132,12 @@ impl From<ArrayTy> for Type {
 	}
 }
 
+impl From<BitvecTy> for Type {
+	fn from(bitvec_ty: BitvecTy) -> Type {
+		Type::Bitvec(bitvec_ty)
+	}
+}
+
 
 /// The `Bitvec` type.
 ///
