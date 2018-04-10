@@ -10,7 +10,7 @@ use std::result;
 /// These are used to represent constant bitvector values.
 /// This struct mainly wraps an underlying bitvector implementation
 /// and provides an appropriate interface for SMT-like bitvectors.
-#[derive(Debug, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 pub struct Bitvec(apint::ApInt);
 
 /// The result type for bitvector operations.
