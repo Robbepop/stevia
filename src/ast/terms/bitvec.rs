@@ -528,4 +528,25 @@ mod tests {
         }
     }
 
+    mod to_bool {
+        use super::*;
+
+        #[test]
+        fn from_1_to_true() {
+            let one = Bitvec::one(BitWidth::w32());
+            assert_eq!(one.to_bool(), Ok(true));
+        }
+
+        #[test]
+        fn from_0_to_false() {
+            let zero = Bitvec::zero(BitWidth::w32());
+            assert_eq!(zero.to_bool(), Ok(false));
+        }
+
+        #[test]
+        fn failure() {
+            let out_of_bounds = Bitvec::from(42_u32);
+            assert!(out_of_bounds.to_bool().is_err());
+        }
+    }
 }
