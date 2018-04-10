@@ -43,7 +43,7 @@ impl Concat {
         let rhs_bvty = expect_bitvec_ty(&rhs).map_err(|e| {
             e.context("Expected bitvector type for the right hand-side child expression of the concat expression.")
         })?;
-        let concat_bvty = BitvecTy::from(lhs_bvty.width().to_usize() + rhs_bvty.width().to_usize());
+        let concat_bvty = BitvecTy::from(lhs_bvty.width().len_bits() + rhs_bvty.width().len_bits());
         Ok(Concat {
             bitvec_ty: concat_bvty,
             children: BinExprChildren::new_boxed(lhs, rhs),

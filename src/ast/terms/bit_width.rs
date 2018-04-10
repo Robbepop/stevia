@@ -62,9 +62,9 @@ impl From<apint::BitWidth> for BitWidth {
 }
 
 impl BitWidth {
-    /// Returns the `usize` representation of `self`.
+    /// Returns the number of bits representing `self`.
     #[inline]
-    pub fn to_usize(self) -> usize {
+    pub fn len_bits(self) -> usize {
         self.0.to_usize()
     }
 }

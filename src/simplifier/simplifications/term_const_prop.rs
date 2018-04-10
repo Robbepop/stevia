@@ -409,7 +409,7 @@ fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
             Ok(val) => {
                 let shamt = ShiftAmount::from(val as usize);
                 // TODO in crate apint: make ShiftAmount::to_usize public
-                if shamt.to_usize() >= width.to_usize() {
+                if shamt.to_usize() >= width.len_bits() {
                     warn!("Encountered right-hand side left-shift overflow with child expressions in: {:?} \n\
                            Stevia handles this by returning constant zero.", shl);
                     return TransformOutcome::transformed(expr::BitvecConst::zero(shl.bitvec_ty))
@@ -450,7 +450,7 @@ fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
             Ok(val) => {
                 let shamt = ShiftAmount::from(val as usize);
                 // TODO in crate apint: make ShiftAmount::to_usize public
-                if shamt.to_usize() >= width.to_usize() {
+                if shamt.to_usize() >= width.len_bits() {
                     warn!("Encountered right-hand side logical right-shift overflow with child expressions in: {:?} \n\
                            Stevia handles this by returning constant zero.", lshr);
                     return TransformOutcome::transformed(expr::BitvecConst::zero(lshr.bitvec_ty))
@@ -556,7 +556,7 @@ fn simplify_concat(concat: expr::Concat) -> TransformOutcome {
     if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(mut lhs), rhs: AnyExpr::BitvecConst(mut rhs) } = concat.children {
         lhs.val.zero_extend(target_width.raw_width()).unwrap();
         rhs.val.zero_extend(target_width.raw_width()).unwrap();
-        let shamt = ShiftAmount::from(rhs.bitvec_ty.width().to_usize());
+        let shamt = ShiftAmount::from(rhs.bitvec_ty.width().len_bits());
         lhs.val.checked_shl_assign(shamt).unwrap();
         lhs.val.checked_add_assign(&rhs.val).unwrap();
         return TransformOutcome::transformed(expr::BitvecConst::from(lhs.val))
