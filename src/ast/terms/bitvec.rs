@@ -508,6 +508,60 @@ impl Bitvec {
 mod tests {
     use super::*;
 
+    mod extract {
+        use super::*;
+
+        #[test]
+        fn single_bit() {
+            assert_eq!(
+                Bitvec::from(0b_0110_1001_u8).extract(0, 1),
+                Ok(Bitvec::from(true))
+            );
+            assert_eq!(
+                Bitvec::from(0b_0110_1010_u8).extract(0, 1),
+                Ok(Bitvec::from(false))
+            );
+        }
+
+        #[test]
+        fn lower_half() {
+            assert_eq!(
+                Bitvec::from(0x_ABCD_u16).extract(0, 8),
+                Ok(Bitvec::from(0x_CD_u8))
+            );
+        }
+
+        #[test]
+        fn upper_half() {
+            assert_eq!(
+                Bitvec::from(0x_ABCD_u16).extract(8, 16),
+                Ok(Bitvec::from(0x_AB_u8))
+            );
+        }
+
+        #[test]
+        fn full_range() {
+            assert_eq!(
+                Bitvec::from(0x_ABCD_u16).extract(0, 16),
+                Ok(Bitvec::from(0x_ABCD_u16))
+            );
+        }
+
+        #[test]
+        #[ignore]
+        fn err_eq_lo_hi() {
+            // TODO: create concrete BitvecError and BitvecResult wrapping ApIntError
+            assert!(Bitvec::from(1337_u16).extract(1, 1).is_err())
+        }
+
+        #[test]
+        #[ignore]
+        fn err_lo_lt_hi() {
+            // TODO: create concrete BitvecError and BitvecResult wrapping ApIntError
+            assert!(Bitvec::from(42_u16).extract(2, 1).is_err())
+        }
+    }
+
     mod concat {
         use super::*;
 
