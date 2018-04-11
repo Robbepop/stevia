@@ -92,7 +92,7 @@ impl Bitvec {
 
     /// Returns the concrete bitvector type of this bitvector.
     pub fn bitvec_ty(&self) -> BitvecTy {
-        BitvecTy::from(BitWidth::from(self.width()))
+        BitvecTy::from(self.width())
     }
 }
 
