@@ -511,6 +511,52 @@ impl Bitvec {
 mod tests {
     use super::*;
 
+    mod zext {
+        use super::*;
+
+        #[test]
+        fn from_1_to_32() {
+            assert_eq!(
+                Bitvec::from(false).zext(BitWidth::w32()),
+                Ok(Bitvec::from(0_u32))
+            );
+            assert_eq!(
+                Bitvec::from(true).zext(BitWidth::w32()),
+                Ok(Bitvec::from(1_u32))
+            )
+        }
+
+        #[test]
+        fn from_16_to_32() {
+            assert_eq!(
+                Bitvec::from(0x_ABCD_u16).zext(BitWidth::w32()),
+                Ok(Bitvec::from(0x_ABCD_u32))
+            )
+        }
+
+        #[test]
+        fn eq_width() {
+            assert_eq!(
+                Bitvec::from(0x_0123_u16).zext(BitWidth::w16()),
+                Ok(Bitvec::from(0x_0123_u16))
+            )
+        }
+
+        #[test]
+        fn neg16_to_32() {
+            assert_eq!(
+                Bitvec::from(0x_8042_i16).zext(BitWidth::w32()),
+                Ok(Bitvec::from(0x_8042_u32))
+            )
+        }
+
+        #[test]
+        fn invalid_target_width() {
+            assert!(Bitvec::from(42_u16).zext(BitWidth::from(15)).is_err());
+            assert!(Bitvec::from(42_u32).zext(BitWidth::w16()).is_err())
+        }
+    }
+
     mod extract {
         use super::*;
 
