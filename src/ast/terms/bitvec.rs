@@ -62,7 +62,7 @@ macro_rules! gen_from_impls_for {
         )+
     }
 }
-gen_from_impls_for!(i8; u8; i16; u16; i32; u32; i64; u64; i128; u128);
+gen_from_impls_for!(bool; i8; u8; i16; u16; i32; u32; i64; u64; i128; u128);
 
 impl Bitvec {
     /// Returns a shared borrow to the internal `ApInt`.
