@@ -361,6 +361,9 @@ impl Bitvec {
     /// 
     /// If `lo` and `hi` are invalid bit bounds.
     pub fn extract(self, lo: usize, hi: usize) -> BitvecResult<Self> {
+        if lo >= hi {
+            unimplemented!() // TODO: create concrete BitvecError and BitvecResult wrapping ApIntError
+        }
         let target_width = BitWidth::from(hi - lo);
         self.lshr(lo)
             .and_then(|v| v.into_raw_val().into_truncate(target_width.raw_width()))
