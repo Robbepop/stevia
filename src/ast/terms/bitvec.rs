@@ -409,7 +409,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_bool(self) -> BitvecResult<bool> {
+    pub fn to_bool(&self) -> BitvecResult<bool> {
         self.raw_val().try_to_bool()
     }
 
@@ -418,7 +418,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_u8(self) -> BitvecResult<u8> {
+    pub fn to_u8(&self) -> BitvecResult<u8> {
         self.raw_val().try_to_u8()
     }
 
@@ -427,7 +427,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_i8(self) -> BitvecResult<i8> {
+    pub fn to_i8(&self) -> BitvecResult<i8> {
         self.raw_val().try_to_i8()
     }
 
@@ -436,7 +436,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_u16(self) -> BitvecResult<u16> {
+    pub fn to_u16(&self) -> BitvecResult<u16> {
         self.raw_val().try_to_u16()
     }
 
@@ -445,7 +445,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_i16(self) -> BitvecResult<i16> {
+    pub fn to_i16(&self) -> BitvecResult<i16> {
         self.raw_val().try_to_i16()
     }
 
@@ -454,7 +454,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_u32(self) -> BitvecResult<u32> {
+    pub fn to_u32(&self) -> BitvecResult<u32> {
         self.raw_val().try_to_u32()
     }
 
@@ -463,7 +463,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_i32(self) -> BitvecResult<i32> {
+    pub fn to_i32(&self) -> BitvecResult<i32> {
         self.raw_val().try_to_i32()
     }
 
@@ -472,7 +472,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_u64(self) -> BitvecResult<u64> {
+    pub fn to_u64(&self) -> BitvecResult<u64> {
         self.raw_val().try_to_u64()
     }
 
@@ -481,7 +481,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_i64(self) -> BitvecResult<i64> {
+    pub fn to_i64(&self) -> BitvecResult<i64> {
         self.raw_val().try_to_i64()
     }
 
@@ -490,7 +490,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_u128(self) -> BitvecResult<u128> {
+    pub fn to_u128(&self) -> BitvecResult<u128> {
         self.raw_val().try_to_u128()
     }
 
@@ -499,7 +499,7 @@ impl Bitvec {
     /// # Errors
     /// 
     /// If the value of `self` is out of bounds for the result.
-    pub fn to_i128(self) -> BitvecResult<i128> {
+    pub fn to_i128(&self) -> BitvecResult<i128> {
         self.raw_val().try_to_i128()
     }
 }
