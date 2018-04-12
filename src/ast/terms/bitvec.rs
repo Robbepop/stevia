@@ -553,6 +553,56 @@ mod tests {
         }
     }
 
+    mod ashr {
+        use super::*;
+
+        #[test]
+        fn pos_simple() {
+            assert_eq!(
+                Bitvec::from(0x_0123_4567_u32).ashr(16),
+                Ok(Bitvec::from(0x_0000_0123_u32))
+            )
+        }
+
+        #[test]
+        fn neg_simple() {
+            assert_eq!(
+                Bitvec::from(0x_FEDC_BA98_u32).ashr(16),
+                Ok(Bitvec::from(0x_FFFF_FEDC_u32))
+            )
+        }
+
+        #[test]
+        fn shift_by_zero() {
+            assert_eq!(
+                Bitvec::from(42_u32).ashr(0),
+                Ok(Bitvec::from(42_u32))
+            )
+        }
+
+        #[test]
+        fn shift_overflow() {
+            assert!(Bitvec::from(1337_u32).ashr(32).is_err());
+            assert!(Bitvec::from(1337_u32).ashr(1337).is_err())
+        }
+
+        #[test]
+        fn neg_shift_near_overflow() {
+            assert_eq!(
+                Bitvec::from(0x8000_0000_u32).ashr(31),
+                Ok(Bitvec::from(0x_FFFF_FFFF_u32))
+            )
+        }
+
+        #[test]
+        fn pos_shift_near_overflow() {
+            assert_eq!(
+                Bitvec::from(0x7FFF_FFFF_u32).ashr(30),
+                Ok(Bitvec::from(1_u32))
+            )
+        }
+    }
+
     mod zext {
         use super::*;
 
