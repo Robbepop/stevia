@@ -775,7 +775,7 @@ mod tests {
         use super::*;
 
         #[test]
-        fn zero_to_zero() {
+        fn zero64_to_zero32() {
             assert_eq!(Bitvec::from(0_u64).to_u32(), Ok(0))
         }
 
