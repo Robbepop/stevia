@@ -770,4 +770,40 @@ mod tests {
             assert!(out_of_bounds.to_bool().is_err());
         }
     }
+
+    mod to_u32 {
+        use super::*;
+
+        #[test]
+        fn zero_to_zero() {
+            assert_eq!(Bitvec::from(0_u64).to_u32(), Ok(0))
+        }
+
+        #[test]
+        fn one_eq_width() {
+            assert_eq!(Bitvec::one(BitWidth::w32()).to_u32(), Ok(1));
+        }
+
+        #[test]
+        fn simple_eq_width() {
+            assert_eq!(Bitvec::from(42_i32).to_u32(), Ok(42));
+        }
+
+        #[test]
+        fn simple_lt_width() {
+            assert_eq!(Bitvec::from(1337_u64).to_u32(), Ok(1337))
+        }
+
+        #[test]
+        fn minus_one_to_max() {
+            use std::u32;
+            assert_eq!(Bitvec::from(-1_i32).to_u32(), Ok(u32::MAX));
+        }
+
+        #[test]
+        fn out_of_bounds() {
+            use std::u32;
+            assert!(Bitvec::from(u32::MAX as u64 + 1_u64).to_u32().is_err())
+        }
+    }
 }
