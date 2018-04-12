@@ -586,7 +586,7 @@ mod tests {
         #[test]
         fn neg16_to_32() {
             assert_eq!(
-                Bitvec::from(0x_8042_i16).zext(BitWidth::w32()),
+                Bitvec::from(0x_8042_u16).zext(BitWidth::w32()),
                 Ok(Bitvec::from(0x_8042_u32))
             )
         }
@@ -632,7 +632,7 @@ mod tests {
         #[test]
         fn neg16_to_32() {
             assert_eq!(
-                Bitvec::from(0x_8042_i16).sext(BitWidth::w32()),
+                Bitvec::from(0x_8042_u16).sext(BitWidth::w32()),
                 Ok(Bitvec::from(0x_FFFF_8042_u32))
             )
         }
