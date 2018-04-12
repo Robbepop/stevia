@@ -842,4 +842,41 @@ mod tests {
             assert!(Bitvec::from(u32::MAX as u64 + 1_u64).to_i32().is_err())
         }
     }
+
+    mod to_u64 {
+        use super::*;
+
+        #[test]
+        fn zero128_to_zero64() {
+            assert_eq!(Bitvec::from(0_u128).to_u64(), Ok(0))
+        }
+
+        #[test]
+        fn one_eq_width() {
+            assert_eq!(Bitvec::one(BitWidth::w64()).to_u64(), Ok(1));
+        }
+
+        #[test]
+        fn simple_eq_width() {
+            assert_eq!(Bitvec::from(42_i64).to_u64(), Ok(42));
+        }
+
+        #[test]
+        fn simple_lt_width() {
+            assert_eq!(Bitvec::from(1337_u128).to_u64(), Ok(1337))
+        }
+
+        #[test]
+        fn minus_one_to_max() {
+            use std::u64;
+            assert_eq!(Bitvec::from(-1_i64).to_u64(), Ok(u64::MAX));
+        }
+
+        #[test]
+        fn out_of_bounds() {
+            use std::u64;
+            assert!(Bitvec::from(u64::MAX as u128 + 1_u128).to_u64().is_err())
+        }
+    }
+
 }
