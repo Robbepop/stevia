@@ -511,6 +511,47 @@ impl Bitvec {
 mod tests {
     use super::*;
 
+    mod shl {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            assert_eq!(
+                Bitvec::from(0x_ABCD_9876_u32).shl(16),
+                Ok(Bitvec::from(0x_9876_0000_u32))
+            )
+        }
+
+        #[test]
+        fn from_1_to_2() {
+            assert_eq!(
+                Bitvec::from(1u16).shl(1),
+                Ok(Bitvec::from(2u16))
+            )
+        }
+
+        #[test]
+        fn shift_by_zero() {
+            assert_eq!(
+                Bitvec::from(42_u32).shl(0),
+                Ok(Bitvec::from(42_u32))
+            )
+        }
+
+        #[test]
+        fn shift_overflow() {
+            assert!(Bitvec::from(1337_u32).shl(32).is_err())
+        }
+
+        #[test]
+        fn shift_near_overflow() {
+            assert_eq!(
+                Bitvec::from(1_u32).shl(31),
+                Ok(Bitvec::from(0x8000_0000_u32))
+            )
+        }
+    }
+
     mod zext {
         use super::*;
 
