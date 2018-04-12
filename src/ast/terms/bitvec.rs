@@ -540,7 +540,8 @@ mod tests {
 
         #[test]
         fn shift_overflow() {
-            assert!(Bitvec::from(1337_u32).shl(32).is_err())
+            assert!(Bitvec::from(1337_u32).shl(32).is_err());
+            assert!(Bitvec::from(1337_u32).shl(1337).is_err())
         }
 
         #[test]
