@@ -549,6 +549,40 @@ mod tests {
         }
     }
 
+    mod lshr {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            assert_eq!(
+                Bitvec::from(0x_FEDC_BA98_u32).lshr(16),
+                Ok(Bitvec::from(0x_0000_FEDC_u32))
+            )
+        }
+
+        #[test]
+        fn shift_by_zero() {
+            assert_eq!(
+                Bitvec::from(42_u32).lshr(0),
+                Ok(Bitvec::from(42_u32))
+            )
+        }
+
+        #[test]
+        fn shift_overflow() {
+            assert!(Bitvec::from(1337_u32).lshr(32).is_err());
+            assert!(Bitvec::from(1337_u32).lshr(1337).is_err())
+        }
+
+        #[test]
+        fn shift_near_overflow() {
+            assert_eq!(
+                Bitvec::from(0x8000_0000_u32).lshr(31),
+                Ok(Bitvec::from(0x_0000_0001_u32))
+            )
+        }
+    }
+
     mod zext {
         use super::*;
 
