@@ -765,6 +765,145 @@ mod tests {
         }
     }
 
+    mod cmp {
+        use super::*;
+
+        fn invalid_cmp<L, R>(lhs: L, rhs: R)
+        where
+            L: Into<Bitvec> + Ord + Copy,
+            R: Into<Bitvec> + Ord + Copy
+        {
+            assert!(rhs.into().sge(&lhs.into()).is_err());
+            assert!(rhs.into().sgt(&lhs.into()).is_err());
+            assert!(rhs.into().sle(&lhs.into()).is_err());
+            assert!(rhs.into().slt(&lhs.into()).is_err());
+            assert!(rhs.into().uge(&lhs.into()).is_err());
+            assert!(rhs.into().ugt(&lhs.into()).is_err());
+            assert!(rhs.into().ule(&lhs.into()).is_err());
+            assert!(rhs.into().ult(&lhs.into()).is_err());
+        }
+
+        fn symmetric_invalid_cmp<L, R>(rhs: L, lhs: R)
+        where
+            L: Into<Bitvec> + Ord + Copy,
+            R: Into<Bitvec> + Ord + Copy
+        {
+            invalid_cmp(lhs, rhs);
+            invalid_cmp(rhs, lhs);
+        }
+
+        mod signed {
+            use super::*;
+
+            fn valid_cmp<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Ord + Copy
+            {
+                assert_eq!(lhs.into().sge(&rhs.into()), Ok(lhs >= rhs));
+                assert_eq!(lhs.into().sgt(&rhs.into()), Ok(lhs >  rhs));
+                assert_eq!(lhs.into().sle(&rhs.into()), Ok(lhs <= rhs));
+                assert_eq!(lhs.into().slt(&rhs.into()), Ok(lhs <  rhs));
+            }
+
+            fn symmetric_valid_cmp<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Ord + Copy
+            {
+                valid_cmp(lhs, rhs);
+                valid_cmp(rhs, lhs)
+            }
+
+            #[test]
+            fn zero_one() {
+                valid_cmp(0_i32, 0_i32);
+                symmetric_valid_cmp(0_i32, 1_i32);
+                valid_cmp(1_i32, 1_i32)
+            }
+
+            #[test]
+            fn neg_and_pos() {
+                symmetric_valid_cmp(42_i32, 1337_i32);
+                symmetric_valid_cmp(42_i32, -1337_i32);
+                symmetric_valid_cmp(-42_i32, 1337_i32);
+                symmetric_valid_cmp(-42_i32, -1337_i32);
+            }
+
+            #[test]
+            fn min_max() {
+                use std::i32;
+                symmetric_valid_cmp(i32::MIN, i32::MAX)
+            }
+
+            #[test]
+            fn cmp_eq() {
+                valid_cmp(42_i32, 42_i32);
+                valid_cmp(1337_i32, 1337_i32);
+            }
+
+            #[test]
+            fn failure() {
+                symmetric_invalid_cmp(0_i32, 0_i64);
+                symmetric_invalid_cmp(1_i32, 1_i64);
+                symmetric_invalid_cmp(42_i32, 1337_i64);
+                symmetric_invalid_cmp(42_i64, 1337_i32);
+            }
+        }
+
+        mod unsigned {
+            use super::*;
+
+            fn valid_cmp<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Ord + Copy
+            {
+                assert_eq!(lhs.into().uge(&rhs.into()), Ok(lhs >= rhs));
+                assert_eq!(lhs.into().ugt(&rhs.into()), Ok(lhs >  rhs));
+                assert_eq!(lhs.into().ule(&rhs.into()), Ok(lhs <= rhs));
+                assert_eq!(lhs.into().ult(&rhs.into()), Ok(lhs <  rhs));
+            }
+
+            fn symmetric_valid_cmp<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Ord + Copy
+            {
+                valid_cmp(lhs, rhs);
+                valid_cmp(rhs, lhs)
+            }
+
+            #[test]
+            fn w1() {
+                symmetric_valid_cmp(false, true);
+            }
+
+            #[test]
+            fn zero_one() {
+                valid_cmp(0_u32, 0_u32);
+                symmetric_valid_cmp(0_u32, 1_u32);
+                valid_cmp(1_u32, 1_u32)
+            }
+
+            #[test]
+            fn min_max() {
+                use std::u32;
+                symmetric_valid_cmp(u32::MIN, u32::MAX)
+            }
+
+            #[test]
+            fn cmp_eq() {
+                valid_cmp(42_u32, 42_u32);
+                valid_cmp(1337_u32, 1337_u32);
+            }
+
+            #[test]
+            fn failure() {
+                symmetric_invalid_cmp(0_u32, 0_u64);
+                symmetric_invalid_cmp(1_u32, 1_u64);
+                symmetric_invalid_cmp(42_u32, 1337_u64);
+                symmetric_invalid_cmp(42_u64, 1337_u32);
+            }
+        }
+    }
+
     mod shl {
         use super::*;
 
