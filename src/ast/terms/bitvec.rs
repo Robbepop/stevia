@@ -104,7 +104,7 @@ impl Bitvec {
 
     /// Returns `true` if `self` is one.
     pub fn is_one(&self) -> bool {
-        self.raw_val().is_zero()
+        self.raw_val().is_one()
     }
 }
 
