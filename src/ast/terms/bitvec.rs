@@ -499,6 +499,62 @@ mod tests {
         }
     }
 
+    mod len_bits {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(true).len_bits(), 1)
+        }
+
+        #[test]
+        fn w32() {
+            assert_eq!(Bitvec::from(42_u32).len_bits(), 32)
+        }
+    }
+
+    mod width {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(true).width(), BitWidth::w1())
+        }
+
+        #[test]
+        fn w32() {
+            assert_eq!(Bitvec::from(42_u32).width(), BitWidth::w32())
+        }
+    }
+
+    mod bitvec_ty {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(true).bitvec_ty(), BitvecTy::w1())
+        }
+
+        #[test]
+        fn w32() {
+            assert_eq!(Bitvec::from(42_u32).bitvec_ty(), BitvecTy::w32())
+        }
+    }
+
+    mod ty {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(true).ty(), Type::from(BitvecTy::w1()))
+        }
+
+        #[test]
+        fn w32() {
+            assert_eq!(Bitvec::from(42_u32).ty(), Type::from(BitvecTy::w32()))
+        }
+    }
+
     mod shl {
         use super::*;
 
