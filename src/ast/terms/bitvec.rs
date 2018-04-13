@@ -471,6 +471,20 @@ mod tests {
         }
     }
 
+    mod one {
+        use super::*;
+
+        #[test]
+        fn one_1() {
+            assert_eq!(Bitvec::one(BitWidth::w1()), Bitvec::from(true))
+        }
+
+        #[test]
+        fn one_32() {
+            assert_eq!(Bitvec::one(BitWidth::w32()), Bitvec::from(1_u32))
+        }
+    }
+
     mod shl {
         use super::*;
 
