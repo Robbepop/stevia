@@ -624,6 +624,53 @@ mod tests {
         }
     }
 
+    mod bitand {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            fn test_with(lhs: bool, rhs: bool, result: bool) {
+                assert_eq!(
+                    Bitvec::from(lhs).bitand(&Bitvec::from(rhs)), Ok(Bitvec::from(result))
+                )
+            }
+            test_with(false, false, false);
+            test_with(false,  true, false);
+            test_with( true, false, false);
+            test_with( true,  true,  true);
+        }
+
+        #[test]
+        fn simple() {
+            assert_eq!(
+                   Bitvec::from(0b_0101_1010_1001_0110_u16).bitand(&
+                   Bitvec::from(0b_0011_1100_0101_1010_u16)),
+                Ok(Bitvec::from(0b_0001_1000_0001_0010_u16))
+            )
+        }
+
+        #[test]
+        fn with_zero() {
+            assert_eq!(
+                Bitvec::from(1337_u32).bitand(&Bitvec::zero(BitWidth::w32())),
+                Ok(Bitvec::zero(BitWidth::w32()))
+            )
+        }
+
+        #[test]
+        fn with_all_set() {
+            assert_eq!(
+                Bitvec::from(1337_u32).bitand(&Bitvec::all_set(BitWidth::w32())),
+                Ok(Bitvec::from(1337_u32))
+            )
+        }
+
+        #[test]
+        fn failure() {
+            assert!(Bitvec::from(42_u32).bitand(&Bitvec::from(1337_u64)).is_err())
+        }
+    }
+
     mod shl {
         use super::*;
 
