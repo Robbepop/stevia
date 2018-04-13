@@ -718,6 +718,53 @@ mod tests {
         }
     }
 
+    mod bitxor {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            fn test_with(lhs: bool, rhs: bool, result: bool) {
+                assert_eq!(
+                    Bitvec::from(lhs).bitxor(&Bitvec::from(rhs)), Ok(Bitvec::from(result))
+                )
+            }
+            test_with(false, false, false);
+            test_with(false,  true,  true);
+            test_with( true, false,  true);
+            test_with( true,  true, false);
+        }
+
+        #[test]
+        fn simple() {
+            assert_eq!(
+                   Bitvec::from(0b_0101_1010_1001_0110_u16).bitxor(&
+                   Bitvec::from(0b_0011_1100_0101_1010_u16)),
+                Ok(Bitvec::from(0b_0110_0110_1100_1100_u16))
+            )
+        }
+
+        #[test]
+        fn with_zero() {
+            assert_eq!(
+                Bitvec::from(1337_u32).bitxor(&Bitvec::zero(BitWidth::w32())),
+                Ok(Bitvec::from(1337_u32))
+            )
+        }
+
+        #[test]
+        fn all_set_eq_bitnot() {
+            assert_eq!(
+                Bitvec::from(1337_u32).bitxor(&Bitvec::all_set(BitWidth::w32())),
+                Ok(Bitvec::from(1337_u32).bitnot())
+            )
+        }
+
+        #[test]
+        fn failure() {
+            assert!(Bitvec::from(42_u32).bitxor(&Bitvec::from(1337_u64)).is_err())
+        }
+    }
+
     mod shl {
         use super::*;
 
