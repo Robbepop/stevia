@@ -583,6 +583,47 @@ mod tests {
         }
     }
 
+    mod bitnot {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(false).bitnot(), Bitvec::from(true));
+            assert_eq!(Bitvec::from(true).bitnot(), Bitvec::from(false))
+        }
+
+        #[test]
+        fn simple() {
+            let fst = 0b_1010_0101_0110_1001_u16;
+            let snd = 0b_0101_1010_1001_0110_u16;
+            assert_eq!(
+                Bitvec::from(fst).bitnot(),
+                Bitvec::from(snd)
+            );
+            assert_eq!(
+                Bitvec::from(snd).bitnot(),
+                Bitvec::from(fst)
+            )
+        }
+
+        #[test]
+        fn zero_to_all_set() {
+            assert_eq!(
+                Bitvec::all_set(BitWidth::w32()).bitnot(),
+                Bitvec::zero(BitWidth::w32())
+            );
+            assert_eq!(
+                Bitvec::zero(BitWidth::w32()).bitnot(),
+                Bitvec::all_set(BitWidth::w32())
+            )
+        }
+
+        #[test]
+        fn involution() {
+            assert_eq!(Bitvec::from(42_u32).bitnot().bitnot(), Bitvec::from(42_u32))
+        }
+    }
+
     mod shl {
         use super::*;
 
