@@ -1404,5 +1404,4 @@ mod tests {
             assert!(Bitvec::from(u64::MAX as u128 + 1_u128).to_i64().is_err())
         }
     }
-
 }
