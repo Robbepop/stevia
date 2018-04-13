@@ -485,6 +485,20 @@ mod tests {
         }
     }
 
+    mod all_set {
+        use super::*;
+
+        #[test]
+        fn all_set_1() {
+            assert_eq!(Bitvec::all_set(BitWidth::w1()), Bitvec::from(true))
+        }
+
+        #[test]
+        fn all_set_32() {
+            assert_eq!(Bitvec::all_set(BitWidth::w32()), Bitvec::from(0x_FFFF_FFFF_u32))
+        }
+    }
+
     mod shl {
         use super::*;
 
