@@ -949,6 +949,64 @@ mod tests {
         }
     }
 
+    mod add {
+        use super::*;
+        use std::ops::Add;
+
+        fn valid_add<T>(lhs: T, rhs: T)
+        where
+            T: Into<Bitvec> + Add + Copy,
+            Bitvec: From<<T as Add>::Output>
+        {
+            assert_eq!(lhs.into().add(&rhs.into()), Ok(Bitvec::from(lhs + rhs)));
+        }
+
+        fn symmetric_valid_add<T>(lhs: T, rhs: T)
+        where
+            T: Into<Bitvec> + Add + Copy,
+            Bitvec: From<<T as Add>::Output>
+        {
+            valid_add(lhs, rhs);
+            valid_add(rhs, lhs)
+        }
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(false).add(&Bitvec::from(false)), Ok(Bitvec::from(false)));
+            assert_eq!(Bitvec::from(false).add(&Bitvec::from( true)), Ok(Bitvec::from( true)));
+            assert_eq!(Bitvec::from( true).add(&Bitvec::from(false)), Ok(Bitvec::from( true)));
+            assert_eq!(Bitvec::from( true).add(&Bitvec::from( true)), Ok(Bitvec::from(false)));
+        }
+
+        #[test]
+        fn simple() {
+            symmetric_valid_add(42_i32, 5_i32)
+        }
+
+        #[test]
+        fn both_zero() {
+            valid_add(0_i32, 0_i32)
+        }
+
+        #[test]
+        fn one_zero() {
+            symmetric_valid_add(42_i32, 0_i32);
+            symmetric_valid_add(1337_i32, 0_i32);
+            symmetric_valid_add(5_i32, 0_i32)
+        }
+
+        #[test]
+        fn pos_neg() {
+            symmetric_valid_add(-42_i32, 5_i32);
+            symmetric_valid_add(-42_i32, 42_i32);
+        }
+
+        #[test]
+        fn fail() {
+            assert!(Bitvec::from(42_i32).add(&Bitvec::from(1337_i64)).is_err());
+        }
+    }
+
     mod shl {
         use super::*;
 
