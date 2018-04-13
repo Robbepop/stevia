@@ -457,6 +457,20 @@ impl Bitvec {
 mod tests {
     use super::*;
 
+    mod zero {
+        use super::*;
+
+        #[test]
+        fn zero1() {
+            assert_eq!(Bitvec::zero(BitWidth::w1()), Bitvec::from(false))
+        }
+
+        #[test]
+        fn zero32() {
+            assert_eq!(Bitvec::zero(BitWidth::w32()), Bitvec::from(0_u32))
+        }
+    }
+
     mod shl {
         use super::*;
 
