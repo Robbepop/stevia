@@ -904,6 +904,51 @@ mod tests {
         }
     }
 
+    mod neg {
+        use super::*;
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(false).neg(), Bitvec::from(false));
+            assert_eq!(Bitvec::from(true).neg(), Bitvec::from(true))
+        }
+
+        #[test]
+        fn simple() {
+            assert_eq!(
+                Bitvec::from(42_i32).neg(),
+                Bitvec::from(-42_i32)
+            );
+            assert_eq!(
+                Bitvec::from(-42_i32).neg(),
+                Bitvec::from(42_i32)
+            )
+        }
+
+        #[test]
+        fn zero_to_zero() {
+            assert_eq!(
+                Bitvec::zero(BitWidth::w32()).neg(),
+                Bitvec::zero(BitWidth::w32())
+            )
+        }
+
+        #[test]
+        fn min_to_min() {
+            use std::i32;
+            assert_eq!(
+                Bitvec::from(i32::MIN).neg(),
+                Bitvec::from(i32::MIN)
+            )
+        }
+
+        #[test]
+        fn involution() {
+            assert_eq!(Bitvec::from(42_i32).neg().neg(), Bitvec::from(42_i32));
+            assert_eq!(Bitvec::from(-1337_i32).neg().neg(), Bitvec::from(-1337_i32))
+        }
+    }
+
     mod shl {
         use super::*;
 
