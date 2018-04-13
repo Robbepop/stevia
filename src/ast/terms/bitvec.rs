@@ -555,6 +555,34 @@ mod tests {
         }
     }
 
+    mod is_zero {
+        use super::*;
+
+        #[test]
+        fn success() {
+            assert!(Bitvec::zero(BitWidth::w32()).is_zero());
+        }
+
+        #[test]
+        fn failure() {
+            assert!(!Bitvec::one(BitWidth::w32()).is_zero());
+        }
+    }
+
+    mod is_one {
+        use super::*;
+
+        #[test]
+        fn success() {
+            assert!(Bitvec::one(BitWidth::w32()).is_one());
+        }
+
+        #[test]
+        fn failure() {
+            assert!(!Bitvec::zero(BitWidth::w32()).is_one());
+        }
+    }
+
     mod shl {
         use super::*;
 
