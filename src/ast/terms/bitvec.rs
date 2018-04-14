@@ -979,11 +979,6 @@ mod tests {
         }
 
         #[test]
-        fn simple() {
-            symmetric_valid_add(42_i32, 5_i32)
-        }
-
-        #[test]
         fn both_zero() {
             valid_add(0_i32, 0_i32)
         }
@@ -997,8 +992,15 @@ mod tests {
 
         #[test]
         fn pos_neg() {
-            symmetric_valid_add(-42_i32, 5_i32);
-            symmetric_valid_add(-42_i32, 42_i32);
+            symmetric_valid_add( 42_i32,  5_i32);
+            symmetric_valid_add(-42_i32,  5_i32);
+            symmetric_valid_add( 42_i32, -5_i32);
+            symmetric_valid_add(-42_i32, -5_i32)
+        }
+
+        #[test]
+        fn eq_zero() {
+            symmetric_valid_add(-42_i32, 42_i32)
         }
 
         #[test]
