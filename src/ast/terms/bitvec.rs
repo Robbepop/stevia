@@ -1125,6 +1125,125 @@ mod tests {
         }
     }
 
+    mod div {
+        use super::*;
+        use std::ops::Div;
+
+        mod signed {
+            use super::*;
+
+            fn valid_div<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Div + Copy,
+                Bitvec: From<<T as Div>::Output>
+            {
+                assert_eq!(lhs.into().sdiv(&rhs.into()), Ok(Bitvec::from(lhs / rhs)));
+            }
+
+            fn symmetric_valid_div<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Div + Copy,
+                Bitvec: From<<T as Div>::Output>
+            {
+                valid_div(lhs, rhs);
+                valid_div(rhs, lhs)
+            }
+
+            #[test]
+            fn simple() {
+                symmetric_valid_div(42_i32, 5_i32);
+                symmetric_valid_div(1337_i32, 42_i32);
+                symmetric_valid_div(12_i32, 4_i32)
+            }
+
+            #[test]
+            fn pos_neg() {
+                symmetric_valid_div( 12_i32, -3_i32);
+                symmetric_valid_div(-12_i32,  3_i32);
+                symmetric_valid_div(-12_i32, -3_i32)
+            }
+
+            #[test]
+            fn rhs_is_one() {
+                valid_div(  42_i32, 1_i32);
+                valid_div(1337_i32, 1_i32);
+                valid_div(   5_i32, 1_i32);
+                valid_div(   1_i32, 1_i32);
+                valid_div(   0_i32, 1_i32)
+            }
+
+            #[test]
+            fn lhs_is_one() {
+                valid_div(1_i32,   42_i32);
+                valid_div(1_i32, 1337_i32);
+                valid_div(1_i32,    5_i32)
+            }
+        }
+
+        mod unsigned {
+            use super::*;
+
+            fn valid_div<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Div + Copy,
+                Bitvec: From<<T as Div>::Output>
+            {
+                assert_eq!(lhs.into().udiv(&rhs.into()), Ok(Bitvec::from(lhs / rhs)));
+            }
+
+            fn symmetric_valid_div<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Div + Copy,
+                Bitvec: From<<T as Div>::Output>
+            {
+                valid_div(lhs, rhs);
+                valid_div(rhs, lhs)
+            }
+
+            #[test]
+            fn simple() {
+                symmetric_valid_div(42_i32, 5_i32);
+                symmetric_valid_div(1337_i32, 42_i32);
+                symmetric_valid_div(12_i32, 4_i32)
+            }
+
+            #[test]
+            fn rhs_is_one() {
+                valid_div(  42_i32, 1_i32);
+                valid_div(1337_i32, 1_i32);
+                valid_div(   5_i32, 1_i32);
+                valid_div(   1_i32, 1_i32);
+                valid_div(   0_i32, 1_i32)
+            }
+
+            #[test]
+            fn lhs_is_one() {
+                valid_div(1_i32,   42_i32);
+                valid_div(1_i32, 1337_i32);
+                valid_div(1_i32,    5_i32)
+            }
+        }
+
+        #[test]
+        #[ignore]
+        fn div_by_zero() {
+            fn test_div_by_zero(lhs: i32) {
+                assert!(Bitvec::from(lhs).sdiv(&Bitvec::from(0_i32)).is_err());
+                assert!(Bitvec::from(lhs).udiv(&Bitvec::from(0_i32)).is_err());
+            }
+            test_div_by_zero(1337);
+            test_div_by_zero(42);
+            test_div_by_zero(5);
+            test_div_by_zero(0)
+        }
+
+        #[test]
+        fn fail_width() {
+            assert!(Bitvec::from(42_i32).sdiv(&Bitvec::from(1337_i64)).is_err());
+            assert!(Bitvec::from(42_i32).udiv(&Bitvec::from(1337_i64)).is_err());
+        }
+    }
+
     mod shl {
         use super::*;
 
