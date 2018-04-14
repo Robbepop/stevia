@@ -1009,6 +1009,60 @@ mod tests {
         }
     }
 
+    mod sub {
+        use super::*;
+        use std::ops::Sub;
+
+        fn valid_sub<T>(lhs: T, rhs: T)
+        where
+            T: Into<Bitvec> + Sub + Copy,
+            Bitvec: From<<T as Sub>::Output>
+        {
+            assert_eq!(lhs.into().sub(&rhs.into()), Ok(Bitvec::from(lhs - rhs)));
+        }
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(false).sub(&Bitvec::from(false)), Ok(Bitvec::from(false)));
+            assert_eq!(Bitvec::from(false).sub(&Bitvec::from( true)), Ok(Bitvec::from( true)));
+            assert_eq!(Bitvec::from( true).sub(&Bitvec::from(false)), Ok(Bitvec::from( true)));
+            assert_eq!(Bitvec::from( true).sub(&Bitvec::from( true)), Ok(Bitvec::from(false)));
+        }
+
+        #[test]
+        fn both_zero() {
+            valid_sub(0_i32, 0_i32)
+        }
+
+        #[test]
+        fn one_zero() {
+            valid_sub(  42_i32,    0_i32);
+            valid_sub(   0_i32,   42_i32);
+            valid_sub(1337_i32,    0_i32);
+            valid_sub(   0_i32, 1337_i32);
+            valid_sub(   5_i32,    0_i32);
+            valid_sub(   0_i32,    5_i32)
+        }
+
+        #[test]
+        fn pos_neg() {
+            valid_sub( 42_i32,  5_i32);
+            valid_sub( 42_i32, -5_i32);
+            valid_sub(-42_i32,  5_i32);
+            valid_sub(-42_i32, -5_i32)
+        }
+
+        #[test]
+        fn eq_zero() {
+            valid_sub(123_i32, 123_i32)
+        }
+
+        #[test]
+        fn fail() {
+            assert!(Bitvec::from(42_i32).sub(&Bitvec::from(1337_i64)).is_err());
+        }
+    }
+
     mod shl {
         use super::*;
 
