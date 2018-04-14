@@ -1244,6 +1244,125 @@ mod tests {
         }
     }
 
+    mod rem {
+        use super::*;
+        use std::ops::Rem;
+
+        mod signed {
+            use super::*;
+
+            fn valid_rem<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Rem + Copy,
+                Bitvec: From<<T as Rem>::Output>
+            {
+                assert_eq!(lhs.into().srem(&rhs.into()), Ok(Bitvec::from(lhs % rhs)));
+            }
+
+            fn symmetric_valid_rem<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Rem + Copy,
+                Bitvec: From<<T as Rem>::Output>
+            {
+                valid_rem(lhs, rhs);
+                valid_rem(rhs, lhs)
+            }
+
+            #[test]
+            fn simple() {
+                symmetric_valid_rem(42_i32, 5_i32);
+                symmetric_valid_rem(1337_i32, 42_i32);
+                symmetric_valid_rem(12_i32, 4_i32)
+            }
+
+            #[test]
+            fn pos_neg() {
+                symmetric_valid_rem( 12_i32, -3_i32);
+                symmetric_valid_rem(-12_i32,  3_i32);
+                symmetric_valid_rem(-12_i32, -3_i32)
+            }
+
+            #[test]
+            fn rhs_is_one() {
+                valid_rem(  42_i32, 1_i32);
+                valid_rem(1337_i32, 1_i32);
+                valid_rem(   5_i32, 1_i32);
+                valid_rem(   1_i32, 1_i32);
+                valid_rem(   0_i32, 1_i32)
+            }
+
+            #[test]
+            fn lhs_is_one() {
+                valid_rem(1_i32,   42_i32);
+                valid_rem(1_i32, 1337_i32);
+                valid_rem(1_i32,    5_i32)
+            }
+        }
+
+        mod unsigned {
+            use super::*;
+
+            fn valid_rem<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Rem + Copy,
+                Bitvec: From<<T as Rem>::Output>
+            {
+                assert_eq!(lhs.into().urem(&rhs.into()), Ok(Bitvec::from(lhs % rhs)));
+            }
+
+            fn symmetric_valid_rem<T>(lhs: T, rhs: T)
+            where
+                T: Into<Bitvec> + Rem + Copy,
+                Bitvec: From<<T as Rem>::Output>
+            {
+                valid_rem(lhs, rhs);
+                valid_rem(rhs, lhs)
+            }
+
+            #[test]
+            fn simple() {
+                symmetric_valid_rem(42_i32, 5_i32);
+                symmetric_valid_rem(1337_i32, 42_i32);
+                symmetric_valid_rem(12_i32, 4_i32)
+            }
+
+            #[test]
+            fn rhs_is_one() {
+                valid_rem(  42_i32, 1_i32);
+                valid_rem(1337_i32, 1_i32);
+                valid_rem(   5_i32, 1_i32);
+                valid_rem(   1_i32, 1_i32);
+                valid_rem(   0_i32, 1_i32)
+            }
+
+            #[test]
+            fn lhs_is_one() {
+                valid_rem(1_i32,   42_i32);
+                valid_rem(1_i32, 1337_i32);
+                valid_rem(1_i32,    5_i32)
+            }
+        }
+
+        #[test]
+        #[ignore]
+        fn div_by_zero() {
+            fn test_div_by_zero(lhs: i32) {
+                assert!(Bitvec::from(lhs).srem(&Bitvec::from(0_i32)).is_err());
+                assert!(Bitvec::from(lhs).urem(&Bitvec::from(0_i32)).is_err());
+            }
+            test_div_by_zero(1337);
+            test_div_by_zero(42);
+            test_div_by_zero(5);
+            test_div_by_zero(0)
+        }
+
+        #[test]
+        fn fail_width() {
+            assert!(Bitvec::from(42_i32).srem(&Bitvec::from(1337_i64)).is_err());
+            assert!(Bitvec::from(42_i32).urem(&Bitvec::from(1337_i64)).is_err());
+        }
+    }
+
     mod shl {
         use super::*;
 
