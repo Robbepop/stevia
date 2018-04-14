@@ -1063,6 +1063,68 @@ mod tests {
         }
     }
 
+    mod mul {
+        use super::*;
+        use std::ops::Mul;
+
+        fn valid_mul<T>(lhs: T, rhs: T)
+        where
+            T: Into<Bitvec> + Mul + Copy,
+            Bitvec: From<<T as Mul>::Output>
+        {
+            assert_eq!(lhs.into().mul(&rhs.into()), Ok(Bitvec::from(lhs * rhs)));
+        }
+
+        fn symmetric_valid_mul<T>(lhs: T, rhs: T)
+        where
+            T: Into<Bitvec> + Mul + Copy,
+            Bitvec: From<<T as Mul>::Output>
+        {
+            valid_mul(lhs, rhs);
+            valid_mul(rhs, lhs)
+        }
+
+        #[test]
+        fn w1() {
+            assert_eq!(Bitvec::from(false).mul(&Bitvec::from(false)), Ok(Bitvec::from(false)));
+            assert_eq!(Bitvec::from(false).mul(&Bitvec::from( true)), Ok(Bitvec::from(false)));
+            assert_eq!(Bitvec::from( true).mul(&Bitvec::from(false)), Ok(Bitvec::from(false)));
+            assert_eq!(Bitvec::from( true).mul(&Bitvec::from( true)), Ok(Bitvec::from( true)));
+        }
+
+        #[test]
+        fn both_zero() {
+            valid_mul(0_i32, 0_i32)
+        }
+
+        #[test]
+        fn one_zero() {
+            symmetric_valid_mul(  42_i32,    0_i32);
+            symmetric_valid_mul(1337_i32,    0_i32);
+            symmetric_valid_mul(   5_i32,    0_i32);
+        }
+
+        #[test]
+        fn one_one() {
+            symmetric_valid_mul(  42_i32,    1_i32);
+            symmetric_valid_mul(1337_i32,    1_i32);
+            symmetric_valid_mul(   5_i32,    1_i32);
+        }
+
+        #[test]
+        fn pos_neg() {
+            symmetric_valid_mul( 42_i32,  5_i32);
+            symmetric_valid_mul( 42_i32, -5_i32);
+            symmetric_valid_mul(-42_i32,  5_i32);
+            symmetric_valid_mul(-42_i32, -5_i32)
+        }
+
+        #[test]
+        fn fail() {
+            assert!(Bitvec::from(42_i32).mul(&Bitvec::from(1337_i64)).is_err());
+        }
+    }
+
     mod shl {
         use super::*;
 
