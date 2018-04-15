@@ -120,7 +120,8 @@ impl SymbolInterner {
     }
 
     /// Returns the associated string representation for the given symbol name.
-    pub fn resolve_symbol(&self, name: SymbolName) -> Option<&str> {
+    #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
+    pub fn resolve_symbol<'a>(&'a self, name: SymbolName) -> Option<&'a str> {
         self.access
             .lock()
             .unwrap()
