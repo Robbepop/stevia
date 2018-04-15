@@ -1911,16 +1911,12 @@ mod tests {
         }
 
         #[test]
-        #[ignore]
         fn err_eq_lo_hi() {
-            // TODO: create concrete BitvecError and BitvecResult wrapping ApIntError
             assert!(Bitvec::from(1337_u16).extract(1, 1).is_err())
         }
 
         #[test]
-        #[ignore]
         fn err_lo_lt_hi() {
-            // TODO: create concrete BitvecError and BitvecResult wrapping ApIntError
             assert!(Bitvec::from(42_u16).extract(2, 1).is_err())
         }
     }
