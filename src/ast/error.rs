@@ -21,6 +21,8 @@ pub enum ExprErrorKind {
 	CastError(CastError),
 	/// Errors that are caused by type violations.
 	TypeError(TypeError<AnyExpr>),
+	/// Errors that are caused by bitvector operations.
+	BitvecError(BitvecError),
 	/// Error upon encountering an n-ary expression that was provided with too few child expressions.
 	TooFewChildren {
 		/// The minimum number of expected child expressions.
@@ -63,6 +65,12 @@ impl From<CastError> for ExprError {
 impl From<TypeError<AnyExpr>> for ExprError {
 	fn from(type_error: TypeError<AnyExpr>) -> Self {
 		ExprError::new(ExprErrorKind::TypeError(type_error))
+	}
+}
+
+impl From<BitvecError> for ExprError {
+	fn from(bitvec_error: BitvecError) -> Self {
+		ExprError::new(ExprErrorKind::BitvecError(bitvec_error))
 	}
 }
 
@@ -123,6 +131,7 @@ impl fmt::Display for ExprError {
 		match &self.kind {
 			CastError(cast_error) => write!(f, "{}", cast_error),
 			TypeError(type_error) => write!(f, "{}", type_error),
+			BitvecError(bitvec_error) => write!(f, "{}", bitvec_error),
 			TooFewChildren {
 				expected_min,
 				actual_num,
@@ -152,6 +161,7 @@ impl error::Error for ExprError {
 		match &self.kind {
 			CastError(cast_error) => cast_error.description(),
 			TypeError(type_error) => type_error.description(),
+			BitvecError(bitvec_error) => bitvec_error.description(),
 			TooFewChildren { .. } => "Too few children for expression",
 			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol",
 		}

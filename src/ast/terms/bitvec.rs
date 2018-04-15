@@ -4,6 +4,8 @@ use apint;
 use apint::Width;
 
 use std::result;
+use std::fmt;
+use std::error;
 
 /// Represents a bitvector in the sense of the SMT theory of bitvectors.
 /// 
@@ -16,8 +18,88 @@ pub struct Bitvec(apint::ApInt);
 /// The result type for bitvector operations.
 pub type BitvecResult<T> = result::Result<T, BitvecError>;
 
-/// The error type for bitvector operations.
-pub type BitvecError = apint::Error;
+// /// The error type for bitvector operations.
+// pub type BitvecError = apint::Error;
+
+/// Error kinds of errors associated to bitvector operations.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum BitvecErrorKind {
+    /// Errors of the underlying bitvector implementation library.
+    InternalError(apint::Error),
+    /// Encountered upon an invalid lo-hi boundary for extract operations.
+    InvalidExtractLoHiBounds {
+        /// The invalid lo-boundary.
+        lo: usize,
+        /// The invalid hi-boundary.
+        hi: usize,
+        /// The source bitvector for the extract operation.
+        source: Bitvec
+    }
+}
+
+/// The error type that is returned by bitvector operations.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct BitvecError {
+    /// The kind of the error.
+    kind: BitvecErrorKind,
+    /// The optional additional context of the error.
+    context: Option<String>
+}
+
+impl From<apint::Error> for BitvecError {
+    fn from(err: apint::Error) -> Self {
+        BitvecError::new(BitvecErrorKind::InternalError(err))
+    }
+}
+
+impl BitvecError {
+    /// Sets the context of this error to the given context string.
+	pub fn context<C>(self, context: C) -> Self
+	where
+		C: Into<String>,
+	{
+		let mut this = self;
+		this.context = Some(context.into());
+		this
+	}
+
+	/// Creates a new `ExprError` from the given `ExprErrorKind`.
+	fn new(kind: BitvecErrorKind) -> Self {
+		BitvecError {
+			kind,
+			context: None,
+		}
+	}
+
+	/// Returns a `BitvecError` that indicates that the extract operation has invalid lo-hi bounds.
+    pub fn invalid_extract_lo_hi_bounds(lo: usize, hi: usize, source: Bitvec) -> Self {
+        BitvecError::new(BitvecErrorKind::InvalidExtractLoHiBounds{lo, hi, source})
+    }
+}
+
+impl fmt::Display for BitvecError {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		use self::BitvecErrorKind::*;
+		match &self.kind {
+			InternalError(internal_error) => write!(f, "{}", internal_error),
+            InvalidExtractLoHiBounds{lo, hi, source} => write!(
+                f,
+                "Encountered invalid lo (= {:?}) and hi (= {:?}) bounds for extract operation with source: {:?}",
+                lo, hi, source
+            )
+		}
+	}
+}
+
+impl error::Error for BitvecError {
+	fn description(&self) -> &str {
+		use self::BitvecErrorKind::*;
+		match &self.kind {
+			InternalError(internal_error) => internal_error.description(),
+            InvalidExtractLoHiBounds{..} => "Encountered invalid lo-hi bounds for extract operation"
+		}
+	}
+}
 
 impl HasType for Bitvec {
     fn ty(&self) -> Type {
@@ -164,6 +246,7 @@ impl Bitvec {
     pub fn bitand_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_bitand_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the bitwise or of `self` and `rhs` and returns the result.
@@ -183,6 +266,7 @@ impl Bitvec {
     pub fn bitor_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_bitor_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the bitwise exclusive or (XOR) of `self` and `rhs` and returns the result.
@@ -202,6 +286,7 @@ impl Bitvec {
     pub fn bitxor_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_bitxor_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 }
 
@@ -213,6 +298,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn sge(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_sge(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the signed greater-than comparison between both given bitvectors.
@@ -222,6 +308,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn sgt(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_sgt(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the signed less-equals comparison between both given bitvectors.
@@ -231,6 +318,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn sle(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_sle(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the signed less-than comparison between both given bitvectors.
@@ -240,6 +328,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn slt(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_slt(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned greater-equals comparison between both given bitvectors.
@@ -249,6 +338,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn uge(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_uge(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned greater-than comparison between both given bitvectors.
@@ -258,6 +348,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn ugt(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_ugt(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned less-equals comparison between both given bitvectors.
@@ -267,6 +358,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn ule(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_ule(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned less-than comparison between both given bitvectors.
@@ -276,6 +368,7 @@ impl Bitvec {
     /// If the bit widths of the given bitvectors do not match.
     pub fn ult(&self, rhs: &Bitvec) -> BitvecResult<bool> {
         self.raw_val().checked_ult(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 }
 
@@ -287,7 +380,8 @@ impl Bitvec {
 
     /// Negates `self` inplace.
     pub fn negate_mut(&mut self) {
-        self.raw_val_mut().negate()
+        self.raw_val_mut()
+            .negate()
     }
 
     /// Adds `rhs` to `self` and returns the result.
@@ -307,6 +401,7 @@ impl Bitvec {
     pub fn add_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_add_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Subtracts `rhs` from `self` and returns the result.
@@ -326,6 +421,7 @@ impl Bitvec {
     pub fn sub_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_sub_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Multiplies `rhs` with `self` and returns the result.
@@ -345,6 +441,7 @@ impl Bitvec {
     pub fn mul_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_mul_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Divides signed `rhs` with `self` and returns the result.
@@ -364,6 +461,7 @@ impl Bitvec {
     pub fn sdiv_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_sdiv_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Divides unsigned `rhs` with `self` and returns the result.
@@ -383,6 +481,7 @@ impl Bitvec {
     pub fn udiv_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_udiv_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Returns the signed remainder: `self % rhs`
@@ -402,6 +501,7 @@ impl Bitvec {
     pub fn srem_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_srem_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
     /// Returns the unsigned remainder: `self % rhs`
@@ -421,6 +521,7 @@ impl Bitvec {
     pub fn urem_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_urem_assign(rhs.raw_val())
+            .map_err(BitvecError::from)
     }
 
 }
@@ -435,6 +536,7 @@ impl Bitvec {
         self.into_raw_val()
             .into_zero_extend(target_width.raw_width())
             .map(Bitvec::from)
+            .map_err(BitvecError::from)
     }
 
     /// Sign-extends `self` to the target bitwidth and returns the result.
@@ -446,6 +548,7 @@ impl Bitvec {
         self.into_raw_val()
             .into_sign_extend(target_width.raw_width())
             .map(Bitvec::from)
+            .map_err(BitvecError::from)
     }
 
     /// Concatenates `self` and `rhs` and returns the result.
@@ -481,8 +584,11 @@ impl Bitvec {
         }
         let target_width = BitWidth::from(hi - lo);
         self.lshr(lo)
-            .and_then(|v| v.into_raw_val().into_truncate(target_width.raw_width()))
+            .and_then(|v| v.into_raw_val()
+                           .into_truncate(target_width.raw_width())
+                           .map_err(BitvecError::from))
             .map(Bitvec::from)
+            .map_err(BitvecError::from)
     }
 }
 
@@ -504,6 +610,7 @@ impl Bitvec {
     pub fn shl_mut(&mut self, shamt: usize) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_shl_assign(shamt)
+            .map_err(BitvecError::from)
     }
 
     /// Arithmetically right-shifts `self` by the given `shamt` amount of bits.
@@ -523,6 +630,7 @@ impl Bitvec {
     pub fn ashr_mut(&mut self, shamt: usize) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_ashr_assign(shamt)
+            .map_err(BitvecError::from)
     }
 
     /// Logically right-shifts `self` by the given `shamt` amount of bits.
@@ -542,6 +650,7 @@ impl Bitvec {
     pub fn lshr_mut(&mut self, shamt: usize) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_lshr_assign(shamt)
+            .map_err(BitvecError::from)
     }
 }
 
@@ -552,7 +661,9 @@ impl Bitvec {
     /// 
     /// If the value of `self` is out of bounds for the result.
     pub fn to_bool(&self) -> BitvecResult<bool> {
-        self.raw_val().try_to_bool()
+        self.raw_val()
+            .try_to_bool()
+            .map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `u32`.
@@ -561,7 +672,9 @@ impl Bitvec {
     /// 
     /// If the value of `self` is out of bounds for the result.
     pub fn to_u32(&self) -> BitvecResult<u32> {
-        self.raw_val().try_to_u32()
+        self.raw_val()
+            .try_to_u32()
+            .map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `i32`.
@@ -570,7 +683,9 @@ impl Bitvec {
     /// 
     /// If the value of `self` is out of bounds for the result.
     pub fn to_i32(&self) -> BitvecResult<i32> {
-        self.raw_val().try_to_i32()
+        self.raw_val()
+            .try_to_i32()
+            .map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `u64`.
@@ -579,7 +694,9 @@ impl Bitvec {
     /// 
     /// If the value of `self` is out of bounds for the result.
     pub fn to_u64(&self) -> BitvecResult<u64> {
-        self.raw_val().try_to_u64()
+        self.raw_val()
+            .try_to_u64()
+            .map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `i64`.
@@ -588,7 +705,9 @@ impl Bitvec {
     /// 
     /// If the value of `self` is out of bounds for the result.
     pub fn to_i64(&self) -> BitvecResult<i64> {
-        self.raw_val().try_to_i64()
+        self.raw_val()
+            .try_to_i64()
+            .map_err(BitvecError::from)
     }
 }
 
