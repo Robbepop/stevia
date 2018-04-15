@@ -80,7 +80,7 @@ impl<'out> SMTLibWriter<'out> {
 
     /// Write the given bitvector constant expression into the buffer.
     fn write_bitvec_const(&mut self, bitvec_const: &expr::BitvecConst) {
-        let print_str = match bitvec_const.val.try_to_i64() {
+        let print_str = match bitvec_const.val.to_i64() {
             Ok(val) => format!("{}", val),
             Err(_) => String::from("(Error bv_val_overflow)")
         };

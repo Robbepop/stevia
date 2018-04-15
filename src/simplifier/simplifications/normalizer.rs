@@ -37,7 +37,7 @@ fn normalization_cmp(lhs: &AnyExpr, rhs: &AnyExpr) -> Ordering {
         // This way all negative bitvector constants are always sorted
         // after all positive bitvector constants.
         (&BitvecConst(ref lhs), &BitvecConst(ref rhs)) => {
-            if lhs.val.checked_ult(&rhs.val).unwrap() {
+            if lhs.val.ult(&rhs.val).unwrap() {
                 Ordering::Less
             }
             else {

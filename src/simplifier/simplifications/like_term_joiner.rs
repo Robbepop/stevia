@@ -2,8 +2,6 @@ use ast::prelude::*;
 
 use simplifier::simplifications::Normalizer;
 
-use apint::ApInt;
-
 use std::collections::{HashSet, HashMap};
 use std::collections::hash_map::Entry;
 
@@ -122,14 +120,14 @@ fn has_like_terms<'a>(add: &'a expr::Add) -> bool {
     mutated
 }
 
-fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, ApInt> {
-    let raw_width = add.bitvec_ty.width().raw_width();
-    let mut like_terms: HashMap<AnyExpr, ApInt> = HashMap::new();
-    let mut update_seen = |expr: AnyExpr, occurence: ApInt| {
+fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, Bitvec> {
+    let width = add.bitvec_ty.width();
+    let mut like_terms: HashMap<AnyExpr, Bitvec> = HashMap::new();
+    let mut update_seen = |expr: AnyExpr, occurence: Bitvec| {
         match like_terms.entry(expr) {
             Entry::Occupied(mut occupied) => {
                 occupied.get_mut()
-                        .checked_add_assign(&occurence)
+                        .add_mut(&occurence)
                         .unwrap();
             }
             Entry::Vacant(vacant) => {
@@ -139,10 +137,10 @@ fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, ApInt> {
     };
     for child in add.into_children() {
         match child {
-            AnyExpr::Neg(neg) => update_seen(neg.into_single_child(), ApInt::all_set(raw_width)),
+            AnyExpr::Neg(neg) => update_seen(neg.into_single_child(), Bitvec::all_set(width)),
             AnyExpr::Mul(mul) => {
                 if (mul.arity() != 2) || (mul.children().filter(|c| c.kind() == ExprKind::BitvecConst).count() != 1) {
-                    update_seen(mul.into(), ApInt::one(raw_width));
+                    update_seen(mul.into(), Bitvec::one(width));
                     continue;
                 }
                 let mut mul_children = mul.into_children();
@@ -154,7 +152,7 @@ fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, ApInt> {
                     _ => unreachable!()
                 }
             }
-            other => update_seen(other, ApInt::one(raw_width))
+            other => update_seen(other, Bitvec::one(width))
         }
     }
     like_terms
@@ -162,7 +160,7 @@ fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, ApInt> {
 
 fn simplify_add(add: expr::Add) -> TransformOutcome {
     if has_like_terms(&add) {
-        fn gen_node(bvty: BitvecTy, expr: AnyExpr, occurence: ApInt) -> AnyExpr {
+        fn gen_node(bvty: BitvecTy, expr: AnyExpr, occurence: Bitvec) -> AnyExpr {
             if occurence.is_zero() {
                 return expr::BitvecConst::zero(bvty).into()
             }
