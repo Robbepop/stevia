@@ -127,6 +127,15 @@ where
     this
 }
 
+fn try_forward_bin_mut_impl<L, R, F>(entity: L, rhs: R, op: F) -> BitvecResult<L>
+where
+    F: Fn(&mut L, R) -> BitvecResult<()>
+{
+    let mut this = entity;
+    op(&mut this, rhs)?;
+    Ok(this)
+}
+
 impl Bitvec {
     /// Returns `self` with bits flipped.
     pub fn bitnot(self) -> Self {
@@ -144,9 +153,7 @@ impl Bitvec {
     /// 
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitand(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_bitand(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::bitand_mut)
     }
 
     /// Bit-and assigns `self` to `rhs`.
@@ -165,9 +172,7 @@ impl Bitvec {
     /// 
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitor(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_bitor(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::bitor_mut)
     }
 
     /// Bit-or assigns `self` to `rhs`.
@@ -186,9 +191,7 @@ impl Bitvec {
     /// 
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitxor(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_bitxor(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::bitxor_mut)
     }
 
     /// Bit-xor assigns `self` to `rhs`.
@@ -279,9 +282,7 @@ impl Bitvec {
 impl Bitvec {
     /// Returns negated `self`.
     pub fn neg(self) -> Self {
-        self.into_raw_val()
-            .into_negate()
-            .into()
+        forward_mut_impl(self, Bitvec::negate_mut)
     }
 
     /// Negates `self` inplace.
@@ -295,9 +296,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn add(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_add(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::add_mut)
     }
 
     /// Add assigns `self` to `rhs`.
@@ -316,9 +315,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn sub(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_sub(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::sub_mut)
     }
 
     /// Subtract assigns `self` to `rhs`.
@@ -337,9 +334,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn mul(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_mul(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::mul_mut)
     }
 
     /// Multiply assigns `self` to `rhs`.
@@ -358,9 +353,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn sdiv(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_sdiv(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::sdiv_mut)
     }
 
     /// Signed-divide assigns `self` to `rhs`.
@@ -379,9 +372,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn udiv(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_udiv(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::udiv_mut)
     }
 
     /// Unsigned-divide assigns `self` to `rhs`.
@@ -400,9 +391,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn srem(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_srem(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::srem_mut)
     }
 
     /// Signed-remainder assigns `self` to `rhs`.
@@ -421,9 +410,7 @@ impl Bitvec {
     /// 
     /// If the bit width of the given bitvectors do not match.
     pub fn urem(self, rhs: &Bitvec) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_urem(rhs.raw_val())
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, rhs, Bitvec::urem_mut)
     }
 
     /// Unsigned-remainder assigns `self` to `rhs`.
@@ -506,9 +493,7 @@ impl Bitvec {
     /// 
     /// If the given shift amount is invalid.
     pub fn shl(self, shamt: usize) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_shl(shamt)
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, shamt, Bitvec::shl_mut)
     }
 
     /// Left-shift assigns `self` to `rhs`.
@@ -527,9 +512,7 @@ impl Bitvec {
     /// 
     /// If the given shift amount is invalid.
     pub fn ashr(self, shamt: usize) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_ashr(shamt)
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, shamt, Bitvec::ashr_mut)
     }
 
     /// Arithmetically right-shift assigns `self` to `rhs`.
@@ -548,9 +531,7 @@ impl Bitvec {
     /// 
     /// If the given shift amount is invalid.
     pub fn lshr(self, shamt: usize) -> BitvecResult<Self> {
-        self.into_raw_val()
-            .into_checked_lshr(shamt)
-            .map(Bitvec::from)
+        try_forward_bin_mut_impl(self, shamt, Bitvec::lshr_mut)
     }
 
     /// Logically right-shift assigns `self` to `rhs`.
