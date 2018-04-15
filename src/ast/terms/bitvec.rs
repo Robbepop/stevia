@@ -117,14 +117,25 @@ impl Bitvec {
         self.raw_val().is_zero()
     }
 }
+
+fn forward_mut_impl<T, F>(entity: T, op: F) -> T
+where
+    F: Fn(&mut T) -> ()
+{
+    let mut this = entity;
+    op(&mut this);
+    this
 }
 
 impl Bitvec {
-    /// Returns bit-negated `self`.
+    /// Returns `self` with bits flipped.
     pub fn bitnot(self) -> Self {
-        let mut this = self;
-        this.raw_val_mut().bitnot();
-        this
+        forward_mut_impl(self, Bitvec::bitnot_mut)
+    }
+
+    /// Flips bits of `self` inplace.
+    pub fn bitnot_mut(&mut self) {
+        self.raw_val_mut().bitnot()
     }
 
     /// Computes the bitwise and of `self` and `rhs` and returns the result.
