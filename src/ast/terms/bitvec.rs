@@ -1398,7 +1398,6 @@ mod tests {
         }
 
         #[test]
-        #[ignore]
         fn div_by_zero() {
             fn test_div_by_zero(lhs: i32) {
                 assert!(Bitvec::from(lhs).sdiv(&Bitvec::from(0_i32)).is_err());
@@ -1517,7 +1516,6 @@ mod tests {
         }
 
         #[test]
-        #[ignore]
         fn div_by_zero() {
             fn test_div_by_zero(lhs: i32) {
                 assert!(Bitvec::from(lhs).srem(&Bitvec::from(0_i32)).is_err());
