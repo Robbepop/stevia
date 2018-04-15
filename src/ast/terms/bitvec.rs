@@ -8,7 +8,7 @@ use std::fmt;
 use std::error;
 
 /// Represents a bitvector in the sense of the SMT theory of bitvectors.
-/// 
+///
 /// These are used to represent constant bitvector values.
 /// This struct mainly wraps an underlying bitvector implementation
 /// and provides an appropriate interface for SMT-like bitvectors.
@@ -33,8 +33,8 @@ pub enum BitvecErrorKind {
         /// The invalid hi-boundary.
         hi: usize,
         /// The source bitvector for the extract operation.
-        source: Bitvec
-    }
+        source: Bitvec,
+    },
 }
 
 /// The error type that is returned by bitvector operations.
@@ -43,7 +43,7 @@ pub struct BitvecError {
     /// The kind of the error.
     kind: BitvecErrorKind,
     /// The optional additional context of the error.
-    context: Option<String>
+    context: Option<String>,
 }
 
 impl From<apint::Error> for BitvecError {
@@ -54,33 +54,33 @@ impl From<apint::Error> for BitvecError {
 
 impl BitvecError {
     /// Sets the context of this error to the given context string.
-	pub fn context<C>(self, context: C) -> Self
-	where
-		C: Into<String>,
-	{
-		let mut this = self;
-		this.context = Some(context.into());
-		this
-	}
+    pub fn context<C>(self, context: C) -> Self
+    where
+        C: Into<String>,
+    {
+        let mut this = self;
+        this.context = Some(context.into());
+        this
+    }
 
-	/// Creates a new `ExprError` from the given `ExprErrorKind`.
-	fn new(kind: BitvecErrorKind) -> Self {
-		BitvecError {
-			kind,
-			context: None,
-		}
-	}
+    /// Creates a new `ExprError` from the given `ExprErrorKind`.
+    fn new(kind: BitvecErrorKind) -> Self {
+        BitvecError {
+            kind,
+            context: None,
+        }
+    }
 
-	/// Returns a `BitvecError` that indicates that the extract operation has invalid lo-hi bounds.
+    /// Returns a `BitvecError` that indicates that the extract operation has invalid lo-hi bounds.
     pub fn invalid_extract_lo_hi_bounds(lo: usize, hi: usize, source: Bitvec) -> Self {
-        BitvecError::new(BitvecErrorKind::InvalidExtractLoHiBounds{lo, hi, source})
+        BitvecError::new(BitvecErrorKind::InvalidExtractLoHiBounds { lo, hi, source })
     }
 }
 
 impl fmt::Display for BitvecError {
-	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		use self::BitvecErrorKind::*;
-		match &self.kind {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use self::BitvecErrorKind::*;
+        match &self.kind {
 			InternalError(internal_error) => write!(f, "{}", internal_error),
             InvalidExtractLoHiBounds{lo, hi, source} => write!(
                 f,
@@ -88,17 +88,19 @@ impl fmt::Display for BitvecError {
                 lo, hi, source
             )
 		}
-	}
+    }
 }
 
 impl error::Error for BitvecError {
-	fn description(&self) -> &str {
-		use self::BitvecErrorKind::*;
-		match &self.kind {
-			InternalError(internal_error) => internal_error.description(),
-            InvalidExtractLoHiBounds{..} => "Encountered invalid lo-hi bounds for extract operation"
-		}
-	}
+    fn description(&self) -> &str {
+        use self::BitvecErrorKind::*;
+        match &self.kind {
+            InternalError(internal_error) => internal_error.description(),
+            InvalidExtractLoHiBounds { .. } => {
+                "Encountered invalid lo-hi bounds for extract operation"
+            }
+        }
+    }
 }
 
 impl HasType for Bitvec {
@@ -202,7 +204,7 @@ impl Bitvec {
 
 fn forward_mut_impl<T, F>(entity: T, op: F) -> T
 where
-    F: Fn(&mut T) -> ()
+    F: Fn(&mut T) -> (),
 {
     let mut this = entity;
     op(&mut this);
@@ -211,7 +213,7 @@ where
 
 fn try_forward_bin_mut_impl<L, R, F>(entity: L, rhs: R, op: F) -> BitvecResult<L>
 where
-    F: Fn(&mut L, R) -> BitvecResult<()>
+    F: Fn(&mut L, R) -> BitvecResult<()>,
 {
     let mut this = entity;
     op(&mut this, rhs)?;
@@ -230,18 +232,18 @@ impl Bitvec {
     }
 
     /// Computes the bitwise and of `self` and `rhs` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitand(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::bitand_mut)
     }
 
     /// Bit-and assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitand_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -250,18 +252,18 @@ impl Bitvec {
     }
 
     /// Computes the bitwise or of `self` and `rhs` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitor(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::bitor_mut)
     }
 
     /// Bit-or assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitor_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -270,18 +272,18 @@ impl Bitvec {
     }
 
     /// Computes the bitwise exclusive or (XOR) of `self` and `rhs` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitxor(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::bitxor_mut)
     }
 
     /// Bit-xor assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn bitxor_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -292,82 +294,90 @@ impl Bitvec {
 
 impl Bitvec {
     /// Computes the signed greater-equals comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn sge(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_sge(rhs.raw_val())
+        self.raw_val()
+            .checked_sge(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the signed greater-than comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn sgt(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_sgt(rhs.raw_val())
+        self.raw_val()
+            .checked_sgt(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the signed less-equals comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn sle(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_sle(rhs.raw_val())
+        self.raw_val()
+            .checked_sle(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the signed less-than comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn slt(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_slt(rhs.raw_val())
+        self.raw_val()
+            .checked_slt(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned greater-equals comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn uge(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_uge(rhs.raw_val())
+        self.raw_val()
+            .checked_uge(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned greater-than comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn ugt(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_ugt(rhs.raw_val())
+        self.raw_val()
+            .checked_ugt(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned less-equals comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn ule(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_ule(rhs.raw_val())
+        self.raw_val()
+            .checked_ule(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 
     /// Computes the unsigned less-than comparison between both given bitvectors.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn ult(&self, rhs: &Bitvec) -> BitvecResult<bool> {
-        self.raw_val().checked_ult(rhs.raw_val())
+        self.raw_val()
+            .checked_ult(rhs.raw_val())
             .map_err(BitvecError::from)
     }
 }
@@ -380,23 +390,22 @@ impl Bitvec {
 
     /// Negates `self` inplace.
     pub fn negate_mut(&mut self) {
-        self.raw_val_mut()
-            .negate()
+        self.raw_val_mut().negate()
     }
 
     /// Adds `rhs` to `self` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn add(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::add_mut)
     }
 
     /// Add assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn add_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -405,18 +414,18 @@ impl Bitvec {
     }
 
     /// Subtracts `rhs` from `self` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn sub(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::sub_mut)
     }
 
     /// Subtract assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn sub_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -425,18 +434,18 @@ impl Bitvec {
     }
 
     /// Multiplies `rhs` with `self` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn mul(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::mul_mut)
     }
 
     /// Multiply assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn mul_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -445,18 +454,18 @@ impl Bitvec {
     }
 
     /// Divides signed `rhs` with `self` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn sdiv(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::sdiv_mut)
     }
 
     /// Signed-divide assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn sdiv_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -465,18 +474,18 @@ impl Bitvec {
     }
 
     /// Divides unsigned `rhs` with `self` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn udiv(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::udiv_mut)
     }
 
     /// Unsigned-divide assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn udiv_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -485,18 +494,18 @@ impl Bitvec {
     }
 
     /// Returns the signed remainder: `self % rhs`
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn srem(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::srem_mut)
     }
 
     /// Signed-remainder assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn srem_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -505,32 +514,31 @@ impl Bitvec {
     }
 
     /// Returns the unsigned remainder: `self % rhs`
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit width of the given bitvectors do not match.
     pub fn urem(self, rhs: &Bitvec) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, rhs, Bitvec::urem_mut)
     }
 
     /// Unsigned-remainder assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the bit widths of the given bitvectors do not match.
     pub fn urem_mut(&mut self, rhs: &Bitvec) -> BitvecResult<()> {
         self.raw_val_mut()
             .checked_urem_assign(rhs.raw_val())
             .map_err(BitvecError::from)
     }
-
 }
 
 impl Bitvec {
     /// Zero-extends `self` to the target bitwidth and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given target width is invalid for this operation and `self`.
     pub fn zext(self, target_width: BitWidth) -> BitvecResult<Self> {
         self.into_raw_val()
@@ -540,9 +548,9 @@ impl Bitvec {
     }
 
     /// Sign-extends `self` to the target bitwidth and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given target width is invalid for this operation and `self`.
     pub fn sext(self, target_width: BitWidth) -> BitvecResult<Self> {
         self.into_raw_val()
@@ -552,21 +560,17 @@ impl Bitvec {
     }
 
     /// Concatenates `self` and `rhs` and returns the result.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// The lower-bits of the resulting bitvector are represented
     /// by `rhs` while the upper bits are represented by `self`.
     pub fn concat(self, rhs: &Bitvec) -> Self {
-        let target_width = BitWidth::from(
-            self.width().len_bits() +
-            rhs.width().len_bits());
+        let target_width = BitWidth::from(self.width().len_bits() + rhs.width().len_bits());
         self.zext(target_width)
             .and_then(|v| v.shl(rhs.width().len_bits()))
             .and_then(|v| {
-                let rhs = rhs.clone()
-                             .zext(target_width)
-                             .unwrap();
+                let rhs = rhs.clone().zext(target_width).unwrap();
                 v.bitor(&rhs)
             })
             .map(Bitvec::from)
@@ -574,19 +578,21 @@ impl Bitvec {
     }
 
     /// Extracts the bits in the closed range of `[lo, hi]` of `self` and returns the result.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If `lo` and `hi` are invalid bit bounds.
     pub fn extract(self, lo: usize, hi: usize) -> BitvecResult<Self> {
         if lo >= hi {
-            return Err(BitvecError::invalid_extract_lo_hi_bounds(lo, hi, self))
+            return Err(BitvecError::invalid_extract_lo_hi_bounds(lo, hi, self));
         }
         let target_width = BitWidth::from(hi - lo);
         self.lshr(lo)
-            .and_then(|v| v.into_raw_val()
-                           .into_truncate(target_width.raw_width())
-                           .map_err(BitvecError::from))
+            .and_then(|v| {
+                v.into_raw_val()
+                    .into_truncate(target_width.raw_width())
+                    .map_err(BitvecError::from)
+            })
             .map(Bitvec::from)
             .map_err(BitvecError::from)
     }
@@ -594,18 +600,18 @@ impl Bitvec {
 
 impl Bitvec {
     /// Left-shifts `self` by the given `shamt` amount of bits.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given shift amount is invalid.
     pub fn shl(self, shamt: usize) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, shamt, Bitvec::shl_mut)
     }
 
     /// Left-shift assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given shift amount is invalid.
     pub fn shl_mut(&mut self, shamt: usize) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -614,18 +620,18 @@ impl Bitvec {
     }
 
     /// Arithmetically right-shifts `self` by the given `shamt` amount of bits.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given shift amount is invalid.
     pub fn ashr(self, shamt: usize) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, shamt, Bitvec::ashr_mut)
     }
 
     /// Arithmetically right-shift assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given shift amount is invalid.
     pub fn ashr_mut(&mut self, shamt: usize) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -634,18 +640,18 @@ impl Bitvec {
     }
 
     /// Logically right-shifts `self` by the given `shamt` amount of bits.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given shift amount is invalid.
     pub fn lshr(self, shamt: usize) -> BitvecResult<Self> {
         try_forward_bin_mut_impl(self, shamt, Bitvec::lshr_mut)
     }
 
     /// Logically right-shift assigns `self` to `rhs`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given shift amount is invalid.
     pub fn lshr_mut(&mut self, shamt: usize) -> BitvecResult<()> {
         self.raw_val_mut()
@@ -656,58 +662,48 @@ impl Bitvec {
 
 impl Bitvec {
     /// Tries to convert `self` into `bool`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the value of `self` is out of bounds for the result.
     pub fn to_bool(&self) -> BitvecResult<bool> {
-        self.raw_val()
-            .try_to_bool()
-            .map_err(BitvecError::from)
+        self.raw_val().try_to_bool().map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `u32`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the value of `self` is out of bounds for the result.
     pub fn to_u32(&self) -> BitvecResult<u32> {
-        self.raw_val()
-            .try_to_u32()
-            .map_err(BitvecError::from)
+        self.raw_val().try_to_u32().map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `i32`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the value of `self` is out of bounds for the result.
     pub fn to_i32(&self) -> BitvecResult<i32> {
-        self.raw_val()
-            .try_to_i32()
-            .map_err(BitvecError::from)
+        self.raw_val().try_to_i32().map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `u64`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the value of `self` is out of bounds for the result.
     pub fn to_u64(&self) -> BitvecResult<u64> {
-        self.raw_val()
-            .try_to_u64()
-            .map_err(BitvecError::from)
+        self.raw_val().try_to_u64().map_err(BitvecError::from)
     }
 
     /// Tries to convert `self` into `i64`.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the value of `self` is out of bounds for the result.
     pub fn to_i64(&self) -> BitvecResult<i64> {
-        self.raw_val()
-            .try_to_i64()
-            .map_err(BitvecError::from)
+        self.raw_val().try_to_i64().map_err(BitvecError::from)
     }
 }
 
@@ -753,7 +749,10 @@ mod tests {
 
         #[test]
         fn all_set_32() {
-            assert_eq!(Bitvec::all_set(BitWidth::w32()), Bitvec::from(0x_FFFF_FFFF_u32))
+            assert_eq!(
+                Bitvec::all_set(BitWidth::w32()),
+                Bitvec::from(0x_FFFF_FFFF_u32)
+            )
         }
     }
 
@@ -888,14 +887,8 @@ mod tests {
         fn simple() {
             let fst = 0b_1010_0101_0110_1001_u16;
             let snd = 0b_0101_1010_1001_0110_u16;
-            assert_eq!(
-                Bitvec::from(fst).bitnot(),
-                Bitvec::from(snd)
-            );
-            assert_eq!(
-                Bitvec::from(snd).bitnot(),
-                Bitvec::from(fst)
-            )
+            assert_eq!(Bitvec::from(fst).bitnot(), Bitvec::from(snd));
+            assert_eq!(Bitvec::from(snd).bitnot(), Bitvec::from(fst))
         }
 
         #[test]
@@ -923,20 +916,21 @@ mod tests {
         fn w1() {
             fn test_with(lhs: bool, rhs: bool, result: bool) {
                 assert_eq!(
-                    Bitvec::from(lhs).bitand(&Bitvec::from(rhs)), Ok(Bitvec::from(result))
+                    Bitvec::from(lhs).bitand(&Bitvec::from(rhs)),
+                    Ok(Bitvec::from(result))
                 )
             }
             test_with(false, false, false);
-            test_with(false,  true, false);
-            test_with( true, false, false);
-            test_with( true,  true,  true);
+            test_with(false, true, false);
+            test_with(true, false, false);
+            test_with(true, true, true);
         }
 
         #[test]
         fn simple() {
             assert_eq!(
-                   Bitvec::from(0b_0101_1010_1001_0110_u16).bitand(&
-                   Bitvec::from(0b_0011_1100_0101_1010_u16)),
+                Bitvec::from(0b_0101_1010_1001_0110_u16)
+                    .bitand(&Bitvec::from(0b_0011_1100_0101_1010_u16)),
                 Ok(Bitvec::from(0b_0001_1000_0001_0010_u16))
             )
         }
@@ -959,7 +953,11 @@ mod tests {
 
         #[test]
         fn failure() {
-            assert!(Bitvec::from(42_u32).bitand(&Bitvec::from(1337_u64)).is_err())
+            assert!(
+                Bitvec::from(42_u32)
+                    .bitand(&Bitvec::from(1337_u64))
+                    .is_err()
+            )
         }
     }
 
@@ -970,20 +968,21 @@ mod tests {
         fn w1() {
             fn test_with(lhs: bool, rhs: bool, result: bool) {
                 assert_eq!(
-                    Bitvec::from(lhs).bitor(&Bitvec::from(rhs)), Ok(Bitvec::from(result))
+                    Bitvec::from(lhs).bitor(&Bitvec::from(rhs)),
+                    Ok(Bitvec::from(result))
                 )
             }
             test_with(false, false, false);
-            test_with(false,  true,  true);
-            test_with( true, false,  true);
-            test_with( true,  true,  true);
+            test_with(false, true, true);
+            test_with(true, false, true);
+            test_with(true, true, true);
         }
 
         #[test]
         fn simple() {
             assert_eq!(
-                   Bitvec::from(0b_0101_1010_1001_0110_u16).bitor(&
-                   Bitvec::from(0b_0011_1100_0101_1010_u16)),
+                Bitvec::from(0b_0101_1010_1001_0110_u16)
+                    .bitor(&Bitvec::from(0b_0011_1100_0101_1010_u16)),
                 Ok(Bitvec::from(0b_0111_1110_1101_1110_u16))
             )
         }
@@ -1017,20 +1016,21 @@ mod tests {
         fn w1() {
             fn test_with(lhs: bool, rhs: bool, result: bool) {
                 assert_eq!(
-                    Bitvec::from(lhs).bitxor(&Bitvec::from(rhs)), Ok(Bitvec::from(result))
+                    Bitvec::from(lhs).bitxor(&Bitvec::from(rhs)),
+                    Ok(Bitvec::from(result))
                 )
             }
             test_with(false, false, false);
-            test_with(false,  true,  true);
-            test_with( true, false,  true);
-            test_with( true,  true, false);
+            test_with(false, true, true);
+            test_with(true, false, true);
+            test_with(true, true, false);
         }
 
         #[test]
         fn simple() {
             assert_eq!(
-                   Bitvec::from(0b_0101_1010_1001_0110_u16).bitxor(&
-                   Bitvec::from(0b_0011_1100_0101_1010_u16)),
+                Bitvec::from(0b_0101_1010_1001_0110_u16)
+                    .bitxor(&Bitvec::from(0b_0011_1100_0101_1010_u16)),
                 Ok(Bitvec::from(0b_0110_0110_1100_1100_u16))
             )
         }
@@ -1053,7 +1053,11 @@ mod tests {
 
         #[test]
         fn failure() {
-            assert!(Bitvec::from(42_u32).bitxor(&Bitvec::from(1337_u64)).is_err())
+            assert!(
+                Bitvec::from(42_u32)
+                    .bitxor(&Bitvec::from(1337_u64))
+                    .is_err()
+            )
         }
     }
 
@@ -1063,7 +1067,7 @@ mod tests {
         fn invalid_cmp<L, R>(lhs: L, rhs: R)
         where
             L: Into<Bitvec> + Ord + Copy,
-            R: Into<Bitvec> + Ord + Copy
+            R: Into<Bitvec> + Ord + Copy,
         {
             assert!(rhs.into().sge(&lhs.into()).is_err());
             assert!(rhs.into().sgt(&lhs.into()).is_err());
@@ -1078,7 +1082,7 @@ mod tests {
         fn symmetric_invalid_cmp<L, R>(rhs: L, lhs: R)
         where
             L: Into<Bitvec> + Ord + Copy,
-            R: Into<Bitvec> + Ord + Copy
+            R: Into<Bitvec> + Ord + Copy,
         {
             invalid_cmp(lhs, rhs);
             invalid_cmp(rhs, lhs);
@@ -1089,17 +1093,17 @@ mod tests {
 
             fn valid_cmp<T>(lhs: T, rhs: T)
             where
-                T: Into<Bitvec> + Ord + Copy
+                T: Into<Bitvec> + Ord + Copy,
             {
                 assert_eq!(lhs.into().sge(&rhs.into()), Ok(lhs >= rhs));
-                assert_eq!(lhs.into().sgt(&rhs.into()), Ok(lhs >  rhs));
+                assert_eq!(lhs.into().sgt(&rhs.into()), Ok(lhs > rhs));
                 assert_eq!(lhs.into().sle(&rhs.into()), Ok(lhs <= rhs));
-                assert_eq!(lhs.into().slt(&rhs.into()), Ok(lhs <  rhs));
+                assert_eq!(lhs.into().slt(&rhs.into()), Ok(lhs < rhs));
             }
 
             fn symmetric_valid_cmp<T>(lhs: T, rhs: T)
             where
-                T: Into<Bitvec> + Ord + Copy
+                T: Into<Bitvec> + Ord + Copy,
             {
                 valid_cmp(lhs, rhs);
                 valid_cmp(rhs, lhs)
@@ -1146,17 +1150,17 @@ mod tests {
 
             fn valid_cmp<T>(lhs: T, rhs: T)
             where
-                T: Into<Bitvec> + Ord + Copy
+                T: Into<Bitvec> + Ord + Copy,
             {
                 assert_eq!(lhs.into().uge(&rhs.into()), Ok(lhs >= rhs));
-                assert_eq!(lhs.into().ugt(&rhs.into()), Ok(lhs >  rhs));
+                assert_eq!(lhs.into().ugt(&rhs.into()), Ok(lhs > rhs));
                 assert_eq!(lhs.into().ule(&rhs.into()), Ok(lhs <= rhs));
-                assert_eq!(lhs.into().ult(&rhs.into()), Ok(lhs <  rhs));
+                assert_eq!(lhs.into().ult(&rhs.into()), Ok(lhs < rhs));
             }
 
             fn symmetric_valid_cmp<T>(lhs: T, rhs: T)
             where
-                T: Into<Bitvec> + Ord + Copy
+                T: Into<Bitvec> + Ord + Copy,
             {
                 valid_cmp(lhs, rhs);
                 valid_cmp(rhs, lhs)
@@ -1207,14 +1211,8 @@ mod tests {
 
         #[test]
         fn simple() {
-            assert_eq!(
-                Bitvec::from(42_i32).neg(),
-                Bitvec::from(-42_i32)
-            );
-            assert_eq!(
-                Bitvec::from(-42_i32).neg(),
-                Bitvec::from(42_i32)
-            )
+            assert_eq!(Bitvec::from(42_i32).neg(), Bitvec::from(-42_i32));
+            assert_eq!(Bitvec::from(-42_i32).neg(), Bitvec::from(42_i32))
         }
 
         #[test]
@@ -1228,10 +1226,7 @@ mod tests {
         #[test]
         fn min_to_min() {
             use std::i32;
-            assert_eq!(
-                Bitvec::from(i32::MIN).neg(),
-                Bitvec::from(i32::MIN)
-            )
+            assert_eq!(Bitvec::from(i32::MIN).neg(), Bitvec::from(i32::MIN))
         }
 
         #[test]
@@ -1248,7 +1243,7 @@ mod tests {
         fn valid_add<T>(lhs: T, rhs: T)
         where
             T: Into<Bitvec> + Add + Copy,
-            Bitvec: From<<T as Add>::Output>
+            Bitvec: From<<T as Add>::Output>,
         {
             assert_eq!(lhs.into().add(&rhs.into()), Ok(Bitvec::from(lhs + rhs)));
         }
@@ -1256,7 +1251,7 @@ mod tests {
         fn symmetric_valid_add<T>(lhs: T, rhs: T)
         where
             T: Into<Bitvec> + Add + Copy,
-            Bitvec: From<<T as Add>::Output>
+            Bitvec: From<<T as Add>::Output>,
         {
             valid_add(lhs, rhs);
             valid_add(rhs, lhs)
@@ -1264,10 +1259,22 @@ mod tests {
 
         #[test]
         fn w1() {
-            assert_eq!(Bitvec::from(false).add(&Bitvec::from(false)), Ok(Bitvec::from(false)));
-            assert_eq!(Bitvec::from(false).add(&Bitvec::from( true)), Ok(Bitvec::from( true)));
-            assert_eq!(Bitvec::from( true).add(&Bitvec::from(false)), Ok(Bitvec::from( true)));
-            assert_eq!(Bitvec::from( true).add(&Bitvec::from( true)), Ok(Bitvec::from(false)));
+            assert_eq!(
+                Bitvec::from(false).add(&Bitvec::from(false)),
+                Ok(Bitvec::from(false))
+            );
+            assert_eq!(
+                Bitvec::from(false).add(&Bitvec::from(true)),
+                Ok(Bitvec::from(true))
+            );
+            assert_eq!(
+                Bitvec::from(true).add(&Bitvec::from(false)),
+                Ok(Bitvec::from(true))
+            );
+            assert_eq!(
+                Bitvec::from(true).add(&Bitvec::from(true)),
+                Ok(Bitvec::from(false))
+            );
         }
 
         #[test]
@@ -1284,9 +1291,9 @@ mod tests {
 
         #[test]
         fn pos_neg() {
-            symmetric_valid_add( 42_i32,  5_i32);
-            symmetric_valid_add(-42_i32,  5_i32);
-            symmetric_valid_add( 42_i32, -5_i32);
+            symmetric_valid_add(42_i32, 5_i32);
+            symmetric_valid_add(-42_i32, 5_i32);
+            symmetric_valid_add(42_i32, -5_i32);
             symmetric_valid_add(-42_i32, -5_i32)
         }
 
@@ -1308,17 +1315,29 @@ mod tests {
         fn valid_sub<T>(lhs: T, rhs: T)
         where
             T: Into<Bitvec> + Sub + Copy,
-            Bitvec: From<<T as Sub>::Output>
+            Bitvec: From<<T as Sub>::Output>,
         {
             assert_eq!(lhs.into().sub(&rhs.into()), Ok(Bitvec::from(lhs - rhs)));
         }
 
         #[test]
         fn w1() {
-            assert_eq!(Bitvec::from(false).sub(&Bitvec::from(false)), Ok(Bitvec::from(false)));
-            assert_eq!(Bitvec::from(false).sub(&Bitvec::from( true)), Ok(Bitvec::from( true)));
-            assert_eq!(Bitvec::from( true).sub(&Bitvec::from(false)), Ok(Bitvec::from( true)));
-            assert_eq!(Bitvec::from( true).sub(&Bitvec::from( true)), Ok(Bitvec::from(false)));
+            assert_eq!(
+                Bitvec::from(false).sub(&Bitvec::from(false)),
+                Ok(Bitvec::from(false))
+            );
+            assert_eq!(
+                Bitvec::from(false).sub(&Bitvec::from(true)),
+                Ok(Bitvec::from(true))
+            );
+            assert_eq!(
+                Bitvec::from(true).sub(&Bitvec::from(false)),
+                Ok(Bitvec::from(true))
+            );
+            assert_eq!(
+                Bitvec::from(true).sub(&Bitvec::from(true)),
+                Ok(Bitvec::from(false))
+            );
         }
 
         #[test]
@@ -1328,19 +1347,19 @@ mod tests {
 
         #[test]
         fn one_zero() {
-            valid_sub(  42_i32,    0_i32);
-            valid_sub(   0_i32,   42_i32);
-            valid_sub(1337_i32,    0_i32);
-            valid_sub(   0_i32, 1337_i32);
-            valid_sub(   5_i32,    0_i32);
-            valid_sub(   0_i32,    5_i32)
+            valid_sub(42_i32, 0_i32);
+            valid_sub(0_i32, 42_i32);
+            valid_sub(1337_i32, 0_i32);
+            valid_sub(0_i32, 1337_i32);
+            valid_sub(5_i32, 0_i32);
+            valid_sub(0_i32, 5_i32)
         }
 
         #[test]
         fn pos_neg() {
-            valid_sub( 42_i32,  5_i32);
-            valid_sub( 42_i32, -5_i32);
-            valid_sub(-42_i32,  5_i32);
+            valid_sub(42_i32, 5_i32);
+            valid_sub(42_i32, -5_i32);
+            valid_sub(-42_i32, 5_i32);
             valid_sub(-42_i32, -5_i32)
         }
 
@@ -1362,7 +1381,7 @@ mod tests {
         fn valid_mul<T>(lhs: T, rhs: T)
         where
             T: Into<Bitvec> + Mul + Copy,
-            Bitvec: From<<T as Mul>::Output>
+            Bitvec: From<<T as Mul>::Output>,
         {
             assert_eq!(lhs.into().mul(&rhs.into()), Ok(Bitvec::from(lhs * rhs)));
         }
@@ -1370,7 +1389,7 @@ mod tests {
         fn symmetric_valid_mul<T>(lhs: T, rhs: T)
         where
             T: Into<Bitvec> + Mul + Copy,
-            Bitvec: From<<T as Mul>::Output>
+            Bitvec: From<<T as Mul>::Output>,
         {
             valid_mul(lhs, rhs);
             valid_mul(rhs, lhs)
@@ -1378,10 +1397,22 @@ mod tests {
 
         #[test]
         fn w1() {
-            assert_eq!(Bitvec::from(false).mul(&Bitvec::from(false)), Ok(Bitvec::from(false)));
-            assert_eq!(Bitvec::from(false).mul(&Bitvec::from( true)), Ok(Bitvec::from(false)));
-            assert_eq!(Bitvec::from( true).mul(&Bitvec::from(false)), Ok(Bitvec::from(false)));
-            assert_eq!(Bitvec::from( true).mul(&Bitvec::from( true)), Ok(Bitvec::from( true)));
+            assert_eq!(
+                Bitvec::from(false).mul(&Bitvec::from(false)),
+                Ok(Bitvec::from(false))
+            );
+            assert_eq!(
+                Bitvec::from(false).mul(&Bitvec::from(true)),
+                Ok(Bitvec::from(false))
+            );
+            assert_eq!(
+                Bitvec::from(true).mul(&Bitvec::from(false)),
+                Ok(Bitvec::from(false))
+            );
+            assert_eq!(
+                Bitvec::from(true).mul(&Bitvec::from(true)),
+                Ok(Bitvec::from(true))
+            );
         }
 
         #[test]
@@ -1391,23 +1422,23 @@ mod tests {
 
         #[test]
         fn one_zero() {
-            symmetric_valid_mul(  42_i32,    0_i32);
-            symmetric_valid_mul(1337_i32,    0_i32);
-            symmetric_valid_mul(   5_i32,    0_i32);
+            symmetric_valid_mul(42_i32, 0_i32);
+            symmetric_valid_mul(1337_i32, 0_i32);
+            symmetric_valid_mul(5_i32, 0_i32);
         }
 
         #[test]
         fn one_one() {
-            symmetric_valid_mul(  42_i32,    1_i32);
-            symmetric_valid_mul(1337_i32,    1_i32);
-            symmetric_valid_mul(   5_i32,    1_i32);
+            symmetric_valid_mul(42_i32, 1_i32);
+            symmetric_valid_mul(1337_i32, 1_i32);
+            symmetric_valid_mul(5_i32, 1_i32);
         }
 
         #[test]
         fn pos_neg() {
-            symmetric_valid_mul( 42_i32,  5_i32);
-            symmetric_valid_mul( 42_i32, -5_i32);
-            symmetric_valid_mul(-42_i32,  5_i32);
+            symmetric_valid_mul(42_i32, 5_i32);
+            symmetric_valid_mul(42_i32, -5_i32);
+            symmetric_valid_mul(-42_i32, 5_i32);
             symmetric_valid_mul(-42_i32, -5_i32)
         }
 
@@ -1427,7 +1458,7 @@ mod tests {
             fn valid_div<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Div + Copy,
-                Bitvec: From<<T as Div>::Output>
+                Bitvec: From<<T as Div>::Output>,
             {
                 assert_eq!(lhs.into().sdiv(&rhs.into()), Ok(Bitvec::from(lhs / rhs)));
             }
@@ -1435,7 +1466,7 @@ mod tests {
             fn symmetric_valid_div<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Div + Copy,
-                Bitvec: From<<T as Div>::Output>
+                Bitvec: From<<T as Div>::Output>,
             {
                 valid_div(lhs, rhs);
                 valid_div(rhs, lhs)
@@ -1450,25 +1481,25 @@ mod tests {
 
             #[test]
             fn pos_neg() {
-                symmetric_valid_div( 12_i32, -3_i32);
-                symmetric_valid_div(-12_i32,  3_i32);
+                symmetric_valid_div(12_i32, -3_i32);
+                symmetric_valid_div(-12_i32, 3_i32);
                 symmetric_valid_div(-12_i32, -3_i32)
             }
 
             #[test]
             fn rhs_is_one() {
-                valid_div(  42_i32, 1_i32);
+                valid_div(42_i32, 1_i32);
                 valid_div(1337_i32, 1_i32);
-                valid_div(   5_i32, 1_i32);
-                valid_div(   1_i32, 1_i32);
-                valid_div(   0_i32, 1_i32)
+                valid_div(5_i32, 1_i32);
+                valid_div(1_i32, 1_i32);
+                valid_div(0_i32, 1_i32)
             }
 
             #[test]
             fn lhs_is_one() {
-                valid_div(1_i32,   42_i32);
+                valid_div(1_i32, 42_i32);
                 valid_div(1_i32, 1337_i32);
-                valid_div(1_i32,    5_i32)
+                valid_div(1_i32, 5_i32)
             }
         }
 
@@ -1478,7 +1509,7 @@ mod tests {
             fn valid_div<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Div + Copy,
-                Bitvec: From<<T as Div>::Output>
+                Bitvec: From<<T as Div>::Output>,
             {
                 assert_eq!(lhs.into().udiv(&rhs.into()), Ok(Bitvec::from(lhs / rhs)));
             }
@@ -1486,7 +1517,7 @@ mod tests {
             fn symmetric_valid_div<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Div + Copy,
-                Bitvec: From<<T as Div>::Output>
+                Bitvec: From<<T as Div>::Output>,
             {
                 valid_div(lhs, rhs);
                 valid_div(rhs, lhs)
@@ -1501,18 +1532,18 @@ mod tests {
 
             #[test]
             fn rhs_is_one() {
-                valid_div(  42_i32, 1_i32);
+                valid_div(42_i32, 1_i32);
                 valid_div(1337_i32, 1_i32);
-                valid_div(   5_i32, 1_i32);
-                valid_div(   1_i32, 1_i32);
-                valid_div(   0_i32, 1_i32)
+                valid_div(5_i32, 1_i32);
+                valid_div(1_i32, 1_i32);
+                valid_div(0_i32, 1_i32)
             }
 
             #[test]
             fn lhs_is_one() {
-                valid_div(1_i32,   42_i32);
+                valid_div(1_i32, 42_i32);
                 valid_div(1_i32, 1337_i32);
-                valid_div(1_i32,    5_i32)
+                valid_div(1_i32, 5_i32)
             }
         }
 
@@ -1545,7 +1576,7 @@ mod tests {
             fn valid_rem<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Rem + Copy,
-                Bitvec: From<<T as Rem>::Output>
+                Bitvec: From<<T as Rem>::Output>,
             {
                 assert_eq!(lhs.into().srem(&rhs.into()), Ok(Bitvec::from(lhs % rhs)));
             }
@@ -1553,7 +1584,7 @@ mod tests {
             fn symmetric_valid_rem<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Rem + Copy,
-                Bitvec: From<<T as Rem>::Output>
+                Bitvec: From<<T as Rem>::Output>,
             {
                 valid_rem(lhs, rhs);
                 valid_rem(rhs, lhs)
@@ -1568,25 +1599,25 @@ mod tests {
 
             #[test]
             fn pos_neg() {
-                symmetric_valid_rem( 12_i32, -3_i32);
-                symmetric_valid_rem(-12_i32,  3_i32);
+                symmetric_valid_rem(12_i32, -3_i32);
+                symmetric_valid_rem(-12_i32, 3_i32);
                 symmetric_valid_rem(-12_i32, -3_i32)
             }
 
             #[test]
             fn rhs_is_one() {
-                valid_rem(  42_i32, 1_i32);
+                valid_rem(42_i32, 1_i32);
                 valid_rem(1337_i32, 1_i32);
-                valid_rem(   5_i32, 1_i32);
-                valid_rem(   1_i32, 1_i32);
-                valid_rem(   0_i32, 1_i32)
+                valid_rem(5_i32, 1_i32);
+                valid_rem(1_i32, 1_i32);
+                valid_rem(0_i32, 1_i32)
             }
 
             #[test]
             fn lhs_is_one() {
-                valid_rem(1_i32,   42_i32);
+                valid_rem(1_i32, 42_i32);
                 valid_rem(1_i32, 1337_i32);
-                valid_rem(1_i32,    5_i32)
+                valid_rem(1_i32, 5_i32)
             }
         }
 
@@ -1596,7 +1627,7 @@ mod tests {
             fn valid_rem<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Rem + Copy,
-                Bitvec: From<<T as Rem>::Output>
+                Bitvec: From<<T as Rem>::Output>,
             {
                 assert_eq!(lhs.into().urem(&rhs.into()), Ok(Bitvec::from(lhs % rhs)));
             }
@@ -1604,7 +1635,7 @@ mod tests {
             fn symmetric_valid_rem<T>(lhs: T, rhs: T)
             where
                 T: Into<Bitvec> + Rem + Copy,
-                Bitvec: From<<T as Rem>::Output>
+                Bitvec: From<<T as Rem>::Output>,
             {
                 valid_rem(lhs, rhs);
                 valid_rem(rhs, lhs)
@@ -1619,18 +1650,18 @@ mod tests {
 
             #[test]
             fn rhs_is_one() {
-                valid_rem(  42_i32, 1_i32);
+                valid_rem(42_i32, 1_i32);
                 valid_rem(1337_i32, 1_i32);
-                valid_rem(   5_i32, 1_i32);
-                valid_rem(   1_i32, 1_i32);
-                valid_rem(   0_i32, 1_i32)
+                valid_rem(5_i32, 1_i32);
+                valid_rem(1_i32, 1_i32);
+                valid_rem(0_i32, 1_i32)
             }
 
             #[test]
             fn lhs_is_one() {
-                valid_rem(1_i32,   42_i32);
+                valid_rem(1_i32, 42_i32);
                 valid_rem(1_i32, 1337_i32);
-                valid_rem(1_i32,    5_i32)
+                valid_rem(1_i32, 5_i32)
             }
         }
 
@@ -1666,18 +1697,12 @@ mod tests {
 
         #[test]
         fn from_1_to_2() {
-            assert_eq!(
-                Bitvec::from(1u16).shl(1),
-                Ok(Bitvec::from(2u16))
-            )
+            assert_eq!(Bitvec::from(1u16).shl(1), Ok(Bitvec::from(2u16)))
         }
 
         #[test]
         fn shift_by_zero() {
-            assert_eq!(
-                Bitvec::from(42_u32).shl(0),
-                Ok(Bitvec::from(42_u32))
-            )
+            assert_eq!(Bitvec::from(42_u32).shl(0), Ok(Bitvec::from(42_u32)))
         }
 
         #[test]
@@ -1716,10 +1741,7 @@ mod tests {
 
         #[test]
         fn shift_by_zero() {
-            assert_eq!(
-                Bitvec::from(42_u32).ashr(0),
-                Ok(Bitvec::from(42_u32))
-            )
+            assert_eq!(Bitvec::from(42_u32).ashr(0), Ok(Bitvec::from(42_u32)))
         }
 
         #[test]
@@ -1758,10 +1780,7 @@ mod tests {
 
         #[test]
         fn shift_by_zero() {
-            assert_eq!(
-                Bitvec::from(42_u32).lshr(0),
-                Ok(Bitvec::from(42_u32))
-            )
+            assert_eq!(Bitvec::from(42_u32).lshr(0), Ok(Bitvec::from(42_u32)))
         }
 
         #[test]
