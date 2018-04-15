@@ -106,6 +106,17 @@ impl Bitvec {
     pub fn is_one(&self) -> bool {
         self.raw_val().is_one()
     }
+
+    /// Returns `true` if all bits of `self` are set.
+    pub fn is_all_set(&self) -> bool {
+        self.raw_val().is_all_set()
+    }
+
+    /// Returns `true` if all bits of `self` are unset.
+    pub fn is_all_unset(&self) -> bool {
+        self.raw_val().is_zero()
+    }
+}
 }
 
 impl Bitvec {
@@ -580,6 +591,40 @@ mod tests {
         #[test]
         fn failure() {
             assert!(!Bitvec::zero(BitWidth::w32()).is_one());
+        }
+    }
+
+    mod is_all_set {
+        use super::*;
+
+        #[test]
+        fn success() {
+            assert!(Bitvec::from(true).is_all_set());
+            assert!(Bitvec::all_set(BitWidth::w32()).is_all_set());
+        }
+
+        #[test]
+        fn failure() {
+            assert!(!Bitvec::from(false).is_all_set());
+            assert!(!Bitvec::zero(BitWidth::w32()).is_all_set());
+            assert!(!Bitvec::one(BitWidth::w32()).is_all_set())
+        }
+    }
+
+    mod is_all_unset {
+        use super::*;
+
+        #[test]
+        fn success() {
+            assert!(Bitvec::from(false).is_all_unset());
+            assert!(Bitvec::zero(BitWidth::w32()).is_all_unset());
+        }
+
+        #[test]
+        fn failure() {
+            assert!(!Bitvec::from(true).is_all_unset());
+            assert!(!Bitvec::all_set(BitWidth::w32()).is_all_unset());
+            assert!(!Bitvec::one(BitWidth::w32()).is_all_unset())
         }
     }
 
