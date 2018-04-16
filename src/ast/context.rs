@@ -9,6 +9,10 @@ use vec_map::{
     Entry::{Occupied, Vacant}
 };
 use std::sync::{
+    atomic::{
+        AtomicUsize,
+        Ordering
+    },
     Arc,
     Mutex
 };
@@ -21,6 +25,9 @@ pub struct Context {
     pub interner: SymbolInterner,
     /// Access to the type map.
     pub symbol_types: TypeMap,
+    /// Access to the symbol generator.
+    pub symbol_id_gen: SymbolIdGenerator
+}
 
 /// An generic entity and its associated context.
 #[derive(Debug, Copy, Clone)]
@@ -46,6 +53,7 @@ impl Context {
         Arc::new(Context {
             interner: SymbolInterner::default(),
             symbol_types: TypeMap::default(),
+            symbol_id_gen: SymbolIdGenerator::default()
         })
     }
 
@@ -53,7 +61,28 @@ impl Context {
     pub fn assoc<T>(&self, entity: T) -> ContextAnd<T> {
         ContextAnd{ entity, ctx: self }
     }
+}
 
+#[derive(Debug)]
+pub struct SymbolIdGenerator {
+    current: AtomicUsize
+}
+
+impl Default for SymbolIdGenerator {
+    /// Returns an new `SymbolIdGenerator`.
+    fn default() -> Self {
+        SymbolIdGenerator {
+            current: AtomicUsize::new(0)
+        }
+    }
+}
+
+impl SymbolIdGenerator {
+    /// Returns the next generated symbol id.
+    pub fn gen_id(&self) -> GeneratedSymbolId {
+        // TODO 2018-04-17: decide if we can relax the ordering in this place a bit.
+        self.current.fetch_add(1, Ordering::SeqCst).into()
+    }
 }
 
 /// Stores mappings between symbol names and types.
