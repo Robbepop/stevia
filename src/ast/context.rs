@@ -21,6 +21,14 @@ pub struct Context {
     pub interner: SymbolInterner,
     /// Access to the type map.
     pub symbol_types: TypeMap,
+
+/// An generic entity and its associated context.
+#[derive(Debug, Copy, Clone)]
+pub struct ContextAnd<'ctx, T>{
+    /// The associated entity.
+    pub entity: T,
+    /// The associated context.
+    pub ctx: &'ctx Context
 }
 
 impl Context {
@@ -40,6 +48,12 @@ impl Context {
             symbol_types: TypeMap::default(),
         })
     }
+
+    /// Associates `self` with the given entity.
+    pub fn assoc<T>(&self, entity: T) -> ContextAnd<T> {
+        ContextAnd{ entity, ctx: self }
+    }
+
 }
 
 /// Stores mappings between symbol names and types.
