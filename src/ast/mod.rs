@@ -15,6 +15,7 @@ mod symbol;
 mod terms;
 mod ty;
 mod visitor;
+mod symbol_new;
 
 #[macro_use]
 mod transformer;
@@ -27,8 +28,15 @@ pub trait ExprMarker {
     const EXPR_KIND: ExprKind;
 }
 
+pub use self::symbol_new::{
+    SymbolId,
+    NamedSymbolId,
+    GeneratedSymbolId,
+    Symbol
+};
 pub use self::context::{
     Context,
+    ContextAnd,
     SymbolInterner,
     TypeMap
 };
