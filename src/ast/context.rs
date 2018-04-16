@@ -2,7 +2,6 @@ use ast::prelude::*;
 
 use string_interner::{
     StringInterner,
-    Symbol
 };
 use vec_map::{
     VecMap,
@@ -120,15 +119,25 @@ impl TypeMap {
     ///
     /// Does not insert into the `TypeMap` if there already exists an association
     /// for the given symbol name.
-    pub fn insert_or_get(&self, name: SymbolName, ty: Type) -> Option<Type> {
+    pub fn insert_or_get<T>(&self, name: NamedSymbolId, ty: T) -> Option<Type>
+    where
+        T: Into<Type>
+    {
         let mut locked_map = self.access.lock().unwrap();
-        match locked_map.entry(name.to_usize()) {
+        match locked_map.entry(name.raw_repr()) {
             Occupied(occupied) => Some(*occupied.get()),
             Vacant(vacant) => {
-                vacant.insert(ty);
+                vacant.insert(ty.into());
                 None
             }
         }
+    }
+
+    /// Returns the type associated to the given named symbol ID.
+    /// 
+    /// Returns `None` if there exists no associated type for the given name.
+    pub fn get(&self, name: NamedSymbolId) -> Option<Type> {
+        self.access.lock().unwrap().get(name.raw_repr()).cloned()
     }
 }
 
@@ -138,7 +147,7 @@ impl TypeMap {
 #[derive(Debug)]
 pub struct SymbolInterner {
     /// Access to the internal thread-safe `StringInterner`.
-    access: Mutex<StringInterner<SymbolName>>,
+    access: Mutex<StringInterner<NamedSymbolId>>,
 }
 
 unsafe impl Sync for SymbolInterner {}
@@ -155,7 +164,7 @@ impl SymbolInterner {
     /// Interns the given string within the `SymbolInterner` and returns
     /// the associated `Symbol` or returns an already associated `Symbol` for the
     /// given string.
-    pub fn intern_or_get<S>(&self, name: S) -> SymbolName
+    pub fn intern_or_get<S>(&self, name: S) -> NamedSymbolId
     where
         S: Into<String> + AsRef<str>,
     {
@@ -164,7 +173,7 @@ impl SymbolInterner {
 
     /// Returns the associated string representation for the given symbol name.
     #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
-    pub fn resolve_symbol<'a>(&'a self, name: SymbolName) -> Option<&'a str> {
+    pub fn resolve_symbol<'a>(&'a self, name: NamedSymbolId) -> Option<&'a str> {
         self.access
             .lock()
             .unwrap()
