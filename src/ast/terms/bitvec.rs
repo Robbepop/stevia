@@ -18,9 +18,6 @@ pub struct Bitvec(apint::ApInt);
 /// The result type for bitvector operations.
 pub type BitvecResult<T> = result::Result<T, BitvecError>;
 
-// /// The error type for bitvector operations.
-// pub type BitvecError = apint::Error;
-
 /// Error kinds of errors associated to bitvector operations.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum BitvecErrorKind {
@@ -81,7 +78,7 @@ impl fmt::Display for BitvecError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         use self::BitvecErrorKind::*;
         match &self.kind {
-			InternalError(internal_error) => write!(f, "{}", internal_error),
+			InternalError(internal_error) => internal_error.fmt(f),
             InvalidExtractLoHiBounds{lo, hi, source} => write!(
                 f,
                 "Encountered invalid lo (= {:?}) and hi (= {:?}) bounds for extract operation with source: {:?}",

@@ -129,9 +129,9 @@ impl fmt::Display for ExprError {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		use self::ExprErrorKind::*;
 		match &self.kind {
-			CastError(cast_error) => write!(f, "{}", cast_error),
-			TypeError(type_error) => write!(f, "{}", type_error),
-			BitvecError(bitvec_error) => write!(f, "{}", bitvec_error),
+			CastError(cast_error) => cast_error.fmt(f),
+			TypeError(type_error) => type_error.fmt(f),
+			BitvecError(bitvec_error) => bitvec_error.fmt(f),
 			TooFewChildren {
 				expected_min,
 				actual_num,
