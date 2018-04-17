@@ -127,7 +127,6 @@ impl<'it> Iterator for RecursiveChildrenIter<'it> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ast::factory::prelude::*;
 
     #[test]
     fn simple() {
