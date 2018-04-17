@@ -44,21 +44,21 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 	where
 		S: Into<String> + AsRef<str>,
 	{
-		expr::Symbol::new(name, Type::Bool).map(AnyExpr::from)
+		expr::Symbol::new_named(&self.ctx, Type::Bool, name).map(AnyExpr::from)
 	}
 
 	fn bitvec_var<S>(&self, ty: BitvecTy, name: S) -> ExprResult<AnyExpr>
 	where
 		S: Into<String> + AsRef<str>,
 	{
-		expr::Symbol::new(name, ty.ty()).map(AnyExpr::from)
+		expr::Symbol::new_named(&self.ctx, ty, name).map(AnyExpr::from)
 	}
 
 	fn array_var<S>(&self, ty: ArrayTy, name: S) -> ExprResult<AnyExpr>
 	where
 		S: Into<String> + AsRef<str>,
 	{
-		expr::Symbol::new(name, ty.ty()).map(AnyExpr::from)
+		expr::Symbol::new_named(&self.ctx, ty, name).map(AnyExpr::from)
 	}
 
 	fn bool_const(&self, val: bool) -> ExprResult<AnyExpr> {

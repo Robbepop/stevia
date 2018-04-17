@@ -98,22 +98,23 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
     /// - `(_ Bitvec m)`: A bitvector type with a bit-width of m.
     /// - `(Array i v)`: An array type wih index bit-width of i and value bit-width of v.
     fn write_var(&mut self, var: &expr::Symbol) {
-        let resolved_name: &str = &var.name;
+        // let resolved_name: &str = &var.name;
+        // let resolved_name: &str = self.ctx.assoc(var).fmt().unwrap();
         match var.ty() {
             Type::Bool => {
-                self.write(format!("({} Bool)", resolved_name))
+                self.write(format!("({} Bool)", self.ctx.assoc(var.id)))
             }
             Type::Bitvec(bv_ty) => {
                 self.write(
                     format!("({} (_ Bitvec {}))",
-                        resolved_name,
+                        self.ctx.assoc(var.id),
                         bv_ty.width().raw_width().to_usize())
                     )
             }
             Type::Array(array_ty) => {
                 self.write(
                     format!("({} (_ Bitvec {}) (_ Bitvec {}))",
-                        resolved_name,
+                        self.ctx.assoc(var.id),
                         array_ty.index_ty().width().raw_width().to_usize(),
                         array_ty.value_ty().width().raw_width().to_usize()
                     )
@@ -249,7 +250,7 @@ mod tests {
     {
         let expr = expr.into_any_expr_or_error().unwrap();
         let mut sink = String::new();
-        write_smtlib2(&mut sink, &expr);
+        write_smtlib2(ctx, &mut sink, &expr);
         let expected_str = expected_str.into();
         println!("\n{}", sink);
         assert_eq!(sink, expected_str);

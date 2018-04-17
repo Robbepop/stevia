@@ -1,161 +1,221 @@
 use ast::prelude::*;
 
-use string_interner;
-use string_interner::{StringInterner};
-use vec_map::{VecMap};
+use std::fmt;
 
-use std::ops::Deref;
-use std::marker::PhantomData;
-use std::sync::Mutex;
-
-pub mod prelude {
-    pub use super::{
-        SymbolName,
-        Symbol
-    };
+/// Symbol ID (identificator).
+///
+/// A symbol ID either represents a named or generated symbol.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum SymbolId {
+    /// A named symbol ID.
+    Named(NamedSymbolId),
+    /// A generated symbol ID.
+    Generated(GeneratedSymbolId),
 }
 
-lazy_static! {
-    /// The `StringInterner` specialized for interning symbol identifiers.
-    static ref SYMBOL_INTERNER: SymbolInterner = SymbolInterner::default();
-    /// The `VecMap` that maps from `SymbolName`s to actual values if existant.
-    static ref TYPE_MAP: TypeMap = TypeMap::default();
+/// Identificator of named symbol expressions.
+///
+/// Named symbol IDs can be used in combination with their associated contexts
+/// to resolve the name of the associated symbol.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct NamedSymbolId(usize);
+
+impl NamedSymbolId {
+    /// Returns the raw representation of `self`.
+    pub fn raw_repr(self) -> usize {
+        self.0
+    }
 }
 
-#[derive(Debug)]
-struct TypeMap {
-    access: Mutex<VecMap<Type>>
+impl From<usize> for NamedSymbolId {
+    fn from(raw_id: usize) -> Self {
+        NamedSymbolId(raw_id)
+    }
 }
 
-impl Default for TypeMap {
-    /// Returns an empty `TypeMap`.
-    fn default() -> Self {
-        TypeMap {
-            access: Mutex::new(
-                VecMap::new()
-            )
+impl From<NamedSymbolId> for usize {
+    fn from(id: NamedSymbolId) -> Self {
+        id.raw_repr()
+    }
+}
+
+/// Identificator of generated symbol expressions.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct GeneratedSymbolId(usize);
+
+impl GeneratedSymbolId {
+    /// Returns the raw representation of `self`.
+    pub fn raw_repr(self) -> usize {
+        self.0
+    }
+}
+
+impl From<usize> for GeneratedSymbolId {
+    fn from(raw_id: usize) -> Self {
+        GeneratedSymbolId(raw_id)
+    }
+}
+
+impl From<NamedSymbolId> for SymbolId {
+    fn from(id: NamedSymbolId) -> Self {
+        SymbolId::Named(id)
+    }
+}
+
+impl From<GeneratedSymbolId> for SymbolId {
+    fn from(id: GeneratedSymbolId) -> Self {
+        SymbolId::Generated(id)
+    }
+}
+
+impl<'ctx> fmt::Display for ContextAnd<'ctx, SymbolId> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        match self.entity {
+            SymbolId::Named(named) => self.ctx.assoc(named).fmt(f),
+            SymbolId::Generated(gen) => self.ctx.assoc(gen).fmt(f),
         }
     }
 }
 
-impl TypeMap {
-    /// Checks if for the given name the given type is already stored in the
-    /// type map or otherwise inserts the given type into it.
-    /// 
-    /// This is used to verify that symbols with the same identifier are
-    /// associated to the same underlying type.
-    fn check_or_intern(&self, name: SymbolName, ty: Type) -> ExprResult<()> {
-        use string_interner::Symbol;
-        use vec_map::Entry::{Vacant, Occupied};
-        let mut locked_map = TYPE_MAP.access.lock().unwrap();
-        match locked_map.entry(name.to_usize()) {
-            Vacant(slot) => {
-                slot.insert(ty);
-            }
-            Occupied(value) => {
-                expect_matching_symbol_type(*value.get(), ty, name)?;
-            }
-        };
-        Ok(())
+impl<'ctx> fmt::Display for ContextAnd<'ctx, NamedSymbolId> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        self.ctx
+            .interner
+            .resolve_symbol(self.entity)
+            .unwrap()
+            .fmt(f)
     }
 }
 
-/// A `SymbolInterner` is a lazy-static optimized `StringInterner` for `SymbolName`
-/// symbols used exclusively by `Symbol` expressions.
-/// 
-/// It requires mutable static access thus it is wrapped in an `UnsafeCell`.
-#[derive(Debug)]
-struct SymbolInterner {
-    access: Mutex<StringInterner<SymbolName>>
-}
-
-unsafe impl Sync for SymbolInterner {}
-
-impl SymbolInterner {
-    fn get_or_intern<S>(&self, name: S) -> SymbolName
-        where S: Into<String> + AsRef<str>
-    {
-        self.access.lock().unwrap().get_or_intern(name)
-    }
-
-    fn resolve_symbol(&self, name: SymbolName) -> &'static str {
-        let lock_guard = SYMBOL_INTERNER.access.lock().unwrap();
-        let resolved = unsafe{ lock_guard.resolve_unchecked(name) };
-        unsafe{ &* (resolved as *const str) }
+impl<'ctx> fmt::Display for ContextAnd<'ctx, GeneratedSymbolId> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        write!(f, "<gensym #{}>", self.entity.raw_repr())
     }
 }
 
-impl Default for SymbolInterner {
-    /// Returns an empty `SymbolInterner`.
-    fn default() -> Self {
-        SymbolInterner {
-            access: Mutex::new(
-                StringInterner::with_hasher(Default::default()))
-        }
-    }
-}
-
-/// Represents an identifier stored in a `StringInterner`
-/// for efficient storage and access.
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Ord, Eq, Hash)]
-pub struct SymbolName{
-    val: usize,
-    not_send_sync: PhantomData<*const ()>
-}
-
-impl string_interner::Symbol for SymbolName {
-    /// Returns a `SymbolName` from the given `usize`.
-    #[inline]
-    fn from_usize(val: usize) -> SymbolName {
-        SymbolName{
-            val,
-            not_send_sync: PhantomData
-        }
-    }
-
-    /// Converts this `SymbolName` to its associated `usize`.
-    #[inline]
-    fn to_usize(self) -> usize {
-        self.val
-    }
-}
-
-impl Deref for SymbolName {
-    type Target = str;
-
-    /// Dereferences this `SymbolName` to its associated `str`.
-    /// 
-    /// This is possible by having a dedicated `StringInterner` only for interning
-    /// symbol names that is static for this library on execution.
-    fn deref(&self) -> &Self::Target {
-        SYMBOL_INTERNER.resolve_symbol(*self)
-    }
-}
-
-/// The `Symbol` represents named variables such as "x" and "foo" in an 
-/// SMT expression.
-/// 
-/// For this it stores its name efficiently via string interning.
-/// It also has an associated type which it must not change during its lifetime.
+/// Symbol expression.
+///
+/// A symbol is either named or generated by the SMT solver.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Symbol {
-    pub name: SymbolName,
-    pub ty: Type
+    /// The symbol's identificator.
+    pub id: SymbolId,
+    /// The symbol's cached type.
+    ///
+    /// This exists to avoid calls into the context wide type table.
+    pub ty: Type,
 }
 
 impl Symbol {
-    /// Returns a new `Symbol` for the given name and type.
-    /// 
-    /// # Errors
-    /// 
-    /// - If the given type does not match the type cached in the
-    ///   type context for symbols.
-    pub fn new<S>(identifier: S, ty: Type) -> ExprResult<Symbol>
-        where S: Into<String> + AsRef<str>
+    /// Creates a new symbol expression for the given symbol ID.
+    pub fn new<T, I>(ty: T, id: I) -> Self
+    where
+        T: Into<Type>,
+        I: Into<SymbolId>,
     {
-        let name = SYMBOL_INTERNER.get_or_intern(identifier);
-        TYPE_MAP.check_or_intern(name, ty)?;
-        Ok(Symbol{ty, name})
+        Symbol {
+            ty: ty.into(),
+            id: id.into(),
+        }
+    }
+
+    /// Returns a new named symbol expression for the given name.
+    ///
+    /// # Errors
+    ///
+    /// If there exists already a symbol with the same name but a different type.
+    pub fn new_named<T, S>(ctx: &Context, ty: T, name: S) -> ExprResult<Self>
+    where
+        T: Into<Type>,
+        S: AsRef<str> + Into<String>,
+    {
+        let ty = ty.into();
+        let named_id = ctx.interner.intern_or_get(name);
+        let symbol = Symbol::new(ty, named_id);
+        if let Some(assoc_ty) = ctx.symbol_types.insert_or_get(named_id, ty) {
+            // The same name was already interned.
+            // We need to check for type collissions.
+            if assoc_ty != ty {
+                return Err(ExprError::unmatching_symbol_types(assoc_ty, ty, named_id));
+            }
+        }
+        Ok(symbol)
+    }
+
+    /// Returns a new generated symbol expression.
+    pub fn new_unnamed<T, S>(ctx: &Context, ty: T) -> Self
+    where
+        T: Into<Type>,
+    {
+        Symbol::new(ty, ctx.symbol_id_gen.gen_id())
+    }
+}
+
+impl<'ctx> ContextAnd<'ctx, Symbol> {
+    /// Resolves the name of the associated named symbol.
+    ///
+    /// Returns `None` for generated symbols.
+    pub fn resolve_name(&self) -> Option<&str> {
+        if let SymbolId::Named(named) = self.entity.id {
+            return match self.ctx.interner.resolve_symbol(named) {
+                None => {
+                    error!(
+                        target: "symbol_resolve_name",
+                        "Encountered missing name in context for named symbol: {:?}",
+                        self.entity
+                    );
+                    unreachable!(indoc!(
+                        "\
+                        Encountered missing name in context for a named symbol:
+
+                         - This is an internal solver error and may be caused by \
+                           using an incorrect context instance in this place.
+
+                         - Look into the error-logs to find out more information \
+                           under 'symbol_resolve_name'.
+                        "
+                    ))
+                }
+                resolved => resolved,
+            };
+        }
+        None
+    }
+
+    /// Resolves the global type of the associated symbol.
+    ///
+    /// For generated symbols the global and local type is always the same.
+    pub fn resolve_type(&self) -> Type {
+        if let SymbolId::Named(named) = self.entity.id {
+            return match self.ctx.symbol_types.get(named) {
+                None => {
+                    error!(
+                        target: "symbol_resolve_type",
+                        "Encountered missing type in context for named symbol: {:?}",
+                        self.entity
+                    );
+                    unreachable!(indoc!(
+                        "\
+                        Encountered missing type in context for a named symbol:
+
+                         - This is an internal solver error and may be caused by \
+                           using an incorrect context instance in this place.
+
+                         - Look into the error-logs to find out more information \
+                           under 'symbol_resolve_type'.
+                        "
+                    ))
+                }
+                Some(resolved) => resolved,
+            };
+        }
+        self.entity.ty
+    }
+}
+
+impl<'ctx> fmt::Display for ContextAnd<'ctx, Symbol> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
+        self.ctx.assoc(self.entity.id).fmt(f)
     }
 }
 

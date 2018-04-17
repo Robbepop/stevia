@@ -25,7 +25,7 @@ fn normalization_cmp(lhs: &AnyExpr, rhs: &AnyExpr) -> Ordering {
     match (lhs, rhs) {
         // Sort symbols by their name identifier
         (&Symbol(ref lhs), &Symbol(ref rhs)) => {
-            lhs.name.cmp(&rhs.name)
+            lhs.id.cmp(&rhs.id)
         }
 
         // Sort bool constants by bool comparison

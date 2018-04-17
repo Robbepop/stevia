@@ -39,7 +39,7 @@ pub enum ExprErrorKind {
 		/// The to-be-associated type of the symbol.
 		current_ty: Type,
 		/// The symbol of the type mismatch.
-		symbol: SymbolName,
+		symbol: NamedSymbolId,
 	},
 }
 
@@ -108,11 +108,10 @@ impl ExprError {
 	}
 
 	/// Returns an `ExprError` that indicates that two mismatching types were to be associated to the same symbol.
-	pub fn unmatching_symbol_types<T1, T2, S>(assoc_ty: T1, current_ty: T2, symbol: S) -> Self
+	pub fn unmatching_symbol_types<T1, T2>(assoc_ty: T1, current_ty: T2, symbol_id: NamedSymbolId) -> Self
 	where
 		T1: Into<Type>,
-		T2: Into<Type>,
-		S: Into<SymbolName>,
+		T2: Into<Type>
 	{
 		let assoc_ty = assoc_ty.into();
 		let current_ty = current_ty.into();
@@ -120,7 +119,7 @@ impl ExprError {
 		ExprError::new(ExprErrorKind::UnmatchingSymbolTypes {
 			assoc_ty,
 			current_ty,
-			symbol: symbol.into(),
+			symbol: symbol_id,
 		})
 	}
 }
@@ -168,15 +167,14 @@ impl error::Error for ExprError {
 	}
 }
 
-pub fn expect_matching_symbol_type<T1, T2, S>(
+pub fn expect_matching_symbol_type<T1, T2>(
 	assoc_ty: T1,
 	current_ty: T2,
-	symbol: S,
+	symbol_id: NamedSymbolId,
 ) -> ExprResult<()>
 where
 	T1: Into<Type>,
-	T2: Into<Type>,
-	S: Into<SymbolName>,
+	T2: Into<Type>
 {
 	let assoc_ty = assoc_ty.into();
 	let current_ty = current_ty.into();
@@ -184,7 +182,7 @@ where
 		return Err(ExprError::unmatching_symbol_types(
 			assoc_ty,
 			current_ty,
-			symbol.into(),
+			symbol_id,
 		));
 	}
 	Ok(())
