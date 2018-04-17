@@ -77,6 +77,26 @@ impl Transformer for InvolutionSimplifier {
         if let box AnyExpr::BitNot(bitnotnot) = bitnot.child {
             return TransformOutcome::transformed(*bitnotnot.child)
         }
+        // For not-and we can apply De Morgan's laws: `(bvnot (bvand a b))` -> `(bvor (bvnot a) (bvnot b))`
+        if let box AnyExpr::BitAnd(bitand) = bitnot.child {
+            return TransformOutcome::transformed(
+                expr::BitOr::nary(
+                    bitand.into_children()
+                          .map(|c| expr::BitNot::new(c).unwrap())
+                          .map(AnyExpr::from))
+                          .unwrap()
+            )
+        }
+        // For not-and we can apply De Morgan's laws: `(bvnot (bvor a b))` -> `(bvand (bvnot a) (bvnot b))`
+        if let box AnyExpr::BitOr(bitor) = bitnot.child {
+            return TransformOutcome::transformed(
+                expr::BitAnd::nary(
+                    bitor.into_children()
+                         .map(|c| expr::BitNot::new(c).unwrap())
+                         .map(AnyExpr::from))
+                         .unwrap()
+            )
+        }
         TransformOutcome::identity(bitnot)
     }
 }
@@ -115,111 +135,165 @@ mod tests {
         PlainExprTreeBuilder::default()
     }
 
-    #[test]
-    fn notnot() {
-        let b = new_builder();
-        assert_simplified(
-            b.not(b.not(b.bool_var("a"))),
-            b.bool_var("a")
-        )
-    }
+    mod not {
+        use super::*;
 
-    #[test]
-    fn de_morgan_and() {
-        let b = new_builder();
-        assert_simplified(
-            b.not(
-                b.and(
-                    b.bool_var("a"),
-                    b.bool_var("b")
-                )
-            ),
-            b.or(
-                b.not(
-                    b.bool_var("a")
-                ),
-                b.not(
-                    b.bool_var("b")
-                )
+        #[test]
+        fn double_not() {
+            let b = new_builder();
+            assert_simplified(
+                b.not(b.not(b.bool_var("a"))),
+                b.bool_var("a")
             )
-        )
-    }
+        }
 
-    #[test]
-    fn de_morgan_or() {
-        let b = new_builder();
-        assert_simplified(
-            b.not(
+        #[test]
+        fn de_morgan_and() {
+            let b = new_builder();
+            assert_simplified(
+                b.not(
+                    b.and(
+                        b.bool_var("a"),
+                        b.bool_var("b")
+                    )
+                ),
                 b.or(
-                    b.bool_var("a"),
-                    b.bool_var("b")
-                )
-            ),
-            b.and(
-                b.not(
-                    b.bool_var("a")
-                ),
-                b.not(
-                    b.bool_var("b")
+                    b.not(
+                        b.bool_var("a")
+                    ),
+                    b.not(
+                        b.bool_var("b")
+                    )
                 )
             )
-        )
+        }
+
+        #[test]
+        fn de_morgan_or() {
+            let b = new_builder();
+            assert_simplified(
+                b.not(
+                    b.or(
+                        b.bool_var("a"),
+                        b.bool_var("b")
+                    )
+                ),
+                b.and(
+                    b.not(
+                        b.bool_var("a")
+                    ),
+                    b.not(
+                        b.bool_var("b")
+                    )
+                )
+            )
+        }
     }
 
-    #[test]
-    fn negneg() {
-        let b = new_builder();
-        assert_simplified(
-            b.bitvec_neg(b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x"))),
-            b.bitvec_var(BitvecTy::w32(), "x")
-        )
-    }
+    mod neg {
+        use super::*;
 
-    #[test]
-    fn neg_add() {
-        let b = new_builder();
-        assert_simplified(
-            b.bitvec_neg(
+        #[test]
+        fn double_neg() {
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_neg(b.bitvec_neg(b.bitvec_var(BitvecTy::w32(), "x"))),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
+        }
+
+        #[test]
+        fn neg_add() {
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_neg(
+                    b.bitvec_add(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                ),
                 b.bitvec_add(
-                    b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_var(BitvecTy::w32(), "y")
-                )
-            ),
-            b.bitvec_add(
-                b.bitvec_neg(
-                    b.bitvec_var(BitvecTy::w32(), "x")
-                ),
-                b.bitvec_neg(
-                    b.bitvec_var(BitvecTy::w32(), "y")
+                    b.bitvec_neg(
+                        b.bitvec_var(BitvecTy::w32(), "x")
+                    ),
+                    b.bitvec_neg(
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
                 )
             )
-        )
-    }
+        }
 
-    #[test]
-    fn neg_mul() {
-        let b = new_builder();
-        assert_simplified(
-            b.bitvec_neg(
-                b.bitvec_mul(
+        #[test]
+        fn neg_mul() {
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_neg(
+                    b.bitvec_mul(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                ),
+                b.bitvec_mul_n(vec![
                     b.bitvec_var(BitvecTy::w32(), "x"),
-                    b.bitvec_var(BitvecTy::w32(), "y")
-                )
-            ),
-            b.bitvec_mul_n(vec![
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y"),
-                b.bitvec_const(BitvecTy::w32(), -1_i32)
-            ])
-        )
+                    b.bitvec_var(BitvecTy::w32(), "y"),
+                    b.bitvec_const(BitvecTy::w32(), -1_i32)
+                ])
+            )
+        }
     }
 
-    #[test]
-    fn bitnotnot() {
-        let b = new_builder();
-        assert_simplified(
-            b.bitvec_not(b.bitvec_not(b.bitvec_var(BitvecTy::w32(), "x"))),
-            b.bitvec_var(BitvecTy::w32(), "x")
-        )
+    mod bitnot {
+        use super::*;
+
+        #[test]
+        fn double_bitnot() {
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_not(b.bitvec_not(b.bitvec_var(BitvecTy::w32(), "x"))),
+                b.bitvec_var(BitvecTy::w32(), "x")
+            )
+        }
+
+        #[test]
+        fn de_morgan_bitand() {
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_not(
+                    b.bitvec_and(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                ),
+                b.bitvec_or(
+                    b.bitvec_not(
+                        b.bitvec_var(BitvecTy::w32(), "x")
+                    ),
+                    b.bitvec_not(
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                )
+            )
+        }
+
+        #[test]
+        fn de_morgan_bitor() {
+            let b = new_builder();
+            assert_simplified(
+                b.bitvec_not(
+                    b.bitvec_or(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                ),
+                b.bitvec_and(
+                    b.bitvec_not(
+                        b.bitvec_var(BitvecTy::w32(), "x")
+                    ),
+                    b.bitvec_not(
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    )
+                )
+            )
+        }
     }
 }
