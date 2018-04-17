@@ -37,6 +37,9 @@ pub struct ContextAnd<'ctx, T>{
     pub ctx: &'ctx Context
 }
 
+/// Atomically ref-counted context.
+pub type ArcContext = Arc<Context>;
+
 impl Context {
     /// Returns a new `Context` stored within an `Arc` with default constructed internals.
     ///
