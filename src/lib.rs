@@ -19,7 +19,7 @@ extern crate lazy_static;
 #[macro_use]
 extern crate log;
 
-#[macro_use] #[cfg(test)]
+#[macro_use]
 extern crate indoc;
 
 #[macro_use]
