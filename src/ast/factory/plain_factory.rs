@@ -1,15 +1,39 @@
 use ast::*;
 
+/// An expression tree builder for plain expression tree construction.
 pub type PlainExprTreeBuilder = ExprTreeBuilder<PlainExprTreeFactory>;
 
 impl Default for PlainExprTreeBuilder {
+	/// Creates a new `PlainExprTreeBuilder` and its associated context.
+	/// 
+	/// Use `PlainExprTreeFactory::new` to construct a `PlainExprTreeBuilder`
+	/// for an already constructed context.
 	fn default() -> Self {
-		ExprTreeBuilder::new(PlainExprTreeFactory)
+		ExprTreeBuilder::new(PlainExprTreeFactory::new(Context::arced()))
 	}
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct PlainExprTreeFactory;
+impl PlainExprTreeBuilder {
+	/// Creates a new `PlainExprTreeFactory` with the given context.
+	pub fn from_context(ctx: ArcContext) -> Self {
+		ExprTreeBuilder::new(PlainExprTreeFactory::new(ctx))
+	}
+}
+
+/// An expression tree factory that simply constructs expression trees
+/// and associates them to a context.
+#[derive(Debug, Clone)]
+pub struct PlainExprTreeFactory {
+	/// The context to associate the constructed expressions.
+	ctx: ArcContext
+}
+
+impl PlainExprTreeFactory {
+	/// Creates a new `PlainExprTreeFactory` with the given context.
+	pub fn new(ctx: ArcContext) -> Self {
+		PlainExprTreeFactory{ctx}
+	}
+}
 
 impl ExprTreeFactory for PlainExprTreeFactory {
 	fn cond(&self, cond: AnyExpr, then_case: AnyExpr, else_case: AnyExpr) -> ExprResult<AnyExpr> {
