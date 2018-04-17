@@ -55,13 +55,13 @@ impl Context {
     ///
     /// # How to use `Context` instances
     ///
-    /// - Use `Arc<Context>` if you need to own the `Context` instance
+    /// - Use `ArcContext` if you need to own the `Context` instance
     ///   because of a non-temporary lifetime or for mutability.
     /// - Use `&'a Context` if you only need read-only access to the `Context`
     ///   and if the lifetime `'a` is small.
-    /// - Use `&'a mut Context` if you need mutable access to the `Context`
-    ///   and if the lifetime `'a` is small.
-    pub fn arced() -> Arc<Self> {
+    /// - There is no need to use `&'a mut Context` since all accesses
+    ///   are thread safe and thus only require a shared borrow.
+    pub fn arced() -> ArcContext {
         Arc::new(Context {
             interner: SymbolInterner::default(),
             symbol_types: TypeMap::default(),
