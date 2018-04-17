@@ -2,9 +2,7 @@
 
 ## Short term
 
-- Implement De'morgan simplifications for bitwise bitvector operations. (InvolutionSimplifier)
 - Implement an expression tree consistency checker for the ast module.
-- Add `Context` to replace global static `StringInterner` (`SymbolInterner`) and `HashMap` (`TypeMap`) for symbol types.
 - Clean up public visibility and prelude module usage within Stevia. (FPI: fewer-preludes-initiative)
 
 ## Long term
