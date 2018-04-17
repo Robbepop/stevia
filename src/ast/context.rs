@@ -16,6 +16,13 @@ use std::sync::{
     Mutex
 };
 
+mod private {
+    /// A simple marker to prevent construction of `Context` instances
+    /// from outside this module without its named constructor `Context::arced`.
+    #[derive(Debug, Copy, Clone)]
+    pub struct PrivateMarker;
+}
+
 /// Holds utility and infrastructure data structures that are important
 /// for many different parts of the program.
 #[derive(Debug)]
@@ -25,7 +32,10 @@ pub struct Context {
     /// Access to the type map.
     pub symbol_types: TypeMap,
     /// Access to the symbol generator.
-    pub symbol_id_gen: SymbolIdGenerator
+    pub symbol_id_gen: SymbolIdGenerator,
+    /// A marker to prevent constructing context instances without
+    /// its named constructor `Context::arced`.
+    marker: private::PrivateMarker
 }
 
 /// An generic entity and its associated context.
@@ -55,7 +65,8 @@ impl Context {
         Arc::new(Context {
             interner: SymbolInterner::default(),
             symbol_types: TypeMap::default(),
-            symbol_id_gen: SymbolIdGenerator::default()
+            symbol_id_gen: SymbolIdGenerator::default(),
+            marker: private::PrivateMarker
         })
     }
 
