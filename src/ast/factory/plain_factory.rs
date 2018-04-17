@@ -1,9 +1,5 @@
 use ast::*;
 
-pub mod prelude {
-	pub use super::{PlainExprTreeBuilder, PlainExprTreeFactory};
-}
-
 pub type PlainExprTreeBuilder = ExprTreeBuilder<PlainExprTreeFactory>;
 
 impl Default for PlainExprTreeBuilder {

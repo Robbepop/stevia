@@ -1,13 +1,5 @@
 use ast::*;
 
-pub mod prelude {
-    pub use super::{
-        IntoAnyExprOrError,
-        ExprTreeFactory,
-        ExprTreeBuilder
-    };
-}
-
 /// Utility trait to be implemented by `AnyExpr` and `ExprResult<AnyExpr>`
 /// in order to allow for functions generically taking both types as input.
 /// 
