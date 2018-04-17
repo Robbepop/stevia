@@ -3,15 +3,15 @@ use ast::prelude::*;
 use std::fmt;
 
 /// Writes the given expression tree into the given writer in the SMTLib2 syntax format.
-pub fn write_smtlib2<'e, E>(out: &mut fmt::Write, expr: E)
+pub fn write_smtlib2<'e, E>(ctx: &Context, out: &mut fmt::Write, expr: E)
     where E: Into<&'e AnyExpr>
 {
     let expr = expr.into();
-    SMTLibWriter::new(out).write_expr(expr)
+    SMTLibWriter::new(ctx, out).write_expr(expr)
 }
 
 /// Visitor for expression trees that prints the expression tree in SMTLib 2.5 format.
-struct SMTLibWriter<'out> {
+struct SMTLibWriter<'ctx, 'out> {
     /// Current level of indentation.
     indent: usize,
     /// The maximum recursive arity before writing expressions inline.
@@ -19,17 +19,20 @@ struct SMTLibWriter<'out> {
     /// The spaces written per indentation.
     spaces_per_indentation: usize,
     /// The stream to print the given expression tree into.
-    out : &'out mut fmt::Write
+    out: &'out mut fmt::Write,
+    /// The associated context for symbol name resolution
+    ctx: &'ctx Context
 }
 
-impl<'out> SMTLibWriter<'out> {
+impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
     /// Create a new `SMTLibWriter` for the given buffer.
-    fn new(out: &mut fmt::Write) -> SMTLibWriter {
-        SMTLibWriter{
+    fn new(ctx: &'ctx Context, out: &'out mut fmt::Write) -> Self {
+        Self{
             indent: 0,
             max_inline_recursive_arity: 4,
             spaces_per_indentation: 2,
-            out
+            out,
+            ctx
         }
     }
 
@@ -234,11 +237,13 @@ impl ExprKind {
 mod tests {
     use super::*;
 
-    fn new_builder() -> PlainExprTreeBuilder {
-        PlainExprTreeBuilder::default()
+    fn new_context_and_builder() -> (ArcContext, PlainExprTreeBuilder) {
+        let ctx = Context::arced();
+        let builder = PlainExprTreeBuilder::from_context(ctx.clone());
+        (ctx, builder)
     }
 
-    fn assert_written_eq_string<E, S>(expr: E, expected_str: S)
+    fn assert_written_eq_string<E, S>(ctx: &Context, expr: E, expected_str: S)
         where E: IntoAnyExprOrError,
               S: Into<String>
     {
@@ -252,12 +257,14 @@ mod tests {
 
     #[test]
     fn write_bool_const() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.bool_const(true),
             "true"
         );
         assert_written_eq_string(
+            &ctx,
             b.bool_const(false),
             "false"
         );
@@ -265,16 +272,19 @@ mod tests {
 
     #[test]
     fn write_bitvec_const() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.bitvec_const(BitvecTy::w8(), 0_u8),
             "0"
         );
         assert_written_eq_string(
+            &ctx,
             b.bitvec_const(BitvecTy::w32(), 42_u32),
             "42"
         );
         assert_written_eq_string(
+            &ctx,
             b.bitvec_const(BitvecTy::w64(), 1337_u64),
             "1337"
         );
@@ -282,18 +292,20 @@ mod tests {
 
     #[test]
     fn write_bool_var() {
-        let b = new_builder();
-        assert_written_eq_string(b.bool_var("a"), "(a Bool)");
+        let (ctx, b) = new_context_and_builder();
+        assert_written_eq_string(&ctx, b.bool_var("a"), "(a Bool)");
     }
 
     #[test]
     fn write_bitvec_var() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.bitvec_var(BitvecTy::w32(), "x"),
             "(x (_ Bitvec 32))"
         );
         assert_written_eq_string(
+            &ctx,
             b.bitvec_var(BitvecTy::w64(), "x64"),
             "(x64 (_ Bitvec 64))"
         );
@@ -301,12 +313,14 @@ mod tests {
 
     #[test]
     fn write_array_var() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "array_32_8"),
             "(array_32_8 (_ Bitvec 32) (_ Bitvec 8))"
         );
         assert_written_eq_string(
+            &ctx,
             b.array_var(ArrayTy::new(BitvecTy::w64(), BitvecTy::w64()), "array_64_64"),
             "(array_64_64 (_ Bitvec 64) (_ Bitvec 64))"
         );
@@ -314,8 +328,9 @@ mod tests {
 
     #[test]
     fn simple_inline_and() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.and_n(vec![
                 b.bool_var("a"),
                 b.bool_var("b"),
@@ -327,8 +342,9 @@ mod tests {
 
     #[test]
     fn simple_block_and() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.and_n(vec![
                 b.bool_var("a"),
                 b.bool_var("b"),
@@ -348,8 +364,9 @@ mod tests {
 
     #[test]
     fn simple_inline_add() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.bitvec_add_n(vec![
                 b.bitvec_const(BitvecTy::w32(), 42_u32),
                 b.bitvec_var(BitvecTy::w32(), "x"),
@@ -361,8 +378,9 @@ mod tests {
 
     #[test]
     fn nested_nots() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.not(
                 b.not(
                     b.not(
@@ -376,8 +394,9 @@ mod tests {
 
     #[test]
     fn nested_adds() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.bitvec_add(
                 b.bitvec_add(
                     b.bitvec_var(BitvecTy::w32(), "x1"),
@@ -399,8 +418,9 @@ mod tests {
 
     #[test]
     fn complex() {
-        let b = new_builder();
+        let (ctx, b) = new_context_and_builder();
         assert_written_eq_string(
+            &ctx,
             b.and(
                 b.or_n(vec![
                     b.bool_var("a"),
