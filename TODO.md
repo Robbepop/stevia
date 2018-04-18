@@ -16,8 +16,10 @@
 	- [x] Simplifier
 	- [x] Simple Serializer
 	- [ ] SMTLib2 Parser
-	- [ ] Bit Blaster
-	- [ ] AIG & SAT Controller
+	- [ ] SMT -> AIG (or similar): Bit Blaster
+	- [ ] AIG Driver
+	- [ ] AIG -> CNF: Tseytin Transformation
+	- [ ] SAT Driver
 	- [ ] Abstraction Refinement of Arrays
 	- [ ] Linear Bitvector Solver
 
