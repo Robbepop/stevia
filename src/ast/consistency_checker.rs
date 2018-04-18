@@ -235,6 +235,17 @@ mod tests {
         use super::*;
 
         #[test]
+        fn ok() {
+            let (_, b) = new_context_and_builder();
+            let expr = b.cond(
+                b.bool_var("a"),
+                b.bool_var("b"),
+                b.bool_var("c")
+            ).unwrap();
+            assert!(assert_consistency_recursively(&expr).is_ok())
+        }
+
+        #[test]
         fn non_bool_cond() {
             let (_, b) = new_context_and_builder();
             // Create new correct conditional expression.
