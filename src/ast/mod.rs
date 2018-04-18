@@ -15,6 +15,7 @@ mod symbol;
 mod terms;
 mod ty;
 mod visitor;
+mod consistency_checker;
 
 #[macro_use]
 mod transformer;
