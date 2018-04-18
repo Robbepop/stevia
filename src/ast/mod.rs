@@ -3,7 +3,7 @@
 mod any_expr;
 mod arity;
 mod binexpr_children;
-mod bool_expr;
+mod traits;
 mod child_iters;
 mod context;
 mod error;
@@ -119,7 +119,7 @@ pub use self::{
         HasKind,
         HasPriority
     },
-    bool_expr::{
+    traits::{
         BoolExpr,
         WrapWithNot,
         UnaryExpr,
