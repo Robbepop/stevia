@@ -11,12 +11,12 @@ use ast::prelude::*;
 /// - Cast invariances are met for all casting expressions.
 ///
 /// This collects all found errors into a vector and returns it if non-empty.
-pub fn assert_consistency_recursively<'e, E>(expr: E) -> Result<(), Vec<ExprError>>
+pub fn assert_consistency_recursively<'ctx, 'e, E>(ctx: &'ctx Context, expr: E) -> Result<(), Vec<ExprError>>
 where
     E: Into<&'e AnyExpr>,
 {
     let expr = expr.into();
-    let mut traverser = RecursiveTraverseVisitor::new(ConsistencyChecker::default());
+    let mut traverser = RecursiveTraverseVisitor::new(ConsistencyChecker::new(ctx));
     traverser.traverse_visit(expr);
     let result = traverser.into_visitor();
     if result.found_errors.is_empty() {
@@ -28,16 +28,17 @@ where
 /// Checks the consistency of an expression tree.
 ///
 /// Stores all errors found for later introspection.
-struct ConsistencyChecker {
+struct ConsistencyChecker<'ctx> {
     /// All found errors are stored here.
     found_errors: Vec<ExprError>,
+    /// The associated context of this consistency checker.
+    ctx: &'ctx Context
 }
 
-impl Default for ConsistencyChecker {
-    fn default() -> Self {
-        ConsistencyChecker {
-            found_errors: vec![],
-        }
+impl<'ctx> ConsistencyChecker<'ctx> {
+    /// Creates a new consistency checker for the given context.
+    pub fn new(ctx: &'ctx Context) -> Self {
+        Self{ found_errors: vec![], ctx }
     }
 }
 
@@ -53,7 +54,7 @@ fn assert_cond_consistency(expr: &expr::IfThenElse) -> ExprResult<()> {
     Ok(())
 }
 
-impl ConsistencyChecker {
+impl<'ctx> ConsistencyChecker<'ctx> {
     /// Forwards the given expression to the given checker and adds a potential
     /// found error to the list of found errors.
     fn forward_assert_consistency<E, F>(&mut self, expr: &E, checker: F)
@@ -66,7 +67,7 @@ impl ConsistencyChecker {
     }
 }
 
-impl Visitor for ConsistencyChecker {
+impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     fn visit_any_expr(&mut self, expr: &AnyExpr, event: VisitEvent) {
         if event != VisitEvent::Leaving {
             return;
