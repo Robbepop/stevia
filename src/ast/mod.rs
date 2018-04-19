@@ -37,6 +37,9 @@ pub use self::{
         SymbolIdGenerator,
         TypeMap
     },
+    consistency_checker::{
+        assert_consistency_recursively
+    },
     error::{
         ExprError,
         ExprErrorKind,
