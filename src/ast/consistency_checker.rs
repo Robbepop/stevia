@@ -125,101 +125,105 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
         }
     }
 
-    fn visit_bool_expr(&mut self, expr: &AnyExpr, event: VisitEvent) {
+    fn visit_bool_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
         unreachable!()
     }
 
-    fn visit_bitvec_expr(&mut self, expr: &AnyExpr, event: VisitEvent) {
+    fn visit_bitvec_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
         unreachable!()
     }
 
-    fn visit_array_expr(&mut self, expr: &AnyExpr, event: VisitEvent) {
+    fn visit_array_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
         unreachable!()
     }
 
-    fn visit_cond(&mut self, cond: &expr::IfThenElse, event: VisitEvent) {
+    fn visit_cond(&mut self, cond: &expr::IfThenElse, _: VisitEvent) {
         self.forward_assert_consistency(cond, assert_cond_consistency)
     }
 
-    fn visit_var(&mut self, var: &expr::Symbol, event: VisitEvent) {}
+    fn visit_var(&mut self, var: &expr::Symbol, _: VisitEvent) {
+        if let Err(err) = assert_symbol_consistency(self.ctx, var) {
+            self.found_errors.push(err)
+        }
+    }
 
-    fn visit_bool_const(&mut self, bool_const: &expr::BoolConst, event: VisitEvent) {}
+    fn visit_bool_const(&mut self, _bool_const: &expr::BoolConst, _: VisitEvent) {}
 
-    fn visit_bool_equals(&mut self, _bool_equals: &expr::BoolEquals, event: VisitEvent) {}
+    fn visit_bool_equals(&mut self, _bool_equals: &expr::BoolEquals, _: VisitEvent) {}
 
-    fn visit_and(&mut self, _and: &expr::And, event: VisitEvent) {}
+    fn visit_and(&mut self, _and: &expr::And, _: VisitEvent) {}
 
-    fn visit_or(&mut self, _or: &expr::Or, event: VisitEvent) {}
+    fn visit_or(&mut self, _or: &expr::Or, _: VisitEvent) {}
 
-    fn visit_not(&mut self, _not: &expr::Not, event: VisitEvent) {}
+    fn visit_not(&mut self, _not: &expr::Not, _: VisitEvent) {}
 
-    fn visit_xor(&mut self, _xor: &expr::Xor, event: VisitEvent) {}
+    fn visit_xor(&mut self, _xor: &expr::Xor, _: VisitEvent) {}
 
-    fn visit_implies(&mut self, _implies: &expr::Implies, event: VisitEvent) {}
+    fn visit_implies(&mut self, _implies: &expr::Implies, _: VisitEvent) {}
 
-    fn visit_array_read(&mut self, _array_read: &expr::ArrayRead, event: VisitEvent) {}
+    fn visit_array_read(&mut self, _array_read: &expr::ArrayRead, _: VisitEvent) {}
 
-    fn visit_array_write(&mut self, _array_write: &expr::ArrayWrite, event: VisitEvent) {}
+    fn visit_array_write(&mut self, _array_write: &expr::ArrayWrite, _: VisitEvent) {}
 
-    fn visit_bitvec_const(&mut self, bitvec_const: &expr::BitvecConst, event: VisitEvent) {}
+    fn visit_bitvec_const(&mut self, _bitvec_const: &expr::BitvecConst, _: VisitEvent) {}
 
-    fn visit_add(&mut self, _add: &expr::Add, event: VisitEvent) {}
+    fn visit_add(&mut self, _add: &expr::Add, _: VisitEvent) {}
 
-    fn visit_mul(&mut self, _mul: &expr::Mul, event: VisitEvent) {}
+    fn visit_mul(&mut self, _mul: &expr::Mul, _: VisitEvent) {}
 
-    fn visit_neg(&mut self, _neg: &expr::Neg, event: VisitEvent) {}
+    fn visit_neg(&mut self, _neg: &expr::Neg, _: VisitEvent) {}
 
-    fn visit_sdiv(&mut self, _sdiv: &expr::SignedDiv, event: VisitEvent) {}
+    fn visit_sdiv(&mut self, _sdiv: &expr::SignedDiv, _: VisitEvent) {}
 
-    fn visit_smod(&mut self, _smod: &expr::SignedModulo, event: VisitEvent) {}
+    fn visit_smod(&mut self, _smod: &expr::SignedModulo, _: VisitEvent) {}
 
-    fn visit_srem(&mut self, _srem: &expr::SignedRemainder, event: VisitEvent) {}
+    fn visit_srem(&mut self, _srem: &expr::SignedRemainder, _: VisitEvent) {}
 
-    fn visit_sub(&mut self, _sub: &expr::Sub, event: VisitEvent) {}
+    fn visit_sub(&mut self, _sub: &expr::Sub, _: VisitEvent) {}
 
-    fn visit_udiv(&mut self, _udiv: &expr::UnsignedDiv, event: VisitEvent) {}
+    fn visit_udiv(&mut self, _udiv: &expr::UnsignedDiv, _: VisitEvent) {}
 
-    fn visit_urem(&mut self, _urem: &expr::UnsignedRemainder, event: VisitEvent) {}
+    fn visit_urem(&mut self, _urem: &expr::UnsignedRemainder, _: VisitEvent) {}
 
-    fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, event: VisitEvent) {}
+    fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, _: VisitEvent) {}
 
-    fn visit_bitand(&mut self, _bitand: &expr::BitAnd, event: VisitEvent) {}
+    fn visit_bitand(&mut self, _bitand: &expr::BitAnd, _: VisitEvent) {}
 
-    fn visit_bitor(&mut self, _bitor: &expr::BitOr, event: VisitEvent) {}
+    fn visit_bitor(&mut self, _bitor: &expr::BitOr, _: VisitEvent) {}
 
-    fn visit_bitxor(&mut self, _bitxor: &expr::BitXor, event: VisitEvent) {}
+    fn visit_bitxor(&mut self, _bitxor: &expr::BitXor, _: VisitEvent) {}
 
-    fn visit_concat(&mut self, _concat: &expr::Concat, event: VisitEvent) {}
+    fn visit_concat(&mut self, _concat: &expr::Concat, _: VisitEvent) {}
 
-    fn visit_extract(&mut self, _extract: &expr::Extract, event: VisitEvent) {}
+    fn visit_extract(&mut self, _extract: &expr::Extract, _: VisitEvent) {}
 
-    fn visit_sext(&mut self, _sext: &expr::SignExtend, event: VisitEvent) {}
+    fn visit_sext(&mut self, _sext: &expr::SignExtend, _: VisitEvent) {}
 
-    fn visit_zext(&mut self, _zext: &expr::ZeroExtend, event: VisitEvent) {}
+    fn visit_zext(&mut self, _zext: &expr::ZeroExtend, _: VisitEvent) {}
 
-    fn visit_bitvec_equals(&mut self, _bitvec_equals: &expr::BitvecEquals, event: VisitEvent) {}
+    fn visit_bitvec_equals(&mut self, _bitvec_equals: &expr::BitvecEquals, _: VisitEvent) {}
 
-    fn visit_sge(&mut self, _sge: &expr::SignedGreaterEquals, event: VisitEvent) {}
+    fn visit_sge(&mut self, _sge: &expr::SignedGreaterEquals, _: VisitEvent) {}
 
-    fn visit_sgt(&mut self, _sgt: &expr::SignedGreaterThan, event: VisitEvent) {}
+    fn visit_sgt(&mut self, _sgt: &expr::SignedGreaterThan, _: VisitEvent) {}
 
-    fn visit_sle(&mut self, _sle: &expr::SignedLessEquals, event: VisitEvent) {}
+    fn visit_sle(&mut self, _sle: &expr::SignedLessEquals, _: VisitEvent) {}
 
-    fn visit_slt(&mut self, _slt: &expr::SignedLessThan, event: VisitEvent) {}
+    fn visit_slt(&mut self, _slt: &expr::SignedLessThan, _: VisitEvent) {}
 
-    fn visit_uge(&mut self, _uge: &expr::UnsignedGreaterEquals, event: VisitEvent) {}
+    fn visit_uge(&mut self, _uge: &expr::UnsignedGreaterEquals, _: VisitEvent) {}
 
-    fn visit_ugt(&mut self, _ugt: &expr::UnsignedGreaterThan, event: VisitEvent) {}
+    fn visit_ugt(&mut self, _ugt: &expr::UnsignedGreaterThan, _: VisitEvent) {}
 
-    fn visit_ule(&mut self, _ule: &expr::UnsignedLessEquals, event: VisitEvent) {}
+    fn visit_ule(&mut self, _ule: &expr::UnsignedLessEquals, _: VisitEvent) {}
 
-    fn visit_ult(&mut self, _ult: &expr::UnsignedLessThan, event: VisitEvent) {}
+    fn visit_ult(&mut self, _ult: &expr::UnsignedLessThan, _: VisitEvent) {}
 
-    fn visit_ashr(&mut self, _ashr: &expr::ArithmeticShiftRight, event: VisitEvent) {}
+    fn visit_ashr(&mut self, _ashr: &expr::ArithmeticShiftRight, _: VisitEvent) {}
 
-    fn visit_lshr(&mut self, _lshr: &expr::LogicalShiftRight, event: VisitEvent) {}
+    fn visit_lshr(&mut self, _lshr: &expr::LogicalShiftRight, _: VisitEvent) {}
 
-    fn visit_shl(&mut self, _shl: &expr::ShiftLeft, event: VisitEvent) {}
+    fn visit_shl(&mut self, _shl: &expr::ShiftLeft, _: VisitEvent) {}
 }
 
 #[cfg(test)]
