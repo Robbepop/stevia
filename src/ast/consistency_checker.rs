@@ -237,18 +237,18 @@ mod tests {
 
         #[test]
         fn ok() {
-            let (_, b) = new_context_and_builder();
+            let (ctx, b) = new_context_and_builder();
             let expr = b.cond(
                 b.bool_var("a"),
                 b.bool_var("b"),
                 b.bool_var("c")
             ).unwrap();
-            assert!(assert_consistency_recursively(&expr).is_ok())
+            assert!(assert_consistency_recursively(&ctx, &expr).is_ok())
         }
 
         #[test]
         fn non_bool_cond() {
-            let (_, b) = new_context_and_builder();
+            let (ctx, b) = new_context_and_builder();
             // Create new correct conditional expression.
             let mut expr = expr::IfThenElse::new(
                 b.bool_var("a").unwrap(),
@@ -257,12 +257,12 @@ mod tests {
             ).unwrap();
             // Break the condition type invariant.
             expr.children.cond = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert!(assert_consistency_recursively(&AnyExpr::from(expr)).is_err())
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err())
         }
 
         #[test]
         fn non_common_ty_then_else() {
-            let (_, b) = new_context_and_builder();
+            let (ctx, b) = new_context_and_builder();
             // Create new correct conditional expression.
             let expr = expr::IfThenElse::new(
                 b.bool_var("a").unwrap(),
@@ -273,14 +273,15 @@ mod tests {
                 let mut expr = expr.clone();
                 // Break the then-case type invariant.
                 expr.children.then_case = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-                assert!(assert_consistency_recursively(&AnyExpr::from(expr)).is_err());
+                assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
             }
             {
                 let mut expr = expr.clone();
                 // Break the then-case type invariant.
                 expr.children.else_case = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-                assert!(assert_consistency_recursively(&AnyExpr::from(expr)).is_err());
+                assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
             }
         }
     }
+
 }
