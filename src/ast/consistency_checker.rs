@@ -54,6 +54,18 @@ fn assert_cond_consistency(expr: &expr::IfThenElse) -> ExprResult<()> {
     Ok(())
 }
 
+/// Assert the consistency of symbol expressions.
+fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<()> {
+    if let SymbolId::Named(named) = expr.id {
+        let assoc_ty = ctx.symbol_types
+                          .get(named)
+                          .expect("Expected to have an associated type to this named symbol. \
+                                   Maybe the wrong context is in used?");
+        return expect_matching_symbol_type(assoc_ty, expr.ty(), named)
+    }
+    Ok(())
+}
+
 impl<'ctx> ConsistencyChecker<'ctx> {
     /// Forwards the given expression to the given checker and adds a potential
     /// found error to the list of found errors.
@@ -288,4 +300,34 @@ mod tests {
         }
     }
 
+    mod symbol {
+        use super::*;
+
+        #[test]
+        fn ok() {
+            let (ctx, b) = new_context_and_builder();
+            {
+                let bool_symbol = b.bool_var("a").unwrap();
+                assert!(assert_consistency_recursively(&ctx, &bool_symbol).is_ok())
+            }
+            {
+                let bitvec_symbol = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+                assert!(assert_consistency_recursively(&ctx, &bitvec_symbol).is_ok())
+            }
+            {
+                let array_symbol = b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w64()), "A").unwrap();
+                assert!(assert_consistency_recursively(&ctx, &array_symbol).is_ok())
+            }
+        }
+
+        #[test]
+        fn invalid_alias() {
+            let (ctx1, b1) = new_context_and_builder();
+            let (ctx2, b2) = new_context_and_builder();
+            let sym1 = b1.bool_var("a").unwrap();
+            let sym2 = b2.bitvec_var(BitvecTy::w32(), "a").unwrap();
+            assert!(assert_consistency_recursively(&ctx2, &sym1).is_err());
+            assert!(assert_consistency_recursively(&ctx1, &sym2).is_err());
+        }
+    }
 }
