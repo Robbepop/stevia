@@ -1,8 +1,8 @@
 use ast::prelude::*;
 
-use std::result;
 use std::error;
 use std::fmt;
+use std::result;
 
 /// Module for exports of commonly used items of this module.
 pub mod prelude {
@@ -108,10 +108,14 @@ impl ExprError {
 	}
 
 	/// Returns an `ExprError` that indicates that two mismatching types were to be associated to the same symbol.
-	pub fn unmatching_symbol_types<T1, T2>(assoc_ty: T1, current_ty: T2, symbol_id: NamedSymbolId) -> Self
+	pub fn unmatching_symbol_types<T1, T2>(
+		assoc_ty: T1,
+		current_ty: T2,
+		symbol_id: NamedSymbolId,
+	) -> Self
 	where
 		T1: Into<Type>,
-		T2: Into<Type>
+		T2: Into<Type>,
 	{
 		let assoc_ty = assoc_ty.into();
 		let current_ty = current_ty.into();
@@ -174,15 +178,13 @@ pub fn expect_matching_symbol_type<T1, T2>(
 ) -> ExprResult<()>
 where
 	T1: Into<Type>,
-	T2: Into<Type>
+	T2: Into<Type>,
 {
 	let assoc_ty = assoc_ty.into();
 	let current_ty = current_ty.into();
 	if assoc_ty != current_ty {
 		return Err(ExprError::unmatching_symbol_types(
-			assoc_ty,
-			current_ty,
-			symbol_id,
+			assoc_ty, current_ty, symbol_id,
 		));
 	}
 	Ok(())
