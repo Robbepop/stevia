@@ -171,6 +171,66 @@ impl error::Error for ExprError {
 	}
 }
 
+/// Asserts that the given expression is of the expected concrete type.
+pub fn expect_concrete_ty<T, E>(expected_ty: T, expr: &E) -> ExprResult<()>
+where
+	T: Into<Type>,
+	E: Into<AnyExpr> + Clone + HasType + fmt::Debug,
+{
+	let expected_ty = expected_ty.into();
+	let actual_ty = expr.ty();
+	if actual_ty != expected_ty {
+		return Err(
+			TypeError::unexpected_type(expected_ty, expr.clone().into()).context(format!(
+				"Expected concrete type (= {:?}) for the expression: {:?}",
+				expected_ty, expr
+			)),
+		).map_err(ExprError::from);
+	}
+	Ok(())
+}
+
+/// Asserts that all child expressions of the given expression are of the
+/// given expected concrete type.
+pub fn expect_concrete_ty_n<T, E>(expected_ty: T, expr: &E) -> ExprResult<()>
+where
+	T: Into<Type>,
+	E: Into<AnyExpr> + Clone + Children + HasKind + fmt::Debug,
+{
+	let expected_ty = expected_ty.into();
+	for (n, child) in expr.children().enumerate() {
+		expect_concrete_ty(expected_ty, child).map_err(|e| {
+			e.context(format!(
+				"Expected concrete type (= {:?}) for the child expression at index {:?} of expression: {:?}.",
+				expected_ty,
+				n,
+				expr.kind().camel_name()
+			))
+		})?;
+	}
+	Ok(())
+}
+
+/// Asserts that the given expression has at least the expected minimum number of child expressions.
+pub fn expect_min_children<E>(expected_min_children_number: usize, expr: &E) -> ExprResult<()>
+where
+	E: Into<AnyExpr> + Clone + HasArity + HasKind,
+{
+	let actual_children_number = expr.arity();
+	if actual_children_number < expected_min_children_number {
+		return Err(ExprError::too_few_children(
+			expected_min_children_number,
+			actual_children_number,
+			expr.clone(),
+		).context(format!(
+			"Expected at least 2 child expressions for the {} expression.",
+			expr.kind().camel_name()
+		)));
+	}
+	Ok(())
+}
+
+/// Asserts that the given named symbol ID has the same type as its context associated type.
 pub fn expect_matching_symbol_type<T1, T2>(
 	assoc_ty: T1,
 	current_ty: T2,
