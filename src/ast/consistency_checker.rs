@@ -354,6 +354,17 @@ mod tests {
         }
 
         #[test]
+        fn too_few_children() {
+            let (ctx, b) = new_context_and_builder();
+            let mut expr = expr::BoolEquals::binary(
+                b.bool_var("a").unwrap(),
+                b.bool_var("b").unwrap()
+            ).unwrap();
+            expr.children.pop();
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
+        }
+
+        #[test]
         fn unexpected_child_ty() {
             let (ctx, b) = new_context_and_builder();
             let mut expr = expr::BoolEquals::binary(
