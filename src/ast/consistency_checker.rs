@@ -66,6 +66,13 @@ fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<(
     Ok(())
 }
 
+/// Assert the consistency of boolean equality expressions.
+fn assert_bool_equals_consistency(expr: &expr::BoolEquals) -> ExprResult<()> {
+    error::expect_min_children(2, expr)?;
+    error::expect_concrete_ty_n(expr.ty(), expr)?;
+    Ok(())
+}
+
 impl<'ctx> ConsistencyChecker<'ctx> {
     /// Forwards the given expression to the given checker and adds a potential
     /// found error to the list of found errors.
@@ -161,7 +168,9 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_bool_const(&mut self, _bool_const: &expr::BoolConst, _: VisitEvent) {}
 
-    fn visit_bool_equals(&mut self, _bool_equals: &expr::BoolEquals, _: VisitEvent) {}
+    fn visit_bool_equals(&mut self, bool_equals: &expr::BoolEquals, _: VisitEvent) {
+        self.forward_assert_consistency(bool_equals, assert_bool_equals_consistency)
+    }
 
     fn visit_and(&mut self, _and: &expr::And, _: VisitEvent) {}
 
@@ -328,6 +337,31 @@ mod tests {
             let sym2 = b2.bitvec_var(BitvecTy::w32(), "a").unwrap();
             assert!(assert_consistency_recursively(&ctx2, &sym1).is_err());
             assert!(assert_consistency_recursively(&ctx1, &sym2).is_err());
+        }
+    }
+
+    mod bool_equals {
+        use super::*;
+
+        #[test]
+        fn ok() {
+            let (ctx, b) = new_context_and_builder();
+            let expr = b.bool_equals(
+                b.bool_var("a"),
+                b.bool_var("b")
+            ).unwrap();
+            assert!(assert_consistency_recursively(&ctx, &expr).is_ok());
+        }
+
+        #[test]
+        fn unexpected_child_ty() {
+            let (ctx, b) = new_context_and_builder();
+            let mut expr = expr::BoolEquals::binary(
+                b.bool_var("a").unwrap(),
+                b.bool_var("b").unwrap()
+            ).unwrap();
+            expr.children.push(b.bitvec_var(BitvecTy::w32(), "x").unwrap());
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
         }
     }
 }
