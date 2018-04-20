@@ -414,7 +414,8 @@ mod tests {
                 assert!(assert_consistency_recursively(&ctx, &bitvec_symbol).is_ok())
             }
             {
-                let array_symbol = b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w64()), "A").unwrap();
+                let array_symbol = b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w64()), "A")
+                    .unwrap();
                 assert!(assert_consistency_recursively(&ctx, &array_symbol).is_ok())
             }
         }
@@ -468,7 +469,8 @@ mod tests {
                 b.bool_var("a").unwrap(),
                 b.bool_var("b").unwrap()
             ).unwrap();
-            expr.children.push(b.bitvec_var(BitvecTy::w32(), "x").unwrap());
+            expr.children
+                .push(b.bitvec_var(BitvecTy::w32(), "x").unwrap());
             assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
         }
     }
