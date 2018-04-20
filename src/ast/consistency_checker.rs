@@ -1,5 +1,7 @@
 use ast::prelude::*;
 
+use std::fmt;
+
 /// Validates the consistency of the given expression tree.
 ///
 /// # Note
@@ -72,11 +74,16 @@ fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<(
     Ok(())
 }
 
-/// Assert the consistency of boolean equality expressions.
-fn assert_bool_equals_consistency(expr: &expr::BoolEquals) -> ExprResult<()> {
+
+/// Assert the default consistency of n-ary expressions.
+fn assert_nary_default_consistency<E>(expr: &E) -> ExprResult<()>
+where
+    E: Into<AnyExpr> + Clone + Children + HasKind + HasType + HasArity + fmt::Debug,
+{
     error::expect_min_children(2, expr)?;
-    error::expect_concrete_ty_n(expr.ty(), expr)?;
-    Ok(())
+    error::expect_concrete_ty_n(expr.ty(), expr)
+}
+
 }
 
 impl<'ctx> ConsistencyChecker<'ctx> {
@@ -175,12 +182,15 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     fn visit_bool_const(&mut self, _bool_const: &expr::BoolConst, _: VisitEvent) {}
 
     fn visit_bool_equals(&mut self, bool_equals: &expr::BoolEquals, _: VisitEvent) {
-        self.forward_assert_consistency(bool_equals, assert_bool_equals_consistency)
+        self.forward_assert_consistency(bool_equals, assert_nary_default_consistency)
     }
 
-    fn visit_and(&mut self, _and: &expr::And, _: VisitEvent) {}
+    fn visit_and(&mut self, and: &expr::And, _: VisitEvent) {
+        self.forward_assert_consistency(and, assert_nary_default_consistency)
+    }
 
-    fn visit_or(&mut self, _or: &expr::Or, _: VisitEvent) {}
+    fn visit_or(&mut self, or: &expr::Or, _: VisitEvent) {
+        self.forward_assert_consistency(or, assert_nary_default_consistency)
 
     fn visit_not(&mut self, _not: &expr::Not, _: VisitEvent) {}
 
@@ -194,9 +204,12 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_bitvec_const(&mut self, _bitvec_const: &expr::BitvecConst, _: VisitEvent) {}
 
-    fn visit_add(&mut self, _add: &expr::Add, _: VisitEvent) {}
+    fn visit_add(&mut self, add: &expr::Add, _: VisitEvent) {
+        self.forward_assert_consistency(add, assert_nary_default_consistency)
+    }
 
-    fn visit_mul(&mut self, _mul: &expr::Mul, _: VisitEvent) {}
+    fn visit_mul(&mut self, mul: &expr::Mul, _: VisitEvent) {
+        self.forward_assert_consistency(mul, assert_nary_default_consistency)
 
     fn visit_neg(&mut self, _neg: &expr::Neg, _: VisitEvent) {}
 
@@ -214,9 +227,13 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, _: VisitEvent) {}
 
-    fn visit_bitand(&mut self, _bitand: &expr::BitAnd, _: VisitEvent) {}
+    fn visit_bitand(&mut self, bitand: &expr::BitAnd, _: VisitEvent) {
+        self.forward_assert_consistency(bitand, assert_nary_default_consistency)
+    }
 
-    fn visit_bitor(&mut self, _bitor: &expr::BitOr, _: VisitEvent) {}
+    fn visit_bitor(&mut self, bitor: &expr::BitOr, _: VisitEvent) {
+        self.forward_assert_consistency(bitor, assert_nary_default_consistency)
+    }
 
     fn visit_bitxor(&mut self, _bitxor: &expr::BitXor, _: VisitEvent) {}
 
@@ -228,7 +245,9 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_zext(&mut self, _zext: &expr::ZeroExtend, _: VisitEvent) {}
 
-    fn visit_bitvec_equals(&mut self, _bitvec_equals: &expr::BitvecEquals, _: VisitEvent) {}
+    fn visit_bitvec_equals(&mut self, bitvec_equals: &expr::BitvecEquals, _: VisitEvent) {
+        self.forward_assert_consistency(bitvec_equals, assert_nary_default_consistency)
+    }
 
     fn visit_sge(&mut self, _sge: &expr::SignedGreaterEquals, _: VisitEvent) {}
 
