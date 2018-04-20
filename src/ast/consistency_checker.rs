@@ -420,6 +420,13 @@ mod tests {
         }
 
         #[test]
+        fn generated_symbol() {
+            let (ctx, _) = new_context_and_builder();
+            let gensym = expr::Symbol::new_unnamed(&ctx, Type::Bool);
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(gensym)).is_ok())
+        }
+
+        #[test]
         fn invalid_alias() {
             let (ctx1, b1) = new_context_and_builder();
             let (ctx2, b2) = new_context_and_builder();
