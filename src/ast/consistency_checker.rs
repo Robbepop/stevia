@@ -11,7 +11,10 @@ use ast::prelude::*;
 /// - Cast invariances are met for all casting expressions.
 ///
 /// This collects all found errors into a vector and returns it if non-empty.
-pub fn assert_consistency_recursively<'ctx, 'e, E>(ctx: &'ctx Context, expr: E) -> Result<(), Vec<ExprError>>
+pub fn assert_consistency_recursively<'ctx, 'e, E>(
+    ctx: &'ctx Context,
+    expr: E,
+) -> Result<(), Vec<ExprError>>
 where
     E: Into<&'e AnyExpr>,
 {
@@ -32,13 +35,16 @@ struct ConsistencyChecker<'ctx> {
     /// All found errors are stored here.
     found_errors: Vec<ExprError>,
     /// The associated context of this consistency checker.
-    ctx: &'ctx Context
+    ctx: &'ctx Context,
 }
 
 impl<'ctx> ConsistencyChecker<'ctx> {
     /// Creates a new consistency checker for the given context.
     pub fn new(ctx: &'ctx Context) -> Self {
-        Self{ found_errors: vec![], ctx }
+        Self {
+            found_errors: vec![],
+            ctx,
+        }
     }
 }
 
@@ -57,11 +63,11 @@ fn assert_cond_consistency(expr: &expr::IfThenElse) -> ExprResult<()> {
 /// Assert the consistency of symbol expressions.
 fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<()> {
     if let SymbolId::Named(named) = expr.id {
-        let assoc_ty = ctx.symbol_types
-                          .get(named)
-                          .expect("Expected to have an associated type to this named symbol. \
-                                   Maybe the wrong context is in used?");
-        return expect_matching_symbol_type(assoc_ty, expr.ty(), named)
+        let assoc_ty = ctx.symbol_types.get(named).expect(
+            "Expected to have an associated type to this named symbol. \
+             Maybe the wrong context is in used?",
+        );
+        return expect_matching_symbol_type(assoc_ty, expr.ty(), named);
     }
     Ok(())
 }
