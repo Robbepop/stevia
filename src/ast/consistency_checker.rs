@@ -490,4 +490,39 @@ mod tests {
         }
     }
 
+    mod comparison {
+        use super::*;
+
+        #[test]
+        fn ok() {
+            let (ctx, b) = new_context_and_builder();
+            let cmp = b.bitvec_sle(
+                b.bitvec_var(BitvecTy::w32(), "x"),
+                b.bitvec_var(BitvecTy::w32(), "y")
+            ).unwrap();
+            assert!(assert_consistency_recursively(&ctx, &cmp).is_ok())
+        }
+
+        #[test]
+        fn unmatching_bitvecs() {
+            let (ctx, b) = new_context_and_builder();
+            let mut cmp = expr::SignedLessEquals::new(
+                b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
+                b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+            ).unwrap();
+            cmp.children.rhs = b.bitvec_var(BitvecTy::w64(), "y64").unwrap();
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
+        }
+
+        #[test]
+        fn bool_lhs() {
+            let (ctx, b) = new_context_and_builder();
+            let mut cmp = expr::SignedLessEquals::new(
+                b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
+                b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+            ).unwrap();
+            cmp.children.lhs = b.bool_var("a").unwrap();
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
+        }
+    }
 }
