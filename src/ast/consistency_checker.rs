@@ -137,10 +137,12 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
         }
         use self::AnyExpr::*;
         match expr {
+            BoolConst(_)   |
+            BitvecConst(_) => (),
+
             IfThenElse(expr) => self.visit_cond(expr, event),
             Symbol(expr) => self.visit_var(expr, event),
 
-            BoolConst(expr) => self.visit_bool_const(expr, event),
             BoolEquals(expr) => self.visit_bool_equals(expr, event),
             BitvecEquals(expr) => self.visit_bitvec_equals(expr, event),
             Not(expr) => self.visit_not(expr, event),
@@ -159,7 +161,6 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
             UnsignedLessThan(expr) => self.visit_ult(expr, event),
 
             Add(expr) => self.visit_add(expr, event),
-            BitvecConst(expr) => self.visit_bitvec_const(expr, event),
             Mul(expr) => self.visit_mul(expr, event),
             Neg(expr) => self.visit_neg(expr, event),
             SignedDiv(expr) => self.visit_sdiv(expr, event),
@@ -188,16 +189,6 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
         }
     }
 
-    fn visit_bool_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
-        unreachable!()
-    }
-    fn visit_bitvec_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
-        unreachable!()
-    }
-    fn visit_array_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
-        unreachable!()
-    }
-
     fn visit_cond(&mut self, cond: &expr::IfThenElse, _: VisitEvent) {
         self.forward_assert_consistency(cond, assert_cond_consistency)
     }
@@ -207,8 +198,6 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
             self.found_errors.push(err)
         }
     }
-
-    fn visit_bool_const(&mut self, _bool_const: &expr::BoolConst, _: VisitEvent) {}
 
     fn visit_bool_equals(&mut self, bool_equals: &expr::BoolEquals, _: VisitEvent) {
         self.forward_assert_consistency(bool_equals, assert_nary_default_consistency)
