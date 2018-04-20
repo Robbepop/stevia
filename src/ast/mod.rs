@@ -20,10 +20,12 @@ mod consistency_checker;
 #[macro_use]
 mod transformer;
 
+use std::fmt;
+
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
-pub trait ExprMarker {
+pub trait ExprMarker: fmt::Debug + Copy + Clone + PartialEq + Eq {
     /// The static kind of the expression.
     const EXPR_KIND: ExprKind;
 }
@@ -106,6 +108,7 @@ pub use self::{
         BitWidth,
         BinTermExpr,
         NaryTermExpr,
+        ComparisonExpr,
         ArrayReadChildren,
         CastError,
         CastErrorKind,
