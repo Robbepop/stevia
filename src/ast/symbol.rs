@@ -143,7 +143,7 @@ impl Symbol {
     }
 
     /// Returns a new generated symbol expression.
-    pub fn new_unnamed<T, S>(ctx: &Context, ty: T) -> Self
+    pub fn new_unnamed<T>(ctx: &Context, ty: T) -> Self
     where
         T: Into<Type>,
     {
