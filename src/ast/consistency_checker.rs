@@ -191,11 +191,9 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     fn visit_bool_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
         unreachable!()
     }
-
     fn visit_bitvec_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
         unreachable!()
     }
-
     fn visit_array_expr(&mut self, _: &AnyExpr, _: VisitEvent) {
         unreachable!()
     }
@@ -222,6 +220,7 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_or(&mut self, or: &expr::Or, _: VisitEvent) {
         self.forward_assert_consistency(or, assert_nary_default_consistency)
+    }
 
     fn visit_not(&mut self, _not: &expr::Not, _: VisitEvent) {}
 
@@ -245,6 +244,7 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_mul(&mut self, mul: &expr::Mul, _: VisitEvent) {
         self.forward_assert_consistency(mul, assert_nary_default_consistency)
+    }
 
     fn visit_neg(&mut self, _neg: &expr::Neg, _: VisitEvent) {}
 
