@@ -1,7 +1,5 @@
 use ast::prelude::*;
 
-use std::fmt;
-
 /// Validates the consistency of the given expression tree.
 ///
 /// # Note
@@ -74,43 +72,82 @@ fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<(
     Ok(())
 }
 
-/// Assert the default consistency of binary expressions.
-fn assert_binary_default_consistency<E>(expr: &E) -> ExprResult<()>
+/// Assert the default consistency of binary bitvector expressions.
+fn assert_bitvec_binary_consistency<M>(expr: &BinTermExpr<M>) -> ExprResult<()>
 where
-    E: BinaryExpr + HasType + HasKind + fmt::Debug
+    M: ExprMarker,
 {
     let expected_ty = expr.ty();
-    error::expect_concrete_ty(expected_ty, expr.lhs_child()).map_err(
-        |e| e.context(format!(
+    error::expect_concrete_ty(expected_ty, expr.lhs_child()).map_err(|e| {
+        e.context(format!(
             "Expected concrete type (= {:?}) for the left hand-side expression of this {:?} expression: {:?}",
             expected_ty,
             expr.kind().camel_name(),
             expr)
         )
-    )?;
-    error::expect_concrete_ty(expected_ty, expr.rhs_child()).map_err(
-        |e| e.context(format!(
+    })?;
+    error::expect_concrete_ty(expected_ty, expr.rhs_child()).map_err(|e| {
+        e.context(format!(
             "Expected concrete type (= {:?}) for the right hand-side expression of this {:?} expression: {:?}",
             expected_ty,
             expr.kind().camel_name(),
             expr)
         )
-    )
+    })
 }
 
-/// Assert the default consistency of n-ary expressions.
-fn assert_nary_default_consistency<E>(expr: &E) -> ExprResult<()>
+/// Assert the default consistency of binary boolean expressions.
+fn assert_bool_binary_consistency<M>(expr: &BinBoolExpr<M>) -> ExprResult<()>
 where
-    E: Into<AnyExpr> + Clone + Children + HasKind + HasType + HasArity + fmt::Debug,
+    M: ExprMarker,
+{
+    error::expect_concrete_ty(Type::Bool, expr.lhs_child()).map_err(|e| {
+        e.context(format!(
+            "Expected boolean type for the left hand-side expression of this {:?} expression: {:?}",
+            expr.kind().camel_name(),
+            expr
+        ))
+    })?;
+    error::expect_concrete_ty(Type::Bool, expr.rhs_child()).map_err(|e| {
+        e.context(format!(
+            "Expected boolean type for the right hand-side expression of this {:?} expression: {:?}",
+            expr.kind().camel_name(),
+            expr)
+        )
+    })
+}
+
+/// Assert the default consistency of n-ary bitvector expressions.
+fn assert_bitvec_equality_consistency(expr: &expr::BitvecEquals) -> ExprResult<()> {
+    error::expect_min_children(2, expr)?;
+    error::expect_concrete_ty_n(expr.children_bitvec_ty, expr)
+}
+
+/// Assert the default consistency of n-ary bitvector expressions.
+fn assert_bitvec_nary_consistency<M>(expr: &NaryTermExpr<M>) -> ExprResult<()>
+where
+    M: ExprMarker,
+    NaryTermExpr<M>: Into<AnyExpr>,
 {
     error::expect_min_children(2, expr)?;
     error::expect_concrete_ty_n(expr.ty(), expr)
 }
 
-/// Assert the consistency of comparison expressions.
-fn assert_comparison_consistency<E>(expr: &E) -> ExprResult<()>
+/// Assert the default consistency of n-ary boolean expressions.
+fn assert_bool_nary_consistency<M>(expr: &NaryBoolExpr<M>) -> ExprResult<()>
 where
-    E: Into<AnyExpr> + BinaryExpr + Clone + HasType + fmt::Debug
+    M: ExprMarker,
+    NaryBoolExpr<M>: Into<AnyExpr>,
+{
+    error::expect_min_children(2, expr)?;
+    error::expect_concrete_ty_n(Type::Bool, expr)
+}
+
+/// Assert the consistency of comparison expressions.
+fn assert_comparison_consistency<M>(expr: &ComparisonExpr<M>) -> ExprResult<()>
+where
+    M: ExprMarker,
+    ComparisonExpr<M>: Into<AnyExpr>,
 {
     error::expect_concrete_ty(Type::Bool, expr)?;
     let bvty = expect_bitvec_ty(expr.lhs_child())?;
@@ -137,8 +174,7 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
         }
         use self::AnyExpr::*;
         match expr {
-            BoolConst(_)   |
-            BitvecConst(_) => (),
+            BoolConst(_) | BitvecConst(_) => (),
 
             IfThenElse(expr) => self.visit_cond(expr, event),
             Symbol(expr) => self.visit_var(expr, event),
@@ -200,25 +236,25 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     }
 
     fn visit_bool_equals(&mut self, bool_equals: &expr::BoolEquals, _: VisitEvent) {
-        self.forward_assert_consistency(bool_equals, assert_nary_default_consistency)
+        self.forward_assert_consistency(bool_equals, assert_bool_nary_consistency)
     }
 
     fn visit_and(&mut self, and: &expr::And, _: VisitEvent) {
-        self.forward_assert_consistency(and, assert_nary_default_consistency)
+        self.forward_assert_consistency(and, assert_bool_nary_consistency)
     }
 
     fn visit_or(&mut self, or: &expr::Or, _: VisitEvent) {
-        self.forward_assert_consistency(or, assert_nary_default_consistency)
+        self.forward_assert_consistency(or, assert_bool_nary_consistency)
     }
 
     fn visit_not(&mut self, _not: &expr::Not, _: VisitEvent) {}
 
     fn visit_xor(&mut self, xor: &expr::Xor, _: VisitEvent) {
-        self.forward_assert_consistency(xor, assert_binary_default_consistency)
+        self.forward_assert_consistency(xor, assert_bool_binary_consistency)
     }
 
     fn visit_implies(&mut self, implies: &expr::Implies, _: VisitEvent) {
-        self.forward_assert_consistency(implies, assert_binary_default_consistency)
+        self.forward_assert_consistency(implies, assert_bool_binary_consistency)
     }
 
     fn visit_array_read(&mut self, _array_read: &expr::ArrayRead, _: VisitEvent) {}
@@ -228,51 +264,51 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     fn visit_bitvec_const(&mut self, _bitvec_const: &expr::BitvecConst, _: VisitEvent) {}
 
     fn visit_add(&mut self, add: &expr::Add, _: VisitEvent) {
-        self.forward_assert_consistency(add, assert_nary_default_consistency)
+        self.forward_assert_consistency(add, assert_bitvec_nary_consistency)
     }
 
     fn visit_mul(&mut self, mul: &expr::Mul, _: VisitEvent) {
-        self.forward_assert_consistency(mul, assert_nary_default_consistency)
+        self.forward_assert_consistency(mul, assert_bitvec_nary_consistency)
     }
 
     fn visit_neg(&mut self, _neg: &expr::Neg, _: VisitEvent) {}
 
     fn visit_sdiv(&mut self, sdiv: &expr::SignedDiv, _: VisitEvent) {
-        self.forward_assert_consistency(sdiv, assert_binary_default_consistency)
+        self.forward_assert_consistency(sdiv, assert_bitvec_binary_consistency)
     }
 
     fn visit_smod(&mut self, smod: &expr::SignedModulo, _: VisitEvent) {
-        self.forward_assert_consistency(smod, assert_binary_default_consistency)
+        self.forward_assert_consistency(smod, assert_bitvec_binary_consistency)
     }
 
     fn visit_srem(&mut self, srem: &expr::SignedRemainder, _: VisitEvent) {
-        self.forward_assert_consistency(srem, assert_binary_default_consistency)
+        self.forward_assert_consistency(srem, assert_bitvec_binary_consistency)
     }
 
     fn visit_sub(&mut self, sub: &expr::Sub, _: VisitEvent) {
-        self.forward_assert_consistency(sub, assert_binary_default_consistency)
+        self.forward_assert_consistency(sub, assert_bitvec_binary_consistency)
     }
 
     fn visit_udiv(&mut self, udiv: &expr::UnsignedDiv, _: VisitEvent) {
-        self.forward_assert_consistency(udiv, assert_binary_default_consistency)
+        self.forward_assert_consistency(udiv, assert_bitvec_binary_consistency)
     }
 
     fn visit_urem(&mut self, urem: &expr::UnsignedRemainder, _: VisitEvent) {
-        self.forward_assert_consistency(urem, assert_binary_default_consistency)
+        self.forward_assert_consistency(urem, assert_bitvec_binary_consistency)
     }
 
     fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, _: VisitEvent) {}
 
     fn visit_bitand(&mut self, bitand: &expr::BitAnd, _: VisitEvent) {
-        self.forward_assert_consistency(bitand, assert_nary_default_consistency)
+        self.forward_assert_consistency(bitand, assert_bitvec_nary_consistency)
     }
 
     fn visit_bitor(&mut self, bitor: &expr::BitOr, _: VisitEvent) {
-        self.forward_assert_consistency(bitor, assert_nary_default_consistency)
+        self.forward_assert_consistency(bitor, assert_bitvec_nary_consistency)
     }
 
     fn visit_bitxor(&mut self, bitxor: &expr::BitXor, _: VisitEvent) {
-        self.forward_assert_consistency(bitxor, assert_binary_default_consistency)
+        self.forward_assert_consistency(bitxor, assert_bitvec_binary_consistency)
     }
 
     fn visit_concat(&mut self, _concat: &expr::Concat, _: VisitEvent) {}
@@ -284,7 +320,7 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     fn visit_zext(&mut self, _zext: &expr::ZeroExtend, _: VisitEvent) {}
 
     fn visit_bitvec_equals(&mut self, bitvec_equals: &expr::BitvecEquals, _: VisitEvent) {
-        self.forward_assert_consistency(bitvec_equals, assert_nary_default_consistency)
+        self.forward_assert_consistency(bitvec_equals, assert_bitvec_equality_consistency)
     }
 
     fn visit_sge(&mut self, sge: &expr::SignedGreaterEquals, _: VisitEvent) {
@@ -342,11 +378,8 @@ mod tests {
         #[test]
         fn ok() {
             let (ctx, b) = new_context_and_builder();
-            let expr = b.cond(
-                b.bool_var("a"),
-                b.bool_var("b"),
-                b.bool_var("c")
-            ).unwrap();
+            let expr = b.cond(b.bool_var("a"), b.bool_var("b"), b.bool_var("c"))
+                .unwrap();
             assert!(assert_consistency_recursively(&ctx, &expr).is_ok())
         }
 
@@ -435,20 +468,16 @@ mod tests {
                 #[test]
                 fn ok() {
                     let (ctx, b) = new_context_and_builder();
-                    let expr = b.$build_name(
-                        b.bool_var("a"),
-                        b.bool_var("b")
-                    ).unwrap();
+                    let expr = b.$build_name(b.bool_var("a"), b.bool_var("b")).unwrap();
                     assert!(assert_consistency_recursively(&ctx, &expr).is_ok());
                 }
 
                 #[test]
                 fn too_few_children() {
                     let (ctx, b) = new_context_and_builder();
-                    let mut expr = expr::$ty_name::binary(
-                        b.bool_var("a").unwrap(),
-                        b.bool_var("b").unwrap()
-                    ).unwrap();
+                    let mut expr =
+                        expr::$ty_name::binary(b.bool_var("a").unwrap(), b.bool_var("b").unwrap())
+                            .unwrap();
                     expr.children.pop();
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
                 }
@@ -456,10 +485,9 @@ mod tests {
                 #[test]
                 fn unexpected_child_ty() {
                     let (ctx, b) = new_context_and_builder();
-                    let mut expr = expr::$ty_name::binary(
-                        b.bool_var("a").unwrap(),
-                        b.bool_var("b").unwrap()
-                    ).unwrap();
+                    let mut expr =
+                        expr::$ty_name::binary(b.bool_var("a").unwrap(), b.bool_var("b").unwrap())
+                            .unwrap();
                     expr.children
                         .push(b.bitvec_var(BitvecTy::w32(), "x").unwrap());
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
@@ -482,7 +510,7 @@ mod tests {
                     let (ctx, b) = new_context_and_builder();
                     let expr = b.$build_name(
                         b.bitvec_var(BitvecTy::w32(), "x"),
-                        b.bitvec_var(BitvecTy::w32(), "y")
+                        b.bitvec_var(BitvecTy::w32(), "y"),
                     ).unwrap();
                     assert!(assert_consistency_recursively(&ctx, &expr).is_ok());
                 }
@@ -492,7 +520,7 @@ mod tests {
                     let (ctx, b) = new_context_and_builder();
                     let mut expr = expr::$ty_name::binary(
                         b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
-                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap(),
                     ).unwrap();
                     expr.children.pop();
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
@@ -503,10 +531,9 @@ mod tests {
                     let (ctx, b) = new_context_and_builder();
                     let mut expr = expr::$ty_name::binary(
                         b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
-                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap(),
                     ).unwrap();
-                    expr.children
-                        .push(b.bool_var("a").unwrap());
+                    expr.children.push(b.bool_var("a").unwrap());
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
                 }
             }
@@ -526,20 +553,16 @@ mod tests {
                 #[test]
                 fn ok() {
                     let (ctx, b) = new_context_and_builder();
-                    let bin_expr = b.$builder_name(
-                        b.bool_var("a"),
-                        b.bool_var("b")
-                    ).unwrap();
+                    let bin_expr = b.$builder_name(b.bool_var("a"), b.bool_var("b")).unwrap();
                     assert!(assert_consistency_recursively(&ctx, &bin_expr).is_ok())
                 }
 
                 #[test]
                 fn invalid_lhs() {
                     let (ctx, b) = new_context_and_builder();
-                    let mut bin_expr = expr::$ty_name::new(
-                        b.bool_var("a").unwrap(),
-                        b.bool_var("b").unwrap()
-                    ).unwrap();
+                    let mut bin_expr =
+                        expr::$ty_name::new(b.bool_var("a").unwrap(), b.bool_var("b").unwrap())
+                            .unwrap();
                     bin_expr.children.lhs = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(bin_expr)).is_err())
                 }
@@ -547,10 +570,9 @@ mod tests {
                 #[test]
                 fn invalid_rhs() {
                     let (ctx, b) = new_context_and_builder();
-                    let mut bin_expr = expr::$ty_name::new(
-                        b.bool_var("a").unwrap(),
-                        b.bool_var("b").unwrap()
-                    ).unwrap();
+                    let mut bin_expr =
+                        expr::$ty_name::new(b.bool_var("a").unwrap(), b.bool_var("b").unwrap())
+                            .unwrap();
                     bin_expr.children.rhs = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(bin_expr)).is_err())
                 }
@@ -571,7 +593,7 @@ mod tests {
                     let (ctx, b) = new_context_and_builder();
                     let cmp = b.$builder_name(
                         b.bitvec_var(BitvecTy::w32(), "x"),
-                        b.bitvec_var(BitvecTy::w32(), "y")
+                        b.bitvec_var(BitvecTy::w32(), "y"),
                     ).unwrap();
                     assert!(assert_consistency_recursively(&ctx, &cmp).is_ok())
                 }
@@ -581,7 +603,7 @@ mod tests {
                     let (ctx, b) = new_context_and_builder();
                     let mut cmp = expr::$ty_name::new(
                         b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
-                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap(),
                     ).unwrap();
                     cmp.children.rhs = b.bitvec_var(BitvecTy::w64(), "y64").unwrap();
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
@@ -592,7 +614,7 @@ mod tests {
                     let (ctx, b) = new_context_and_builder();
                     let mut cmp = expr::$ty_name::new(
                         b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
-                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap(),
                     ).unwrap();
                     cmp.children.lhs = b.bool_var("a").unwrap();
                     assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
