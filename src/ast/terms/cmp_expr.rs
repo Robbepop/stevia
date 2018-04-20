@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 
 pub mod prelude {
     pub use super::{
+        ComparisonExpr,
         SignedGreaterEquals,
         SignedGreaterThan,
         SignedLessEquals,

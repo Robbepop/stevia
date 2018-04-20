@@ -43,6 +43,7 @@ pub mod prelude {
         BitOr,
         BitXor,
 
+        ComparisonExpr,
         SignedGreaterEquals,
         SignedGreaterThan,
         SignedLessEquals,
