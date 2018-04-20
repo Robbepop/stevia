@@ -107,6 +107,14 @@ where
     error::expect_concrete_ty_n(expr.ty(), expr)
 }
 
+/// Assert the consistency of comparison expressions.
+fn assert_comparison_consistency<E>(expr: &E) -> ExprResult<()>
+where
+    E: Into<AnyExpr> + BinaryExpr + Clone + HasType + fmt::Debug
+{
+    error::expect_concrete_ty(Type::Bool, expr)?;
+    let bvty = expect_bitvec_ty(expr.lhs_child())?;
+    error::expect_concrete_ty(bvty, expr.rhs_child())
 }
 
 impl<'ctx> ConsistencyChecker<'ctx> {
@@ -290,21 +298,37 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
         self.forward_assert_consistency(bitvec_equals, assert_nary_default_consistency)
     }
 
-    fn visit_sge(&mut self, _sge: &expr::SignedGreaterEquals, _: VisitEvent) {}
+    fn visit_sge(&mut self, sge: &expr::SignedGreaterEquals, _: VisitEvent) {
+        self.forward_assert_consistency(sge, assert_comparison_consistency)
+    }
 
-    fn visit_sgt(&mut self, _sgt: &expr::SignedGreaterThan, _: VisitEvent) {}
+    fn visit_sgt(&mut self, sgt: &expr::SignedGreaterThan, _: VisitEvent) {
+        self.forward_assert_consistency(sgt, assert_comparison_consistency)
+    }
 
-    fn visit_sle(&mut self, _sle: &expr::SignedLessEquals, _: VisitEvent) {}
+    fn visit_sle(&mut self, sle: &expr::SignedLessEquals, _: VisitEvent) {
+        self.forward_assert_consistency(sle, assert_comparison_consistency)
+    }
 
-    fn visit_slt(&mut self, _slt: &expr::SignedLessThan, _: VisitEvent) {}
+    fn visit_slt(&mut self, slt: &expr::SignedLessThan, _: VisitEvent) {
+        self.forward_assert_consistency(slt, assert_comparison_consistency)
+    }
 
-    fn visit_uge(&mut self, _uge: &expr::UnsignedGreaterEquals, _: VisitEvent) {}
+    fn visit_uge(&mut self, uge: &expr::UnsignedGreaterEquals, _: VisitEvent) {
+        self.forward_assert_consistency(uge, assert_comparison_consistency)
+    }
 
-    fn visit_ugt(&mut self, _ugt: &expr::UnsignedGreaterThan, _: VisitEvent) {}
+    fn visit_ugt(&mut self, ugt: &expr::UnsignedGreaterThan, _: VisitEvent) {
+        self.forward_assert_consistency(ugt, assert_comparison_consistency)
+    }
 
-    fn visit_ule(&mut self, _ule: &expr::UnsignedLessEquals, _: VisitEvent) {}
+    fn visit_ule(&mut self, ule: &expr::UnsignedLessEquals, _: VisitEvent) {
+        self.forward_assert_consistency(ule, assert_comparison_consistency)
+    }
 
-    fn visit_ult(&mut self, _ult: &expr::UnsignedLessThan, _: VisitEvent) {}
+    fn visit_ult(&mut self, ult: &expr::UnsignedLessThan, _: VisitEvent) {
+        self.forward_assert_consistency(ult, assert_comparison_consistency)
+    }
 
     fn visit_ashr(&mut self, _ashr: &expr::ArithmeticShiftRight, _: VisitEvent) {}
 
