@@ -74,6 +74,29 @@ fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<(
     Ok(())
 }
 
+/// Assert the default consistency of binary expressions.
+fn assert_binary_default_consistency<E>(expr: &E) -> ExprResult<()>
+where
+    E: BinaryExpr + HasType + HasKind + fmt::Debug
+{
+    let expected_ty = expr.ty();
+    error::expect_concrete_ty(expected_ty, expr.lhs_child()).map_err(
+        |e| e.context(format!(
+            "Expected concrete type (= {:?}) for the left hand-side expression of this {:?} expression: {:?}",
+            expected_ty,
+            expr.kind().camel_name(),
+            expr)
+        )
+    )?;
+    error::expect_concrete_ty(expected_ty, expr.rhs_child()).map_err(
+        |e| e.context(format!(
+            "Expected concrete type (= {:?}) for the right hand-side expression of this {:?} expression: {:?}",
+            expected_ty,
+            expr.kind().camel_name(),
+            expr)
+        )
+    )
+}
 
 /// Assert the default consistency of n-ary expressions.
 fn assert_nary_default_consistency<E>(expr: &E) -> ExprResult<()>
@@ -194,9 +217,13 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_not(&mut self, _not: &expr::Not, _: VisitEvent) {}
 
-    fn visit_xor(&mut self, _xor: &expr::Xor, _: VisitEvent) {}
+    fn visit_xor(&mut self, xor: &expr::Xor, _: VisitEvent) {
+        self.forward_assert_consistency(xor, assert_binary_default_consistency)
+    }
 
-    fn visit_implies(&mut self, _implies: &expr::Implies, _: VisitEvent) {}
+    fn visit_implies(&mut self, implies: &expr::Implies, _: VisitEvent) {
+        self.forward_assert_consistency(implies, assert_binary_default_consistency)
+    }
 
     fn visit_array_read(&mut self, _array_read: &expr::ArrayRead, _: VisitEvent) {}
 
@@ -213,17 +240,29 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
 
     fn visit_neg(&mut self, _neg: &expr::Neg, _: VisitEvent) {}
 
-    fn visit_sdiv(&mut self, _sdiv: &expr::SignedDiv, _: VisitEvent) {}
+    fn visit_sdiv(&mut self, sdiv: &expr::SignedDiv, _: VisitEvent) {
+        self.forward_assert_consistency(sdiv, assert_binary_default_consistency)
+    }
 
-    fn visit_smod(&mut self, _smod: &expr::SignedModulo, _: VisitEvent) {}
+    fn visit_smod(&mut self, smod: &expr::SignedModulo, _: VisitEvent) {
+        self.forward_assert_consistency(smod, assert_binary_default_consistency)
+    }
 
-    fn visit_srem(&mut self, _srem: &expr::SignedRemainder, _: VisitEvent) {}
+    fn visit_srem(&mut self, srem: &expr::SignedRemainder, _: VisitEvent) {
+        self.forward_assert_consistency(srem, assert_binary_default_consistency)
+    }
 
-    fn visit_sub(&mut self, _sub: &expr::Sub, _: VisitEvent) {}
+    fn visit_sub(&mut self, sub: &expr::Sub, _: VisitEvent) {
+        self.forward_assert_consistency(sub, assert_binary_default_consistency)
+    }
 
-    fn visit_udiv(&mut self, _udiv: &expr::UnsignedDiv, _: VisitEvent) {}
+    fn visit_udiv(&mut self, udiv: &expr::UnsignedDiv, _: VisitEvent) {
+        self.forward_assert_consistency(udiv, assert_binary_default_consistency)
+    }
 
-    fn visit_urem(&mut self, _urem: &expr::UnsignedRemainder, _: VisitEvent) {}
+    fn visit_urem(&mut self, urem: &expr::UnsignedRemainder, _: VisitEvent) {
+        self.forward_assert_consistency(urem, assert_binary_default_consistency)
+    }
 
     fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, _: VisitEvent) {}
 
@@ -235,7 +274,9 @@ impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
         self.forward_assert_consistency(bitor, assert_nary_default_consistency)
     }
 
-    fn visit_bitxor(&mut self, _bitxor: &expr::BitXor, _: VisitEvent) {}
+    fn visit_bitxor(&mut self, bitxor: &expr::BitXor, _: VisitEvent) {
+        self.forward_assert_consistency(bitxor, assert_binary_default_consistency)
+    }
 
     fn visit_concat(&mut self, _concat: &expr::Concat, _: VisitEvent) {}
 
