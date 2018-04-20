@@ -463,4 +463,31 @@ mod tests {
             assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
         }
     }
+
+    mod binary_expr {
+        use super::*;
+
+        #[test]
+        fn ok() {
+            let (ctx, b) = new_context_and_builder();
+            let bin_expr = b.xor(
+                b.bool_var("a"),
+                b.bool_var("b")
+            ).unwrap();
+            assert!(assert_consistency_recursively(&ctx, &bin_expr).is_ok())
+        }
+
+        #[test]
+        fn unmatching_types() {
+            let (ctx, b) = new_context_and_builder();
+            let mut bin_expr = expr::Xor::new(
+                b.bool_var("a").unwrap(),
+                b.bool_var("b").unwrap()
+            ).unwrap();
+            bin_expr.children.lhs = b.bool_var("a").unwrap();
+            bin_expr.children.rhs = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(bin_expr)).is_err())
+        }
+    }
+
 }
