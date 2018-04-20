@@ -99,3 +99,12 @@ impl<M> HasArity for BinTermExpr<M> {
         2
     }
 }
+
+impl<M> BinaryExpr for BinTermExpr<M> {
+    fn lhs_child(&self) -> &AnyExpr {
+        self.children.lhs_child()
+    }
+    fn rhs_child(&self) -> &AnyExpr {
+        self.children.rhs_child()
+    }
+}

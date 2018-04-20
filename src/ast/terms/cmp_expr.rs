@@ -129,6 +129,15 @@ impl<M> HasArity for ComparisonExpr<M> {
     }
 }
 
+impl<M> BinaryExpr for ComparisonExpr<M> {
+    fn lhs_child(&self) -> &AnyExpr {
+        self.children.lhs_child()
+    }
+    fn rhs_child(&self) -> &AnyExpr {
+        self.children.rhs_child()
+    }
+}
+
 mod marker {
     use ast::prelude::*;
     use ast::ExprMarker;

@@ -131,7 +131,8 @@ pub use self::{
         NaryExpr,
         DedupChildren,
         SortChildren,
-        RetainChildren
+        RetainChildren,
+        BinaryExpr
     },
     arity::{
         HasArity,

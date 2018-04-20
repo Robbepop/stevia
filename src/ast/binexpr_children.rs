@@ -77,3 +77,12 @@ impl HasArity for BinExprChildren {
         2
     }
 }
+
+impl BinaryExpr for BinExprChildren {
+    fn lhs_child(&self) -> &AnyExpr {
+        &self.lhs
+    }
+    fn rhs_child(&self) -> &AnyExpr {
+        &self.rhs
+    }
+}

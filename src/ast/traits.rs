@@ -56,6 +56,14 @@ pub trait SingleChild {
     fn into_boxed_single_child(self) -> Box<AnyExpr>;
 }
 
+/// Marker trait to mark binary expressions.
+pub trait BinaryExpr {
+    /// Returns the left hand-side child expression.
+    fn lhs_child(&self) -> &AnyExpr;
+    /// Returns the right hand-side child expression.
+    fn rhs_child(&self) -> &AnyExpr;
+}
+
 /// Marker trait to mark n-ary expressions.
 pub trait NaryExpr:
     DedupChildren +
