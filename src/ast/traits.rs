@@ -2,19 +2,6 @@ use ast::prelude::*;
 
 use std::cmp::Ordering;
 
-pub mod prelude {
-    pub use super::{
-        BoolExpr,
-        WrapWithNot,
-        UnaryExpr,
-        SingleChild,
-        NaryExpr,
-        DedupChildren,
-        SortChildren,
-        RetainChildren
-    };
-}
-
 /// Marker trait to mark boolean expressions.
 /// 
 /// This automatically implements methods on them that are safe for boolean expressions.
