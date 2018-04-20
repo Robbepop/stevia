@@ -427,102 +427,187 @@ mod tests {
         }
     }
 
-    mod bool_equals {
-        use super::*;
+    macro_rules! gen_bool_nary_expr_impl {
+        ($mod_name:ident, $build_name:ident, $ty_name:ident) => {
+            mod $mod_name {
+                use super::*;
 
-        #[test]
-        fn ok() {
-            let (ctx, b) = new_context_and_builder();
-            let expr = b.bool_equals(
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            assert!(assert_consistency_recursively(&ctx, &expr).is_ok());
-        }
+                #[test]
+                fn ok() {
+                    let (ctx, b) = new_context_and_builder();
+                    let expr = b.$build_name(
+                        b.bool_var("a"),
+                        b.bool_var("b")
+                    ).unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &expr).is_ok());
+                }
 
-        #[test]
-        fn too_few_children() {
-            let (ctx, b) = new_context_and_builder();
-            let mut expr = expr::BoolEquals::binary(
-                b.bool_var("a").unwrap(),
-                b.bool_var("b").unwrap()
-            ).unwrap();
-            expr.children.pop();
-            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
-        }
+                #[test]
+                fn too_few_children() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut expr = expr::$ty_name::binary(
+                        b.bool_var("a").unwrap(),
+                        b.bool_var("b").unwrap()
+                    ).unwrap();
+                    expr.children.pop();
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
+                }
 
-        #[test]
-        fn unexpected_child_ty() {
-            let (ctx, b) = new_context_and_builder();
-            let mut expr = expr::BoolEquals::binary(
-                b.bool_var("a").unwrap(),
-                b.bool_var("b").unwrap()
-            ).unwrap();
-            expr.children
-                .push(b.bitvec_var(BitvecTy::w32(), "x").unwrap());
-            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
-        }
+                #[test]
+                fn unexpected_child_ty() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut expr = expr::$ty_name::binary(
+                        b.bool_var("a").unwrap(),
+                        b.bool_var("b").unwrap()
+                    ).unwrap();
+                    expr.children
+                        .push(b.bitvec_var(BitvecTy::w32(), "x").unwrap());
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
+                }
+            }
+        };
     }
 
-    mod binary_expr {
-        use super::*;
+    gen_bool_nary_expr_impl!(bool_equals, bool_equals, BoolEquals);
+    gen_bool_nary_expr_impl!(and, and, And);
+    gen_bool_nary_expr_impl!(or, or, Or);
 
-        #[test]
-        fn ok() {
-            let (ctx, b) = new_context_and_builder();
-            let bin_expr = b.xor(
-                b.bool_var("a"),
-                b.bool_var("b")
-            ).unwrap();
-            assert!(assert_consistency_recursively(&ctx, &bin_expr).is_ok())
-        }
+    macro_rules! gen_bitvec_nary_expr_impl {
+        ($mod_name:ident, $build_name:ident, $ty_name:ident) => {
+            mod $mod_name {
+                use super::*;
 
-        #[test]
-        fn unmatching_types() {
-            let (ctx, b) = new_context_and_builder();
-            let mut bin_expr = expr::Xor::new(
-                b.bool_var("a").unwrap(),
-                b.bool_var("b").unwrap()
-            ).unwrap();
-            bin_expr.children.lhs = b.bool_var("a").unwrap();
-            bin_expr.children.rhs = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
-            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(bin_expr)).is_err())
-        }
+                #[test]
+                fn ok() {
+                    let (ctx, b) = new_context_and_builder();
+                    let expr = b.$build_name(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    ).unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &expr).is_ok());
+                }
+
+                #[test]
+                fn too_few_children() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut expr = expr::$ty_name::binary(
+                        b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                    ).unwrap();
+                    expr.children.pop();
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
+                }
+
+                #[test]
+                fn unexpected_child_ty() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut expr = expr::$ty_name::binary(
+                        b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                    ).unwrap();
+                    expr.children
+                        .push(b.bool_var("a").unwrap());
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(expr)).is_err());
+                }
+            }
+        };
     }
 
-    mod comparison {
-        use super::*;
+    gen_bitvec_nary_expr_impl!(bitvec_add, bitvec_add, Add);
+    gen_bitvec_nary_expr_impl!(bitvec_mul, bitvec_mul, Mul);
+    gen_bitvec_nary_expr_impl!(bitvec_and, bitvec_and, BitAnd);
+    gen_bitvec_nary_expr_impl!(bitvec_or, bitvec_or, BitOr);
 
-        #[test]
-        fn ok() {
-            let (ctx, b) = new_context_and_builder();
-            let cmp = b.bitvec_sle(
-                b.bitvec_var(BitvecTy::w32(), "x"),
-                b.bitvec_var(BitvecTy::w32(), "y")
-            ).unwrap();
-            assert!(assert_consistency_recursively(&ctx, &cmp).is_ok())
-        }
+    macro_rules! gen_bool_bin_expr_impl {
+        ($mod_name:ident, $builder_name:ident, $ty_name:ident) => {
+            mod $mod_name {
+                use super::*;
 
-        #[test]
-        fn unmatching_bitvecs() {
-            let (ctx, b) = new_context_and_builder();
-            let mut cmp = expr::SignedLessEquals::new(
-                b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
-                b.bitvec_var(BitvecTy::w32(), "y").unwrap()
-            ).unwrap();
-            cmp.children.rhs = b.bitvec_var(BitvecTy::w64(), "y64").unwrap();
-            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
-        }
+                #[test]
+                fn ok() {
+                    let (ctx, b) = new_context_and_builder();
+                    let bin_expr = b.$builder_name(
+                        b.bool_var("a"),
+                        b.bool_var("b")
+                    ).unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &bin_expr).is_ok())
+                }
 
-        #[test]
-        fn bool_lhs() {
-            let (ctx, b) = new_context_and_builder();
-            let mut cmp = expr::SignedLessEquals::new(
-                b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
-                b.bitvec_var(BitvecTy::w32(), "y").unwrap()
-            ).unwrap();
-            cmp.children.lhs = b.bool_var("a").unwrap();
-            assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
-        }
+                #[test]
+                fn invalid_lhs() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut bin_expr = expr::$ty_name::new(
+                        b.bool_var("a").unwrap(),
+                        b.bool_var("b").unwrap()
+                    ).unwrap();
+                    bin_expr.children.lhs = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(bin_expr)).is_err())
+                }
+
+                #[test]
+                fn invalid_rhs() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut bin_expr = expr::$ty_name::new(
+                        b.bool_var("a").unwrap(),
+                        b.bool_var("b").unwrap()
+                    ).unwrap();
+                    bin_expr.children.rhs = b.bitvec_var(BitvecTy::w32(), "x").unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(bin_expr)).is_err())
+                }
+            }
+        };
     }
+
+    gen_bool_bin_expr_impl!(xor, xor, Xor);
+    gen_bool_bin_expr_impl!(implies, implies, Implies);
+
+    macro_rules! gen_comparison_impl {
+        ($mod_name:ident, $builder_name:ident, $ty_name:ident) => {
+            mod $mod_name {
+                use super::*;
+
+                #[test]
+                fn ok() {
+                    let (ctx, b) = new_context_and_builder();
+                    let cmp = b.$builder_name(
+                        b.bitvec_var(BitvecTy::w32(), "x"),
+                        b.bitvec_var(BitvecTy::w32(), "y")
+                    ).unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &cmp).is_ok())
+                }
+
+                #[test]
+                fn unmatching_bitvecs() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut cmp = expr::$ty_name::new(
+                        b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                    ).unwrap();
+                    cmp.children.rhs = b.bitvec_var(BitvecTy::w64(), "y64").unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
+                }
+
+                #[test]
+                fn bool_lhs() {
+                    let (ctx, b) = new_context_and_builder();
+                    let mut cmp = expr::$ty_name::new(
+                        b.bitvec_var(BitvecTy::w32(), "x").unwrap(),
+                        b.bitvec_var(BitvecTy::w32(), "y").unwrap()
+                    ).unwrap();
+                    cmp.children.lhs = b.bool_var("a").unwrap();
+                    assert!(assert_consistency_recursively(&ctx, &AnyExpr::from(cmp)).is_err())
+                }
+            }
+        };
+    }
+
+    gen_comparison_impl!(sle, bitvec_sle, SignedLessEquals);
+    gen_comparison_impl!(slt, bitvec_slt, SignedLessThan);
+    gen_comparison_impl!(sge, bitvec_sge, SignedGreaterEquals);
+    gen_comparison_impl!(sgt, bitvec_sgt, SignedGreaterThan);
+
+    gen_comparison_impl!(ule, bitvec_ule, UnsignedLessEquals);
+    gen_comparison_impl!(ult, bitvec_ult, UnsignedLessThan);
+    gen_comparison_impl!(uge, bitvec_uge, UnsignedGreaterEquals);
+    gen_comparison_impl!(ugt, bitvec_ugt, UnsignedGreaterThan);
 }
