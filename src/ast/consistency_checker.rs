@@ -1,5 +1,281 @@
 use ast::prelude::*;
 
+pub trait AssertConsistency {
+    /// Asserts the consistency of `self`.
+    ///
+    /// # Errors
+    ///
+    /// If `self` is not consistent in itself in association
+    /// with the given context.
+    fn assert_consistency(&self, ctx: &Context) -> ExprResult<()>;
+}
+
+impl AssertConsistency for expr::ArrayRead {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        let array_ty = expect_array_ty(&self.children.array).map_err(|e| {
+            e.context(format!(
+                "Expected the left hand-side expression of the {:?} \
+                 expression to be of array type.",
+                self.kind().camel_name()
+            ))
+        })?;
+        expect_concrete_bitvec_ty(&self.children.index, array_ty.index_ty()).map_err(|e| {
+            e.context(format!(
+                "Expected the right hand-side expression of the {:?} \
+                 expression to be of the same bitvector type as the index-type \
+                 of the left hand-side array expression.",
+                self.kind().camel_name()
+            ))
+        }).map_err(ExprError::from)
+    }
+}
+
+impl AssertConsistency for expr::ArrayWrite {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        let array_ty = expect_array_ty(&self.children.array).map_err(|e| {
+            e.context(format!(
+                "Expected the array (left hand-side) expression of the {:?} \
+                 expression to be of array type.",
+                self.kind().camel_name()
+            ))
+        })?;
+        expect_concrete_bitvec_ty(&self.children.index, array_ty.index_ty()).map_err(|e| {
+            e.context(format!(
+                "Expected the index (middle) expression of the {:?} \
+                 expression to be of the same bitvector type as the index-type \
+                 of the left hand-side array expression.",
+                self.kind().camel_name()
+            ))
+        })?;
+        expect_concrete_bitvec_ty(&self.children.value, array_ty.value_ty()).map_err(|e| {
+            e.context(format!(
+                "Expected the value (right hand-side) expression of the {:?} \
+                 expression to be of the same bitvector type as the value-type \
+                 of the left hand-side array expression.",
+                self.kind().camel_name()
+            ))
+        }).map_err(ExprError::from)
+    }
+}
+
+impl AssertConsistency for expr::Not {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_concrete_ty(Type::Bool, &*self.child)
+    }
+}
+
+impl AssertConsistency for expr::Neg {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_concrete_ty(self.ty(), &*self.child)
+    }
+}
+
+impl AssertConsistency for expr::BitNot {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_concrete_ty(self.ty(), &*self.child)
+    }
+}
+
+impl<M> AssertConsistency for ExtendExpr<M>
+where
+    M: ExprMarker,
+    ExtendExpr<M>: Into<AnyExtendExpr>
+{
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        let target_bvty = self.bitvec_ty;
+        let src_bvty = expect_bitvec_ty(&*self.src).map_err(|e| {
+            e.context(format!(
+                "Expected bitvector expression for the child expression of this {:?} expression.\
+                 Encountered in expression: {:?}",
+                self.kind().camel_name(),
+                self
+            ))
+        })?;
+        if target_bvty.width() < src_bvty.width() {
+            return Err(CastError::extend_to_smaller(src_bvty, self.clone()).into())
+        }
+        Ok(())
+    }
+}
+
+impl AssertConsistency for expr::Concat {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        let bvty = self.bitvec_ty;
+
+        let lhs_bvty = expect_bitvec_ty(&self.children.lhs).map_err(|e| {
+            e.context(format!(
+                "Expected bitvector type for the left hand-side child expression of this {:?} \
+                 expression: {:?}",
+                self.kind().camel_name(),
+                self
+            ))
+        })?;
+        let rhs_bvty = expect_bitvec_ty(&self.children.rhs).map_err(|e| {
+            e.context(format!(
+                "Expected bitvector type for the right hand-side child expression of this {:?} \
+                 expression: {:?}",
+                self.kind().camel_name(),
+                self
+            ))
+        })?;
+        let concat_bvty = BitvecTy::from(lhs_bvty.width().len_bits() + rhs_bvty.width().len_bits());
+        if bvty != concat_bvty {
+            return error::expect_concrete_ty(concat_bvty, self).map_err(|e| {
+                e.context(format!(
+                    "Expect the concatenation of bitvectors with bit-widths of {:?} and {:?} to be of bit-width {:?}.",
+                    lhs_bvty,
+                    rhs_bvty,
+                    concat_bvty
+                ))
+            })
+        }
+        Ok(())
+    }
+}
+
+impl AssertConsistency for expr::Extract {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        let src_width = expect_bitvec_ty(&*self.src).map_err(|e| {
+            e.context(
+                "Encountered non-bitvector type for the child expression of an Extract expression.",
+            )
+        })?;
+        if self.lo >= self.hi {
+            return Err(CastError::extract_lo_greater_equal_hi(self.clone()).into());
+        }
+        if BitvecTy::from(self.hi) > src_width {
+            return Err(CastError::extract_hi_overflow(self.clone()).into());
+        }
+        Ok(())
+    }
+}
+
+impl AssertConsistency for expr::IfThenElse {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        expect_bool_ty(&self.children.cond).map_err(|e| {
+            e.context("The condition of an if-then-else expression must be of boolean type.")
+        })?;
+        expect_common_ty(&self.children.then_case, &self.children.else_case).map_err(|e| {
+            e.context(
+            "The types of the then-case and else-case of an if-then-else expression must be the same.")
+        })?;
+        Ok(())
+    }
+}
+
+impl AssertConsistency for expr::BoolConst {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        Ok(())
+    }
+}
+
+impl AssertConsistency for expr::BitvecConst {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        Ok(())
+    }
+}
+
+impl AssertConsistency for expr::Symbol {
+    fn assert_consistency(&self, ctx: &Context) -> ExprResult<()> {
+        if let SymbolId::Named(named) = self.id {
+            let assoc_ty = ctx.symbol_types.get(named).expect(
+                "Expected to have an associated type to this named symbol. \
+                 Maybe the wrong context is in used?",
+            );
+            return expect_matching_symbol_type(assoc_ty, self.ty(), named);
+        }
+        Ok(())
+    }
+}
+
+impl<M> AssertConsistency for BinBoolExpr<M>
+where
+    M: ExprMarker,
+{
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_concrete_ty(Type::Bool, self.lhs_child()).map_err(|e| {
+            e.context(format!(
+                "Expected boolean type for the left hand-side expression of this {:?} expression: {:?}",
+                self.kind().camel_name(),
+                self
+            ))
+        })?;
+        error::expect_concrete_ty(Type::Bool, self.rhs_child()).map_err(|e| {
+            e.context(format!(
+                "Expected boolean type for the right hand-side expression of this {:?} expression: {:?}",
+                self.kind().camel_name(),
+                self)
+            )
+        })
+    }
+}
+
+impl<M> AssertConsistency for BinTermExpr<M>
+where
+    M: ExprMarker,
+{
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        let expected_ty = self.ty();
+        error::expect_concrete_ty(expected_ty, self.lhs_child()).map_err(|e| {
+            e.context(format!(
+                "Expected concrete type (= {:?}) for the left hand-side expression of this {:?} expression: {:?}",
+                expected_ty,
+                self.kind().camel_name(),
+                self)
+            )
+        })?;
+        error::expect_concrete_ty(expected_ty, self.rhs_child()).map_err(|e| {
+            e.context(format!(
+                "Expected concrete type (= {:?}) for the right hand-side expression of this {:?} expression: {:?}",
+                expected_ty,
+                self.kind().camel_name(),
+                self)
+            )
+        })
+    }
+}
+
+impl AssertConsistency for expr::BitvecEquals {
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_min_children(2, self)?;
+        error::expect_concrete_ty_n(self.children_bitvec_ty, self)
+    }
+}
+
+impl<M> AssertConsistency for NaryBoolExpr<M>
+where
+    M: ExprMarker,
+    NaryBoolExpr<M>: Into<AnyExpr>,
+{
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_min_children(2, self)?;
+        error::expect_concrete_ty_n(Type::Bool, self)
+    }
+}
+
+impl<M> AssertConsistency for NaryTermExpr<M>
+where
+    M: ExprMarker,
+    NaryTermExpr<M>: Into<AnyExpr>,
+{
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_min_children(2, self)?;
+        error::expect_concrete_ty_n(self.ty(), self)
+    }
+}
+
+impl<M> AssertConsistency for ComparisonExpr<M>
+where
+    M: ExprMarker,
+    ComparisonExpr<M>: Into<AnyExpr>,
+{
+    fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
+        error::expect_concrete_ty(Type::Bool, self)?;
+        let bvty = expect_bitvec_ty(self.lhs_child())?;
+        error::expect_concrete_ty(bvty, self.rhs_child())
+    }
+}
+
 /// Validates the consistency of the given expression tree.
 ///
 /// # Note
@@ -48,318 +324,15 @@ impl<'ctx> ConsistencyChecker<'ctx> {
     }
 }
 
-/// Asserts the consistency of the conditional expression.
-fn assert_cond_consistency(expr: &expr::IfThenElse) -> ExprResult<()> {
-    expect_bool_ty(&expr.children.cond).map_err(|e| {
-        e.context("The condition of an if-then-else expression must be of boolean type.")
-    })?;
-    expect_common_ty(&expr.children.then_case, &expr.children.else_case).map_err(|e| {
-        e.context(
-        "The types of the then-case and else-case of an if-then-else expression must be the same.")
-    })?;
-    Ok(())
-}
-
-/// Assert the consistency of symbol expressions.
-fn assert_symbol_consistency(ctx: &Context, expr: &expr::Symbol) -> ExprResult<()> {
-    if let SymbolId::Named(named) = expr.id {
-        let assoc_ty = ctx.symbol_types.get(named).expect(
-            "Expected to have an associated type to this named symbol. \
-             Maybe the wrong context is in used?",
-        );
-        return expect_matching_symbol_type(assoc_ty, expr.ty(), named);
-    }
-    Ok(())
-}
-
-/// Assert the default consistency of binary bitvector expressions.
-fn assert_bitvec_binary_consistency<M>(expr: &BinTermExpr<M>) -> ExprResult<()>
-where
-    M: ExprMarker,
-{
-    let expected_ty = expr.ty();
-    error::expect_concrete_ty(expected_ty, expr.lhs_child()).map_err(|e| {
-        e.context(format!(
-            "Expected concrete type (= {:?}) for the left hand-side expression of this {:?} expression: {:?}",
-            expected_ty,
-            expr.kind().camel_name(),
-            expr)
-        )
-    })?;
-    error::expect_concrete_ty(expected_ty, expr.rhs_child()).map_err(|e| {
-        e.context(format!(
-            "Expected concrete type (= {:?}) for the right hand-side expression of this {:?} expression: {:?}",
-            expected_ty,
-            expr.kind().camel_name(),
-            expr)
-        )
-    })
-}
-
-/// Assert the default consistency of binary boolean expressions.
-fn assert_bool_binary_consistency<M>(expr: &BinBoolExpr<M>) -> ExprResult<()>
-where
-    M: ExprMarker,
-{
-    error::expect_concrete_ty(Type::Bool, expr.lhs_child()).map_err(|e| {
-        e.context(format!(
-            "Expected boolean type for the left hand-side expression of this {:?} expression: {:?}",
-            expr.kind().camel_name(),
-            expr
-        ))
-    })?;
-    error::expect_concrete_ty(Type::Bool, expr.rhs_child()).map_err(|e| {
-        e.context(format!(
-            "Expected boolean type for the right hand-side expression of this {:?} expression: {:?}",
-            expr.kind().camel_name(),
-            expr)
-        )
-    })
-}
-
-/// Assert the default consistency of n-ary bitvector expressions.
-fn assert_bitvec_equality_consistency(expr: &expr::BitvecEquals) -> ExprResult<()> {
-    error::expect_min_children(2, expr)?;
-    error::expect_concrete_ty_n(expr.children_bitvec_ty, expr)
-}
-
-/// Assert the default consistency of n-ary bitvector expressions.
-fn assert_bitvec_nary_consistency<M>(expr: &NaryTermExpr<M>) -> ExprResult<()>
-where
-    M: ExprMarker,
-    NaryTermExpr<M>: Into<AnyExpr>,
-{
-    error::expect_min_children(2, expr)?;
-    error::expect_concrete_ty_n(expr.ty(), expr)
-}
-
-/// Assert the default consistency of n-ary boolean expressions.
-fn assert_bool_nary_consistency<M>(expr: &NaryBoolExpr<M>) -> ExprResult<()>
-where
-    M: ExprMarker,
-    NaryBoolExpr<M>: Into<AnyExpr>,
-{
-    error::expect_min_children(2, expr)?;
-    error::expect_concrete_ty_n(Type::Bool, expr)
-}
-
-/// Assert the consistency of comparison expressions.
-fn assert_comparison_consistency<M>(expr: &ComparisonExpr<M>) -> ExprResult<()>
-where
-    M: ExprMarker,
-    ComparisonExpr<M>: Into<AnyExpr>,
-{
-    error::expect_concrete_ty(Type::Bool, expr)?;
-    let bvty = expect_bitvec_ty(expr.lhs_child())?;
-    error::expect_concrete_ty(bvty, expr.rhs_child())
-}
-
-impl<'ctx> ConsistencyChecker<'ctx> {
-    /// Forwards the given expression to the given checker and adds a potential
-    /// found error to the list of found errors.
-    fn forward_assert_consistency<E, F>(&mut self, expr: &E, checker: F)
-    where
-        F: Fn(&E) -> ExprResult<()>,
-    {
-        if let Err(err) = checker(expr) {
-            self.found_errors.push(err)
-        }
-    }
-}
-
 impl<'ctx> Visitor for ConsistencyChecker<'ctx> {
     fn visit_any_expr(&mut self, expr: &AnyExpr, event: VisitEvent) {
         if event != VisitEvent::Leaving {
             return;
         }
-        use self::AnyExpr::*;
-        match expr {
-            BoolConst(_) | BitvecConst(_) => (),
-
-            IfThenElse(expr) => self.visit_cond(expr, event),
-            Symbol(expr) => self.visit_var(expr, event),
-
-            BoolEquals(expr) => self.visit_bool_equals(expr, event),
-            BitvecEquals(expr) => self.visit_bitvec_equals(expr, event),
-            Not(expr) => self.visit_not(expr, event),
-            And(expr) => self.visit_and(expr, event),
-            Or(expr) => self.visit_or(expr, event),
-            Xor(expr) => self.visit_xor(expr, event),
-            Implies(expr) => self.visit_implies(expr, event),
-
-            SignedGreaterEquals(expr) => self.visit_sge(expr, event),
-            SignedGreaterThan(expr) => self.visit_sgt(expr, event),
-            SignedLessEquals(expr) => self.visit_sle(expr, event),
-            SignedLessThan(expr) => self.visit_slt(expr, event),
-            UnsignedGreaterEquals(expr) => self.visit_uge(expr, event),
-            UnsignedGreaterThan(expr) => self.visit_ugt(expr, event),
-            UnsignedLessEquals(expr) => self.visit_ule(expr, event),
-            UnsignedLessThan(expr) => self.visit_ult(expr, event),
-
-            Add(expr) => self.visit_add(expr, event),
-            Mul(expr) => self.visit_mul(expr, event),
-            Neg(expr) => self.visit_neg(expr, event),
-            SignedDiv(expr) => self.visit_sdiv(expr, event),
-            SignedModulo(expr) => self.visit_smod(expr, event),
-            SignedRemainder(expr) => self.visit_srem(expr, event),
-            Sub(expr) => self.visit_sub(expr, event),
-            UnsignedDiv(expr) => self.visit_udiv(expr, event),
-            UnsignedRemainder(expr) => self.visit_urem(expr, event),
-
-            BitAnd(expr) => self.visit_bitand(expr, event),
-            BitNot(expr) => self.visit_bitnot(expr, event),
-            BitOr(expr) => self.visit_bitor(expr, event),
-            BitXor(expr) => self.visit_bitxor(expr, event),
-
-            Concat(expr) => self.visit_concat(expr, event),
-            Extract(expr) => self.visit_extract(expr, event),
-            SignExtend(expr) => self.visit_sext(expr, event),
-            ZeroExtend(expr) => self.visit_zext(expr, event),
-
-            ArithmeticShiftRight(expr) => self.visit_ashr(expr, event),
-            LogicalShiftRight(expr) => self.visit_lshr(expr, event),
-            ShiftLeft(expr) => self.visit_shl(expr, event),
-
-            ArrayRead(expr) => self.visit_array_read(expr, event),
-            ArrayWrite(expr) => self.visit_array_write(expr, event),
-        }
-    }
-
-    fn visit_cond(&mut self, cond: &expr::IfThenElse, _: VisitEvent) {
-        self.forward_assert_consistency(cond, assert_cond_consistency)
-    }
-
-    fn visit_var(&mut self, var: &expr::Symbol, _: VisitEvent) {
-        if let Err(err) = assert_symbol_consistency(self.ctx, var) {
+        if let Err(err) = expr.assert_consistency(&self.ctx) {
             self.found_errors.push(err)
         }
     }
-
-    fn visit_bool_equals(&mut self, bool_equals: &expr::BoolEquals, _: VisitEvent) {
-        self.forward_assert_consistency(bool_equals, assert_bool_nary_consistency)
-    }
-
-    fn visit_and(&mut self, and: &expr::And, _: VisitEvent) {
-        self.forward_assert_consistency(and, assert_bool_nary_consistency)
-    }
-
-    fn visit_or(&mut self, or: &expr::Or, _: VisitEvent) {
-        self.forward_assert_consistency(or, assert_bool_nary_consistency)
-    }
-
-    fn visit_not(&mut self, _not: &expr::Not, _: VisitEvent) {}
-
-    fn visit_xor(&mut self, xor: &expr::Xor, _: VisitEvent) {
-        self.forward_assert_consistency(xor, assert_bool_binary_consistency)
-    }
-
-    fn visit_implies(&mut self, implies: &expr::Implies, _: VisitEvent) {
-        self.forward_assert_consistency(implies, assert_bool_binary_consistency)
-    }
-
-    fn visit_array_read(&mut self, _array_read: &expr::ArrayRead, _: VisitEvent) {}
-
-    fn visit_array_write(&mut self, _array_write: &expr::ArrayWrite, _: VisitEvent) {}
-
-    fn visit_bitvec_const(&mut self, _bitvec_const: &expr::BitvecConst, _: VisitEvent) {}
-
-    fn visit_add(&mut self, add: &expr::Add, _: VisitEvent) {
-        self.forward_assert_consistency(add, assert_bitvec_nary_consistency)
-    }
-
-    fn visit_mul(&mut self, mul: &expr::Mul, _: VisitEvent) {
-        self.forward_assert_consistency(mul, assert_bitvec_nary_consistency)
-    }
-
-    fn visit_neg(&mut self, _neg: &expr::Neg, _: VisitEvent) {}
-
-    fn visit_sdiv(&mut self, sdiv: &expr::SignedDiv, _: VisitEvent) {
-        self.forward_assert_consistency(sdiv, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_smod(&mut self, smod: &expr::SignedModulo, _: VisitEvent) {
-        self.forward_assert_consistency(smod, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_srem(&mut self, srem: &expr::SignedRemainder, _: VisitEvent) {
-        self.forward_assert_consistency(srem, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_sub(&mut self, sub: &expr::Sub, _: VisitEvent) {
-        self.forward_assert_consistency(sub, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_udiv(&mut self, udiv: &expr::UnsignedDiv, _: VisitEvent) {
-        self.forward_assert_consistency(udiv, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_urem(&mut self, urem: &expr::UnsignedRemainder, _: VisitEvent) {
-        self.forward_assert_consistency(urem, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_bitnot(&mut self, _bitnot: &expr::BitNot, _: VisitEvent) {}
-
-    fn visit_bitand(&mut self, bitand: &expr::BitAnd, _: VisitEvent) {
-        self.forward_assert_consistency(bitand, assert_bitvec_nary_consistency)
-    }
-
-    fn visit_bitor(&mut self, bitor: &expr::BitOr, _: VisitEvent) {
-        self.forward_assert_consistency(bitor, assert_bitvec_nary_consistency)
-    }
-
-    fn visit_bitxor(&mut self, bitxor: &expr::BitXor, _: VisitEvent) {
-        self.forward_assert_consistency(bitxor, assert_bitvec_binary_consistency)
-    }
-
-    fn visit_concat(&mut self, _concat: &expr::Concat, _: VisitEvent) {}
-
-    fn visit_extract(&mut self, _extract: &expr::Extract, _: VisitEvent) {}
-
-    fn visit_sext(&mut self, _sext: &expr::SignExtend, _: VisitEvent) {}
-
-    fn visit_zext(&mut self, _zext: &expr::ZeroExtend, _: VisitEvent) {}
-
-    fn visit_bitvec_equals(&mut self, bitvec_equals: &expr::BitvecEquals, _: VisitEvent) {
-        self.forward_assert_consistency(bitvec_equals, assert_bitvec_equality_consistency)
-    }
-
-    fn visit_sge(&mut self, sge: &expr::SignedGreaterEquals, _: VisitEvent) {
-        self.forward_assert_consistency(sge, assert_comparison_consistency)
-    }
-
-    fn visit_sgt(&mut self, sgt: &expr::SignedGreaterThan, _: VisitEvent) {
-        self.forward_assert_consistency(sgt, assert_comparison_consistency)
-    }
-
-    fn visit_sle(&mut self, sle: &expr::SignedLessEquals, _: VisitEvent) {
-        self.forward_assert_consistency(sle, assert_comparison_consistency)
-    }
-
-    fn visit_slt(&mut self, slt: &expr::SignedLessThan, _: VisitEvent) {
-        self.forward_assert_consistency(slt, assert_comparison_consistency)
-    }
-
-    fn visit_uge(&mut self, uge: &expr::UnsignedGreaterEquals, _: VisitEvent) {
-        self.forward_assert_consistency(uge, assert_comparison_consistency)
-    }
-
-    fn visit_ugt(&mut self, ugt: &expr::UnsignedGreaterThan, _: VisitEvent) {
-        self.forward_assert_consistency(ugt, assert_comparison_consistency)
-    }
-
-    fn visit_ule(&mut self, ule: &expr::UnsignedLessEquals, _: VisitEvent) {
-        self.forward_assert_consistency(ule, assert_comparison_consistency)
-    }
-
-    fn visit_ult(&mut self, ult: &expr::UnsignedLessThan, _: VisitEvent) {
-        self.forward_assert_consistency(ult, assert_comparison_consistency)
-    }
-
-    fn visit_ashr(&mut self, _ashr: &expr::ArithmeticShiftRight, _: VisitEvent) {}
-
-    fn visit_lshr(&mut self, _lshr: &expr::LogicalShiftRight, _: VisitEvent) {}
-
-    fn visit_shl(&mut self, _shl: &expr::ShiftLeft, _: VisitEvent) {}
 }
 
 #[cfg(test)]

@@ -40,6 +40,7 @@ pub use self::{
         TypeMap
     },
     consistency_checker::{
+        AssertConsistency,
         assert_consistency_recursively
     },
     error::{
