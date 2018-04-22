@@ -7,6 +7,8 @@ pub mod prelude {
     pub use super::{
         Concat,
         Extract,
+        AnyExtendExpr,
+        ExtendExpr,
         SignExtend,
         ZeroExtend,
         CastError,

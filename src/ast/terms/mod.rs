@@ -25,6 +25,7 @@ pub mod prelude {
         BinTermExpr,
         NaryTermExpr,
         ArrayReadChildren,
+        AnyExtendExpr,
 
         BitWidth,
         BitvecConst,

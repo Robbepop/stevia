@@ -4,7 +4,51 @@ use ast::ExprMarker;
 use std::marker::PhantomData;
 
 pub mod prelude {
-    pub use super::{SignExtend, ZeroExtend};
+    pub use super::{AnyExtendExpr, ExtendExpr, SignExtend, ZeroExtend};
+}
+
+/// Any extend expression.
+/// 
+/// # Note
+/// 
+/// This is mainly used for generic error reporting specific
+/// to extend expressions.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum AnyExtendExpr {
+    Sign(SignExtend),
+    Zero(ZeroExtend)
+}
+
+impl From<SignExtend> for AnyExtendExpr {
+    fn from(expr: SignExtend) -> Self {
+        AnyExtendExpr::Sign(expr)
+    }
+}
+
+impl From<ZeroExtend> for AnyExtendExpr {
+    fn from(expr: ZeroExtend) -> Self {
+        AnyExtendExpr::Zero(expr)
+    }
+}
+
+impl AnyExtendExpr {
+    pub fn bitvec_ty(&self) -> BitvecTy {
+        use self::AnyExtendExpr::*;
+        match self {
+            Sign(extend) => extend.bitvec_ty,
+            Zero(extend) => extend.bitvec_ty
+        }
+    }
+}
+
+impl HasKind for AnyExtendExpr {
+    fn kind(&self) -> ExprKind {
+        use self::AnyExtendExpr::*;
+        match self {
+            Sign(extend) => extend.kind(),
+            Zero(extend) => extend.kind()
+        }
+    }
 }
 
 /// Generic binary extend term expression.
@@ -49,7 +93,7 @@ impl ZeroExtend {
             marker: PhantomData,
         };
         if target_width < src_bvty.width() {
-            return Err(CastError::zero_extend_to_smaller(src_bvty, extend).into());
+            return Err(CastError::extend_to_smaller(src_bvty, extend).into());
         }
         Ok(extend)
     }
@@ -78,7 +122,7 @@ impl SignExtend {
             marker: PhantomData,
         };
         if target_width < src_bvty.width() {
-            return Err(CastError::sign_extend_to_smaller(src_bvty, extend).into());
+            return Err(CastError::extend_to_smaller(src_bvty, extend).into());
         }
         Ok(extend)
     }
