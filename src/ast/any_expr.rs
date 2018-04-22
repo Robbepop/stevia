@@ -183,6 +183,15 @@ macro_rules! impl_expr_kinds {
                 }
             }
         }
+
+        impl AssertConsistency for AnyExpr {
+            fn assert_consistency(&self, ctx: &Context) -> ExprResult<()> {
+                use self::AnyExpr::*;
+                match self {
+                    $($names(expr) => expr.assert_consistency(ctx)),*
+                }
+            }
+        }
     }
 }
 
