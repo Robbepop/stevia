@@ -108,6 +108,8 @@ pub use self::{
         BitWidth,
         BinTermExpr,
         NaryTermExpr,
+        AnyExtendExpr,
+        ExtendExpr,
         ComparisonExpr,
         ArrayReadChildren,
         CastError,
