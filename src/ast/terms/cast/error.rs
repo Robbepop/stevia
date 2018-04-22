@@ -37,26 +37,16 @@ pub enum CastErrorKind {
 		/// The extract expression with invalid invariants.
 		expr: expr::Extract,
 	},
-	/// Error upon encountering target bitvector type with invalid bitwidth for extend sign-expression.
-	SignExtendToSmaller {
+	/// Error upon encountering target bitvector type with invalid bitwidth for extend expression.
+	ExtendToSmaller {
 		/// The target bitvector type that invalidly has a smaller bitwidth than the
-		/// source bitwidth of the given sign-extend expression.
+		/// source bitwidth of the given extend expression.
 		target_ty: BitvecTy,
 		/// The source bitvector type.
 		source_ty: BitvecTy,
-		/// The sign-extend expression with invalid invariants.
-		expr: expr::SignExtend,
-	},
-	/// Error upon encountering target bitvector type with invalid bitwidth for extend zero-expression.
-	ZeroExtendToSmaller {
-		/// The target bitvector type that invalidly has a smaller bitwidth than the
-		/// source bitwidth of the given zero-extend expression.
-		target_ty: BitvecTy,
-		/// The source bitvector type.
-		source_ty: BitvecTy,
-		/// The zero-extend expression with invalid invariants.
-		expr: expr::ZeroExtend,
-	},
+		/// The extend expression with invalid invariants.
+		expr: AnyExtendExpr,
+	}
 }
 
 /// An error that may be returned by expression checking procedures.
@@ -110,22 +100,16 @@ impl CastError {
 	}
 
 	/// Returns an `CastError` that indicates that the target bitvector type has a bitwidth
-	/// less-than the bitwidth of the child expression of the sign-extend expression.
-	pub fn sign_extend_to_smaller(source_ty: BitvecTy, extend: expr::SignExtend) -> Self {
-		CastError::new(CastErrorKind::SignExtendToSmaller {
-			target_ty: extend.bitvec_ty,
+	/// less-than the bitwidth of the child expression of the extend expression.
+	pub fn extend_to_smaller<E>(source_ty: BitvecTy, extend_expr: E) -> Self
+	where
+		E: Into<AnyExtendExpr>
+	{
+		let extend_expr = extend_expr.into();
+		CastError::new(CastErrorKind::ExtendToSmaller {
+			target_ty: extend_expr.bitvec_ty(),
 			source_ty,
-			expr: extend
-		})
-	}
-
-	/// Returns an `CastError` that indicates that the target bitvector type has a bitwidth
-	/// less-than the bitwidth of the child expression of the zero-extend expression.
-	pub fn zero_extend_to_smaller(source_ty: BitvecTy, extend: expr::ZeroExtend) -> Self {
-		CastError::new(CastErrorKind::ZeroExtendToSmaller {
-			target_ty: extend.bitvec_ty,
-			source_ty,
-			expr: extend
+			expr: extend_expr
 		})
 	}
 }
@@ -144,15 +128,10 @@ impl fmt::Display for CastError {
 				"Encountered bitwidth (= {:?}) overflowing hi-bits (= {:?}) in extract expression: {:?}",
 				expr.bitvec_ty(), hi, expr
 			),
-			SignExtendToSmaller { target_ty, source_ty, expr } => write!(
+			ExtendToSmaller { target_ty, source_ty, expr } => write!(
 				f,
-				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of sign-extend expression: {:?}",
-				target_ty.width(), source_ty.width(), expr
-			),
-			ZeroExtendToSmaller { target_ty, source_ty, expr } => write!(
-				f,
-				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of zero-extend expression: {:?}",
-				target_ty.width(), source_ty.width(), expr
+				"Encountered target bitwidth (= {:?}) that is smaller than the current bitwidth (= {:?}) of {:?} expression: {:?}",
+				target_ty.width(), source_ty.width(), expr.kind().camel_name(), expr
 			),
 		}
 	}
@@ -168,11 +147,8 @@ impl error::Error for CastError {
 			ExtractHiOverflow { .. } => {
 				"Encountered extract expression with bitwidth overflowing hi-bits"
 			}
-			SignExtendToSmaller { .. } => {
-				"Encountered sign-extend expression with a target bitwidth that is smaller than the current bitwidth"
-			}
-			ZeroExtendToSmaller { .. } => {
-				"Encountered zero-extend expression with a target bitwidth that is smaller than the current bitwidth"
+			ExtendToSmaller { .. } => {
+				"Encountered extend expression with a target bitwidth that is smaller than the current bitwidth"
 			}
 		}
 	}
