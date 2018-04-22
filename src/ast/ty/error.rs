@@ -4,11 +4,6 @@ use std::result;
 use std::error;
 use std::fmt;
 
-/// Module for exports of commonly used items of this module.
-pub mod prelude {
-	pub use super::{TypeError, TypeErrorKind, TypeResult};
-}
-
 /// A special `Result` type where the error part is always a `TypeError`.
 pub type TypeResult<T, H> = result::Result<T, TypeError<H>>;
 

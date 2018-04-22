@@ -1,11 +1,6 @@
 use ast::BitWidth;
 use apint;
 
-/// Module for exports of commonly used items of this module.
-pub mod prelude {
-	pub use super::{ArrayTy, BitvecTy, HasType, Type, TypeKind};
-}
-
 /// All types that have a `Type` or represent a `Type` should
 /// implement this trait.
 pub trait HasType {

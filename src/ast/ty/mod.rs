@@ -1,30 +1,34 @@
 mod base;
 mod assert;
 mod error;
-// mod type_check;
 
+/// Module for exports of commonly used items of this module.
 pub mod prelude {
-    pub use super::{
+    pub use super::*;
+}
+
+pub use self::{
+	base::{
+		Type,
 		ArrayTy,
 		BitvecTy,
 		HasType,
-		Type,
-		TypeKind,
+		TypeKind
+	},
+	error::{
 		TypeError,
 		TypeErrorKind,
-		TypeResult,
+		TypeResult
+	},
+	assert::{
 		have_common_ty,
 		common_ty,
+		expect_bool_ty,
 		expect_common_ty,
 		expect_array_ty,
 		expect_bitvec_ty,
 		expect_concrete_bitvec_ty,
 		expect_common_bitvec_ty,
 		expect_common_bitvec_ty_n
-    };
-}
-
-pub use self::base::prelude::*;
-pub use self::assert::prelude::*;
-pub use self::error::prelude::*;
-// pub use self::type_check::prelude::*;
+	}
+};
