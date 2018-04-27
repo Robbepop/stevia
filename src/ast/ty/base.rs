@@ -8,17 +8,6 @@ pub trait HasType {
 	fn ty(&self) -> Type;
 }
 
-/// A type of an expression.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Type {
-	/// Boolean type.
-	Bool,
-	/// Bitvector type with the given bit-width.
-	Bitvec(BitvecTy),
-	/// Array type with the given index-width and value-width.
-	Array(ArrayTy),
-}
-
 /// The kind of a type.
 ///
 /// This unifies all bitvector types and all array types
@@ -44,26 +33,18 @@ impl From<Type> for TypeKind {
 	}
 }
 
+/// A type of an expression.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Type {
+	/// Boolean type.
+	Bool,
+	/// Bitvector type with the given bit-width.
+	Bitvec(BitvecTy),
+	/// Array type with the given index-width and value-width.
+	Array(ArrayTy),
+}
+
 impl Type {
-	/// Returns a `Bool` type.
-	#[inline]
-	pub fn bool() -> Type {
-		Type::Bool
-	}
-
-	/// Returns a `BitVec` type with the given bit width.
-	#[inline]
-	pub fn bitvec(width: BitWidth) -> Type {
-		Type::Bitvec(BitvecTy(width))
-	}
-
-	/// Returns an `Array` type with the given index bit width and
-	/// value bit width.
-	#[inline]
-	pub fn array(index_ty: BitvecTy, value_ty: BitvecTy) -> Type {
-		Type::Array(ArrayTy { index_ty, value_ty })
-	}
-
 	/// Returns the `TypeKind` of this `Type`.
 	#[inline]
 	pub fn kind(self) -> TypeKind {
@@ -75,6 +56,18 @@ impl HasType for Type {
 	/// Returns `self`.
 	fn ty(&self) -> Type {
 		*self
+	}
+}
+
+impl From<ArrayTy> for Type {
+	fn from(array_ty: ArrayTy) -> Type {
+		Type::Array(array_ty)
+	}
+}
+
+impl From<BitvecTy> for Type {
+	fn from(bitvec_ty: BitvecTy) -> Type {
+		Type::Bitvec(bitvec_ty)
 	}
 }
 
@@ -121,19 +114,6 @@ impl HasType for ArrayTy {
 	}
 }
 
-impl From<ArrayTy> for Type {
-	fn from(array_ty: ArrayTy) -> Type {
-		Type::Array(array_ty)
-	}
-}
-
-impl From<BitvecTy> for Type {
-	fn from(bitvec_ty: BitvecTy) -> Type {
-		Type::Bitvec(bitvec_ty)
-	}
-}
-
-
 /// The `Bitvec` type.
 ///
 /// Bitvec have an associated bit width for their respective value.
@@ -178,14 +158,14 @@ impl From<usize> for BitvecTy {
 }
 
 impl From<BitWidth> for BitvecTy {
-	/// Converts the `BitWidth` from `apint` crate to a `BitvecTy`.
+	/// Converts the given `BitWidth` to a `BitvecTy`.
 	fn from(width: BitWidth) -> BitvecTy {
 		BitvecTy(width)
 	}
 }
 
 impl From<apint::BitWidth> for BitvecTy {
-	/// Converts the `BitWidth` from `apint` crate to a `BitvecTy`.
+	/// Converts the given `apint::BitWidth` to a `BitvecTy`.
 	fn from(width: apint::BitWidth) -> BitvecTy {
 		BitvecTy::from(width.to_usize())
 	}
