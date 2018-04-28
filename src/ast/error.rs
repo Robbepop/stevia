@@ -31,8 +31,6 @@ pub enum ExprErrorKind {
 		expected_min: usize,
 		/// The actual number of given child expressions.
 		actual_num: usize,
-		/// The expression that has too few child expressions.
-		expr: AnyExpr,
 	},
 	/// Error upon encountering type mismatch for the same symbol.
 	UnmatchingSymbolTypes {
@@ -70,6 +68,12 @@ impl From<TypeError<AnyExpr>> for ExprError {
 	}
 }
 
+impl From<TypeError2> for ExprError {
+	fn from(type_error: TypeError2) -> Self {
+		ExprError::new(ExprErrorKind::TypeError2(type_error))
+	}
+}
+
 impl From<BitvecError> for ExprError {
 	fn from(bitvec_error: BitvecError) -> Self {
 		ExprError::new(ExprErrorKind::BitvecError(bitvec_error))
@@ -95,17 +99,11 @@ impl ExprError {
 	}
 
 	/// Returns an `ExprError` that indicates that the given expression has too few child expressions.
-	pub fn too_few_children<E>(expected_min: usize, actual_num: usize, expr: E) -> Self
-	where
-		E: Into<AnyExpr>,
-	{
-		let expr = expr.into();
-		debug_assert!(expr.arity() < expected_min);
-		debug_assert!(expr.arity() == actual_num);
+	pub fn too_few_children(expected_min: usize, actual_num: usize) -> Self {
+		debug_assert!(expected_min > actual_num);
 		ExprError::new(ExprErrorKind::TooFewChildren {
 			expected_min,
 			actual_num,
-			expr,
 		})
 	}
 
@@ -140,13 +138,11 @@ impl fmt::Display for ExprError {
 			BitvecError(bitvec_error) => bitvec_error.fmt(f),
 			TooFewChildren {
 				expected_min,
-				actual_num,
-				expr,
+				actual_num
 			} => write!(
 				f,
-				"Too few children for expression (= {:?}), found {:?} children but \
-				 expected at least {:?}.",
-				expr, actual_num, expected_min
+				"Expected at least {:?} child expressions but found only {:?}.",
+				actual_num, expected_min
 			),
 			UnmatchingSymbolTypes {
 				assoc_ty,
@@ -218,18 +214,18 @@ where
 /// Asserts that the given expression has at least the expected minimum number of child expressions.
 pub fn expect_min_children<E>(expected_min_children_number: usize, expr: &E) -> ExprResult<()>
 where
-	E: Into<AnyExpr> + Clone + HasArity + HasKind,
+	E: HasArity
 {
 	let actual_children_number = expr.arity();
 	if actual_children_number < expected_min_children_number {
 		return Err(ExprError::too_few_children(
 			expected_min_children_number,
-			actual_children_number,
-			expr.clone(),
+			actual_children_number
 		).context(format!(
-			"Expected at least 2 child expressions for the {} expression.",
-			expr.kind().camel_name()
-		)));
+			"Expected at least {:?} child expressions but found only {:?}.",
+			expected_min_children_number,
+			actual_children_number
+		)))
 	}
 	Ok(())
 }
