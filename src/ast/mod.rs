@@ -57,6 +57,11 @@ pub use self::{
         TypeError,
         TypeErrorKind,
         TypeResult,
+
+        TypeError2,
+        TypeErrorKind2,
+        TypeResult2,
+
         HasType,
         common_ty,
         have_common_ty,

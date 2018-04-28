@@ -19,8 +19,10 @@ pub type ExprResult<T> = result::Result<T, ExprError>;
 pub enum ExprErrorKind {
 	/// Errors that are caused by cast violations.
 	CastError(CastError),
-	/// Errors that are caused by type violations.
+	/// Errors that are caused by type violations. (Old version.)
 	TypeError(TypeError<AnyExpr>),
+	/// Errors that are caused by type violations.
+	TypeError2(TypeError2),
 	/// Errors that are caused by bitvector operations.
 	BitvecError(BitvecError),
 	/// Error upon encountering an n-ary expression that was provided with too few child expressions.
@@ -134,6 +136,7 @@ impl fmt::Display for ExprError {
 		match &self.kind {
 			CastError(cast_error) => cast_error.fmt(f),
 			TypeError(type_error) => type_error.fmt(f),
+			TypeError2(type_error) => type_error.fmt(f),
 			BitvecError(bitvec_error) => bitvec_error.fmt(f),
 			TooFewChildren {
 				expected_min,
@@ -164,6 +167,7 @@ impl error::Error for ExprError {
 		match &self.kind {
 			CastError(cast_error) => cast_error.description(),
 			TypeError(type_error) => type_error.description(),
+			TypeError2(type_error) => type_error.description(),
 			BitvecError(bitvec_error) => bitvec_error.description(),
 			TooFewChildren { .. } => "Too few children for expression",
 			UnmatchingSymbolTypes { .. } => "Unmatching types for the same symbol",
