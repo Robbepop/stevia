@@ -9,7 +9,7 @@ use ast::prelude::*;
 /// # Errors
 ///
 /// - If the given typed params do not have the same type.
-pub fn expect_common_ty<T1, T2>(lhs: &T1, rhs: &T2) -> TypeResult2<Type>
+pub fn expect_common_ty<T1, T2>(lhs: &T1, rhs: &T2) -> TypeResult<Type>
 where
     T1: HasType,
     T2: HasType
@@ -19,7 +19,7 @@ where
         (Bool, Bool) => Ok(Bool),
         (Bitvec(b1), Bitvec(b2)) if b1 == b2 => Ok(Bitvec(b1)),
         (Array(a1), Array(a2)) if a1 == a2 => Ok(Array(a1)),
-        _ => Err(TypeError2::type_mismatch(lhs.ty(), rhs.ty()))
+        _ => Err(TypeError::type_mismatch(lhs.ty(), rhs.ty()))
     }
 }
 
@@ -29,13 +29,13 @@ where
 /// # Errors
 ///
 /// - If the given typed param is not of array type.
-pub fn expect_array_ty<T>(typed: &T) -> TypeResult2<ArrayTy>
+pub fn expect_array_ty<T>(typed: &T) -> TypeResult<ArrayTy>
 where
     T: HasType,
 {
     match typed.ty() {
         Type::Array(array_ty) => Ok(array_ty),
-        _ => Err(TypeError2::unexpected_type_kind(
+        _ => Err(TypeError::unexpected_type_kind(
             TypeKind::Array,
             typed.ty(),
         )),
@@ -48,13 +48,13 @@ where
 /// # Errors
 ///
 /// - If the given typed param is not of bitvec type.
-pub fn expect_bitvec_ty<T>(typed: &T) -> TypeResult2<BitvecTy>
+pub fn expect_bitvec_ty<T>(typed: &T) -> TypeResult<BitvecTy>
 where
     T: HasType,
 {
     match typed.ty() {
         Type::Bitvec(width) => Ok(width),
-        _ => Err(TypeError2::unexpected_type_kind(
+        _ => Err(TypeError::unexpected_type_kind(
             TypeKind::Bitvec,
             typed.ty(),
         )),
@@ -68,14 +68,14 @@ where
 ///
 /// - If the given typed param is not of bitvec type.
 /// - If the given typed param is of bitvec type but has not the expected bit width.
-pub fn expect_type<T1, T2>(expected_ty: T1, found_ty: &T2) -> TypeResult2<()>
+pub fn expect_type<T1, T2>(expected_ty: T1, found_ty: &T2) -> TypeResult<()>
 where
     T1: Into<Type>,
     T2: HasType
 {
     let expected_ty = expected_ty.into();
     if expected_ty != found_ty.ty() {
-        return Err(TypeError2::unexpected_type(
+        return Err(TypeError::unexpected_type(
             expected_ty,
             found_ty.ty()
         ));
@@ -89,7 +89,7 @@ where
 ///
 /// - If the given typed params are not of bitvector type.
 /// - If the given typed params are not of the same bitvector type.
-pub fn expect_common_bitvec_ty<T1, T2>(lhs: &T1, rhs: &T2) -> TypeResult2<BitvecTy>
+pub fn expect_common_bitvec_ty<T1, T2>(lhs: &T1, rhs: &T2) -> TypeResult<BitvecTy>
 where
     T1: HasType,
     T2: HasType
@@ -106,7 +106,7 @@ where
 ///
 /// - If the given iterator yields no elements.
 /// - If not all yielded typed items are of the same bitvector type.
-pub fn expect_common_bitvec_ty_n<'t, I, T>(typed_vals: I) -> TypeResult2<Option<BitvecTy>>
+pub fn expect_common_bitvec_ty_n<'t, I, T>(typed_vals: I) -> TypeResult<Option<BitvecTy>>
 where
     I: IntoIterator<Item = &'t T>,
     T: HasType + 't,

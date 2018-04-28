@@ -55,13 +55,10 @@ pub use self::{
         BitvecTy,
         Type,
         TypeKind,
+
         TypeError,
         TypeErrorKind,
         TypeResult,
-
-        TypeError2,
-        TypeErrorKind2,
-        TypeResult2,
 
         expect_common_ty,
         expect_array_ty,

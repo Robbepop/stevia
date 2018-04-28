@@ -18,10 +18,7 @@ pub use self::{
 	error::{
 		TypeError,
 		TypeErrorKind,
-		TypeResult,
-		TypeError2,
-		TypeErrorKind2,
-		TypeResult2
+		TypeResult
 	},
 	assert::{
 		expect_common_ty,
