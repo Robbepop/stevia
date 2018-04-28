@@ -24,7 +24,7 @@ impl Not {
         E: IntoBoxedAnyExpr,
     {
         let child = child.into_boxed_any_expr();
-        expect_bool_ty(&*child).map_err(|e| {
+        expect_type(Type::Bool, &*child).map_err(|e| {
             e.context(
                 "Expected boolean type for the single child expression of this Not expression.",
             )

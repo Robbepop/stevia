@@ -85,7 +85,7 @@ impl IfThenElse {
         let cond = cond.into();
         let then_case = then_case.into();
         let else_case = else_case.into();
-        expect_bool_ty(&cond).map_err(|e| e.context(
+        expect_type(Type::Bool, &cond).map_err(|e| e.context(
             "The condition of an if-then-else expression must be of boolean type."))?;
         expect_common_ty(&then_case, &else_case).map_err(|e| e.context(
             "The types of the then-case and else-case of an if-then-else expression must be the same."))?;
@@ -96,16 +96,12 @@ impl IfThenElse {
     /// 
     /// # Note
     /// 
-    /// This function is unsafe since it does not perform some checks to secure invariants.
-    /// Use it if you already asserted the nessecary invariants.
-    /// 
-    /// # Panics
-    /// 
-    /// - If the given then-case and else-case do not have a common type.
+    /// - The resulting `IfThenElse` has the type of the then-case expression child.
+    /// - This function is unsafe since it does not perform some checks to secure invariants.
+    ///   Use it if you already asserted the nessecary invariants.
     pub unsafe fn new_unchecked(cond: AnyExpr, then_case: AnyExpr, else_case: AnyExpr) -> IfThenElse {
-        let common_ty = common_ty(&then_case, &else_case).unwrap();
         IfThenElse{
-            ty: common_ty,
+            ty: then_case.ty(),
             children: P::new(IfThenElseChildren{cond, then_case, else_case})
         }
     }

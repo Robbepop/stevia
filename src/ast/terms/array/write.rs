@@ -82,14 +82,14 @@ impl ArrayWrite {
                  expression to be of array type.",
             )
         })?;
-        expect_concrete_bitvec_ty(&index, array_ty.index_ty()).map_err(|e| {
+        expect_type(array_ty.index_ty(), &index).map_err(|e| {
             e.context(
                 "Expected the index (middle) expression of the ArrayRead \
                  expression to be of the same bitvector type as the index-type \
                  of the left hand-side array expression.",
             )
         })?;
-        expect_concrete_bitvec_ty(&value, array_ty.value_ty()).map_err(|e| {
+        expect_type(array_ty.value_ty(), &value).map_err(|e| {
             e.context(
                 "Expected the value (right hand-side) expression of the ArrayRead \
                  expression to be of the same bitvector type as the value-type \

@@ -78,6 +78,14 @@ where
         AnyExpr: From<Self>,
     {
         let children = exprs.into_iter().collect::<Vec<_>>();
+        if children.len() < 2 {
+            return Err(
+                ExprError::too_few_children(2, children.len()).context(format!(
+                    "Expected at least 2 child expressions for the n-ary {} expression.",
+                    M::EXPR_KIND.camel_name()
+                )),
+            );
+        }
         let bitvec_ty = expect_common_bitvec_ty_n(&children).map_err(|e| {
             e.context(format!(
                 "Expected all child expressions of the n-ary {} expression \
@@ -85,20 +93,11 @@ where
                 M::EXPR_KIND.camel_name()
             ))
         })?;
-        let nary_expr = Self {
-            bitvec_ty,
+        Ok(Self {
+            bitvec_ty: bitvec_ty.unwrap(),
             children,
             marker: PhantomData,
-        };
-        if nary_expr.arity() < 2 {
-            return Err(
-                ExprError::too_few_children(2, nary_expr.arity(), nary_expr).context(format!(
-                    "Expected at least 2 child expressions for the n-ary {} expression.",
-                    M::EXPR_KIND.camel_name()
-                )),
-            );
-        }
-        Ok(nary_expr)
+        })
     }
 }
 

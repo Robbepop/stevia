@@ -50,6 +50,7 @@ pub use self::{
         expect_matching_symbol_type
     },
     ty::{
+        HasType,
         ArrayTy,
         BitvecTy,
         Type,
@@ -62,16 +63,13 @@ pub use self::{
         TypeErrorKind2,
         TypeResult2,
 
-        HasType,
-        common_ty,
-        have_common_ty,
         expect_common_ty,
-        expect_bool_ty,
         expect_array_ty,
         expect_bitvec_ty,
-        expect_concrete_bitvec_ty,
+        expect_type,
         expect_common_bitvec_ty,
-        expect_common_bitvec_ty_n
+        expect_common_bitvec_ty_n,
+
     },
     visitor::{
         VisitEvent,

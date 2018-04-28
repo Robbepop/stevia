@@ -122,7 +122,7 @@ impl ExprTreeFactory for PlainExprTreeFactory {
 		V: Into<expr::BitvecConst>,
 	{
 		let result = AnyExpr::from(value.into());
-		expect_concrete_bitvec_ty(&result, ty).map_err(|e| {
+		expect_type(ty, &result).map_err(|e| {
 			e.context(format!(
 			"Encountered incompatible bitwidth of {:?} upon construction of a new BitvecConst expression: {:?}",
 			ty, result))

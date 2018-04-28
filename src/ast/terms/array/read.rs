@@ -69,7 +69,7 @@ impl ArrayRead {
                  expression to be of array type.",
             )
         })?;
-        expect_concrete_bitvec_ty(&index, array_ty.index_ty()).map_err(|e| {
+        expect_type(array_ty.index_ty(), &index).map_err(|e| {
             e.context(
                 "Expected the right hand-side expression of the ArrayRead \
                  expression to be of the same bitvector type as the index-type \

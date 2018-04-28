@@ -35,13 +35,13 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        expect_bool_ty(&lhs).map_err(|e| {
+        expect_type(Type::Bool, &lhs).map_err(|e| {
             e.context(format!(
                 "Expected boolean type for the left hand-side expression of the {} expression.",
                 M::EXPR_KIND.camel_name()
             ))
         })?;
-        expect_bool_ty(&rhs).map_err(|e| {
+        expect_type(Type::Bool, &rhs).map_err(|e| {
             e.context(format!(
                 "Expected boolean type for the right hand-side expression of the {} expression.",
                 M::EXPR_KIND.camel_name()
@@ -103,6 +103,7 @@ impl<M> BinaryExpr for BinBoolExpr<M> {
     fn lhs_child(&self) -> &AnyExpr {
         self.children.lhs_child()
     }
+
     fn rhs_child(&self) -> &AnyExpr {
         self.children.rhs_child()
     }

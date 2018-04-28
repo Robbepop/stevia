@@ -19,7 +19,7 @@ impl AssertConsistency for expr::ArrayRead {
                 self.kind().camel_name()
             ))
         })?;
-        expect_concrete_bitvec_ty(&self.children.index, array_ty.index_ty()).map_err(|e| {
+        expect_type(array_ty.index_ty(), &self.children.index).map_err(|e| {
             e.context(format!(
                 "Expected the right hand-side expression of the {:?} \
                  expression to be of the same bitvector type as the index-type \
@@ -39,7 +39,7 @@ impl AssertConsistency for expr::ArrayWrite {
                 self.kind().camel_name()
             ))
         })?;
-        expect_concrete_bitvec_ty(&self.children.index, array_ty.index_ty()).map_err(|e| {
+        expect_type(array_ty.index_ty(), &self.children.index).map_err(|e| {
             e.context(format!(
                 "Expected the index (middle) expression of the {:?} \
                  expression to be of the same bitvector type as the index-type \
@@ -47,7 +47,7 @@ impl AssertConsistency for expr::ArrayWrite {
                 self.kind().camel_name()
             ))
         })?;
-        expect_concrete_bitvec_ty(&self.children.value, array_ty.value_ty()).map_err(|e| {
+        expect_type(array_ty.value_ty(), &self.children.value).map_err(|e| {
             e.context(format!(
                 "Expected the value (right hand-side) expression of the {:?} \
                  expression to be of the same bitvector type as the value-type \
@@ -152,7 +152,7 @@ impl AssertConsistency for expr::Extract {
 
 impl AssertConsistency for expr::IfThenElse {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        expect_bool_ty(&self.children.cond).map_err(|e| {
+        expect_type(Type::Bool, &self.children.cond).map_err(|e| {
             e.context("The condition of an if-then-else expression must be of boolean type.")
         })?;
         expect_common_ty(&self.children.then_case, &self.children.else_case).map_err(|e| {

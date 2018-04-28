@@ -54,13 +54,13 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        expect_bool_ty(&lhs).map_err(|e| {
+        expect_type(Type::Bool, &lhs).map_err(|e| {
             e.context(format!(
                 "Expected boolean type for the left hand-side expression of the binary {} expression.",
                 M::EXPR_KIND.camel_name()
             ))
         })?;
-        expect_bool_ty(&rhs).map_err(|e| {
+        expect_type(Type::Bool, &rhs).map_err(|e| {
             e.context(format!(
                 "Expected boolean type for the right hand-side expression of the binary {} expression.",
                 M::EXPR_KIND.camel_name()
@@ -104,7 +104,7 @@ where
         let children = children.into_iter().collect::<Vec<_>>();
         if children.len() < 2 {
             return Err(
-                ExprError::too_few_children(2, children.len(), Self::from_vec(children)).context(
+                ExprError::too_few_children(2, children.len()).context(
                     format!(
                         "Expected at least 2 child expressions for the {} expression.",
                         M::EXPR_KIND.camel_name()
@@ -112,9 +112,8 @@ where
                 ),
             );
         }
-        // expect_min_n_children(2, Self::from_vec(children))?; // Future API?
         for (n, child) in children.iter().enumerate() {
-            expect_bool_ty(child).map_err(|e| {
+            expect_type(Type::Bool, child).map_err(|e| {
                 e.context(format!(
                     "Expected boolean type for the child expression at index {:?} of the {} expression.",
                     n,
