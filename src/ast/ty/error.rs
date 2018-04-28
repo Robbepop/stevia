@@ -44,6 +44,8 @@ impl TypeError2 {
 	where
 		T: HasType,
 	{
+		debug_assert!(expected_kind != found_ty.ty().kind(),
+			"`TypeError::unexpected_type_kind` constructor was called with invalid arguments.");
 		Self::new(TypeErrorKind2::UnexpectedTypeKind {
 			expected_kind,
 			found_ty: found_ty.ty(),
@@ -56,6 +58,8 @@ impl TypeError2 {
 		T1: HasType,
 		T2: HasType
 	{
+		debug_assert!(expected_ty.ty() != found_ty.ty(),
+			"`TypeError::unexpected_type` constructor was called with invalid arguments.");
 		Self::new(TypeErrorKind2::UnexpectedType {
 			expected_ty: expected_ty.ty(),
 			found_ty: found_ty.ty()
@@ -69,6 +73,8 @@ impl TypeError2 {
 		T1: HasType,
 		T2: HasType
 	{
+		debug_assert!(rhs.ty() != lhs.ty(),
+			"`TypeError::type_mismatch` constructor was called with invalid arguments.");
 		Self::new(TypeErrorKind2::TypeMismatch { lhs: lhs.ty(), rhs: rhs.ty() })
 	}
 }
