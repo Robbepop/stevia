@@ -31,12 +31,24 @@ pub enum TypeErrorKind2 {
 pub struct TypeError2 {
 	/// The kind of this type error.
 	pub kind: TypeErrorKind2,
+	/// The optional context of this type error.
+	pub context: Option<String>
 }
 
 impl TypeError2 {
+	/// Adds a context string for additional information about the error.
+	pub fn context<S>(self, context: S) -> Self
+	where
+		S: Into<String>,
+	{
+		let mut this = self;
+		this.context = Some(context.into());
+		this
+	}
+
 	/// Creates a new `TypeError` from the given `TypeErrorKind`.
 	fn new(kind: TypeErrorKind2) -> Self {
-		Self { kind }
+		Self { kind, context: None }
 	}
 
 	/// Returns a `TypeError` that indicates an unexpected type kind for the given expression.
