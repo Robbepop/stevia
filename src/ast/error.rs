@@ -9,6 +9,53 @@ pub mod prelude {
 	pub use super::{expect_matching_symbol_type, ExprError, ExprErrorKind, ExprResult};
 }
 
+/// An error context providing metadata context error information.
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ErrorContext {
+	Msg(String),
+	Entity {
+		description: String,
+		entity: ErrorContextEntity,
+	},
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum ErrorContextEntity {
+	Expr(AnyExpr),
+}
+
+impl<S> From<S> for ErrorContext
+where
+	S: Into<String>,
+{
+	fn from(message: S) -> Self {
+		ErrorContext::msg(message)
+	}
+}
+
+impl ErrorContext {
+	/// Constructs a new message error context.
+	pub fn msg<S>(message: S) -> Self
+	where
+		S: Into<String>,
+	{
+		ErrorContext::Msg(message.into())
+	}
+
+	/// Constructs a new expression entity error context with
+	/// the given description and expression.
+	pub fn expr<S, E>(description: S, expr: E) -> Self
+	where
+		S: Into<String>,
+		E: Into<AnyExpr>,
+	{
+		ErrorContext::Entity {
+			description: description.into(),
+			entity: ErrorContextEntity::Expr(expr.into()),
+		}
+	}
+}
+
 /// A special `Result` type where the error part is always a `ExprError`.
 pub type ExprResult<T> = result::Result<T, ExprError>;
 
@@ -51,7 +98,7 @@ pub struct ExprError {
 	/// # Note
 	///
 	/// Used for additional information about the error.
-	pub context: Option<String>,
+	pub context: Vec<ErrorContext>,
 }
 
 impl From<CastError> for ExprError {
@@ -73,21 +120,33 @@ impl From<BitvecError> for ExprError {
 }
 
 impl ExprError {
-	pub fn context<C>(self, context: C) -> Self
-	where
-		C: Into<String>,
-	{
-		let mut this = self;
-		this.context = Some(context.into());
-		this
-	}
-
 	/// Creates a new `ExprError` from the given `ExprErrorKind`.
 	fn new(kind: ExprErrorKind) -> Self {
 		ExprError {
 			kind,
-			context: None,
+			context: vec![],
 		}
+	}
+
+	/// Pushes a new stringly error context to the context stack.
+	pub fn context<S>(self, context: S) -> Self
+	where
+		S: Into<String>,
+	{
+		let mut this = self;
+		this.context.push(ErrorContext::msg(context));
+		this
+	}
+
+	/// Pushes a new expression error context to the context stack.
+	pub fn context_expr<S, E>(self, description: S, entity: E) -> Self
+	where
+		S: Into<String>,
+		E: Into<AnyExpr>
+	{
+		let mut this = self;
+		this.context.push(ErrorContext::expr(description, entity));
+		this
 	}
 
 	/// Returns an `ExprError` that indicates that the given expression has too few child expressions.
@@ -129,7 +188,7 @@ impl fmt::Display for ExprError {
 			BitvecError(bitvec_error) => bitvec_error.fmt(f),
 			TooFewChildren {
 				expected_min,
-				actual_num
+				actual_num,
 			} => write!(
 				f,
 				"Expected at least {:?} child expressions but found only {:?}.",
@@ -204,18 +263,17 @@ where
 /// Asserts that the given expression has at least the expected minimum number of child expressions.
 pub fn expect_min_children<E>(expected_min_children_number: usize, expr: &E) -> ExprResult<()>
 where
-	E: HasArity
+	E: HasArity,
 {
 	let actual_children_number = expr.arity();
 	if actual_children_number < expected_min_children_number {
 		return Err(ExprError::too_few_children(
 			expected_min_children_number,
-			actual_children_number
+			actual_children_number,
 		).context(format!(
 			"Expected at least {:?} child expressions but found only {:?}.",
-			expected_min_children_number,
-			actual_children_number
-		)))
+			expected_min_children_number, actual_children_number
+		)));
 	}
 	Ok(())
 }
