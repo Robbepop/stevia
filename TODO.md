@@ -2,14 +2,9 @@
 
 ## Short term
 
-- Implement an expression tree consistency checker for the ast module.
+- Refactor expression tree consistency checker for the ast module.
 - Clean up public visibility and prelude module usage within Stevia. (FPI: fewer-preludes-initiative)
-- Implement new set of assertion error-returning convenience/utility functions:
-	- Planned API
-		 - `fn expect_bitvec_ty_kind(HasType) -> TypeResult<BitvecTy>;`
-		 - `fn expect_array_ty_kind(HasType) -> TypeResult<ArrayTy>;`
-		 - `fn expect_ty(Type, HasType) -> TypeResult<()>;`
-		 - `fn expect_ty_n(Type, Children) -> TypeResult<()>;`
+
 ## Long term
 
 - Implement SMTLib2 parser.
@@ -31,7 +26,6 @@
 ## Considerations
 
 - Think about trade-offs by adding `Nand`, `Nor` and `Xnor` as new formula types.
-- Make `SymbolInterner` more suitable for SMTLib2.0 shadowing and namespaces.
 
 ## Science
 
