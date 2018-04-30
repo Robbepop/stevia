@@ -139,7 +139,7 @@ impl ExprError {
 	pub fn context_expr<S, E>(self, description: S, entity: E) -> Self
 	where
 		S: Into<String>,
-		E: Into<AnyExpr>
+		E: Into<AnyExpr>,
 	{
 		let mut this = self;
 		this.context.push(ErrorContext::expr(description, entity));
@@ -218,7 +218,7 @@ impl error::Error for ExprError {
 }
 
 /// Asserts that the given expression is of the expected concrete type.
-pub fn expect_concrete_ty<T, E>(expected_ty: T, expr: &E) -> ExprResult<()>
+pub fn expr_expect_type<T, E>(expected_ty: T, expr: &E) -> ExprResult<()>
 where
 	T: Into<Type>,
 	E: Into<AnyExpr> + Clone + HasType + fmt::Debug,
@@ -226,34 +226,27 @@ where
 	let expected_ty = expected_ty.into();
 	let actual_ty = expr.ty();
 	if actual_ty != expected_ty {
-		return Err(TypeError::unexpected_type(expected_ty, expr.clone().into()))
+		return Err(TypeError::unexpected_type(expected_ty, actual_ty))
 			.map_err(ExprError::from)
-			.map_err(|e| {
-				e.context_msg(format!(
-					"Expected concrete type (= {:?}) for the expression: {:?}",
-					expected_ty, expr
-				))
-			})
+			.map_err(|e| e.context_expr("Expression with unexpected type", expr.clone().into()));
 	}
 	Ok(())
 }
 
 /// Asserts that all child expressions of the given expression are of the
 /// given expected concrete type.
-pub fn expect_concrete_ty_n<T, E>(expected_ty: T, expr: &E) -> ExprResult<()>
+pub fn expr_expect_type_n<T, E>(expected_ty: T, expr: &E) -> ExprResult<()>
 where
 	T: Into<Type>,
-	E: Into<AnyExpr> + Clone + Children + HasKind + fmt::Debug,
+	E: Children,
 {
 	let expected_ty = expected_ty.into();
 	for (n, child) in expr.children().enumerate() {
-		expect_concrete_ty(expected_ty, child)
+		expr_expect_type(expected_ty, child)
 			.map_err(|e| {
 				e.context_msg(format!(
-					"Expected concrete type (= {:?}) for the child expression at index {:?} of expression: {:?}.",
-					expected_ty,
-					n,
-					expr.kind().camel_name()
+					"Child expression with unexpected type at index {:?}.",
+					n
 				))
 			})?;
 	}
@@ -261,19 +254,16 @@ where
 }
 
 /// Asserts that the given expression has at least the expected minimum number of child expressions.
-pub fn expect_min_children<E>(expected_min_children_number: usize, expr: &E) -> ExprResult<()>
+pub fn expr_expect_min_arity<E>(min_req_children: usize, expr: &E) -> ExprResult<()>
 where
 	E: HasArity,
 {
-	let actual_children_number = expr.arity();
-	if actual_children_number < expected_min_children_number {
+	let actual_children = expr.arity();
+	if actual_children < min_req_children {
 		return Err(ExprError::too_few_children(
-			expected_min_children_number,
-			actual_children_number,
-		).context_msg(format!(
-			"Expected at least {:?} child expressions but found only {:?}.",
-			expected_min_children_number, actual_children_number
-		)));
+			min_req_children,
+			actual_children,
+		));
 	}
 	Ok(())
 }

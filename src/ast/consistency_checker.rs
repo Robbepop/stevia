@@ -70,19 +70,19 @@ impl AssertConsistency for expr::ArrayWrite {
 
 impl AssertConsistency for expr::Not {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_concrete_ty(Type::Bool, &*self.child)
+        error::expr_expect_type(Type::Bool, &*self.child)
     }
 }
 
 impl AssertConsistency for expr::Neg {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_concrete_ty(self.ty(), &*self.child)
+        error::expr_expect_type(self.ty(), &*self.child)
     }
 }
 
 impl AssertConsistency for expr::BitNot {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_concrete_ty(self.ty(), &*self.child)
+        error::expr_expect_type(self.ty(), &*self.child)
     }
 }
 
@@ -136,7 +136,7 @@ impl AssertConsistency for expr::Concat {
             })?;
         let concat_bvty = BitvecTy::from(lhs_bvty.width().len_bits() + rhs_bvty.width().len_bits());
         if bvty != concat_bvty {
-            return error::expect_concrete_ty(concat_bvty, self)
+            return error::expr_expect_type(concat_bvty, self)
                 .map_err(ExprError::from)
                 .map_err(|e| {
                     e.context_msg(format!(
@@ -221,14 +221,14 @@ where
     M: ExprMarker,
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_concrete_ty(Type::Bool, self.lhs_child()).map_err(|e| {
+        error::expr_expect_type(Type::Bool, self.lhs_child()).map_err(|e| {
             e.context_msg(format!(
                 "Expected boolean type for the left hand-side expression of this {:?} expression: {:?}",
                 self.kind().camel_name(),
                 self
             ))
         })?;
-        error::expect_concrete_ty(Type::Bool, self.rhs_child()).map_err(|e| {
+        error::expr_expect_type(Type::Bool, self.rhs_child()).map_err(|e| {
             e.context_msg(format!(
                 "Expected boolean type for the right hand-side expression of this {:?} expression: {:?}",
                 self.kind().camel_name(),
@@ -244,7 +244,7 @@ where
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
         let expected_ty = self.ty();
-        error::expect_concrete_ty(expected_ty, self.lhs_child()).map_err(|e| {
+        error::expr_expect_type(expected_ty, self.lhs_child()).map_err(|e| {
             e.context_msg(format!(
                 "Expected concrete type (= {:?}) for the left hand-side expression of this {:?} expression: {:?}",
                 expected_ty,
@@ -252,7 +252,7 @@ where
                 self)
             )
         })?;
-        error::expect_concrete_ty(expected_ty, self.rhs_child()).map_err(|e| {
+        error::expr_expect_type(expected_ty, self.rhs_child()).map_err(|e| {
             e.context_msg(format!(
                 "Expected concrete type (= {:?}) for the right hand-side expression of this {:?} expression: {:?}",
                 expected_ty,
@@ -265,8 +265,8 @@ where
 
 impl AssertConsistency for expr::BitvecEquals {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_min_children(2, self)?;
-        error::expect_concrete_ty_n(self.children_bitvec_ty, self)
+        error::expr_expect_min_arity(2, self)?;
+        error::expr_expect_type_n(self.children_bitvec_ty, self)
     }
 }
 
@@ -276,8 +276,8 @@ where
     NaryBoolExpr<M>: Into<AnyExpr>,
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_min_children(2, self)?;
-        error::expect_concrete_ty_n(Type::Bool, self)
+        error::expr_expect_min_arity(2, self)?;
+        error::expr_expect_type_n(Type::Bool, self)
     }
 }
 
@@ -287,8 +287,8 @@ where
     NaryTermExpr<M>: Into<AnyExpr>,
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_min_children(2, self)?;
-        error::expect_concrete_ty_n(self.ty(), self)
+        error::expr_expect_min_arity(2, self)?;
+        error::expr_expect_type_n(self.ty(), self)
     }
 }
 
@@ -298,9 +298,9 @@ where
     ComparisonExpr<M>: Into<AnyExpr>,
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        error::expect_concrete_ty(Type::Bool, self)?;
+        error::expr_expect_type(Type::Bool, self)?;
         let bvty = expect_bitvec_ty(self.lhs_child())?;
-        error::expect_concrete_ty(bvty, self.rhs_child())
+        error::expr_expect_type(bvty, self.rhs_child())
     }
 }
 
