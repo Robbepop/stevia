@@ -58,9 +58,9 @@ These features need to be stabilized before this crate can be used on the stable
 
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
 - [`#![feature(conservative_impl_trait)]`][conservative-impl-trait] (stable in 1.26)
-- [`#![feature(copy_closures)`][copy-closures] (stable in 1.26)
-- [`#![feature(clone_closures)`][clone-closures] (stable in 1.26)
-- [`#![feature(match_default_bindings)`][match-default-bindings] (stable in 1.26)
+- [`#![feature(copy_closures)]`][copy-closures] (stable in 1.26)
+- [`#![feature(clone_closures)]`][clone-closures] (stable in 1.26)
+- [`#![feature(match_default_bindings)]`][match-default-bindings] (stable in 1.26)
 - [`#![feature(nll)]`][nll]
 
 ## License
