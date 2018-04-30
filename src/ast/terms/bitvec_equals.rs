@@ -40,12 +40,14 @@ impl BitvecEquals {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
-            e.context(
-                "Expected both child expressions of the binary bitvector \
-                 equality expression to be of the same bitvector type.",
-            )
-        })?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected both child expressions of the binary bitvector \
+                    equality expression to be of the same bitvector type.",
+                )
+            })?;
         Ok(BitvecEquals {
             children_bitvec_ty: common_ty,
             children: vec![lhs, rhs],
@@ -66,17 +68,19 @@ impl BitvecEquals {
     {
         let children = exprs.into_iter().collect::<Vec<_>>();
         if children.len() < 2 {
-            return Err(ExprError::too_few_children(2, children.len()).context(
+            return Err(ExprError::too_few_children(2, children.len()).context_msg(
                 "Expected at least 2 child expressions for the n-ary \
                  bitvector equality expression.",
             ));
         }
-        let children_bitvec_ty = expect_common_bitvec_ty_n(&children).map_err(|e| {
-            e.context(
-                "Expected all child expressions of the n-ary bitvector \
-                 equality expression to be of the same bitvector type.",
-            )
-        })?;
+        let children_bitvec_ty = expect_common_bitvec_ty_n(&children)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected all child expressions of the n-ary bitvector \
+                    equality expression to be of the same bitvector type.",
+                )
+            })?;
         let bveq = BitvecEquals {
             children_bitvec_ty: children_bitvec_ty.unwrap(),
             children,

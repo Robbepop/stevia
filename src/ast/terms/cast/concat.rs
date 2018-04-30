@@ -37,12 +37,16 @@ impl Concat {
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let lhs_bvty = expect_bitvec_ty(&lhs).map_err(|e| {
-            e.context("Expected bitvector type for the left hand-side child expression of the concat expression.")
-        })?;
-        let rhs_bvty = expect_bitvec_ty(&rhs).map_err(|e| {
-            e.context("Expected bitvector type for the right hand-side child expression of the concat expression.")
-        })?;
+        let lhs_bvty = expect_bitvec_ty(&lhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg("Expected bitvector type for the left hand-side child expression of the concat expression.")
+            })?;
+        let rhs_bvty = expect_bitvec_ty(&rhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg("Expected bitvector type for the right hand-side child expression of the concat expression.")
+            })?;
         let concat_bvty = BitvecTy::from(lhs_bvty.width().len_bits() + rhs_bvty.width().len_bits());
         Ok(Concat {
             bitvec_ty: concat_bvty,

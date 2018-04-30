@@ -82,11 +82,13 @@ impl ZeroExtend {
         E: IntoBoxedAnyExpr,
     {
         let src = src.into_boxed_any_expr();
-        let src_bvty = expect_bitvec_ty(&*src).map_err(|e| {
-            e.context(
-                "Expected bitvector type for the child expression of a zero-extend expression.",
-            )
-        })?;
+        let src_bvty = expect_bitvec_ty(&*src)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected bitvector type for the child expression of a zero-extend expression.",
+                )
+            })?;
         let extend = Self {
             bitvec_ty: BitvecTy::from(target_width),
             src,
@@ -111,11 +113,13 @@ impl SignExtend {
         E: IntoBoxedAnyExpr,
     {
         let src = src.into_boxed_any_expr();
-        let src_bvty = expect_bitvec_ty(&*src).map_err(|e| {
-            e.context(
-                "Expected bitvector type for the child expression of a sign-extend expression.",
-            )
-        })?;
+        let src_bvty = expect_bitvec_ty(&*src)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected bitvector type for the child expression of a sign-extend expression.",
+                )
+            })?;
         let extend = Self {
             bitvec_ty: BitvecTy::from(target_width),
             src,

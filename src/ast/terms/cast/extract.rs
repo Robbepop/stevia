@@ -34,8 +34,11 @@ impl Extract {
         E: IntoBoxedAnyExpr,
     {
         let src = src.into_boxed_any_expr();
-        let src_width = expect_bitvec_ty(&*src).map_err(|e| e.context(
-            "Encountered non-bitvector type for the child expression of an Extract expression."))?;
+        let src_width = expect_bitvec_ty(&*src)
+			.map_err(ExprError::from)
+            .map_err(|e| e.context_msg(
+                "Encountered non-bitvector type for the child expression of an Extract expression."
+            ))?;
         let extract = Extract { hi, lo, src };
         if lo >= hi {
             return Err(CastError::extract_lo_greater_equal_hi(extract).into());

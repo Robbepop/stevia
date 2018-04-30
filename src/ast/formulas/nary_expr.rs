@@ -54,18 +54,22 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        expect_type(Type::Bool, &lhs).map_err(|e| {
-            e.context(format!(
-                "Expected boolean type for the left hand-side expression of the binary {} expression.",
-                M::EXPR_KIND.camel_name()
-            ))
-        })?;
-        expect_type(Type::Bool, &rhs).map_err(|e| {
-            e.context(format!(
-                "Expected boolean type for the right hand-side expression of the binary {} expression.",
-                M::EXPR_KIND.camel_name()
-            ))
-        })?;
+        expect_type(Type::Bool, &lhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected boolean type for the left hand-side expression of the binary {} expression.",
+                    M::EXPR_KIND.camel_name()
+                ))
+            })?;
+        expect_type(Type::Bool, &rhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected boolean type for the right hand-side expression of the binary {} expression.",
+                    M::EXPR_KIND.camel_name()
+                ))
+            })?;
         Ok(Self::from_vec(vec![lhs, rhs]))
     }
 
@@ -104,7 +108,7 @@ where
         let children = children.into_iter().collect::<Vec<_>>();
         if children.len() < 2 {
             return Err(
-                ExprError::too_few_children(2, children.len()).context(
+                ExprError::too_few_children(2, children.len()).context_msg(
                     format!(
                         "Expected at least 2 child expressions for the {} expression.",
                         M::EXPR_KIND.camel_name()
@@ -113,13 +117,15 @@ where
             );
         }
         for (n, child) in children.iter().enumerate() {
-            expect_type(Type::Bool, child).map_err(|e| {
-                e.context(format!(
-                    "Expected boolean type for the child expression at index {:?} of the {} expression.",
-                    n,
-                    M::EXPR_KIND.camel_name()
-                ))
-            })?;
+            expect_type(Type::Bool, child)
+			    .map_err(ExprError::from)
+                .map_err(|e| {
+                    e.context_msg(format!(
+                        "Expected boolean type for the child expression at index {:?} of the {} expression.",
+                        n,
+                        M::EXPR_KIND.camel_name()
+                    ))
+                })?;
         }
         Ok(Self::from_vec(children))
     }

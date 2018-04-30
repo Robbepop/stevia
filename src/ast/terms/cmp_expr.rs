@@ -56,12 +56,14 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
-            e.context(format!(
-                "Expect common type among children of comparison expression of type {}.",
-                M::EXPR_KIND.camel_name()
-            ))
-        })?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expect common type among children of comparison expression of type {}.",
+                    M::EXPR_KIND.camel_name()
+                ))
+            })?;
         Ok(Self {
             children_bitvec_ty: common_ty,
             children: BinExprChildren::new_boxed(lhs, rhs),

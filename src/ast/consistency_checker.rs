@@ -12,49 +12,59 @@ pub trait AssertConsistency {
 
 impl AssertConsistency for expr::ArrayRead {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        let array_ty = expect_array_ty(&self.children.array).map_err(|e| {
-            e.context(format!(
-                "Expected the left hand-side expression of the {:?} \
-                 expression to be of array type.",
-                self.kind().camel_name()
-            ))
-        })?;
-        expect_type(array_ty.index_ty(), &self.children.index).map_err(|e| {
-            e.context(format!(
-                "Expected the right hand-side expression of the {:?} \
-                 expression to be of the same bitvector type as the index-type \
-                 of the left hand-side array expression.",
-                self.kind().camel_name()
-            ))
-        }).map_err(ExprError::from)
+        let array_ty = expect_array_ty(&self.children.array)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected the left hand-side expression of the {:?} \
+                    expression to be of array type.",
+                    self.kind().camel_name()
+                ))
+            })?;
+        expect_type(array_ty.index_ty(), &self.children.index)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected the right hand-side expression of the {:?} \
+                    expression to be of the same bitvector type as the index-type \
+                    of the left hand-side array expression.",
+                    self.kind().camel_name()
+                ))
+            })
     }
 }
 
 impl AssertConsistency for expr::ArrayWrite {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        let array_ty = expect_array_ty(&self.children.array).map_err(|e| {
-            e.context(format!(
-                "Expected the array (left hand-side) expression of the {:?} \
-                 expression to be of array type.",
-                self.kind().camel_name()
-            ))
-        })?;
-        expect_type(array_ty.index_ty(), &self.children.index).map_err(|e| {
-            e.context(format!(
-                "Expected the index (middle) expression of the {:?} \
-                 expression to be of the same bitvector type as the index-type \
-                 of the left hand-side array expression.",
-                self.kind().camel_name()
-            ))
-        })?;
-        expect_type(array_ty.value_ty(), &self.children.value).map_err(|e| {
-            e.context(format!(
-                "Expected the value (right hand-side) expression of the {:?} \
-                 expression to be of the same bitvector type as the value-type \
-                 of the left hand-side array expression.",
-                self.kind().camel_name()
-            ))
-        }).map_err(ExprError::from)
+        let array_ty = expect_array_ty(&self.children.array)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected the array (left hand-side) expression of the {:?} \
+                    expression to be of array type.",
+                    self.kind().camel_name()
+                ))
+            })?;
+        expect_type(array_ty.index_ty(), &self.children.index)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected the index (middle) expression of the {:?} \
+                    expression to be of the same bitvector type as the index-type \
+                    of the left hand-side array expression.",
+                    self.kind().camel_name()
+                ))
+            })?;
+        expect_type(array_ty.value_ty(), &self.children.value)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected the value (right hand-side) expression of the {:?} \
+                    expression to be of the same bitvector type as the value-type \
+                    of the left hand-side array expression.",
+                    self.kind().camel_name()
+                ))
+            })
     }
 }
 
@@ -83,14 +93,16 @@ where
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
         let target_bvty = self.bitvec_ty;
-        let src_bvty = expect_bitvec_ty(&*self.src).map_err(|e| {
-            e.context(format!(
-                "Expected bitvector expression for the child expression of this {:?} expression.\
-                 Encountered in expression: {:?}",
-                self.kind().camel_name(),
-                self
-            ))
-        })?;
+        let src_bvty = expect_bitvec_ty(&*self.src)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected bitvector expression for the child expression of this {:?} expression.\
+                    Encountered in expression: {:?}",
+                    self.kind().camel_name(),
+                    self
+                ))
+            })?;
         if target_bvty.width() < src_bvty.width() {
             return Err(CastError::extend_to_smaller(src_bvty, self.clone()).into())
         }
@@ -102,32 +114,38 @@ impl AssertConsistency for expr::Concat {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
         let bvty = self.bitvec_ty;
 
-        let lhs_bvty = expect_bitvec_ty(&self.children.lhs).map_err(|e| {
-            e.context(format!(
-                "Expected bitvector type for the left hand-side child expression of this {:?} \
-                 expression: {:?}",
-                self.kind().camel_name(),
-                self
-            ))
-        })?;
-        let rhs_bvty = expect_bitvec_ty(&self.children.rhs).map_err(|e| {
-            e.context(format!(
-                "Expected bitvector type for the right hand-side child expression of this {:?} \
-                 expression: {:?}",
-                self.kind().camel_name(),
-                self
-            ))
-        })?;
+        let lhs_bvty = expect_bitvec_ty(&self.children.lhs)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected bitvector type for the left hand-side child expression of this {:?} \
+                    expression: {:?}",
+                    self.kind().camel_name(),
+                    self
+                ))
+            })?;
+        let rhs_bvty = expect_bitvec_ty(&self.children.rhs)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected bitvector type for the right hand-side child expression of this {:?} \
+                    expression: {:?}",
+                    self.kind().camel_name(),
+                    self
+                ))
+            })?;
         let concat_bvty = BitvecTy::from(lhs_bvty.width().len_bits() + rhs_bvty.width().len_bits());
         if bvty != concat_bvty {
-            return error::expect_concrete_ty(concat_bvty, self).map_err(|e| {
-                e.context(format!(
-                    "Expect the concatenation of bitvectors with bit-widths of {:?} and {:?} to be of bit-width {:?}.",
-                    lhs_bvty,
-                    rhs_bvty,
-                    concat_bvty
-                ))
-            })
+            return error::expect_concrete_ty(concat_bvty, self)
+                .map_err(ExprError::from)
+                .map_err(|e| {
+                    e.context_msg(format!(
+                        "Expect the concatenation of bitvectors with bit-widths of {:?} and {:?} to be of bit-width {:?}.",
+                        lhs_bvty,
+                        rhs_bvty,
+                        concat_bvty
+                    ))
+                })
         }
         Ok(())
     }
@@ -135,11 +153,13 @@ impl AssertConsistency for expr::Concat {
 
 impl AssertConsistency for expr::Extract {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        let src_width = expect_bitvec_ty(&*self.src).map_err(|e| {
-            e.context(
-                "Encountered non-bitvector type for the child expression of an Extract expression.",
-            )
-        })?;
+        let src_width = expect_bitvec_ty(&*self.src)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Encountered non-bitvector type for the child expression of an Extract expression.",
+                )
+            })?;
         if self.lo >= self.hi {
             return Err(CastError::extract_lo_greater_equal_hi(self.clone()).into());
         }
@@ -152,13 +172,17 @@ impl AssertConsistency for expr::Extract {
 
 impl AssertConsistency for expr::IfThenElse {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
-        expect_type(Type::Bool, &self.children.cond).map_err(|e| {
-            e.context("The condition of an if-then-else expression must be of boolean type.")
-        })?;
-        expect_common_ty(&self.children.then_case, &self.children.else_case).map_err(|e| {
-            e.context(
-            "The types of the then-case and else-case of an if-then-else expression must be the same.")
-        })?;
+        expect_type(Type::Bool, &self.children.cond)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg("The condition of an if-then-else expression must be of boolean type.")
+            })?;
+        expect_common_ty(&self.children.then_case, &self.children.else_case)
+            .map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                "The types of the then-case and else-case of an if-then-else expression must be the same.")
+            })?;
         Ok(())
     }
 }
@@ -194,14 +218,14 @@ where
 {
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
         error::expect_concrete_ty(Type::Bool, self.lhs_child()).map_err(|e| {
-            e.context(format!(
+            e.context_msg(format!(
                 "Expected boolean type for the left hand-side expression of this {:?} expression: {:?}",
                 self.kind().camel_name(),
                 self
             ))
         })?;
         error::expect_concrete_ty(Type::Bool, self.rhs_child()).map_err(|e| {
-            e.context(format!(
+            e.context_msg(format!(
                 "Expected boolean type for the right hand-side expression of this {:?} expression: {:?}",
                 self.kind().camel_name(),
                 self)
@@ -217,7 +241,7 @@ where
     fn assert_consistency(&self, _: &Context) -> ExprResult<()> {
         let expected_ty = self.ty();
         error::expect_concrete_ty(expected_ty, self.lhs_child()).map_err(|e| {
-            e.context(format!(
+            e.context_msg(format!(
                 "Expected concrete type (= {:?}) for the left hand-side expression of this {:?} expression: {:?}",
                 expected_ty,
                 self.kind().camel_name(),
@@ -225,7 +249,7 @@ where
             )
         })?;
         error::expect_concrete_ty(expected_ty, self.rhs_child()).map_err(|e| {
-            e.context(format!(
+            e.context_msg(format!(
                 "Expected concrete type (= {:?}) for the right hand-side expression of this {:?} expression: {:?}",
                 expected_ty,
                 self.kind().camel_name(),

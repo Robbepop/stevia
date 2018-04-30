@@ -76,26 +76,32 @@ impl ArrayWrite {
         let array = array.into();
         let index = index.into();
         let value = value.into();
-        let array_ty = expect_array_ty(&array).map_err(|e| {
-            e.context(
-                "Expected the array (left hand-side) expression of the ArrayWrite \
-                 expression to be of array type.",
-            )
-        })?;
-        expect_type(array_ty.index_ty(), &index).map_err(|e| {
-            e.context(
-                "Expected the index (middle) expression of the ArrayRead \
-                 expression to be of the same bitvector type as the index-type \
-                 of the left hand-side array expression.",
-            )
-        })?;
-        expect_type(array_ty.value_ty(), &value).map_err(|e| {
-            e.context(
-                "Expected the value (right hand-side) expression of the ArrayRead \
-                 expression to be of the same bitvector type as the value-type \
-                 of the left hand-side array expression.",
-            )
-        })?;
+        let array_ty = expect_array_ty(&array)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected the array (left hand-side) expression of the ArrayWrite \
+                    expression to be of array type.",
+                )
+            })?;
+        expect_type(array_ty.index_ty(), &index)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected the index (middle) expression of the ArrayRead \
+                    expression to be of the same bitvector type as the index-type \
+                    of the left hand-side array expression.",
+                )
+            })?;
+        expect_type(array_ty.value_ty(), &value)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected the value (right hand-side) expression of the ArrayRead \
+                    expression to be of the same bitvector type as the value-type \
+                    of the left hand-side array expression.",
+                )
+            })?;
         Ok(ArrayWrite {
             widths: array_ty,
             children: ArrayWriteChildren::new_boxed(array, index, value),

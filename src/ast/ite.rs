@@ -85,10 +85,16 @@ impl IfThenElse {
         let cond = cond.into();
         let then_case = then_case.into();
         let else_case = else_case.into();
-        expect_type(Type::Bool, &cond).map_err(|e| e.context(
-            "The condition of an if-then-else expression must be of boolean type."))?;
-        expect_common_ty(&then_case, &else_case).map_err(|e| e.context(
-            "The types of the then-case and else-case of an if-then-else expression must be the same."))?;
+        expect_type(Type::Bool, &cond)
+            .map_err(ExprError::from)
+            .map_err(|e| e.context_msg(
+                "The condition of an if-then-else expression must be of boolean type."
+            ))?;
+        expect_common_ty(&then_case, &else_case)
+            .map_err(ExprError::from)
+            .map_err(|e| e.context_msg(
+                "The types of the then-case and else-case of an if-then-else expression must be the same."
+            ))?;
         Ok(unsafe{IfThenElse::new_unchecked(cond, then_case, else_case)})
     }
 

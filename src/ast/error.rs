@@ -241,12 +241,14 @@ where
 	let expected_ty = expected_ty.into();
 	let actual_ty = expr.ty();
 	if actual_ty != expected_ty {
-		return Err(
-			TypeError::unexpected_type(expected_ty, expr.clone().into()).context(format!(
-				"Expected concrete type (= {:?}) for the expression: {:?}",
-				expected_ty, expr
-			)),
-		).map_err(ExprError::from);
+		return Err(TypeError::unexpected_type(expected_ty, expr.clone().into()))
+			.map_err(ExprError::from)
+			.map_err(|e| {
+				e.context_msg(format!(
+					"Expected concrete type (= {:?}) for the expression: {:?}",
+					expected_ty, expr
+				))
+			})
 	}
 	Ok(())
 }
@@ -260,14 +262,15 @@ where
 {
 	let expected_ty = expected_ty.into();
 	for (n, child) in expr.children().enumerate() {
-		expect_concrete_ty(expected_ty, child).map_err(|e| {
-			e.context(format!(
-				"Expected concrete type (= {:?}) for the child expression at index {:?} of expression: {:?}.",
-				expected_ty,
-				n,
-				expr.kind().camel_name()
-			))
-		})?;
+		expect_concrete_ty(expected_ty, child)
+			.map_err(|e| {
+				e.context_msg(format!(
+					"Expected concrete type (= {:?}) for the child expression at index {:?} of expression: {:?}.",
+					expected_ty,
+					n,
+					expr.kind().camel_name()
+				))
+			})?;
 	}
 	Ok(())
 }
@@ -282,7 +285,7 @@ where
 		return Err(ExprError::too_few_children(
 			expected_min_children_number,
 			actual_children_number,
-		).context(format!(
+		).context_msg(format!(
 			"Expected at least {:?} child expressions but found only {:?}.",
 			expected_min_children_number, actual_children_number
 		)));

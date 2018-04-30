@@ -31,8 +31,11 @@ impl BitNot {
         where E: IntoBoxedAnyExpr
     {
         let child = child.into_boxed_any_expr();
-        let bitvec_ty = expect_bitvec_ty(&*child).map_err(|e| e.context(
-            "Expected the child expression of the BitNot expression to be of bitvector type."))?;
+        let bitvec_ty = expect_bitvec_ty(&*child)
+			.map_err(ExprError::from)
+            .map_err(|e| e.context_msg(
+                "Expected the child expression of the BitNot expression to be of bitvector type."
+            ))?;
         Ok(BitNot{bitvec_ty, child})
     }
 }

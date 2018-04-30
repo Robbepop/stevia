@@ -35,18 +35,22 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        expect_type(Type::Bool, &lhs).map_err(|e| {
-            e.context(format!(
-                "Expected boolean type for the left hand-side expression of the {} expression.",
-                M::EXPR_KIND.camel_name()
-            ))
-        })?;
-        expect_type(Type::Bool, &rhs).map_err(|e| {
-            e.context(format!(
-                "Expected boolean type for the right hand-side expression of the {} expression.",
-                M::EXPR_KIND.camel_name()
-            ))
-        })?;
+        expect_type(Type::Bool, &lhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected boolean type for the left hand-side expression of the {} expression.",
+                    M::EXPR_KIND.camel_name()
+                ))
+            })?;
+        expect_type(Type::Bool, &rhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected boolean type for the right hand-side expression of the {} expression.",
+                    M::EXPR_KIND.camel_name()
+                ))
+            })?;
         Ok(Self {
             children: BinExprChildren::new_boxed(lhs, rhs),
             marker: PhantomData,

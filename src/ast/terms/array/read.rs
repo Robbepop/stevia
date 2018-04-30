@@ -63,19 +63,23 @@ impl ArrayRead {
     {
         let array = array.into();
         let index = index.into();
-        let array_ty = expect_array_ty(&array).map_err(|e| {
-            e.context(
-                "Expected the left hand-side expression of the ArrayRead \
-                 expression to be of array type.",
-            )
-        })?;
-        expect_type(array_ty.index_ty(), &index).map_err(|e| {
-            e.context(
-                "Expected the right hand-side expression of the ArrayRead \
-                 expression to be of the same bitvector type as the index-type \
-                 of the left hand-side array expression.",
-            )
-        })?;
+        let array_ty = expect_array_ty(&array)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected the left hand-side expression of the ArrayRead \
+                    expression to be of array type.",
+                )
+            })?;
+        expect_type(array_ty.index_ty(), &index)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(
+                    "Expected the right hand-side expression of the ArrayRead \
+                    expression to be of the same bitvector type as the index-type \
+                    of the left hand-side array expression.",
+                )
+            })?;
         Ok(ArrayRead {
             bitvec_ty: array_ty.value_ty(),
             children: ArrayReadChildren::new_boxed(array, index),

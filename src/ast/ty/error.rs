@@ -33,16 +33,6 @@ pub struct TypeError {
 }
 
 impl TypeError {
-	/// Adds a context string for additional information about the error.
-	pub fn context<S>(self, context: S) -> Self
-	where
-		S: Into<String>,
-	{
-		let mut this = self;
-		this.context = Some(context.into());
-		this
-	}
-
 	/// Creates a new `TypeError` from the given `TypeErrorKind`.
 	fn new(kind: TypeErrorKind) -> Self {
 		Self { kind, context: None }

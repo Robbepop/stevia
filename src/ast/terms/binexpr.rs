@@ -46,13 +46,15 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        let common_ty = expect_common_bitvec_ty(&lhs, &rhs).map_err(|e| {
-            e.context(format!(
-                "Expected both child expressions of the binary {} expression \
-                 to be of the same bitvector type.",
-                M::EXPR_KIND.camel_name()
-            ))
-        })?;
+        let common_ty = expect_common_bitvec_ty(&lhs, &rhs)
+			.map_err(ExprError::from)
+            .map_err(|e| {
+                e.context_msg(format!(
+                    "Expected both child expressions of the binary {} expression \
+                    to be of the same bitvector type.",
+                    M::EXPR_KIND.camel_name()
+                ))
+            })?;
         Ok(Self {
             bitvec_ty: common_ty,
             children: BinExprChildren::new_boxed(lhs, rhs),
