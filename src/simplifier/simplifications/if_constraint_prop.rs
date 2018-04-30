@@ -2,12 +2,6 @@ use ast::prelude::*;
 
 use std::collections::HashMap;
 
-pub mod prelude {
-    pub use super::{
-        IfConstraintPropagator
-    };
-}
-
 /// The If-Constraint-Propagator memorizes condition expressions of If-Then-Else constructs
 /// and replaces equal expressions in the then-case and else-case with constants true and false
 /// respectively.

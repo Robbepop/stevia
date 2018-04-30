@@ -5,10 +5,6 @@ use simplifier::simplifications::Normalizer;
 use std::collections::{HashSet, HashMap};
 use std::collections::hash_map::Entry;
 
-pub mod prelude {
-    pub use super::LikeTermJoiner;
-}
-
 modular_ast_transformer! {
     /// This simplification identifies and joins like-terms in additive expressions.
     /// 

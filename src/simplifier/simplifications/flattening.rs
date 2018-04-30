@@ -3,12 +3,6 @@ use ast::prelude::*;
 use either::Either;
 use itertools::Itertools;
 
-pub mod prelude {
-    pub use super::{
-        Flattener
-    };
-}
-
 /// Flattens some distributive expressions such as
 /// `And`, `Or`, `BitAnd`, `BitOr`, `Add`, `Mul`.
 /// 

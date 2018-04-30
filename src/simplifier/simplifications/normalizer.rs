@@ -4,10 +4,6 @@ use itertools::Itertools;
 
 use std::cmp::Ordering;
 
-pub mod prelude {
-    pub use super::Normalizer;
-}
-
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Normalizer;
 

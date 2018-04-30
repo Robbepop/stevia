@@ -1,11 +1,5 @@
 use ast::prelude::*;
 
-pub mod prelude {
-    pub use super::{
-        InvolutionSimplifier
-    };
-}
-
 /// Resolves double negations into their equivalent forms without negation.
 /// 
 /// # Examples

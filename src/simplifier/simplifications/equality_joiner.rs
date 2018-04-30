@@ -5,10 +5,6 @@ use std::collections::HashSet;
 use either::Either;
 use itertools::Itertools;
 
-pub mod prelude {
-    pub use super::EqualityJoiner;
-}
-
 /// This simplification procedure dissolves term expressions with symbolic simplifications.
 /// 
 /// This works best if used after an expression normalization transformation and

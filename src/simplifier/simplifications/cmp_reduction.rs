@@ -1,11 +1,5 @@
 use ast::prelude::*;
 
-pub mod prelude {
-    pub use super::{
-        ComparisonReducer
-    };
-}
-
 /// Reduces this `SignedGreaterEquals` to using less-than as only comparison.
 fn reduce_sge_to_slt(sge: expr::SignedGreaterEquals) -> expr::Not {
     unsafe{ expr::SignedLessThan::new_unchecked(sge.children_bitvec_ty, sge.children) }.wrap_with_not()

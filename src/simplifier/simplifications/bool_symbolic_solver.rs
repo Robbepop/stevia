@@ -2,10 +2,6 @@ use ast::prelude::*;
 
 use itertools::Itertools;
 
-pub mod prelude {
-    pub use super::BoolSymbolicSolver;
-}
-
 /// This simplification procedure dissolves symbolic tautologies or contradictions
 /// for boolean expressions.
 /// 

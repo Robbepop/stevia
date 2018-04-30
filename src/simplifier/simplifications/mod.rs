@@ -12,32 +12,41 @@ mod like_term_joiner;
 mod read_ite_lifting;
 mod if_constraint_prop;
 
-pub mod prelude {
-    pub use super::{
-        BoolConstPropagator,
-        BoolSymbolicSolver,
-        BoolReducer,
-        ComparisonReducer,
-        EqualityJoiner,
-        InvolutionSimplifier,
-        Normalizer,
-        TermConstPropagator,
-        TermReducer,
-        LikeTermJoiner,
+pub use self::{
+    cmp_reduction::{
+        ComparisonReducer
+    },
+    involution::{
+        InvolutionSimplifier
+    },
+    bool_const_prop::{
+        BoolConstPropagator
+    },
+    bool_symbolic_solver::{
+        BoolSymbolicSolver
+    },
+    bool_lowering::{
+        BoolReducer
+    },
+    equality_joiner::{
+        EqualityJoiner
+    },
+    normalizer::{
+        Normalizer
+    },
+    flattening::{
+        Flattener
+    },
+    term_const_prop::{
+        TermConstPropagator
+    },
+    term_lowering::{
+        TermReducer
+    },
+    like_term_joiner::{
+        LikeTermJoiner
+    },
+    if_constraint_prop::{
         IfConstraintPropagator
-    };
-}
-
-pub use self::cmp_reduction::prelude::*;
-pub use self::involution::prelude::*;
-pub use self::bool_const_prop::prelude::*;
-pub use self::bool_symbolic_solver::prelude::*;
-pub use self::bool_lowering::prelude::*;
-pub use self::equality_joiner::prelude::*;
-pub use self::normalizer::prelude::*;
-pub use self::flattening::prelude::*;
-pub use self::term_const_prop::prelude::*;
-pub use self::term_lowering::prelude::*;
-pub use self::like_term_joiner::prelude::*;
-pub use self::read_ite_lifting::prelude::*;
-pub use self::if_constraint_prop::*;
+    }
+};
