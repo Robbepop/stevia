@@ -131,16 +131,6 @@ impl ExprError {
 	}
 
 	/// Pushes a new stringly error context to the context stack.
-	pub fn context<S>(self, context: S) -> Self
-	where
-		S: Into<String>,
-	{
-		let mut this = self;
-		this.context.push(ErrorContext::msg(context));
-		this
-	}
-
-	/// Pushes a new stringly error context to the context stack.
 	pub fn context_msg<S>(self, message: S) -> Self
 	where
 		S: Into<String>,
