@@ -1,13 +1,5 @@
 use ast::prelude::*;
 
-/// Reexports all commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        AnyExpr,
-        IntoBoxedAnyExpr
-    };
-}
-
 /// Utility trait to transform `AnyExpr` or `Box<AnyExpr>` into `Box<AnyExpr>` and
 /// without unboxing the input in the `Box<AnyExpr>` case.
 pub trait IntoBoxedAnyExpr {

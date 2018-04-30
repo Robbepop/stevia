@@ -3,19 +3,6 @@ use ast::prelude::*;
 use std::mem;
 use std::ops::BitOrAssign;
 
-pub mod prelude {
-    pub use super::{
-        TransformEffect,
-        TransformOutcome,
-        TransformEvent,
-        Transformer,
-        AnyExprTransformer,
-        AutoImplAnyExprTransformer,
-        TraverseTransformer,
-        forward_transform_any_expr_into
-    };
-}
-
 /// Describes whether the result of a transformation actually transformed
 /// the input or did nothing to it.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

@@ -1,13 +1,5 @@
 use ast::prelude::*;
 
-pub mod prelude {
-    pub use super::{
-        VisitEvent,
-        RecursiveTraverseVisitor,
-        Visitor
-    };
-}
-
 /// An event attached to visiting an expression.
 /// 
 /// This is useful to query for visitor that do different things upon

@@ -1,11 +1,5 @@
 use ast::prelude::*;
 
-pub mod prelude {
-    pub use super::{
-        BinExprChildren
-    };
-}
-
 /// Utility struct to allow storing child expressions of binary expressions
 /// continuously in memory while having a name `lhs` and `rhs` to refer to them
 /// for improved usability.

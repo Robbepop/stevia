@@ -2,11 +2,6 @@ mod base;
 mod assert;
 mod error;
 
-/// Module for exports of commonly used items of this module.
-pub mod prelude {
-    pub use super::*;
-}
-
 pub use self::{
 	base::{
 		Type,

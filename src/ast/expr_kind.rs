@@ -1,13 +1,3 @@
-/// Reexports all commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        ExprKind,
-        HasKind,
-        Priority,
-        HasPriority
-    };
-}
-
 /// Represents kind of an expression.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ExprKind {

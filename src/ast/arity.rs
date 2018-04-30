@@ -1,14 +1,5 @@
 use ast::prelude::*;
 
-/// Reexports all commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        HasArity,
-        recursive_arity,
-        exceeds_recursive_arity
-    };
-}
-
 /// Types that implement this trait can be queried for their arity.
 /// 
 /// The arity of an expression is equal to the number of its child expressions.

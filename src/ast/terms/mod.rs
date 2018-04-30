@@ -10,10 +10,12 @@ mod cast;
 mod array;
 mod bitvec;
 
-pub use self::bitvec::{
-    Bitvec,
-    BitvecError,
-    BitvecResult
+pub use self::{
+    bitvec::{
+        Bitvec,
+        BitvecError,
+        BitvecResult
+    }
 };
 
 pub mod prelude {

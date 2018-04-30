@@ -1,13 +1,5 @@
 use ast::prelude::*;
 
-/// Exports all commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        IfThenElse,
-        IfThenElseChildren
-    };
-}
-
 /// The If-Then-Else expression.
 /// 
 /// # Note
