@@ -206,7 +206,11 @@ impl AssertConsistency for expr::Symbol {
                 "Expected to have an associated type to this named symbol. \
                  Maybe the wrong context is in used?",
             );
-            return expect_matching_symbol_type(assoc_ty, self.ty(), named);
+            if assoc_ty != self.ty() {
+                return Err(ExprError::unmatching_symbol_types(
+                    assoc_ty, self.ty(), named
+                ));
+            }
         }
         Ok(())
     }

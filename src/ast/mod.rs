@@ -46,8 +46,7 @@ pub use self::{
     error::{
         ExprError,
         ExprErrorKind,
-        ExprResult,
-        expect_matching_symbol_type
+        ExprResult
     },
     ty::{
         HasType,

@@ -4,11 +4,6 @@ use std::error;
 use std::fmt;
 use std::result;
 
-/// Module for exports of commonly used items of this module.
-pub mod prelude {
-	pub use super::{expect_matching_symbol_type, ExprError, ExprErrorKind, ExprResult};
-}
-
 /// An error context providing metadata context error information.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ErrorContext {
@@ -279,26 +274,6 @@ where
 			"Expected at least {:?} child expressions but found only {:?}.",
 			expected_min_children_number, actual_children_number
 		)));
-	}
-	Ok(())
-}
-
-/// Asserts that the given named symbol ID has the same type as its context associated type.
-pub fn expect_matching_symbol_type<T1, T2>(
-	assoc_ty: T1,
-	current_ty: T2,
-	symbol_id: NamedSymbolId,
-) -> ExprResult<()>
-where
-	T1: Into<Type>,
-	T2: Into<Type>,
-{
-	let assoc_ty = assoc_ty.into();
-	let current_ty = current_ty.into();
-	if assoc_ty != current_ty {
-		return Err(ExprError::unmatching_symbol_types(
-			assoc_ty, current_ty, symbol_id,
-		));
 	}
 	Ok(())
 }
