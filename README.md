@@ -1,8 +1,8 @@
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
-|       Linux       |       Windows       |      Coveralls       |      Codecov       |
-|:-----------------:|:-------------------:|:--------------------:|:------------------:|
-| [![travis][0]][1] | [![appveyor][2]][3] | [![coveralls][4]][5] | [![licence][6]][7] |
+|       Linux       |       Windows       |      Coveralls       |      Codecov       |     Metrics      |
+|:-----------------:|:-------------------:|:--------------------:|:------------------:|:----------------:|
+| [![travis][0]][1] | [![appveyor][2]][3] | [![coveralls][4]][5] | [![licence][6]][7] | [![tokei][8]][9] |
 
 ---
 
@@ -23,22 +23,20 @@ Currently the solver is in very early development phase.
 
 The combined theory in SMT notation is called `QF_ABV`.
 
-## Very future goals are
+## Future Goals
 
 - Support inputs specified in [SMTLib 2.6][smtlib-home].
 - Comprehensive documentation for all important parts of the code.
 - Eventually be able to keep up with efficient SMT solvers like STP.
 - C API to enable bindings for other languages.
-- Use an efficient SAT solver under the hood, like [candy][candy-repo] and [JamSat][jamsat-repo].
+- Use an efficient SAT solver under the hood, like [candy][candy-repo] and [JamSAT][jamsat-repo].
 
 ## Simplifications
 
 Stevia supports word-level transformations, called simplifications, that it applies throughout the solving process.
+In the following is an example of what is possible with the WIP implementation of the simplifier.
 
-Below is an early example of what is possible by now. Keep in mind that this is still a WIP and there is certainly
-more to come in future versions of the simplifier.
-
-LISP syntax of an arithmetic instance:
+The arithmetic expression in LISP syntax:
 
 ```lisp
 (+ x 42 (- x y) (* y (-5)) (- (+ x 10 y)))
@@ -57,11 +55,11 @@ This output can then be further processed by other simplification and solving pr
 These features need to be stabilized before this crate can be used on the stable channel.
 
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
-- [`#![feature(conservative_impl_trait)]`][conservative-impl-trait] (stable in 1.26)
-- [`#![feature(copy_closures)]`][copy-closures] (stable in 1.26)
-- [`#![feature(clone_closures)]`][clone-closures] (stable in 1.26)
-- [`#![feature(match_default_bindings)]`][match-default-bindings] (stable in 1.26)
 - [`#![feature(nll)]`][nll]
+- ~~[`#![feature(conservative_impl_trait)]`][conservative-impl-trait]~~ (stable in 1.26)
+- ~~[`#![feature(copy_closures)]`][copy-closures]~~ (stable in 1.26)
+- ~~[`#![feature(clone_closures)]`][clone-closures]~~ (stable in 1.26)
+- ~~[`#![feature(match_default_bindings)]`][match-default-bindings]~~ (stable in 1.26)
 
 ## License
 
@@ -81,7 +79,6 @@ for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
 additional terms or conditions.
 
 
-
 [0]: https://travis-ci.org/Robbepop/stevia.svg?branch=master
 [1]: https://travis-ci.org/Robbepop/stevia
 
@@ -93,6 +90,9 @@ additional terms or conditions.
 
 [6]: https://codecov.io/gh/Robbepop/stevia/branch/master/graph/badge.svg
 [7]: https://codecov.io/gh/Robbepop/stevia/branch/master
+
+[8]: https://tokei.rs/b1/github/robbepop/stevia?category=code
+[9]: https://github.com/Aaronepower/tokei#badges
 
 [license-mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-apache-badge]: https://img.shields.io/badge/license-APACHE-orange.svg
