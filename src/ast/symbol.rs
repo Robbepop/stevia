@@ -108,7 +108,7 @@ pub struct Symbol {
 
 impl Symbol {
     /// Creates a new symbol expression for the given symbol ID.
-    pub fn new<T, I>(ty: T, id: I) -> Self
+    pub fn from_raw_parts<T, I>(ty: T, id: I) -> Self
     where
         T: Into<Type>,
         I: Into<SymbolId>,
@@ -131,7 +131,7 @@ impl Symbol {
     {
         let ty = ty.into();
         let named_id = ctx.interner.intern_or_get(name);
-        let symbol = Symbol::new(ty, named_id);
+        let symbol = Symbol::from_raw_parts(ty, named_id);
         if let Some(assoc_ty) = ctx.symbol_types.insert_or_get(named_id, ty) {
             // The same name was already interned.
             // We need to check for type collissions.
@@ -147,7 +147,7 @@ impl Symbol {
     where
         T: Into<Type>,
     {
-        Symbol::new(ty, ctx.symbol_id_gen.gen_id())
+        Symbol::from_raw_parts(ty, ctx.symbol_id_gen.gen_id())
     }
 }
 
