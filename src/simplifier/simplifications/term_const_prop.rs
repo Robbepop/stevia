@@ -5,10 +5,6 @@ use either::Either;
 
 use itertools::Itertools;
 
-pub mod prelude {
-    pub use super::TermConstPropagator;
-}
-
 /// This simplification procedure propagates constant values through boolean expressions.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermConstPropagator;

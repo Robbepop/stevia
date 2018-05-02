@@ -1,9 +1,5 @@
 use ast::prelude::*;
 
-pub mod prelude {
-    pub use super::TermReducer;
-}
-
 /// This simplification procedure propagates constant values through term expressions.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermReducer;

@@ -1,14 +1,5 @@
 use ast::prelude::*;
 
-// use either::Either;
-// use itertools::Itertools;
-
-pub mod prelude {
-    pub use super::{
-        ArrayReadIteLifter
-    };
-}
-
 /// Lifts if-then-else expressions that are childs of array-reads and have
 /// an array-write child themself.
 /// 
@@ -96,17 +87,17 @@ mod tests {
                     b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr1"),
                     b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr2")
                 ),
-                b.bitvec_var(BitvecTy::w32(), "idx_j")
+                b.bitvec_var(BitvecTy::w32(), "idx")
             ),
             b.cond(
                 b.bool_var("cond"),
                 b.array_read(
                     b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr1"),
-                    b.bitvec_var(BitvecTy::w32(), "idx_j")
+                    b.bitvec_var(BitvecTy::w32(), "idx")
                 ),
                 b.array_read(
                     b.array_var(ArrayTy::new(BitvecTy::w32(), BitvecTy::w8()), "arr2"),
-                    b.bitvec_var(BitvecTy::w32(), "idx_j")
+                    b.bitvec_var(BitvecTy::w32(), "idx")
                 )
             )
         )
