@@ -7,13 +7,19 @@ use vec_map::{
     VecMap,
     Entry::{Occupied, Vacant}
 };
-use std::sync::{
-    atomic::{
-        AtomicUsize,
-        Ordering
+
+use std::{
+    collections::{
+        HashMap
     },
-    Arc,
-    Mutex
+    sync::{
+        atomic::{
+            AtomicUsize,
+            Ordering
+        },
+        Arc,
+        Mutex
+    }
 };
 
 mod private {
@@ -33,6 +39,8 @@ pub struct Context {
     pub symbol_types: TypeMap,
     /// Access to the symbol generator.
     pub symbol_id_gen: SymbolIdGenerator,
+    /// Access to the symbol proxy map.
+    symbol_proxies: SymbolProxyMap,
     /// A marker to prevent constructing context instances without
     /// its named constructor `Context::arced`.
     marker: private::PrivateMarker
@@ -66,6 +74,7 @@ impl Context {
             interner: SymbolInterner::default(),
             symbol_types: TypeMap::default(),
             symbol_id_gen: SymbolIdGenerator::default(),
+            symbol_proxies: SymbolProxyMap::default(),
             marker: private::PrivateMarker
         })
     }
@@ -73,6 +82,14 @@ impl Context {
     /// Associates `self` with the given entity.
     pub fn assoc<T>(&self, entity: T) -> ContextAnd<T> {
         ContextAnd{ entity, ctx: self }
+    }
+
+    /// Registers a new proxy for the given expression and returns the proxy symbol.
+    pub fn register_proxy(&self, expr: AnyExpr) -> expr::Symbol {
+        let proxy_symbol_id = self.symbol_id_gen.gen_id();
+        let ty = expr.ty();
+        self.symbol_proxies.register(proxy_symbol_id, expr);
+        expr::Symbol::from_raw_parts(ty, proxy_symbol_id)
     }
 }
 
@@ -201,5 +218,46 @@ impl SymbolInterner {
                 // - Already inserted `String` instances cannot be modified afterwards.
                 &* (resolved as *const str)
             })
+    }
+}
+
+/// Stores sub-tree expressions that have been temporarily replaced by a newly
+/// generated symbol to mitigate exponential copy overhead in stevia for large
+/// sub-tree expressions.
+#[derive(Debug)]
+pub struct SymbolProxyMap {
+    /// Access to the internal thread-safe symbol proxy map.
+    access: Mutex<HashMap<GeneratedSymbolId, SymbolProxy>>
+}
+
+/// The symbol proxy for the replaced expression of a single symbol.
+#[derive(Debug, Hash)]
+pub struct SymbolProxy {
+    /// The expression that has been replaced by the symbol.
+    expr: AnyExpr
+}
+
+impl SymbolProxy {
+    /// Creates a new symbol proxy for the given expression.
+    pub(in self) fn new(expr: AnyExpr) -> Self {
+        Self{ expr: expr }
+    }
+}
+
+impl Default for SymbolProxyMap {
+    fn default() -> Self {
+        SymbolProxyMap{
+            access: Mutex::new(HashMap::new())
+        }
+    }
+}
+
+impl SymbolProxyMap {
+    /// Registers a new proxy symbol for the given expression.
+    pub(in self) fn register(&self, id: GeneratedSymbolId, expr: AnyExpr) {
+        self.access
+            .lock()
+            .unwrap()
+            .insert(id, SymbolProxy::new(expr));
     }
 }
