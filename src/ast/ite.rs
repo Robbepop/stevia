@@ -98,6 +98,8 @@ impl IfThenElse {
     /// - This function is unsafe since it does not perform some checks to secure invariants.
     ///   Use it if you already asserted the nessecary invariants.
     pub unsafe fn new_unchecked(cond: AnyExpr, then_case: AnyExpr, else_case: AnyExpr) -> IfThenElse {
+        debug_assert_eq!(Ok(()), expect_type(Type::Bool, &cond));
+        debug_assert!(expect_common_ty(&then_case, &else_case).is_ok());
         IfThenElse{
             ty: then_case.ty(),
             children: P::new(IfThenElseChildren{cond, then_case, else_case})

@@ -64,23 +64,35 @@ where
                     M::EXPR_KIND.camel_name()
                 ))
             })?;
-        Ok(Self {
-            children_bitvec_ty: common_ty,
-            children: BinExprChildren::new_boxed(lhs, rhs),
-            marker: PhantomData,
-        })
+        Ok(unsafe{ Self::new_unchecked(common_ty, lhs, rhs) })
     }
 
-    /// Creates a new comparison expression from the given raw parts.
+    /// Creates a new comparison expression between `lhs` and `rhs`.
     ///
     /// # Safety
     ///
-    /// This is unsafe since it does not check the type requirements for the given child expressions
-    /// thus allowing users of this API to break invariants of this type which could ultimatively
-    /// lead to undefined behaviour indirectly in code depending on those invariants.
-    pub unsafe fn new_unchecked(bitvec_ty: BitvecTy, children: P<BinExprChildren>) -> Self {
+    /// This does not check the type validity of `lhs` and `rhs` and thus
+    /// should be used with care.
+    pub unsafe fn new_unchecked<E1, E2>(bvty: BitvecTy, lhs: E1, rhs: E2) -> Self
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>,
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
+        debug_assert!(expect_common_bitvec_ty(&lhs, &rhs).is_ok());
+        Self::from_raw_parts(bvty, BinExprChildren::new_boxed(lhs, rhs))
+    }
+
+    /// Creates a new comparison expression from the given raw parts.
+    /// 
+    /// # Safety
+    /// 
+    /// This does not check the type validity of the given raw parts and thus
+    /// should be used with care.
+    pub unsafe fn from_raw_parts(bvty: BitvecTy, children: P<BinExprChildren>) -> Self {
         Self {
-            children_bitvec_ty: bitvec_ty,
+            children_bitvec_ty: bvty,
             children,
             marker: PhantomData,
         }
