@@ -43,9 +43,9 @@ impl Not {
     where
         E: IntoBoxedAnyExpr,
     {
-        Not {
-            child: child.into_boxed_any_expr(),
-        }
+        let child = child.into_boxed_any_expr();
+        debug_assert!(expect_type(Type::Bool, &*child).is_ok());
+        Not{ child: child }
     }
 }
 
