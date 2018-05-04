@@ -24,16 +24,18 @@ impl<M> NaryBoolExpr<M>
 where
     M: ExprMarker,
 {
-    /// Returns a new n-ary formula expression from the given vector of child expressions.
+    /// Returns a new n-ary formula expression from the given raw parts.
     ///
+    /// # Safety
+    /// 
+    /// This does not check the type integrity of the given child expressions
+    /// and thus should be used with care.
+    /// 
     /// # Note
     ///
     /// This is just a convenience method and performs no type checking on its arguments.
-    fn from_vec(children: Vec<AnyExpr>) -> Self {
-        Self {
-            children,
-            marker: PhantomData,
-        }
+    unsafe fn from_raw_parts(children: Vec<AnyExpr>) -> Self {
+        Self{ children, marker: PhantomData }
     }
 
     /// Returns a new n-ary formula expression with the given child expressions.
@@ -70,7 +72,7 @@ where
                     M::EXPR_KIND.camel_name()
                 ))
             })?;
-        Ok(Self::from_vec(vec![lhs, rhs]))
+        Ok(unsafe{ Self::binary_unchecked(lhs, rhs) })
     }
 
     /// Returns a new n-ary formula expression with the given child expressions.
@@ -91,7 +93,9 @@ where
     {
         let lhs = lhs.into();
         let rhs = rhs.into();
-        Self::from_vec(vec![lhs, rhs])
+        debug_assert!(expect_type(Type::Bool, &lhs).is_ok());
+        debug_assert!(expect_type(Type::Bool, &rhs).is_ok());
+        Self::from_raw_parts(vec![lhs, rhs])
     }
 
     /// Returns a new n-ary formula expression.
@@ -102,8 +106,7 @@ where
     /// - If not all expressions yielded by the given iteration are of boolean type.
     pub fn nary<I>(children: I) -> ExprResult<Self>
     where
-        I: IntoIterator<Item = AnyExpr>,
-        AnyExpr: From<Self>,
+        I: IntoIterator<Item = AnyExpr>
     {
         let children = children.into_iter().collect::<Vec<_>>();
         if children.len() < 2 {
@@ -127,7 +130,23 @@ where
                     ))
                 })?;
         }
-        Ok(Self::from_vec(children))
+        Ok(unsafe{ Self::nary_unchecked(children) })
+    }
+
+    /// Returns a new n-ary formula expression from the given child expressions.
+    /// 
+    /// # Safety
+    /// 
+    /// This does not check the type integrity of the given child expressions
+    /// and thus should be used with care.
+    pub unsafe fn nary_unchecked<I>(children: I) -> Self
+    where
+        I: IntoIterator<Item = AnyExpr>
+    {
+        let children = children.into_iter().collect::<Vec<_>>();
+        debug_assert!(children.len() >= 2);
+        debug_assert!(children.iter().all(|e| expect_type(Type::Bool, e).is_ok()));
+        Self::from_raw_parts(children)
     }
 }
 

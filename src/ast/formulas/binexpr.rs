@@ -51,10 +51,28 @@ where
                     M::EXPR_KIND.camel_name()
                 ))
             })?;
-        Ok(Self {
+        Ok(unsafe{ Self::new_unchecked(lhs, rhs) })
+    }
+
+    /// Returns a new binary formula expression with the given child expressions.
+    /// 
+    /// # Safety
+    /// 
+    /// This does not check the type integrity of the given child expressions
+    /// and thus should be used with care.
+    pub unsafe fn new_unchecked<E1, E2>(lhs: E1, rhs: E2) -> Self
+    where
+        E1: Into<AnyExpr>,
+        E2: Into<AnyExpr>
+    {
+        let lhs = lhs.into();
+        let rhs = rhs.into();
+        debug_assert!(expect_type(Type::Bool, &lhs).is_ok());
+        debug_assert!(expect_type(Type::Bool, &rhs).is_ok());
+        Self {
             children: BinExprChildren::new_boxed(lhs, rhs),
             marker: PhantomData,
-        })
+        }
     }
 }
 
