@@ -19,6 +19,7 @@ pub fn simplify<'e, E>(expr: E)
 }
 
 modular_ast_transformer! {
+    #[derive(Default)]
     struct SimplifierTransformer {
         _00: simplifications::InvolutionSimplifier,
         _01: simplifications::ComparisonReducer,
@@ -35,7 +36,7 @@ modular_ast_transformer! {
 }
 
 /// Simplifies expressions using the underlying base transformer.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default)]
 pub struct BaseSimplifier<T>
     where T: AnyExprTransformer
 {
@@ -76,6 +77,7 @@ mod tests {
     use super::*;
 
     modular_ast_transformer! {
+        #[derive(Default)]
         struct TestableSimplifierTransformer {
             _0: SimplifierTransformer,
             _1: simplifications::Normalizer

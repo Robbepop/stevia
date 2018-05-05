@@ -112,6 +112,7 @@ mod tests {
     use simplifier::simplifications;
 
     modular_ast_transformer! {
+        #[derive(Default)]
         struct ModularIfConstraintPropagator {
             _0: IfConstraintPropagator,
             _1: simplifications::BoolConstPropagator,

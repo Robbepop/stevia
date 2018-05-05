@@ -15,6 +15,7 @@ modular_ast_transformer! {
     /// only constant child expression. This may leave the resulting binary multiplication in 
     /// an unnormalized state thus also requiring an additional normalization preprocessing
     /// befor actually identifying and merging like-terms.
+    #[derive(Default, Copy, PartialEq, Eq, Hash)]
     struct LikeTermJoiner {
         _0: MulConstSeperator,
         _1: Normalizer,
@@ -213,6 +214,7 @@ mod tests {
     use simplifier::simplifications;
 
     modular_ast_transformer! {
+        #[derive(Default)]
         struct LikeTermJoinerTransformer {
             _0: LikeTermJoiner,
             _1: simplifications::Normalizer // For testing purposes only!

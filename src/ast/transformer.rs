@@ -499,7 +499,7 @@ impl<T> AnyExprTransformer for T where T: AutoImplAnyExprTransformer {
 /// 
 /// Note that the internal AST transformer may be a modular transfomer that
 /// combines several AST transformers into one.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Default)]
 pub struct TraverseTransformer<T>
     where T: AnyExprTransformer
 {
@@ -552,7 +552,7 @@ impl<T> TraverseTransformer<T>
 macro_rules! modular_ast_transformer {
     ($(#[$attr:meta])* struct $name:ident { $($trans_id:ident: $trans_ty:ty),+ } ) => {
         $(#[$attr])*
-        #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
+        #[derive(Debug, Clone)]
         pub struct $name {
             $($trans_id: $trans_ty),*
         }
