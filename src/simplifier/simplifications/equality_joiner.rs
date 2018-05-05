@@ -101,12 +101,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct EqualityJoinerTransformer {
-            _0: EqualityJoiner
-        }
-    }
-    type EqualityJoinerSimplifier = BaseSimplifier<EqualityJoinerTransformer>;
+    type EqualityJoinerSimplifier = BaseSimplifier<EqualityJoiner>;
 
     fn create_simplifier() -> EqualityJoinerSimplifier {
         EqualityJoinerSimplifier::default()

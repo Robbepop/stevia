@@ -229,12 +229,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct BoolConstPropagatorTransformer {
-            _0: BoolConstPropagator
-        }
-    }
-    type BoolConstPropagatorSimplifier = BaseSimplifier<BoolConstPropagatorTransformer>;
+    type BoolConstPropagatorSimplifier = BaseSimplifier<BoolConstPropagator>;
 
     fn create_simplifier() -> BoolConstPropagatorSimplifier {
         BoolConstPropagatorSimplifier::default()

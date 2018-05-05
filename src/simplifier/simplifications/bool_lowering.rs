@@ -26,12 +26,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct BoolReducerTransformer {
-            _0: BoolReducer
-        }
-    }
-    type BoolReducerSimplifier = BaseSimplifier<BoolReducerTransformer>;
+    type BoolReducerSimplifier = BaseSimplifier<BoolReducer>;
 
     fn create_simplifier() -> BoolReducerSimplifier {
         BoolReducerSimplifier::default()

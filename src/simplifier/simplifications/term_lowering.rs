@@ -26,12 +26,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct TermReducerTransformer {
-            _0: TermReducer
-        }
-    }
-    type TermReducerSimplifier = BaseSimplifier<TermReducerTransformer>;
+    type TermReducerSimplifier = BaseSimplifier<TermReducer>;
 
     fn create_simplifier() -> TermReducerSimplifier {
         TermReducerSimplifier::default()

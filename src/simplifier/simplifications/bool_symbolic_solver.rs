@@ -120,12 +120,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct BoolSymbolicSolverTransformer {
-            _0: BoolSymbolicSolver
-        }
-    }
-    type BoolSymbolicSolverSimplifier = BaseSimplifier<BoolSymbolicSolverTransformer>;
+    type BoolSymbolicSolverSimplifier = BaseSimplifier<BoolSymbolicSolver>;
 
     fn create_simplifier() -> BoolSymbolicSolverSimplifier {
         BoolSymbolicSolverSimplifier::default()

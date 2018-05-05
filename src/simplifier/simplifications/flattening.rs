@@ -80,12 +80,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct FlatteningTransformer {
-            _0: Flattener
-        }
-    }
-    type FlatteningTransformerSimplifier = BaseSimplifier<FlatteningTransformer>;
+    type FlatteningTransformerSimplifier = BaseSimplifier<Flattener>;
 
     fn create_simplifier() -> FlatteningTransformerSimplifier {
         FlatteningTransformerSimplifier::default()

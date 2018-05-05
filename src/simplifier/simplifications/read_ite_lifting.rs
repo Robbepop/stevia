@@ -56,12 +56,7 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    modular_ast_transformer! {
-        struct ArrayReadIteLifterTransformer {
-            _0: ArrayReadIteLifter
-        }
-    }
-    type ArrayReadIteLifterSimplifier = BaseSimplifier<ArrayReadIteLifterTransformer>;
+    type ArrayReadIteLifterSimplifier = BaseSimplifier<ArrayReadIteLifter>;
 
     fn create_simplifier() -> ArrayReadIteLifterSimplifier {
         ArrayReadIteLifterSimplifier::default()
