@@ -12,10 +12,10 @@ pub mod prelude {
 pub type Simplifier = BaseSimplifier<SimplifierTransformer>;
 
 /// Simplifies the given expression until no further simplification can be applied.
-pub fn simplify<'e, E>(expr: E)
+pub fn simplify<'e, E>(ctx: ArcContext, expr: E)
     where E: Into<&'e mut AnyExpr>
 {
-    Simplifier::default().exhaustive_simplify(expr.into())
+    Simplifier::from(ctx).exhaustive_simplify(expr.into())
 }
 
 modular_ast_transformer! {
