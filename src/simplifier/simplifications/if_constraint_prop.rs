@@ -24,6 +24,12 @@ use std::collections::HashMap;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct IfConstraintPropagator;
 
+impl From<ArcContext> for IfConstraintPropagator {
+    fn from(_: ArcContext) -> Self {
+        IfConstraintPropagator
+    }
+}
+
 impl AnyExprTransformer for IfConstraintPropagator {
     fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect {
         // This entire transformation is only allowed during the post-processing step.

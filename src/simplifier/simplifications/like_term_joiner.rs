@@ -33,6 +33,12 @@ modular_ast_transformer! {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct MulConstSeperator;
 
+impl From<ArcContext> for MulConstSeperator {
+    fn from(_: ArcContext) -> Self {
+        MulConstSeperator
+    }
+}
+
 impl AutoImplAnyExprTransformer for MulConstSeperator {}
 
 /// Deflattens n-ary multiplications with exactly one constant value into their

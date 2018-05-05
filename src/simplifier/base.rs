@@ -43,6 +43,15 @@ pub struct BaseSimplifier<T>
     traverser: TraverseTransformer<T>
 }
 
+impl<T> From<ArcContext> for BaseSimplifier<T>
+where
+    T: AnyExprTransformer + From<ArcContext>
+{
+    fn from(ctx: ArcContext) -> Self {
+        Self{ traverser: TraverseTransformer::from(ctx) }
+    }
+}
+
 impl<T> BaseSimplifier<T>
     where T: AnyExprTransformer
 {

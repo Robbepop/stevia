@@ -12,6 +12,12 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct EqualityJoiner;
 
+impl From<ArcContext> for EqualityJoiner {
+    fn from(_: ArcContext) -> Self {
+        EqualityJoiner
+    }
+}
+
 impl AutoImplAnyExprTransformer for EqualityJoiner {}
 
 /// Returns `true` if `lhs` and `rhs` share at least one same child expression.

@@ -9,8 +9,16 @@ use ast::prelude::*;
 /// However, this has yet to be implemented which requires another architectural
 /// enhancement on the side of the general simplifier design to allow for
 /// post-processing steps.
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct ArrayReadIteLifter;
+#[derive(Debug, Clone)]
+pub struct ArrayReadIteLifter {
+    ctx: ArcContext
+}
+
+impl From<ArcContext> for ArrayReadIteLifter {
+    fn from(ctx: ArcContext) -> Self {
+        Self{ctx}
+    }
+}
 
 impl AutoImplAnyExprTransformer for ArrayReadIteLifter {}
 

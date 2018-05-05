@@ -48,6 +48,12 @@ fn reduce_ule_to_ult(ule: expr::UnsignedLessEquals) -> expr::Not {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ComparisonReducer;
 
+impl From<ArcContext> for ComparisonReducer {
+    fn from(_: ArcContext) -> Self {
+        ComparisonReducer
+    }
+}
+
 impl AutoImplAnyExprTransformer for ComparisonReducer {}
 
 impl Transformer for ComparisonReducer {

@@ -7,6 +7,12 @@ use std::cmp::Ordering;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Normalizer;
 
+impl From<ArcContext> for Normalizer {
+    fn from(_: ArcContext) -> Self {
+        Normalizer
+    }
+}
+
 impl AutoImplAnyExprTransformer for Normalizer {}
 
 fn normalization_cmp(lhs: &AnyExpr, rhs: &AnyExpr) -> Ordering {

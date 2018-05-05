@@ -4,6 +4,12 @@ use ast::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolReducer;
 
+impl From<ArcContext> for BoolReducer {
+    fn from(_: ArcContext) -> Self {
+        BoolReducer
+    }
+}
+
 impl AutoImplAnyExprTransformer for BoolReducer {}
 
 impl Transformer for BoolReducer {

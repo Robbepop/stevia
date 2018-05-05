@@ -10,6 +10,12 @@ use ast::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct InvolutionSimplifier;
 
+impl From<ArcContext> for InvolutionSimplifier {
+    fn from(_: ArcContext) -> Self {
+        InvolutionSimplifier
+    }
+}
+
 impl AutoImplAnyExprTransformer for InvolutionSimplifier {}
 
 impl Transformer for InvolutionSimplifier {

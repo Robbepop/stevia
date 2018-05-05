@@ -19,6 +19,12 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Flattener;
 
+impl From<ArcContext> for Flattener {
+    fn from(_: ArcContext) -> Self {
+        Flattener
+    }
+}
+
 impl AutoImplAnyExprTransformer for Flattener {}
 
 macro_rules! flattening_impl_for {

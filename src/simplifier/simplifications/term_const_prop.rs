@@ -9,6 +9,12 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermConstPropagator;
 
+impl From<ArcContext> for TermConstPropagator {
+    fn from(_: ArcContext) -> Self {
+        TermConstPropagator
+    }
+}
+
 impl AutoImplAnyExprTransformer for TermConstPropagator {}
 
 fn simplify_neg(neg: expr::Neg) -> TransformOutcome {

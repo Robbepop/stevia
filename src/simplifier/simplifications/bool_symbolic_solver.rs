@@ -10,6 +10,12 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolSymbolicSolver;
 
+impl From<ArcContext> for BoolSymbolicSolver {
+    fn from(_: ArcContext) -> Self {
+        BoolSymbolicSolver
+    }
+}
+
 fn is_logical_contradiction(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
     if let (&AnyExpr::Not(ref lhs), rhs) = (lhs, rhs) {
         return lhs.single_child() == rhs

@@ -4,6 +4,12 @@ use ast::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermReducer;
 
+impl From<ArcContext> for TermReducer {
+    fn from(_: ArcContext) -> Self {
+        TermReducer
+    }
+}
+
 impl AutoImplAnyExprTransformer for TermReducer {}
 
 impl Transformer for TermReducer {
