@@ -174,6 +174,19 @@ mod tests {
     }
 
     #[test]
+    fn simple() {
+        let b = new_builder();
+        assert_simplified(
+            b.cond(
+                b.bool_var("a"),
+                b.not(b.bool_var("a")),
+                b.not(b.bool_var("a"))
+            ),
+            b.not(b.bool_var("a"))
+        )
+    }
+
+    #[test]
     fn complex() {
         let b = new_builder();
         assert_simplified(
