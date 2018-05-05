@@ -25,7 +25,7 @@ use std::{
 mod private {
     /// A simple marker to prevent construction of `Context` instances
     /// from outside this module without its named constructor `Context::arced`.
-    #[derive(Debug, Copy, Clone)]
+    #[derive(Debug, Copy, Clone, PartialEq, Eq)]
     pub struct PrivateMarker;
 }
 
@@ -93,6 +93,7 @@ impl Context {
     }
 }
 
+/// Generates symbol identifiers of unnamed symbols.
 #[derive(Debug)]
 pub struct SymbolIdGenerator {
     current: AtomicUsize
