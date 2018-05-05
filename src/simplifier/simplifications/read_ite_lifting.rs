@@ -58,32 +58,34 @@ mod tests {
 
     type ArrayReadIteLifterSimplifier = BaseSimplifier<ArrayReadIteLifter>;
 
-    fn create_simplifier() -> ArrayReadIteLifterSimplifier {
-        ArrayReadIteLifterSimplifier::default()
+    fn create_simplifier(ctx: ArcContext) -> ArrayReadIteLifterSimplifier {
+        ArrayReadIteLifterSimplifier::from(ctx)
     }
 
-    fn simplify(expr: &mut AnyExpr) -> TransformEffect {
-        create_simplifier().simplify(expr)
+    fn simplify(ctx: ArcContext, expr: &mut AnyExpr) -> TransformEffect {
+        create_simplifier(ctx).simplify(expr)
     }
 
-    fn assert_simplified<E1, E2>(input: E1, expected: E2)
+    fn assert_simplified<E1, E2>(ctx: ArcContext, input: E1, expected: E2)
         where E1: IntoAnyExprOrError,
               E2: IntoAnyExprOrError
     {
         let mut input = input.into_any_expr_or_error().unwrap();
         let expected = expected.into_any_expr_or_error().unwrap();
-        simplify(&mut input);
+        simplify(ctx, &mut input);
         assert_eq!(input, expected);
     }
 
-    fn new_builder() -> PlainExprTreeBuilder {
-        PlainExprTreeBuilder::default()
+    fn new_context_and_builder() -> (ArcContext, PlainExprTreeBuilder) {
+        let ctx = Context::arced();
+        let builder = PlainExprTreeBuilder::from_context(ctx.clone());
+        (ctx, builder)
     }
 
     #[test]
     fn simple() {
-        let b = new_builder();
-        assert_simplified(
+        let (ctx, b) = new_context_and_builder();
+        assert_simplified(ctx.clone(),
             b.array_read(
                 b.cond(
                     b.bool_var("cond"),
@@ -108,8 +110,8 @@ mod tests {
 
     #[test]
     fn write_in_ite() {
-        let b = new_builder();
-        assert_simplified(
+        let (ctx, b) = new_context_and_builder();
+        assert_simplified(ctx.clone(),
             b.array_read(
                 b.cond(
                     b.bool_var("cond"),
