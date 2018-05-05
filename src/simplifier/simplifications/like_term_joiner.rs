@@ -83,6 +83,12 @@ impl Transformer for MulConstSeperator {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct LikeTermMerger;
 
+impl From<ArcContext> for LikeTermMerger {
+    fn from(_: ArcContext) -> Self {
+        LikeTermMerger
+    }
+}
+
 impl AutoImplAnyExprTransformer for LikeTermMerger {}
 
 /// Checks if there are like-terms that can and should be combined.
