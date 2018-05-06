@@ -10,17 +10,25 @@ use ast::prelude::*;
 /// enhancement on the side of the general simplifier design to allow for
 /// post-processing steps.
 #[derive(Debug, Clone)]
-pub struct ArrayReadIteLifter {
-    ctx: ArcContext
+pub struct ArrayReadIteLifter<'ctx> {
+    // ctx: ArcContext
+    ctx: &'ctx Context
 }
 
-impl From<ArcContext> for ArrayReadIteLifter {
-    fn from(ctx: ArcContext) -> Self {
-        Self{ctx}
+impl<'ctx> From<ArcContext> for ArrayReadIteLifter<'ctx> {
+    fn from(_ctx: ArcContext) -> Self {
+        // Self{_ctx}
+        unimplemented!()
     }
 }
 
-impl AutoImplAnyExprTransformer for ArrayReadIteLifter {}
+impl<'ctx> From<&'ctx Context> for ArrayReadIteLifter<'ctx> {
+    fn from(ctx: &'ctx Context) -> Self {
+        Self{ ctx: ctx }
+    }
+}
+
+impl<'ctx> AutoImplAnyExprTransformer for ArrayReadIteLifter<'ctx> {}
 
 fn array_read_ite_lifting(read: expr::ArrayRead) -> TransformOutcome {
     if let box ArrayReadChildren{ index, array: AnyExpr::IfThenElse(ite) } = read.children {
@@ -45,7 +53,7 @@ fn array_read_ite_lifting(read: expr::ArrayRead) -> TransformOutcome {
     TransformOutcome::identity(read)
 }
 
-impl Transformer for ArrayReadIteLifter {
+impl<'ctx> Transformer for ArrayReadIteLifter<'ctx> {
     fn transform_array_read(&self, read: expr::ArrayRead) -> TransformOutcome {
         array_read_ite_lifting(read)
     }
@@ -56,17 +64,17 @@ mod tests {
     use super::*;
     use simplifier::prelude::*;
 
-    type ArrayReadIteLifterSimplifier = BaseSimplifier<ArrayReadIteLifter>;
+    type ArrayReadIteLifterSimplifier<'ctx> = BaseSimplifier<ArrayReadIteLifter<'ctx>>;
 
-    fn create_simplifier(ctx: ArcContext) -> ArrayReadIteLifterSimplifier {
+    fn create_simplifier(ctx: &Context) -> ArrayReadIteLifterSimplifier {
         ArrayReadIteLifterSimplifier::from(ctx)
     }
 
-    fn simplify(ctx: ArcContext, expr: &mut AnyExpr) -> TransformEffect {
+    fn simplify(ctx: &Context, expr: &mut AnyExpr) -> TransformEffect {
         create_simplifier(ctx).simplify(expr)
     }
 
-    fn assert_simplified<E1, E2>(ctx: ArcContext, input: E1, expected: E2)
+    fn assert_simplified<E1, E2>(ctx: &Context, input: E1, expected: E2)
         where E1: IntoAnyExprOrError,
               E2: IntoAnyExprOrError
     {
@@ -85,7 +93,7 @@ mod tests {
     #[test]
     fn simple() {
         let (ctx, b) = new_context_and_builder();
-        assert_simplified(ctx.clone(),
+        assert_simplified(&ctx,
             b.array_read(
                 b.cond(
                     b.bool_var("cond"),
@@ -111,7 +119,7 @@ mod tests {
     #[test]
     fn write_in_ite() {
         let (ctx, b) = new_context_and_builder();
-        assert_simplified(ctx.clone(),
+        assert_simplified(&ctx,
             b.array_read(
                 b.cond(
                     b.bool_var("cond"),

@@ -15,6 +15,12 @@ impl From<ArcContext> for TermConstPropagator {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for TermConstPropagator {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for TermConstPropagator {}
 
 fn simplify_neg(neg: expr::Neg) -> TransformOutcome {

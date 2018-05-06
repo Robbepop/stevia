@@ -25,6 +25,12 @@ impl From<ArcContext> for Flattener {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for Flattener {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for Flattener {}
 
 macro_rules! flattening_impl_for {

@@ -54,6 +54,12 @@ impl From<ArcContext> for ComparisonReducer {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for ComparisonReducer {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for ComparisonReducer {}
 
 impl Transformer for ComparisonReducer {

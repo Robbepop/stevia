@@ -13,6 +13,12 @@ impl From<ArcContext> for Normalizer {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for Normalizer {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for Normalizer {}
 
 fn normalization_cmp(lhs: &AnyExpr, rhs: &AnyExpr) -> Ordering {

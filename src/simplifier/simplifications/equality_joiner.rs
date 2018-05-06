@@ -18,6 +18,12 @@ impl From<ArcContext> for EqualityJoiner {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for EqualityJoiner {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for EqualityJoiner {}
 
 /// Returns `true` if `lhs` and `rhs` share at least one same child expression.

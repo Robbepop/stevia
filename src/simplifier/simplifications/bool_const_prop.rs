@@ -10,6 +10,12 @@ impl From<ArcContext> for BoolConstPropagator {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for BoolConstPropagator {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for BoolConstPropagator {}
 
 impl Transformer for BoolConstPropagator {

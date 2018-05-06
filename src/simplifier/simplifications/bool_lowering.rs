@@ -10,6 +10,12 @@ impl From<ArcContext> for BoolReducer {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for BoolReducer {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for BoolReducer {}
 
 impl Transformer for BoolReducer {

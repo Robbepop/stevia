@@ -30,6 +30,12 @@ impl From<ArcContext> for IfConstraintPropagator {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for IfConstraintPropagator {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AnyExprTransformer for IfConstraintPropagator {
     fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect {
         // This entire transformation is only allowed during the post-processing step.

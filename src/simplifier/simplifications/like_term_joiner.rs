@@ -40,6 +40,12 @@ impl From<ArcContext> for MulConstSeperator {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for MulConstSeperator {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for MulConstSeperator {}
 
 /// Deflattens n-ary multiplications with exactly one constant value into their
@@ -86,6 +92,12 @@ pub struct LikeTermMerger;
 
 impl From<ArcContext> for LikeTermMerger {
     fn from(_: ArcContext) -> Self {
+        Self::default()
+    }
+}
+
+impl<'ctx> From<&'ctx Context> for LikeTermMerger {
+    fn from(_: &'ctx Context) -> Self {
         Self::default()
     }
 }

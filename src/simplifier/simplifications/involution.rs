@@ -16,6 +16,12 @@ impl From<ArcContext> for InvolutionSimplifier {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for InvolutionSimplifier {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for InvolutionSimplifier {}
 
 impl Transformer for InvolutionSimplifier {

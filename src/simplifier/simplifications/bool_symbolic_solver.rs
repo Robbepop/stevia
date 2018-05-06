@@ -16,6 +16,12 @@ impl From<ArcContext> for BoolSymbolicSolver {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for BoolSymbolicSolver {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 fn is_logical_contradiction(lhs: &AnyExpr, rhs: &AnyExpr) -> bool {
     if let (&AnyExpr::Not(ref lhs), rhs) = (lhs, rhs) {
         return lhs.single_child() == rhs

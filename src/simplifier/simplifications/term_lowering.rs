@@ -10,6 +10,12 @@ impl From<ArcContext> for TermReducer {
     }
 }
 
+impl<'ctx> From<&'ctx Context> for TermReducer {
+    fn from(_: &'ctx Context) -> Self {
+        Self::default()
+    }
+}
+
 impl AutoImplAnyExprTransformer for TermReducer {}
 
 impl Transformer for TermReducer {

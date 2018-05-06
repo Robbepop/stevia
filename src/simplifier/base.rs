@@ -12,7 +12,7 @@ pub mod prelude {
 pub type Simplifier = BaseSimplifier<SimplifierTransformer>;
 
 /// Simplifies the given expression until no further simplification can be applied.
-pub fn simplify<'e, E>(ctx: ArcContext, expr: E)
+pub fn simplify<'e, E>(ctx: &Context, expr: E)
     where E: Into<&'e mut AnyExpr>
 {
     Simplifier::from(ctx).exhaustive_simplify(expr.into())
@@ -49,6 +49,15 @@ where
     T: AnyExprTransformer + From<ArcContext>
 {
     fn from(ctx: ArcContext) -> Self {
+        Self{ traverser: TraverseTransformer::from(ctx) }
+    }
+}
+
+impl<'ctx, T> From<&'ctx Context> for BaseSimplifier<T>
+where
+    T: AnyExprTransformer + From<&'ctx Context>
+{
+    fn from(ctx: &'ctx Context) -> Self {
         Self{ traverser: TraverseTransformer::from(ctx) }
     }
 }

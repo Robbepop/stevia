@@ -515,6 +515,15 @@ where
     }
 }
 
+impl<'ctx, T> From<&'ctx Context> for TraverseTransformer<T>
+where
+    T: AnyExprTransformer + From<&'ctx Context>
+{
+    fn from(ctx: &'ctx Context) -> Self {
+        Self{ transformer: T::from(ctx) }
+    }
+}
+
 impl<T> TraverseTransformer<T>
     where T: AnyExprTransformer
 {
@@ -561,6 +570,14 @@ macro_rules! modular_ast_transformer {
             fn from(ctx: ArcContext) -> Self {
                 Self{
                     $($trans_id: ctx.clone().into()),*
+                }
+            }
+        }
+
+        impl<'ctx> From<&'ctx Context> for $name {
+            fn from(ctx: &'ctx Context) -> Self {
+                Self{
+                    $($trans_id: ctx.into()),*
                 }
             }
         }
