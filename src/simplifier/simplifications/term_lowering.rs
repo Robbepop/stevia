@@ -6,7 +6,7 @@ pub struct TermReducer;
 
 impl From<ArcContext> for TermReducer {
     fn from(_: ArcContext) -> Self {
-        TermReducer
+        Self::default()
     }
 }
 

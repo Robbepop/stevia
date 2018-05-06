@@ -26,7 +26,7 @@ pub struct IfConstraintPropagator;
 
 impl From<ArcContext> for IfConstraintPropagator {
     fn from(_: ArcContext) -> Self {
-        IfConstraintPropagator
+        Self::default()
     }
 }
 

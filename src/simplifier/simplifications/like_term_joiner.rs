@@ -36,7 +36,7 @@ pub struct MulConstSeperator;
 
 impl From<ArcContext> for MulConstSeperator {
     fn from(_: ArcContext) -> Self {
-        MulConstSeperator
+        Self::default()
     }
 }
 
@@ -86,7 +86,7 @@ pub struct LikeTermMerger;
 
 impl From<ArcContext> for LikeTermMerger {
     fn from(_: ArcContext) -> Self {
-        LikeTermMerger
+        Self::default()
     }
 }
 

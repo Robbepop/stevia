@@ -9,7 +9,7 @@ pub struct Normalizer;
 
 impl From<ArcContext> for Normalizer {
     fn from(_: ArcContext) -> Self {
-        Normalizer
+        Self::default()
     }
 }
 

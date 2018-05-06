@@ -12,7 +12,7 @@ pub struct BoolSymbolicSolver;
 
 impl From<ArcContext> for BoolSymbolicSolver {
     fn from(_: ArcContext) -> Self {
-        BoolSymbolicSolver
+        Self::default()
     }
 }
 

@@ -14,7 +14,7 @@ pub struct EqualityJoiner;
 
 impl From<ArcContext> for EqualityJoiner {
     fn from(_: ArcContext) -> Self {
-        EqualityJoiner
+        Self::default()
     }
 }
 

@@ -21,7 +21,7 @@ pub struct Flattener;
 
 impl From<ArcContext> for Flattener {
     fn from(_: ArcContext) -> Self {
-        Flattener
+        Self::default()
     }
 }
 

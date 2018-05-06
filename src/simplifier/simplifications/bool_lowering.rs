@@ -6,7 +6,7 @@ pub struct BoolReducer;
 
 impl From<ArcContext> for BoolReducer {
     fn from(_: ArcContext) -> Self {
-        BoolReducer
+        Self::default()
     }
 }
 

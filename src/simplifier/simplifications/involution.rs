@@ -12,7 +12,7 @@ pub struct InvolutionSimplifier;
 
 impl From<ArcContext> for InvolutionSimplifier {
     fn from(_: ArcContext) -> Self {
-        InvolutionSimplifier
+        Self::default()
     }
 }
 

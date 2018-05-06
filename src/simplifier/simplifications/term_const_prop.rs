@@ -11,7 +11,7 @@ pub struct TermConstPropagator;
 
 impl From<ArcContext> for TermConstPropagator {
     fn from(_: ArcContext) -> Self {
-        TermConstPropagator
+        Self::default()
     }
 }
 

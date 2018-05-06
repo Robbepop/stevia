@@ -50,7 +50,7 @@ pub struct ComparisonReducer;
 
 impl From<ArcContext> for ComparisonReducer {
     fn from(_: ArcContext) -> Self {
-        ComparisonReducer
+        Self::default()
     }
 }
 

@@ -6,7 +6,7 @@ pub struct BoolConstPropagator;
 
 impl From<ArcContext> for BoolConstPropagator {
     fn from(_: ArcContext) -> Self {
-        BoolConstPropagator
+        Self::default()
     }
 }
 
