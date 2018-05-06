@@ -4,12 +4,6 @@ use ast::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolReducer;
 
-impl From<ArcContext> for BoolReducer {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for BoolReducer {
     fn from(_: &'ctx Context) -> Self {
         Self::default()

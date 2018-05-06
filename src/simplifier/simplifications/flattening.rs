@@ -19,12 +19,6 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Flattener;
 
-impl From<ArcContext> for Flattener {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for Flattener {
     fn from(_: &'ctx Context) -> Self {
         Self::default()

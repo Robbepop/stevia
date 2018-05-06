@@ -4,12 +4,6 @@ use ast::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolConstPropagator;
 
-impl From<ArcContext> for BoolConstPropagator {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for BoolConstPropagator {
     fn from(_: &'ctx Context) -> Self {
         Self::default()

@@ -506,15 +506,6 @@ pub struct TraverseTransformer<T>
     transformer: T
 }
 
-impl<T> From<ArcContext> for TraverseTransformer<T>
-where
-    T: AnyExprTransformer + From<ArcContext>
-{
-    fn from(ctx: ArcContext) -> Self {
-        Self{ transformer: T::from(ctx) }
-    }
-}
-
 impl<'ctx, T> From<&'ctx Context> for TraverseTransformer<T>
 where
     T: AnyExprTransformer + From<&'ctx Context>
@@ -564,14 +555,6 @@ macro_rules! modular_ast_transformer {
         #[derive(Debug, Clone)]
         pub struct $name {
             $($trans_id: $trans_ty),*
-        }
-
-        impl From<ArcContext> for $name {
-            fn from(ctx: ArcContext) -> Self {
-                Self{
-                    $($trans_id: ctx.clone().into()),*
-                }
-            }
         }
 
         impl<'ctx> From<&'ctx Context> for $name {

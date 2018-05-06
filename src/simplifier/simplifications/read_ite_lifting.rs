@@ -11,15 +11,7 @@ use ast::prelude::*;
 /// post-processing steps.
 #[derive(Debug, Clone)]
 pub struct ArrayReadIteLifter<'ctx> {
-    // ctx: ArcContext
     ctx: &'ctx Context
-}
-
-impl<'ctx> From<ArcContext> for ArrayReadIteLifter<'ctx> {
-    fn from(_ctx: ArcContext) -> Self {
-        // Self{_ctx}
-        unimplemented!()
-    }
 }
 
 impl<'ctx> From<&'ctx Context> for ArrayReadIteLifter<'ctx> {

@@ -9,12 +9,6 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermConstPropagator;
 
-impl From<ArcContext> for TermConstPropagator {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for TermConstPropagator {
     fn from(_: &'ctx Context) -> Self {
         Self::default()

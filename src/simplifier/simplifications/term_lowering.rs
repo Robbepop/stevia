@@ -4,12 +4,6 @@ use ast::prelude::*;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct TermReducer;
 
-impl From<ArcContext> for TermReducer {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for TermReducer {
     fn from(_: &'ctx Context) -> Self {
         Self::default()

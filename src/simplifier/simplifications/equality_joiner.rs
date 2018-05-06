@@ -12,12 +12,6 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct EqualityJoiner;
 
-impl From<ArcContext> for EqualityJoiner {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for EqualityJoiner {
     fn from(_: &'ctx Context) -> Self {
         Self::default()

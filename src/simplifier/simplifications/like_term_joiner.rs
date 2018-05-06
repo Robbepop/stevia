@@ -34,12 +34,6 @@ modular_ast_transformer! {
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct MulConstSeperator;
 
-impl From<ArcContext> for MulConstSeperator {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for MulConstSeperator {
     fn from(_: &'ctx Context) -> Self {
         Self::default()
@@ -89,12 +83,6 @@ impl Transformer for MulConstSeperator {
 /// merging which requires an additional normalization step in between.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct LikeTermMerger;
-
-impl From<ArcContext> for LikeTermMerger {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
 
 impl<'ctx> From<&'ctx Context> for LikeTermMerger {
     fn from(_: &'ctx Context) -> Self {

@@ -10,12 +10,6 @@ use itertools::Itertools;
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct BoolSymbolicSolver;
 
-impl From<ArcContext> for BoolSymbolicSolver {
-    fn from(_: ArcContext) -> Self {
-        Self::default()
-    }
-}
-
 impl<'ctx> From<&'ctx Context> for BoolSymbolicSolver {
     fn from(_: &'ctx Context) -> Self {
         Self::default()
