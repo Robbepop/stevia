@@ -3,34 +3,3 @@ members = [
     "stevia_ast",
     "stevia_simplifier"
 ]
-
-# [package]
-# name = "stevia"
-# version = "0.1.0"
-# authors = ["Robbepop <robbepop@web.de>"]
-# license = "MIT/Apache-2.0"
-# readme  = "README.md"
-
-# # Attributes for crates.io.
-# categories = ["science"]
-# keywords   = ["smt", "solver", "formal methods"]
-# description = """Simple SMT solver."""
-
-# repository = "https://github.com/robbepop/stevia"
-# # documentation = "https://docs.rs/stevia"
-
-# [dependencies]
-# apint = "0.1"
-# smallvec = "0.6"
-# unreachable = "1.0"
-# itertools = "0.7"
-# string-interner = "0.6"
-# num = "0.1"
-# vec_map = "0.8"
-# either = "1.4"
-# log = "0.4.1"
-# indoc = "0.2.3"
-
-# [badges]
-# travis-ci = { repository = "Robbepop/stevia" }
-# appveyor = { repository = "Robbepop/stevia", branch = "master", service = "github" }
