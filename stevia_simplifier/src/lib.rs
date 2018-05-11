@@ -11,19 +11,11 @@
 extern crate stevia_ast as ast;
 
 extern crate apint;
-extern crate num;
-extern crate smallvec;
-extern crate unreachable;
 extern crate itertools;
-extern crate string_interner;
-extern crate vec_map;
 extern crate either;
 
 #[macro_use]
 extern crate log;
-
-#[macro_use]
-extern crate indoc;
 
 #[macro_use]
 mod base;

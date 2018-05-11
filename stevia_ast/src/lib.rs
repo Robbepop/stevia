@@ -1,20 +1,14 @@
 //! Internal expression data structures and utilities associated to it.
 
 #![feature(crate_in_paths)]
-#![feature(box_patterns)]
-#![feature(nll)]
 
 // #![allow(missing_docs)]
 // #![allow(dead_code)]
 
 extern crate apint;
-extern crate num;
 extern crate smallvec;
-extern crate unreachable;
-extern crate itertools;
 extern crate string_interner;
 extern crate vec_map;
-extern crate either;
 
 #[macro_use]
 extern crate log;
