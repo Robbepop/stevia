@@ -134,7 +134,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
             BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
             Symbol(symbol)        => return self.write_var(symbol),
             expr => {
-                self.write(format!("({}", expr.kind().smtlib2_name()))
+                self.write(format!("({}", smtlib2_name(expr)))
             }
         }
         for child in expr.children() {
@@ -157,7 +157,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
             BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
             Symbol(symbol)        => return self.write_var(symbol),
             expr => {
-                self.write(format!("({}", expr.kind().smtlib2_name()))
+                self.write(format!("({}", smtlib2_name(expr)))
             }
         }
         if self.is_inline_writable(expr) {
@@ -178,59 +178,60 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
     }
 }
 
-impl ExprKind {
-    /// Returns the SMTLib 2.5 name of the associated expression.
-    /// 
-    /// # Note
-    /// 
-    /// Some expressions such as boolean constants, bitvector constants and symbols
-    /// do not have a specified SMTLib 2.5 name and will have a well-fitting replacement
-    /// string returned.
-    pub fn smtlib2_name(self) -> &'static str {
-        use ast::ExprKind::*;
-        match self {
-            Symbol => "symbol",
-            BoolConst => "boolconst",
-            BitvecConst => "bvconst",
-            IfThenElse => "cond",
-            BoolEquals => "bveq",
-            Not => "not",
-            And => "and",
-            Or => "or",
-            Implies => "=>",
-            Xor => "xor",
-            BitvecEquals => "bveq",
-            Neg => "bvneg",
-            Add => "bvadd",
-            Mul => "bvmul",
-            Sub => "bvsub",
-            UnsignedDiv => "bvudiv",
-            SignedDiv => "bvsdiv",
-            SignedModulo => "bvsmod",
-            UnsignedRemainder => "bvurem",
-            SignedRemainder => "bvsrem",
-            BitNot => "bvnot",
-            BitAnd => "bvand",
-            BitOr => "bvor",
-            BitXor => "bvxor",
-            SignedGreaterEquals => "bvsge",
-            SignedGreaterThan => "bvsgt",
-            SignedLessEquals => "bvsle",
-            SignedLessThan => "bvslt",
-            UnsignedGreaterEquals => "bvuge",
-            UnsignedGreaterThan => "bvugt",
-            UnsignedLessEquals => "bvule",
-            UnsignedLessThan => "bvult",
-            ShiftLeft => "bvshl",
-            LogicalShiftRight => "bvlshr",
-            ArithmeticShiftRight => "bvashr",
-            Concat => "concat",
-            Extract => "extract",
-            SignExtend => "sext",
-            ZeroExtend => "zext",
-            ArrayRead => "read",
-            ArrayWrite => "write"
-        }
+/// Returns the SMTLib 2.5 name of the associated expression.
+/// 
+/// # Note
+/// 
+/// Some expressions such as boolean constants, bitvector constants and symbols
+/// do not have a specified SMTLib 2.5 name and will have a well-fitting replacement
+/// string returned.
+pub fn smtlib2_name<K>(kinded: &K) -> &'static str
+where
+    K: HasKind
+{
+    use ast::ExprKind::*;
+    match kinded.kind() {
+        Symbol => "symbol",
+        BoolConst => "boolconst",
+        BitvecConst => "bvconst",
+        IfThenElse => "cond",
+        BoolEquals => "bveq",
+        Not => "not",
+        And => "and",
+        Or => "or",
+        Implies => "=>",
+        Xor => "xor",
+        BitvecEquals => "bveq",
+        Neg => "bvneg",
+        Add => "bvadd",
+        Mul => "bvmul",
+        Sub => "bvsub",
+        UnsignedDiv => "bvudiv",
+        SignedDiv => "bvsdiv",
+        SignedModulo => "bvsmod",
+        UnsignedRemainder => "bvurem",
+        SignedRemainder => "bvsrem",
+        BitNot => "bvnot",
+        BitAnd => "bvand",
+        BitOr => "bvor",
+        BitXor => "bvxor",
+        SignedGreaterEquals => "bvsge",
+        SignedGreaterThan => "bvsgt",
+        SignedLessEquals => "bvsle",
+        SignedLessThan => "bvslt",
+        UnsignedGreaterEquals => "bvuge",
+        UnsignedGreaterThan => "bvugt",
+        UnsignedLessEquals => "bvule",
+        UnsignedLessThan => "bvult",
+        ShiftLeft => "bvshl",
+        LogicalShiftRight => "bvlshr",
+        ArithmeticShiftRight => "bvashr",
+        Concat => "concat",
+        Extract => "extract",
+        SignExtend => "sext",
+        ZeroExtend => "zext",
+        ArrayRead => "read",
+        ArrayWrite => "write"
     }
 }
 
