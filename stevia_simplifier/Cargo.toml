@@ -1,0 +1,37 @@
+[package]
+name = "stevia_simplifier"
+version = "0.1.0" # remember to update html_root_url
+authors = ["Robbepop <robbepop@web.de>"]
+
+license = "MIT/Apache-2.0"
+readme = "README.md"
+description = "Expression tree data structures for the stevia SMT solver."
+
+repository = "https://github.com/robbepop/stevia"
+# documentation = "https://docs.rs/stevia"
+# homepage =
+
+keywords   = ["smt", "solver", "formal methods"]
+categories = ["data-structures"]
+
+include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
+
+[lib]
+name = "stevia_simplifier"
+
+[dependencies]
+apint = "0.1"
+smallvec = "0.6"
+unreachable = "1.0"
+itertools = "0.7"
+string-interner = "0.6"
+num = "0.1"
+vec_map = "0.8"
+either = "1.4"
+log = "0.4.1"
+indoc = "0.2.3"
+stevia_ast = { version = "0.1.0", path = "../stevia_ast" }
+
+[badges]
+travis-ci = { repository = "Robbepop/stevia" }
+appveyor = { repository = "Robbepop/stevia", branch = "master", service = "github" }
