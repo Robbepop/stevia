@@ -56,6 +56,7 @@ These features need to be stabilized before this crate can be used on the stable
 
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
 - [`#![feature(nll)]`][nll]
+- [`#![feature(crate_in_paths)]`][crate-in-paths]
 - ~~[`#![feature(conservative_impl_trait)]`][conservative-impl-trait]~~ (stable in 1.26)
 - ~~[`#![feature(copy_closures)]`][copy-closures]~~ (stable in 1.26)
 - ~~[`#![feature(clone_closures)]`][clone-closures]~~ (stable in 1.26)
@@ -113,3 +114,4 @@ additional terms or conditions.
 [copy-closures]: https://github.com/rust-lang/rust/issues/44490
 [clone-closures]: https://github.com/rust-lang/rust/issues/44490
 [match-default-bindings]: https://github.com/rust-lang/rust/issues/42640
+[crate-in-paths]: https://github.com/rust-lang/rust/issues/44660
