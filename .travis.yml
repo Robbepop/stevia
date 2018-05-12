@@ -39,8 +39,7 @@ before_script:
 
 script:
 - |
-  cargo check &&
-  cargo test &&
-  cargo test --release &&
-  cargo kcov --verbose --coveralls &&
+  cargo check --verbose --all &&
+  cargo test --verbose --all &&
+  cargo kcov --verbose --coveralls --all &&
   bash <(curl -s https://codecov.io/bash)
