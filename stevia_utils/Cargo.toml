@@ -20,7 +20,7 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-
 name = "stevia_utils"
 
 [dependencies]
-indoc = "0.2.3"
+indoc = "0.2"
 stevia_ast = { version = "0.1.0", path = "../stevia_ast" }
 
 [badges]

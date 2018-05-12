@@ -24,8 +24,8 @@ apint = "0.1"
 smallvec = "0.6"
 string-interner = "0.6"
 vec_map = "0.8"
-log = "0.4.1"
-indoc = "0.2.3"
+log = "0.4"
+indoc = "0.2"
 
 [badges]
 travis-ci = { repository = "Robbepop/stevia" }

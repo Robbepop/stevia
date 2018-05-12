@@ -23,7 +23,7 @@ name = "stevia_simplifier"
 apint = "0.1"
 itertools = "0.7"
 either = "1.4"
-log = "0.4.1"
+log = "0.4"
 stevia_ast = { version = "0.1.0", path = "../stevia_ast" }
 
 [badges]
