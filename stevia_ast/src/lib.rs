@@ -1,5 +1,7 @@
 //! Internal expression data structures and utilities associated to it.
 
+#![doc(html_root_url = "https://docs.rs/stevia_ast/0.1.0")]
+
 #![feature(crate_in_paths)]
 
 // #![allow(missing_docs)]
