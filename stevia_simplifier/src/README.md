@@ -74,6 +74,14 @@ expression to `true`.
 
 Source: [Link][120]
 
+### If Constraint Propagation
+
+Propagates condition constraints towards then- and else cases.
+
+For example `(if c (not c) d)` is going to be simplified to `(if c false d)`.
+
+Source: [Link][160]
+
 ### Expressions
 
 #### Legend
@@ -101,12 +109,13 @@ Source: [Link][120]
 	- [x] `(ite c t ⊤)` ➔ `(or (not c) t)` ([BoolConstPropagator](#boolean-constant-propagator))
 	- [x] `(ite c ⊥ e)` ➔ `(and (not c) e)` ([BoolConstPropagator](#boolean-constant-propagator))
 	- [x] `(ite c t ⊥)` ➔ `(and c t)` ([BoolConstPropagator](#boolean-constant-propagator))
-	- [ ] `(ite c c (not c))` ➔ `(ite c ⊤ ⊥)` (IfConstraintPropagation)
+	- [x] `(ite c c (not c))` ➔ `(ite c ⊤ ⊥)` ([IfConstraintPropagator](#if-constraint-propagation))
 
 
-[100]: https://github.com/Robbepop/stevia/blob/master/src/simplifier/simplifications/bool_symbolic_solver.rs
-[110]: https://github.com/Robbepop/stevia/blob/master/src/simplifier/simplifications/bool_const_prop.rs
-[120]: https://github.com/Robbepop/stevia/blob/master/src/simplifier/simplifications/normalizer.rs
-[130]: https://github.com/Robbepop/stevia/blob/master/src/simplifier/simplifications/flattening.rs
-[140]: https://github.com/Robbepop/stevia/blob/master/src/simplifier/simplifications/cmp_reduction.rs
-[150]: https://github.com/Robbepop/stevia/blob/master/src/simplifier/simplifications/involution.rs
+[100]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/bool_symbolic_solver.rs
+[110]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/bool_const_prop.rs
+[120]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/normalizer.rs
+[130]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/flattening.rs
+[140]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/cmp_reduction.rs
+[150]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/involution.rs
+[160]: https://github.com/Robbepop/stevia/blob/master/stevia_simplifier/src/simplifications/if_constraint_prop.rs
