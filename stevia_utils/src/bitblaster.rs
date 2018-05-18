@@ -177,6 +177,16 @@ impl Lit {
         Lit((var.to_u32() << 1) + sign.to_u32())
     }
 
+    /// Creates a new literal from the given variable with positive polarity.
+    pub fn pos(var: Var) -> Lit {
+        Lit::new(var, Sign::Pos)
+    }
+
+    /// Creates a new literal from the given variable with negative polarity.
+    pub fn neg(var: Var) -> Lit {
+        Lit::new(var, Sign::Neg)
+    }
+
     /// Returns the variable of `self`.
     pub fn var(self) -> Var {
         Var::new_unchecked(self.0 >> 1)
