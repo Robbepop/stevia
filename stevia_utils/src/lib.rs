@@ -7,10 +7,7 @@
 
 extern crate stevia_ast as ast;
 
-#[macro_use]
-extern crate indoc;
+// #[macro_use]
+// extern crate indoc;
 
-mod writer;
 mod bitblaster;
-
-pub use writer::write_smtlib2;

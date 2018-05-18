@@ -1,4 +1,4 @@
-use ast::prelude::*;
+use crate::prelude::*;
 
 use std::fmt;
 
@@ -127,7 +127,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
     /// 
     /// This method won't create new line breaks.
     fn write_expr_inline(&mut self, expr: &AnyExpr) {
-        use ast::AnyExpr::*;
+        use crate::AnyExpr::*;
         self.write(" ");
         match expr {
             BoolConst(bool_const) => return self.write_bool_const(bool_const),
@@ -151,7 +151,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
             self.writeln();
         }
         self.write_ident();
-        use ast::AnyExpr::*;
+        use crate::AnyExpr::*;
         match expr {
             BoolConst(bool_const) => return self.write_bool_const(bool_const),
             BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
@@ -189,7 +189,7 @@ pub fn smtlib2_name<K>(kinded: &K) -> &'static str
 where
     K: HasKind
 {
-    use ast::ExprKind::*;
+    use crate::ExprKind::*;
     match kinded.kind() {
         Symbol => "symbol",
         BoolConst => "boolconst",

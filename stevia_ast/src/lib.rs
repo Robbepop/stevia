@@ -34,6 +34,7 @@ mod terms;
 mod ty;
 mod visitor;
 mod consistency_checker;
+mod writer;
 
 #[macro_use]
 mod transformer;
@@ -176,6 +177,9 @@ pub use self::{
         SymbolId,
         NamedSymbolId,
         GeneratedSymbolId
+    },
+    writer::{
+        write_smtlib2
     }
 };
 
