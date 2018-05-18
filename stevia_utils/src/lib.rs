@@ -11,5 +11,6 @@ extern crate stevia_ast as ast;
 extern crate indoc;
 
 mod writer;
+mod bitblaster;
 
 pub use writer::write_smtlib2;
