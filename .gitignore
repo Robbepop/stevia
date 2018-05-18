@@ -10,4 +10,4 @@
 Cargo.lock
 
 # Remove RLS artifacts.
-rls/**
+/rls/
