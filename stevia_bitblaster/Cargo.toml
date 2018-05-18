@@ -1,11 +1,11 @@
 [package]
-name = "stevia_utils"
+name = "stevia_bitblaster"
 version = "0.1.0" # remember to update html_root_url
 authors = ["Robbepop <robbepop@web.de>"]
 
 license = "MIT/Apache-2.0"
 readme = "README.md"
-description = "Utilities and convenience functionality for stevia core."
+description = "Bitblasting techniques, data structures and routines."
 
 repository = "https://github.com/robbepop/stevia"
 # documentation = "https://docs.rs/stevia"
@@ -17,7 +17,7 @@ categories = ["data-structures"]
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
 
 [lib]
-name = "stevia_utils"
+name = "stevia_bitblaster"
 
 [dependencies]
 indoc = "0.2"
