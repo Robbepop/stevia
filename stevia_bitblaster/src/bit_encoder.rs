@@ -20,6 +20,18 @@ pub trait BitEncoder {
     where
         L: Into<Lit>;
 
+    /// Defines `res` to be equivalent to the given `lit`.
+    /// 
+    /// # Note
+    /// 
+    /// This does not return a variable to represent the result
+    /// and thus could and should be used as root clauses to
+    /// constraint newly generated variables.
+    fn def<D, L>(&self, res: D, lit: L)
+    where
+        D: Into<Lit>,
+        L: Into<Lit>;
+
     /// Create a logical-and for the given literals and return a
     /// variable representing the result.
     fn and<I, L>(&self, lits: I) -> Lit

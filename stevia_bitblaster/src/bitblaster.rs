@@ -30,12 +30,12 @@ where
     let res = enc.new_var_pack(width);
     let carries = enc.new_var_pack(width);
     // Compute least-significant bit
-    enc.iff(res.i(0), enc.xor(lhs.i(0), rhs.i(0)));
-    enc.iff(carries.i(0), enc.or(&[lhs.i(0), rhs.i(0)]));
+    enc.def(res.i(0), enc.xor(lhs.i(0), rhs.i(0)));
+    enc.def(carries.i(0), enc.or(&[lhs.i(0), rhs.i(0)]));
     // Compute result for all other bits
     for i in 1..width {
         // Calculation of result_i
-        enc.iff(
+        enc.def(
             res.i(i),
             enc.xor(
                 enc.xor(lhs.i(i), rhs.i(i)),
@@ -43,7 +43,7 @@ where
             )
         );
         // Calculation of carry_i
-        enc.iff(
+        enc.def(
             carries.i(i),
             enc.and(&[
                 enc.or(&[lhs.i(i), rhs.i(i)]),
