@@ -47,6 +47,9 @@ pub trait BitEncoder {
     where
         L1: Into<Lit>,
         L2: Into<Lit>
+    {
+        self.or(&[lhs.into(), rhs.into().flip()])
+    }
 
     /// Create a logical if-and-only-if (iff) for the given literals and return a
     /// variable representing the result.
@@ -54,4 +57,7 @@ pub trait BitEncoder {
     where
         L1: Into<Lit>,
         L2: Into<Lit>
+    {
+        self.xor(lhs, rhs).flip()
+    }
 }
