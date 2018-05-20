@@ -7,7 +7,4 @@
 
 extern crate stevia_ast as ast;
 
-// #[macro_use]
-// extern crate indoc;
-
 mod bitblaster;
