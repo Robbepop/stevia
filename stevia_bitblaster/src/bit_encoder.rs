@@ -39,19 +39,19 @@ pub trait BitEncoder {
     fn xor<L1, L2>(&self, lhs: L1, rhs: L2) -> Lit
     where
         L1: Into<Lit>,
-        L1: Into<Lit>;
+        L2: Into<Lit>;
 
     /// Create a logical-implies for the given literals and return a
     /// variable representing the result.
     fn implies<L1, L2>(&self, lhs: L1, rhs: L2) -> Lit
     where
         L1: Into<Lit>,
-        L1: Into<Lit>;
+        L2: Into<Lit>
 
     /// Create a logical if-and-only-if (iff) for the given literals and return a
     /// variable representing the result.
     fn iff<L1, L2>(&self, lhs: L1, rhs: L2) -> Lit
     where
         L1: Into<Lit>,
-        L1: Into<Lit>;
+        L2: Into<Lit>
 }
