@@ -3,8 +3,10 @@
 #![doc(html_root_url = "https://docs.rs/stevia_utils/0.1.0")]
 
 // #![allow(missing_docs)]
-// #![allow(dead_code)]
+#![allow(dead_code)]
 
 extern crate stevia_ast as ast;
 
+mod repr;
+mod bit_encoder;
 mod bitblaster;
