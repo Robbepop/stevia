@@ -5,7 +5,7 @@ use repr::{Var, Lit, VarPack};
 pub trait BitEncoder {
     /// Create a new variable and return it.
     #[must_use]
-    fn new_var(&self) -> Lit;
+    fn new_var(&self) -> Var;
 
     /// Create a new continuous pack of variables and return it.
     ///
