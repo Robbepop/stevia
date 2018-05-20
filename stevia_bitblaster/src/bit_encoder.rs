@@ -4,7 +4,7 @@ use repr::{Var, Lit, VarPack};
 /// generate the bitblasted boolean formulas.
 pub trait BitEncoder {
     /// Create a new variable and return it.
-    fn new_var(&self) -> Var;
+    fn new_var(&self) -> Lit;
 
     /// Create a new continuous pack of variables and return it.
     ///
@@ -22,35 +22,35 @@ pub trait BitEncoder {
 
     /// Create a logical-and for the given literals and return a
     /// variable representing the result.
-    fn and<I, L>(&self, lits: I) -> Var
+    fn and<I, L>(&self, lits: I) -> Lit
     where
         I: IntoIterator<Item = L>,
         L: Into<Lit>;
 
     /// Create a logical-or for the given literals and return a
     /// variable representing the result.
-    fn or<I, L>(&self, lits: I) -> Var
+    fn or<I, L>(&self, lits: I) -> Lit
     where
         I: IntoIterator<Item = L>,
         L: Into<Lit>;
 
     /// Create a logical-xor for the given literals and return a
     /// variable representing the result.
-    fn xor<L1, L2>(&self, rhs: L1, rhs: L2) -> Var
+    fn xor<L1, L2>(&self, lhs: L1, rhs: L2) -> Lit
     where
         L1: Into<Lit>,
         L1: Into<Lit>;
 
     /// Create a logical-implies for the given literals and return a
     /// variable representing the result.
-    fn implies<L1, L2>(&self, rhs: L1, rhs: L2) -> Var
+    fn implies<L1, L2>(&self, lhs: L1, rhs: L2) -> Lit
     where
         L1: Into<Lit>,
         L1: Into<Lit>;
 
     /// Create a logical if-and-only-if (iff) for the given literals and return a
     /// variable representing the result.
-    fn iff<L1, L2>(&self, rhs: L1, rhs: L2) -> Var
+    fn iff<L1, L2>(&self, lhs: L1, rhs: L2) -> Lit
     where
         L1: Into<Lit>,
         L1: Into<Lit>;
