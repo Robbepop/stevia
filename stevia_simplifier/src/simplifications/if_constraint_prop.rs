@@ -95,6 +95,13 @@ fn propagate_if_constraint<'e>(expr: &'e mut AnyExpr, seen: &mut HashMap<&'e Any
         if !seen.contains_key(&cond.children.cond) {
             return split_if_costraint(cond, seen)
         }
+        // Since `expr` was already destructed it cannot be used in the code below
+        // so we need to state an exit strategy for this execution branch.
+        let mut effect = TransformEffect::Identity;
+        for child in cond.children_mut() {
+            effect |= propagate_if_constraint(child, seen)
+        }
+        return effect
     }
     // For normal expressions simply traverse through child expressions and accumulate
     // their transform effects.
