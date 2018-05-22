@@ -203,6 +203,14 @@ impl LitPack {
     }
 }
 
+impl FnOnce<(usize,)> for LitPack {
+    type Output = Lit;
+
+    extern "rust-call" fn call_once(self, idx: (usize,)) -> Self::Output {
+        self.i(idx.0)
+    }
+}
+
 impl LitPackIter {
     /// Creates a new variable pack iterator.
     pub(crate) fn new(var_pack: LitPack) -> Self {

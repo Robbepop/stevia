@@ -2,6 +2,9 @@
 
 #![doc(html_root_url = "https://docs.rs/stevia_utils/0.1.0")]
 
+#![feature(fn_traits)]
+#![feature(unboxed_closures)]
+
 // #![allow(missing_docs)]
 #![allow(dead_code)]
 
