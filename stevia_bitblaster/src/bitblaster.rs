@@ -35,24 +35,24 @@ where
     let res = enc.new_lit_pack(width);
     let carries = enc.new_lit_pack(width);
     // Compute least-significant bit
-    enc.xor_with_output(lhs.i(0), rhs.i(0), Output(res.i(0)));
-    enc.or_with_output(&[lhs.i(0), rhs.i(0)], Output(carries.i(0)));
+    enc.xor_with_output(lhs(0), rhs(0), Output(res(0)));
+    enc.or_with_output(&[lhs(0), rhs(0)], Output(carries(0)));
     // Compute result for all other bits
     for i in 1..width {
         // Calculation of result_i
         enc.xor_with_output(
-            enc.xor(lhs.i(i), rhs.i(i)),
-            carries.i(i - 1),
-            Output(res.i(i)),
+            enc.xor(lhs(i), rhs(i)),
+            carries(i - 1),
+            Output(res(i)),
         );
         // Calculation of carry_i
         enc.and_with_output(
             &[
-                enc.or(&[lhs.i(i), rhs.i(i)]),
-                enc.or(&[lhs.i(i), carries.i(i - 1)]),
-                enc.or(&[rhs.i(i), carries.i(i - 1)]),
+                enc.or(&[lhs(i), rhs(i)]),
+                enc.or(&[lhs(i), carries(i - 1)]),
+                enc.or(&[rhs(i), carries(i - 1)]),
             ],
-            Output(carries.i(i)),
+            Output(carries(i)),
         )
     }
     Ok(res)
