@@ -1,40 +1,39 @@
-
 /// A boolean variable.
-/// 
+///
 /// # Note
-/// 
+///
 /// - For implementation purpose only the lowest 31 bit are valid.
 /// - The 0-variable (null-variable) is invalid.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Var(u32);
 
-/// Represents a contiguous pack of variables.
+/// Represents a contiguous pack of literals.
 ///
 /// # Note
 ///
 /// This is just a more efficient way to relate to a bunch of
 /// related variables.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct VarPack {
+pub struct LitPack {
     /// The identifier of the lowest-value variable in `self`.
     off: usize,
     /// The number of variables in `self`.
-    len: usize
+    len: usize,
 }
 
 /// An iterator through a pack of variables.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct VarPackIter {
+pub struct LitPackIter {
     /// The variable pack to be iterated.
-    var_pack: VarPack,
+    lit_pack: LitPack,
     /// The current position.
-    cur: usize
+    cur: usize,
 }
 
 /// A boolean literal.
-/// 
+///
 /// # Note
-/// 
+///
 /// - The sign is encoded in the least-significant bit while the
 ///   remaining 31-bit are encoding the represented variable.
 /// - A literal can only represent valid variables.
@@ -42,39 +41,42 @@ pub struct VarPackIter {
 pub struct Lit(u32);
 
 /// Represents the sign of a literal.
-/// 
+///
 /// # Note
-/// 
+///
 /// This is not used for the internal representation.
-pub enum Sign { Pos = 0, Neg = 1 }
+pub enum Sign {
+    Pos = 0,
+    Neg = 1,
+}
 
 impl Sign {
     /// Convert `self` into a `u32`.
     fn to_u32(self) -> u32 {
         match self {
             Sign::Pos => 0,
-            Sign::Neg => 1
+            Sign::Neg => 1,
         }
     }
 }
 
 impl Var {
     /// Creates a new variable from the given value.
-    /// 
+    ///
     /// # Errors
-    /// 
+    ///
     /// If the given value is zero (0).
     pub fn new(val: u32) -> Result<Var, String> {
         if val == 0 {
-            return Err(String::from("Cannot create a `Var` from `0`."))
+            return Err(String::from("Cannot create a `Var` from `0`."));
         }
         Ok(Var(val))
     }
 
     /// Creates a new variable from the given value.
-    /// 
+    ///
     /// # Safety
-    /// 
+    ///
     /// The user code has to ensure that this is not being called
     /// with val being zero (0).
     pub fn new_unchecked(val: u32) -> Var {
@@ -149,7 +151,7 @@ impl Lit {
     /// Returns the sign of `self`.
     pub fn sign(self) -> Sign {
         if (self.0 & 1) != 0 {
-            return Sign::Neg
+            return Sign::Neg;
         }
         Sign::Neg
     }
@@ -163,13 +165,13 @@ impl ::std::ops::Neg for Lit {
     }
 }
 
-impl VarPack {
+impl LitPack {
     /// Creates a new `VarPack` from the given offset and length.
-    pub fn new(offset: usize, len: usize) -> Result<VarPack, String> {
+    pub fn new(offset: usize, len: usize) -> Result<LitPack, String> {
         if offset == 0 {
-            return Err(String::from("VarPack::new: error: invalid offset of 0"))
+            return Err(String::from("VarPack::new: error: invalid offset of 0"));
         }
-        Ok(Self{ off: offset, len: len })
+        Ok(Self { off: offset, len })
     }
 
     /// Returns the variable of `self` at the given position.
@@ -177,9 +179,9 @@ impl VarPack {
     /// # Errors
     ///
     /// If the given position is out of bounds.
-    pub fn get(self, pos: usize) -> Option<Var> {
+    pub fn get(self, pos: usize) -> Option<Lit> {
         if pos < self.len {
-            return Some(Var::new_unchecked((self.off + pos) as u32))
+            return Some(Lit::pos(Var::new_unchecked((self.off + pos) as u32)));
         }
         None
     }
@@ -194,37 +196,40 @@ impl VarPack {
         self.len
     }
 
-    /// Returns the i'th variable of `self`.
-    pub fn i(self, i: usize) -> Var {
+    /// Returns the i'th literal of `self`.
+    pub fn i(self, i: usize) -> Lit {
         debug_assert!(i < self.len());
-        Var::new_unchecked((self.off + i) as u32)
+        Lit::from(Var::new_unchecked((self.off + i) as u32))
     }
 }
 
-impl VarPackIter {
+impl LitPackIter {
     /// Creates a new variable pack iterator.
-    pub(crate) fn new(var_pack: VarPack) -> Self {
-        Self{ var_pack: var_pack, cur: 0 }
+    pub(crate) fn new(var_pack: LitPack) -> Self {
+        Self {
+            lit_pack: var_pack,
+            cur: 0,
+        }
     }
 }
 
-impl Iterator for VarPackIter {
-    type Item = Var;
+impl Iterator for LitPackIter {
+    type Item = Lit;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let var = self.var_pack.get(self.cur);
-        if self.cur < self.var_pack.len() {
+        let lit = self.lit_pack.get(self.cur);
+        if self.cur < self.lit_pack.len() {
             self.cur += 1
         }
-        var
+        lit
     }
 }
 
-impl IntoIterator for VarPack {
-    type Item = Var;
-    type IntoIter = VarPackIter;
+impl IntoIterator for LitPack {
+    type Item = Lit;
+    type IntoIter = LitPackIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        VarPackIter::new(self)
+        LitPackIter::new(self)
     }
 }
