@@ -7,6 +7,6 @@
 
 extern crate stevia_ast as ast;
 
-mod repr;
-mod bit_encoder;
 mod bitblaster;
+mod gate_encoder;
+mod repr;
