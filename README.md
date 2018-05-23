@@ -1,8 +1,8 @@
 # Stevia - Satisfiability Modulo Theories (SMT) Solver
 
-|       Linux       |       Windows       |      Coveralls       |      Codecov       |     Metrics      |
-|:-----------------:|:-------------------:|:--------------------:|:------------------:|:----------------:|
-| [![travis][0]][1] | [![appveyor][2]][3] | [![coveralls][4]][5] | [![licence][6]][7] | [![tokei][8]][9] |
+|       Linux       |       Windows       |       Chat        |      Coveralls       |      Codecov       |     Metrics      |
+|:-----------------:|:-------------------:|:-----------------:|:--------------------:|:------------------:|:----------------:|
+| [![travis][0]][1] | [![appveyor][2]][3] | [![chat][10]][11] | [![coveralls][4]][5] | [![licence][6]][7] | [![tokei][8]][9] |
 
 ---
 
@@ -79,7 +79,6 @@ Unless you explicitly state otherwise, any contribution intentionally submitted
 for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any
 additional terms or conditions.
 
-
 [0]: https://travis-ci.org/Robbepop/stevia.svg?branch=master
 [1]: https://travis-ci.org/Robbepop/stevia
 
@@ -94,6 +93,9 @@ additional terms or conditions.
 
 [8]: https://tokei.rs/b1/github/robbepop/stevia?category=code
 [9]: https://github.com/Aaronepower/tokei#badges
+
+[10]: https://badges.gitter.im/stevia-solver/gitter.svg
+[11]: https://gitter.im/stevia-solver/Lobby?utm_source=share-link&utm_medium=link&utm_campaign=share-link
 
 [license-mit-badge]: https://img.shields.io/badge/license-MIT-blue.svg
 [license-apache-badge]: https://img.shields.io/badge/license-APACHE-orange.svg
