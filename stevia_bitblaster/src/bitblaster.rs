@@ -21,6 +21,22 @@ pub fn bitblast_add<G, E>(
     lhs: LitPack,
     rhs: LitPack,
 ) -> Result<LitPack, String>
+mod checks {
+    use super::Result;
+    use repr::LitPack;
+
+    /// Asserts that both given literal packs have the same length.
+    /// Returns a common length or returns an appropriate error.
+    pub fn assert_litpack_len(lhs: LitPack, rhs: LitPack) -> Result<usize> {
+        if lhs.len() != rhs.len() {
+            return Err(String::from(
+                "bitblast_add: error: left hand-side and right hand-side have different bit widths",
+            ));
+        }
+        Ok(lhs.len())
+    }
+}
+
 where
     G: LitGen,
     E: RawGateEncoder,
