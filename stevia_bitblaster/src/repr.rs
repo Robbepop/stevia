@@ -47,6 +47,7 @@ pub struct LitPackIter {
 /// # Note
 ///
 /// This is not used for the internal representation.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Sign {
     /// Positive polarity.
     Pos = 0,
