@@ -56,21 +56,10 @@ These features need to be stabilized before this crate can be used on the stable
 
 **Current State:** Rust version 1.26
 
-<!-- 
-- [`#![feature(box_patterns)]`][unstable-box-patterns]
-- [`#![feature(nll)]`][nll]
-- [`#![feature(crate_in_paths)]`][crate-in-paths]
-- ~~[`#![feature(conservative_impl_trait)]`][conservative-impl-trait]~~ (stable in 1.26)
-- ~~[`#![feature(copy_closures)]`][copy-closures]~~ (stable in 1.26)
-- ~~[`#![feature(clone_closures)]`][clone-closures]~~ (stable in 1.26)
-- ~~[`#![feature(match_default_bindings)]`][match-default-bindings]~~ (stable in 1.26)
--->
-
 - [`#![feature(crate_in_paths)]`][unstable_crate_in_paths]
 
 - **Simplifier**
 
-    - [`#![feature(crate_in_paths)]`][unstable_crate_in_paths]
     - [`#![feature(box_patterns)]`][unstable_box_patterns]
     - [`#![feature(nll)]`][unstable_nll]
 
