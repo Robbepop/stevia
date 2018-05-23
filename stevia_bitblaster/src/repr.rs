@@ -7,6 +7,16 @@
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Var(u32);
 
+/// A boolean literal.
+///
+/// # Note
+///
+/// - The sign is encoded in the least-significant bit while the
+///   remaining 31-bit are encoding the represented variable.
+/// - A literal can only represent valid variables.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Lit(u32);
+
 /// Represents a contiguous pack of literals.
 ///
 /// # Note
@@ -29,16 +39,6 @@ pub struct LitPackIter {
     /// The current position.
     cur: usize,
 }
-
-/// A boolean literal.
-///
-/// # Note
-///
-/// - The sign is encoded in the least-significant bit while the
-///   remaining 31-bit are encoding the represented variable.
-/// - A literal can only represent valid variables.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Lit(u32);
 
 /// Represents the sign of a literal.
 ///
