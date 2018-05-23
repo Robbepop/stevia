@@ -177,9 +177,9 @@ where
         I: IntoIterator<Item = L>,
         L: Into<Lit>,
     {
-        let output = Output(self.lit_gen.new_lit());
-        self.and_with_output(lits, output);
-        Lit::from(output)
+        let output = self.lit_gen.new_lit();
+        self.and_with_output(lits, Output(output));
+        output
     }
 
     /// Define an OR gate with the given literals and the given output.
@@ -211,9 +211,9 @@ where
         I: IntoIterator<Item = L>,
         L: Into<Lit>,
     {
-        let output = Output(self.lit_gen.new_lit());
-        self.or_with_output(lits, output);
-        Lit::from(output)
+        let output = self.lit_gen.new_lit();
+        self.or_with_output(lits, Output(output));
+        output
     }
 
     /// Define an XOR gate with the given literals and the given output.
@@ -237,9 +237,9 @@ where
         L1: Into<Lit>,
         L2: Into<Lit>,
     {
-        let output = Output(self.lit_gen.new_lit());
-        self.xor_with_output(lhs, rhs, output);
-        Lit::from(output)
+        let output = self.lit_gen.new_lit();
+        self.xor_with_output(lhs.into(), rhs.into(), Output(output));
+        output
     }
 
     /// Define an IMPLIES gate with the given literals and the given output.
@@ -263,9 +263,9 @@ where
         L1: Into<Lit>,
         L2: Into<Lit>,
     {
-        let output = Output(self.lit_gen.new_lit());
-        self.implies_with_output(lhs, rhs, output);
-        Lit::from(output)
+        let output = self.lit_gen.new_lit();
+        self.implies_with_output(lhs.into(), rhs.into(), Output(output));
+        output
     }
 
     /// Define an IFF (If-And-Only-If) gate with the given literals and the given output.
@@ -289,9 +289,9 @@ where
         L1: Into<Lit>,
         L2: Into<Lit>,
     {
-        let output = Output(self.lit_gen.new_lit());
-        self.iff_with_output(lhs, rhs, output);
-        Lit::from(output)
+        let output = self.lit_gen.new_lit();
+        self.iff_with_output(lhs.into(), rhs.into(), Output(output));
+        output
     }
 
     /// Define a NOT gate for the given output and input literals.
@@ -313,8 +313,9 @@ where
     where
         L: Into<Lit>
     {
-        let output = Output(self.lit_gen.new_lit());
-        self.enc.not_gate(output.into(), input.into());
-        Lit::from(output)
+        let output = self.lit_gen.new_lit();
+        self.not_with_output(input.into(), Output(output));
+        output
+    }
     }
 }
