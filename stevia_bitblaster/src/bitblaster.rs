@@ -54,6 +54,11 @@ where
     G: LitGen,
     E: RawGateEncoder
 {
+    /// Creates a new bit blaster from the given gate encoder.
+    pub fn new(enc: GateEncoder<G, E>) -> Self {
+        Self{ enc: enc }
+    }
+
     fn bitblast_bitand(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
         let width = checks::assert_litpack_len(lhs, rhs)?;
         let res = self.enc.new_lit_pack(width);
