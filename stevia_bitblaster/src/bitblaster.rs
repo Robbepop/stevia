@@ -47,6 +47,33 @@ where
     G: LitGen,
     E: RawGateEncoder
 {
+    fn bitblast_bitand(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+        let width = checks::assert_litpack_len(lhs, rhs)?;
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..width {
+            self.enc.and_with_output(&[lhs(i), rhs(i)], Output(res(i)))
+        }
+        Ok(res)
+    }
+
+    fn bitblast_bitor(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+        let width = checks::assert_litpack_len(lhs, rhs)?;
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..width {
+            self.enc.or_with_output(&[lhs(i), rhs(i)], Output(res(i)))
+        }
+        Ok(res)
+    }
+
+    fn bitblast_bitxor(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+        let width = checks::assert_litpack_len(lhs, rhs)?;
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..width {
+            self.enc.xor_with_output(lhs(i), rhs(i), Output(res(i)))
+        }
+        Ok(res)
+    }
+
     }
 
     fn bitblast_add(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
