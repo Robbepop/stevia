@@ -235,6 +235,17 @@ impl Iterator for LitPackIter {
         }
         lit
     }
+
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        let remaining = self.lit_pack.len() - self.cur;
+        (remaining, Some(remaining))
+    }
+
+    fn nth(&mut self, index: usize) -> Option<Self::Item> {
+        let nth_lit = self.lit_pack.get(self.cur + index);
+        self.cur += index + 1;
+        nth_lit
+    }
 }
 
 impl IntoIterator for LitPack {
