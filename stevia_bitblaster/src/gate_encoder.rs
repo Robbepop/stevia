@@ -56,7 +56,7 @@ pub trait AssertEncoder {
 ///
 /// The output can be used to nest gates within each other.
 pub trait RawGateEncoder {
-    /// Encode an AND gate with the given output and literals.
+    /// Encode an AND gate with the given output and literals: `output ⇔ (l₁ ∧ l₂ ∧ ... ∧ lᵢ)`
     ///
     /// # Panics
     ///
@@ -65,7 +65,7 @@ pub trait RawGateEncoder {
     where
         I: Iterator<Item = Lit>;
 
-    /// Encode an OR gate with the given output and literals.
+    /// Encode an OR gate with the given output and literals: `output ⇔ (l₁ ∨ l₂ ∨ ... ∨ lᵢ)`
     ///
     /// # Panics
     ///
@@ -74,16 +74,16 @@ pub trait RawGateEncoder {
     where
         I: Iterator<Item = Lit>;
 
-    /// Encode an XOR gate with the given output and literals: `lhs ^ rhs`
+    /// Encode an XOR gate with the given output and literals: `output ⇔ (lhs XOR rhs)`
     fn xor_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
 
-    /// Encode an IMPLIES gate with the given output and literals: `lhs => rhs`
+    /// Encode an IMPLIES gate with the given output and literals: `output ⇔ (lhs ⇒ rhs)`
     fn implies_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
 
-    /// Encode an IFF (if-and-only-if) gate with the given output and literals: `lhs <=> rhs`
+    /// Encode an IFF (if-and-only-if) gate with the given output and literals: `output ⇔ (lhs ⇔ rhs)`
     fn iff_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
 
-    /// Encode a NOT gate with the given output and input literals: `output <=> NOT(input)`
+    /// Encode a NOT gate with the given output and input literals: `output ⇔ (¬input)`
     ///
     /// # Note
     ///
