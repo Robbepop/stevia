@@ -31,6 +31,8 @@ pub struct LitPack {
     off: usize,
     /// The number of variables in `self`.
     len: usize,
+    /// Sign of the represented literals when accessed.
+    sign: Sign
 }
 
 /// An iterator through a pack of variables.
@@ -188,7 +190,9 @@ impl LitPack {
         if offset == 0 {
             return Err(String::from("VarPack::new: error: invalid offset of 0"));
         }
-        Ok(Self { off: offset, len })
+        Ok(Self { off: offset, len, sign: Sign::Pos })
+    }
+
     }
 
     /// Returns the literal of `self` at the given position.
@@ -198,7 +202,7 @@ impl LitPack {
     /// If the given position is out of bounds.
     pub fn get(self, pos: usize) -> Option<Lit> {
         if pos < self.len {
-            return Some(Lit::pos(Var::new_unchecked((self.off + pos) as u32)));
+            return Some(Lit::new(Var::new_unchecked((self.off + pos) as u32), self.sign));
         }
         None
     }
