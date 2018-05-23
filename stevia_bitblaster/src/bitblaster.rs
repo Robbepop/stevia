@@ -95,6 +95,9 @@ where
         res
     }
 
+    fn bitblast_neg(&self, input: LitPack) -> LitPack {
+        self.bitblast_add1(input.flip_all())
+    }
 
     fn bitblast_add1(&self, input: LitPack) -> LitPack {
         let width = input.len();
