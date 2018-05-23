@@ -16,15 +16,16 @@
 use gate_encoder::{GateEncoder, LitGen, Output, RawGateEncoder};
 use repr::LitPack;
 
-type Result<T> = ::std::result::Result<T, String>;
+/// The result type for bit blasting operations.
+type BitblastResult<T> = ::std::result::Result<T, String>;
 
 mod checks {
-    use super::Result;
+    use super::BitblastResult;
     use repr::LitPack;
 
     /// Asserts that both given literal packs have the same length.
     /// Returns a common length or returns an appropriate error.
-    pub fn assert_litpack_len(lhs: LitPack, rhs: LitPack) -> Result<usize> {
+    pub fn assert_litpack_len(lhs: LitPack, rhs: LitPack) -> BitblastResult<usize> {
         if lhs.len() != rhs.len() {
             return Err(String::from(
                 "bitblast_add: error: left hand-side and right hand-side have different bit widths",
@@ -47,7 +48,7 @@ where
     G: LitGen,
     E: RawGateEncoder
 {
-    fn bitblast_bitand(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+    fn bitblast_bitand(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
         let width = checks::assert_litpack_len(lhs, rhs)?;
         let res = self.enc.new_lit_pack(width);
         for i in 0..width {
@@ -56,7 +57,7 @@ where
         Ok(res)
     }
 
-    fn bitblast_bitor(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+    fn bitblast_bitor(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
         let width = checks::assert_litpack_len(lhs, rhs)?;
         let res = self.enc.new_lit_pack(width);
         for i in 0..width {
@@ -65,7 +66,7 @@ where
         Ok(res)
     }
 
-    fn bitblast_bitxor(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+    fn bitblast_bitxor(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
         let width = checks::assert_litpack_len(lhs, rhs)?;
         let res = self.enc.new_lit_pack(width);
         for i in 0..width {
@@ -83,7 +84,7 @@ where
         res
     }
 
-    fn bitblast_add(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
+    fn bitblast_add(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
         let width = checks::assert_litpack_len(lhs, rhs)?;
         // Allocate result and carry bits
         let res = self.enc.new_lit_pack(width);
