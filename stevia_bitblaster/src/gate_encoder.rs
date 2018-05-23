@@ -63,7 +63,7 @@ pub trait RawGateEncoder {
     /// If `lits` yields less than 2 literals.
     fn and_gate<I>(&self, output: Lit, lits: I)
     where
-        I: IntoIterator<Item = Lit>;
+        I: Iterator<Item = Lit>;
 
     /// Encode an OR gate with the given output and literals.
     ///
@@ -72,7 +72,7 @@ pub trait RawGateEncoder {
     /// If `lits` yields less than 2 literals.
     fn or_gate<I>(&self, output: Lit, lits: I)
     where
-        I: IntoIterator<Item = Lit>;
+        I: Iterator<Item = Lit>;
 
     /// Encode an XOR gate with the given output and literals: `lhs ^ rhs`
     fn xor_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
