@@ -90,7 +90,7 @@ where
         let width = input.len();
         let res = self.enc.new_lit_pack(width);
         for i in 0..width {
-            unimplemented!()
+            self.enc.not_with_output(input(i), Output(res(i)))
         }
         res
     }

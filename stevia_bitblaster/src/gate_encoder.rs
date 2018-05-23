@@ -82,6 +82,13 @@ pub trait RawGateEncoder {
 
     /// Encode an IFF (if-and-only-if) gate with the given output and literals: `lhs <=> rhs`
     fn iff_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
+
+    /// Encode a NOT gate with the given output and input literals: `output <=> NOT(input)`
+    ///
+    /// # Note
+    ///
+    /// This is similar to a simple non-gate XOR encoding.
+    fn not_gate(&self, output: Lit, input: Lit);
 }
 
 /// Represents the output literal of a gate.
@@ -284,6 +291,30 @@ where
     {
         let output = Output(self.lit_gen.new_lit());
         self.iff_with_output(lhs, rhs, output);
+        Lit::from(output)
+    }
+
+    /// Define a NOT gate for the given output and input literals.
+    ///
+    /// # Note
+    ///
+    /// For more information look at
+    /// [`RawGateEncoder::not_gate`](struct.RawGateEncoder.html#method.not_gate).
+    pub fn not_with_output<L>(&self, input: L, output: Output)
+    where
+        L: Into<Lit>
+    {
+        self.enc.not_gate(output.into(), input.into())
+    }
+
+    /// Define a NOT gate for the given output and input literals.
+    /// The generated output is returned to allow for nesting of gates.
+    pub fn not<L>(&self, input: L) -> Lit
+    where
+        L: Into<Lit>
+    {
+        let output = Output(self.lit_gen.new_lit());
+        self.enc.not_gate(output.into(), input.into());
         Lit::from(output)
     }
 }
