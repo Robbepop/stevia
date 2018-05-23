@@ -61,43 +61,27 @@ pub trait RawGateEncoder {
     /// # Panics
     ///
     /// If `lits` yields less than 2 literals.
-    fn and_gate<O, I, L>(&self, output: O, lits: I)
+    fn and_gate<I>(&self, output: Lit, lits: I)
     where
-        I: IntoIterator<Item = L>,
-        O: Into<Lit>,
-        L: Into<Lit>;
+        I: IntoIterator<Item = Lit>;
 
     /// Encode an OR gate with the given output and literals.
     ///
     /// # Panics
     ///
     /// If `lits` yields less than 2 literals.
-    fn or_gate<O, I, L>(&self, output: O, lits: I)
+    fn or_gate<I>(&self, output: Lit, lits: I)
     where
-        I: IntoIterator<Item = L>,
-        O: Into<Lit>,
-        L: Into<Lit>;
+        I: IntoIterator<Item = Lit>;
 
     /// Encode an XOR gate with the given output and literals: `lhs ^ rhs`
-    fn xor_gate<O, L1, L2>(&self, output: O, lhs: L1, rhs: L2)
-    where
-        O: Into<Lit>,
-        L1: Into<Lit>,
-        L2: Into<Lit>;
+    fn xor_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
 
     /// Encode an IMPLIES gate with the given output and literals: `lhs => rhs`
-    fn implies_gate<O, L1, L2>(&self, output: O, lhs: L1, rhs: L2)
-    where
-        O: Into<Lit>,
-        L1: Into<Lit>,
-        L2: Into<Lit>;
+    fn implies_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
 
     /// Encode an IFF (if-and-only-if) gate with the given output and literals: `lhs <=> rhs`
-    fn iff_gate<O, L1, L2>(&self, output: O, lhs: L1, rhs: L2)
-    where
-        O: Into<Lit>,
-        L1: Into<Lit>,
-        L2: Into<Lit>;
+    fn iff_gate(&self, output: Lit, lhs: Lit, rhs: Lit);
 }
 
 /// Represents the output literal of a gate.
@@ -172,7 +156,7 @@ where
         I: IntoIterator<Item = L>,
         L: Into<Lit>,
     {
-        self.enc.and_gate(output, lits)
+        self.enc.and_gate(output.into(), lits.into_iter().map(Into::into))
     }
 
     /// Define an AND gate with an implicit output.
@@ -206,7 +190,7 @@ where
         I: IntoIterator<Item = L>,
         L: Into<Lit>,
     {
-        self.enc.or_gate(output, lits)
+        self.enc.or_gate(output.into(), lits.into_iter().map(Into::into))
     }
 
     /// Define an OR gate with an implicit output.
@@ -236,7 +220,7 @@ where
         L1: Into<Lit>,
         L2: Into<Lit>,
     {
-        self.enc.xor_gate(output, lhs, rhs)
+        self.enc.xor_gate(output.into(), lhs.into(), rhs.into())
     }
 
     /// Define an XOR gate with an implicit output.
@@ -262,7 +246,7 @@ where
         L1: Into<Lit>,
         L2: Into<Lit>,
     {
-        self.enc.implies_gate(output, lhs, rhs)
+        self.enc.implies_gate(output.into(), lhs.into(), rhs.into())
     }
 
     /// Define an IMPLIES gate with an implicit output.
@@ -288,7 +272,7 @@ where
         L1: Into<Lit>,
         L2: Into<Lit>,
     {
-        self.enc.iff_gate(output, lhs, rhs)
+        self.enc.iff_gate(output.into(), lhs.into(), rhs.into())
     }
 
     /// Define an IFF (If-And-Only-Iff) gate with an implicit output.
