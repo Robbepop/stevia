@@ -35,6 +35,12 @@ mod checks {
     }
 }
 
+/// A bitblaster is capable of transforming expression trees into boolean formulas.
+///
+/// It uses the gate encoder interface for the transformation.
+/// The actual encoding is done by the encoder behind the gate encoder interface.
+///
+/// The system allows for efficient AIG and CNF (and other) boolean encodings.
 struct Bitblaster<G, E>
 where
     G: LitGen,
