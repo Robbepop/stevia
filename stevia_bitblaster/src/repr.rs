@@ -63,6 +63,14 @@ impl Sign {
             Sign::Neg => 1,
         }
     }
+
+    /// Returns `Pos` if `self` was `Neg` and vice versa.
+    fn flip(self) -> Sign {
+        match self {
+            Sign::Pos => Sign::Neg,
+            Sign::Neg => Sign::Pos
+        }
+    }
 }
 
 impl Var {
