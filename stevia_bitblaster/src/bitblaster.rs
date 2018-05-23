@@ -74,6 +74,13 @@ where
         Ok(res)
     }
 
+    fn bitblast_bitnot(&self, input: LitPack) -> LitPack {
+        let width = input.len();
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..width {
+            unimplemented!()
+        }
+        res
     }
 
     fn bitblast_add(&self, lhs: LitPack, rhs: LitPack) -> Result<LitPack> {
