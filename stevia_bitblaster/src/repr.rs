@@ -179,7 +179,11 @@ impl ops::Neg for Lit {
 }
 
 impl LitPack {
-    /// Creates a new `VarPack` from the given offset and length.
+    /// Creates a new `LitPack` from the given offset and length.
+    ///
+    /// # Note
+    ///
+    /// Literals represented by the returned `LitPack` have positive signs.
     pub fn new(offset: usize, len: usize) -> Result<LitPack, String> {
         if offset == 0 {
             return Err(String::from("VarPack::new: error: invalid offset of 0"));
@@ -187,7 +191,7 @@ impl LitPack {
         Ok(Self { off: offset, len })
     }
 
-    /// Returns the variable of `self` at the given position.
+    /// Returns the literal of `self` at the given position.
     ///
     /// # Errors
     ///
