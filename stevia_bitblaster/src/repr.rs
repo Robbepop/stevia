@@ -193,6 +193,9 @@ impl LitPack {
         Ok(Self { off: offset, len, sign: Sign::Pos })
     }
 
+    /// Creates a `LitPack` representing the same literals but with flipped signs.
+    pub fn flip_all(self) -> LitPack {
+        Self{ off: self.offset(), len: self.len(), sign: self.sign.flip() }
     }
 
     /// Returns the literal of `self` at the given position.
