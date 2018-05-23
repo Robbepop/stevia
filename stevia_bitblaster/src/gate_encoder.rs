@@ -89,6 +89,13 @@ pub trait RawGateEncoder {
     ///
     /// This is similar to a simple non-gate XOR encoding.
     fn not_gate(&self, output: Lit, input: Lit);
+
+    /// Encode an EQUALS gate with the given output and input literals: `output ⇔ input`
+    ///
+    /// # Note
+    ///
+    /// This is similar to a simple non-gate XOR encoding.
+    fn eq_gate(&self, output: Lit, input: Lit);
 }
 
 /// Represents the output literal of a gate.
@@ -317,5 +324,28 @@ where
         self.not_with_output(input.into(), Output(output));
         output
     }
+
+    /// Define an EQUALS gate for the given output and input literals.
+    ///
+    /// # Note
+    ///
+    /// For more information look at
+    /// [`RawGateEncoder::eq_gate`](struct.RawGateEncoder.html#method.eq_gate).
+    pub fn eq_with_output<L>(&self, input: L, output: Output)
+    where
+        L: Into<Lit>
+    {
+        self.enc.eq_gate(output.into(), input.into())
+    }
+
+    /// Define an EQUALS gate for the given output and input literals.
+    /// The generated output is returned to allow for nesting of gates.
+    pub fn eq<L>(&self, input: L) -> Lit
+    where
+        L: Into<Lit>
+    {
+        let output = self.lit_gen.new_lit();
+        self.eq_with_output(input.into(), Output(output));
+        output
     }
 }
