@@ -46,7 +46,9 @@ pub struct LitPackIter {
 ///
 /// This is not used for the internal representation.
 pub enum Sign {
+    /// Positive polarity.
     Pos = 0,
+    /// Negative polarity.
     Neg = 1,
 }
 
