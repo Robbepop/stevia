@@ -207,6 +207,16 @@ impl LitPack {
         None
     }
 
+    /// Returns the literal of `self` at the given position.
+    ///
+    /// # Safety
+    ///
+    /// This does not check if `pos` is out of bounds.
+    pub fn get_unchecked(self, pos: usize) -> Lit {
+        debug_assert!(pos < self.len());
+        Lit::new(Var::new_unchecked((self.off + pos) as u32), self.sign)
+    }
+
     /// Returns the offset of `self`.
     pub fn offset(self) -> usize {
         self.off
@@ -216,19 +226,13 @@ impl LitPack {
     pub fn len(self) -> usize {
         self.len
     }
-
-    /// Returns the i'th literal of `self`.
-    pub fn i(self, i: usize) -> Lit {
-        debug_assert!(i < self.len());
-        Lit::from(Var::new_unchecked((self.off + i) as u32))
-    }
 }
 
 impl FnOnce<(usize,)> for LitPack {
     type Output = Lit;
 
     extern "rust-call" fn call_once(self, idx: (usize,)) -> Self::Output {
-        self.i(idx.0)
+        self.get_unchecked(idx.0)
     }
 }
 
