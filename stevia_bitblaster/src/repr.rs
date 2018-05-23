@@ -1,3 +1,5 @@
+use std::ops;
+
 /// A boolean variable.
 ///
 /// # Note
@@ -92,7 +94,7 @@ impl Var {
     }
 }
 
-impl ::std::ops::Neg for Var {
+impl ops::Neg for Var {
     type Output = Lit;
 
     fn neg(self) -> Self::Output {
@@ -159,7 +161,7 @@ impl Lit {
     }
 }
 
-impl ::std::ops::Neg for Lit {
+impl ops::Neg for Lit {
     type Output = Lit;
 
     fn neg(self) -> Self::Output {
