@@ -54,6 +54,9 @@ This output can then be further processed by other simplification and solving pr
 
 These features need to be stabilized before this crate can be used on the stable channel.
 
+**Current State:** Rust version 1.26
+
+<!-- 
 - [`#![feature(box_patterns)]`][unstable-box-patterns]
 - [`#![feature(nll)]`][nll]
 - [`#![feature(crate_in_paths)]`][crate-in-paths]
@@ -61,6 +64,20 @@ These features need to be stabilized before this crate can be used on the stable
 - ~~[`#![feature(copy_closures)]`][copy-closures]~~ (stable in 1.26)
 - ~~[`#![feature(clone_closures)]`][clone-closures]~~ (stable in 1.26)
 - ~~[`#![feature(match_default_bindings)]`][match-default-bindings]~~ (stable in 1.26)
+-->
+
+- [`#![feature(crate_in_paths)]`][unstable_crate_in_paths]
+
+- **Simplifier**
+
+    - [`#![feature(crate_in_paths)]`][unstable_crate_in_paths]
+    - [`#![feature(box_patterns)]`][unstable_box_patterns]
+    - [`#![feature(nll)]`][unstable_nll]
+
+- **Bitblaster**
+
+    - [`#![feature(fn_traits)]`][unstable_fn_traits]
+    - [`#![feature(unboxed_closures)]`][unstable_unboxed_closures]
 
 ## License
 
@@ -110,10 +127,8 @@ additional terms or conditions.
 [candy-repo]: https://github.com/Udopia/candy-kingdom
 [jamsat-repo]: https://github.com/fkutzner/JamSAT
 
-[unstable-box-patterns]: https://github.com/rust-lang/rust/issues/29641
-[conservative-impl-trait]: https://github.com/rust-lang/rust/issues/34511
-[nll]: https://github.com/rust-lang/rust/issues/43234
-[copy-closures]: https://github.com/rust-lang/rust/issues/44490
-[clone-closures]: https://github.com/rust-lang/rust/issues/44490
-[match-default-bindings]: https://github.com/rust-lang/rust/issues/42640
-[crate-in-paths]: https://github.com/rust-lang/rust/issues/44660
+[unstable_box_patterns]: https://github.com/rust-lang/rust/issues/29641
+[unstable_nll]: https://github.com/rust-lang/rust/issues/43234
+[unstable_crate_in_paths]: https://github.com/rust-lang/rust/issues/44660
+[unstable_fn_traits]: https://github.com/rust-lang/rust/issues/29625
+[unstable_unboxed_closures]: https://github.com/rust-lang/rust/issues/29625
