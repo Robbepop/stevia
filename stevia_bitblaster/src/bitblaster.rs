@@ -95,6 +95,20 @@ where
         res
     }
 
+
+    fn bitblast_add1(&self, input: LitPack) -> LitPack {
+        let width = input.len();
+        let res = self.enc.new_lit_pack(width);
+        let carries = self.enc.new_lit_pack(width);
+        self.enc.not_with_output(input(0), Output(res(0)));
+        self.enc.eq_with_output(input(0), Output(carries(0)));
+        for i in 1..width {
+            self.enc.xor_with_output(input(i), carries(i-1), Output(res(i)));
+            self.enc.and_with_output(&[input(i), carries(i-1)], Output(carries(i)));
+        }
+        res
+    }
+
     fn bitblast_add(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
         let width = checks::assert_litpack_len(lhs, rhs)?;
         // Allocate result and carry bits
