@@ -28,7 +28,7 @@ mod checks {
     pub fn assert_litpack_len(lhs: LitPack, rhs: LitPack) -> BitblastResult<usize> {
         if lhs.len() != rhs.len() {
             return Err(String::from(
-                "bitblast_add: error: left hand-side and right hand-side have different bit widths",
+                "assert_litpack_len: error: left hand-side and right hand-side have different bit widths",
             ));
         }
         Ok(lhs.len())
