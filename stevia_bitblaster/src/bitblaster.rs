@@ -113,6 +113,10 @@ where
             self.enc.not_with_output(input(i), Output(res(i)))
         }
         res
+        // We could also simply flip all bits in the input `LitPack`
+        // and return the flipped representation which would be very cheap
+        // since this would avoid allocating new literals.
+        // input.flip_all()
     }
 
     fn bitblast_neg(&self, input: LitPack) -> LitPack {
@@ -173,4 +177,29 @@ where
         }
         Ok(res)
     }
+
+    fn bitblast_lshr_by(&self, input: LitPack, shamt: usize) -> BitblastResult<LitPack> {
+        checks::assert_valid_shamt(input, shamt)?;
+        let width = input.len();
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..(width-shamt) {
+            self.enc.eq_with_output(input(i+shamt), Output(res(i)))
+        }
+        for i in (width-shamt)..width {
+            self.asserter.assert_lit(res(i).flip())
+        }
+        Ok(res)
+    }
+
+    fn bitblast_ashr_by(&self, input: LitPack, shamt: usize) -> BitblastResult<LitPack> {
+        checks::assert_valid_shamt(input, shamt)?;
+        let width = input.len();
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..(width-shamt) {
+            self.enc.eq_with_output(input(i+shamt), Output(res(i)))
+        }
+        for i in (width-shamt)..width {
+            self.enc.eq_with_output(input(width-1), Output(res(i)))
+        }
+        Ok(res)
 }
