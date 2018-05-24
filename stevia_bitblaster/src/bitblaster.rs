@@ -13,7 +13,7 @@
 //! simply and directly forward this to an IPASIR implementing SAT
 //! solver in an efficient way.
 
-use gate_encoder::{GateEncoder, LitGen, Output, RawGateEncoder};
+use gate_encoder::{GateEncoder, LitGen, Output, RawGateEncoder, AssertEncoder};
 use repr::LitPack;
 
 /// The result type for bit blasting operations.
@@ -24,6 +24,9 @@ mod checks {
     use repr::LitPack;
 
     /// Asserts that both given literal packs have the same length.
+    ///
+    /// # Errors
+    ///
     /// Returns a common length or returns an appropriate error.
     pub fn assert_litpack_len(lhs: LitPack, rhs: LitPack) -> BitblastResult<usize> {
         if lhs.len() != rhs.len() {
@@ -33,6 +36,7 @@ mod checks {
         }
         Ok(lhs.len())
     }
+
     /// Asserts that the given shift amount (shamt) is valid for the given literal pack.
     ///
     /// # Errors
@@ -54,22 +58,25 @@ mod checks {
 /// The actual encoding is done by the encoder behind the gate encoder interface.
 ///
 /// The system allows for efficient AIG and CNF (and other) boolean encodings.
-struct Bitblaster<G, E>
+struct Bitblaster<G, E, A>
 where
     G: LitGen,
-    E: RawGateEncoder
+    E: RawGateEncoder,
+    A: AssertEncoder
 {
-    enc: GateEncoder<G, E>
+    enc: GateEncoder<G, E>,
+    asserter: A
 }
 
-impl<G, E> Bitblaster<G, E>
+impl<G, E, A> Bitblaster<G, E, A>
 where
     G: LitGen,
-    E: RawGateEncoder
+    E: RawGateEncoder,
+    A: AssertEncoder
 {
     /// Creates a new bit blaster from the given gate encoder.
-    pub fn new(enc: GateEncoder<G, E>) -> Self {
-        Self{ enc: enc }
+    pub fn new(enc: GateEncoder<G, E>, asserter: A) -> Self {
+        Self{ enc: enc, asserter: asserter }
     }
 
     fn bitblast_bitand(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
