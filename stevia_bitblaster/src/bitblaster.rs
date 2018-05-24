@@ -160,4 +160,17 @@ where
         }
         Ok(res)
     }
+
+    fn bitblast_shl_by(&self, input: LitPack, shamt: usize) -> BitblastResult<LitPack> {
+        checks::assert_valid_shamt(input, shamt)?;
+        let width = input.len();
+        let res = self.enc.new_lit_pack(width);
+        for i in 0..shamt {
+            self.asserter.assert_lit(res(i).flip())
+        }
+        for i in shamt..width {
+            self.enc.eq_with_output(input(i-shamt), Output(res(i)))
+        }
+        Ok(res)
+    }
 }
