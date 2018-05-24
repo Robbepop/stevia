@@ -33,6 +33,19 @@ mod checks {
         }
         Ok(lhs.len())
     }
+    /// Asserts that the given shift amount (shamt) is valid for the given literal pack.
+    ///
+    /// # Errors
+    ///
+    /// Returns an appropriate error if not.
+    pub fn assert_valid_shamt(to_be_shifted: LitPack, shamt: usize) -> BitblastResult<()> {
+        if shamt >= to_be_shifted.len() {
+            return Err(String::from(
+                "assert_valid_shamt: error: the given shamt is too large for the given literal pack"
+            ))
+        }
+        Ok(())
+    }
 }
 
 /// A bitblaster is capable of transforming expression trees into boolean formulas.
