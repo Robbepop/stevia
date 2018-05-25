@@ -202,4 +202,5 @@ where
             self.enc.eq_with_output(input(width-1), Output(res(i)))
         }
         Ok(res)
+    }
 }
