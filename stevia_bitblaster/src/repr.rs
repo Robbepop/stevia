@@ -183,9 +183,17 @@ impl LitPack {
     /// # Note
     ///
     /// Literals represented by the returned `LitPack` have positive signs.
-    pub fn new(offset: usize, len: usize) -> Result<LitPack, String> {
+    pub fn new(offset: u32, len: u32) -> Result<LitPack, String> {
         if offset == 0 {
             return Err(String::from("VarPack::new: error: invalid offset of 0"));
+        }
+        if len == 0 {
+            return Err(String::from("VarPack::new: error: invalid len of 0"));
+        }
+        if offset + len > MAX_VAR_VALUE {
+            return Err(String::from(
+                "VarPack::new: error: the given offset and length combination is out of bounds",
+            ));
         }
         Ok(Self {
             off: offset,
