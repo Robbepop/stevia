@@ -38,16 +38,6 @@ pub struct LitPack {
     /// Sign of the represented literals when accessed.
     sign: Sign,
 }
-
-/// An iterator through a pack of variables.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct LitPackIter {
-    /// The variable pack to be iterated.
-    lit_pack: LitPack,
-    /// The current position.
-    cur: usize,
-}
-
 /// Represents the sign of a literal.
 ///
 /// # Note
@@ -250,12 +240,32 @@ impl FnOnce<(usize,)> for LitPack {
     }
 }
 
+/// An iterator through a pack of variables.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct LitPackIter {
+    /// The variable pack to be iterated.
+    lit_pack: LitPack,
+    /// The current begin position.
+    ///
+    /// # Note
+    ///
+    /// The following invariant must hold: `self.begin < self.end`. 
+    begin: usize,
+    /// The current end position.
+    ///
+    /// # Note
+    ///
+    /// The following invariant must hold: `self.begin < self.end`.
+    end: usize
+}
+
 impl LitPackIter {
     /// Creates a new variable pack iterator.
-    pub(crate) fn new(var_pack: LitPack) -> Self {
+    pub(crate) fn new(lp: LitPack) -> Self {
         Self {
-            lit_pack: var_pack,
-            cur: 0,
+            lit_pack: lp,
+            begin: 0,
+            end: lp.len()
         }
     }
 }
@@ -264,21 +274,23 @@ impl Iterator for LitPackIter {
     type Item = Lit;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let lit = self.lit_pack.get(self.cur);
-        if self.cur < self.lit_pack.len() {
-            self.cur += 1
+        if self.begin == self.end {
+            return None
         }
+        let lit = self.lit_pack.get(self.begin);
+        self.begin += 1;
         lit
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = self.lit_pack.len() - self.cur;
+        let remaining = self.end - self.begin;
         (remaining, Some(remaining))
     }
 
     fn nth(&mut self, index: usize) -> Option<Self::Item> {
-        let nth_lit = self.lit_pack.get(self.cur + index);
-        self.cur += index + 1;
+        use std::cmp;
+        let nth_lit = self.lit_pack.get(self.begin + index);
+        self.begin += cmp::min(index + 1, self.end);
         nth_lit
     }
 }
