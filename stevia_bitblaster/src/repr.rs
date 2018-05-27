@@ -1,43 +1,6 @@
 use std::ops;
 use std::u32;
 
-/// The maximum representable variable value.
-const MAX_VAR_VALUE: u32 = u32::MAX >> 1;
-
-/// A boolean variable.
-///
-/// # Note
-///
-/// - For implementation purpose only the lowest 31 bit are valid.
-/// - The 0-variable (null-variable) is invalid.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Var(u32);
-
-/// A boolean literal.
-///
-/// # Note
-///
-/// - The sign is encoded in the least-significant bit while the
-///   remaining 31-bit are encoding the represented variable.
-/// - A literal can only represent valid variables.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Lit(u32);
-
-/// Represents a contiguous pack of literals.
-///
-/// # Note
-///
-/// This is just a more efficient way to relate to a bunch of
-/// related variables.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct LitPack {
-    /// The identifier of the lowest-value variable in `self`.
-    off: u32,
-    /// The number of variables in `self`.
-    len: u32,
-    /// Sign of the represented literals when accessed.
-    sign: Sign,
-}
 /// Represents the sign of a literal.
 ///
 /// # Note
@@ -68,6 +31,18 @@ impl Sign {
         }
     }
 }
+
+/// The maximum representable variable value.
+const MAX_VAR_VALUE: u32 = u32::MAX >> 1;
+
+/// A boolean variable.
+///
+/// # Note
+///
+/// - For implementation purpose only the lowest 31 bit are valid.
+/// - The 0-variable (null-variable) is invalid.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Var(u32);
 
 impl Var {
     /// Creates a new variable from the given value.
@@ -108,19 +83,15 @@ impl Var {
     }
 }
 
-impl From<Var> for Lit {
-    fn from(var: Var) -> Self {
-        Lit::new(var, Sign::Pos)
-    }
-}
-
-/// This impl exists solely to allow for generic iterator
-/// approach using variables instead of literals within slices.
-impl<'a> From<&'a Lit> for Lit {
-    fn from(lit: &'a Lit) -> Self {
-        *lit
-    }
-}
+/// A boolean literal.
+///
+/// # Note
+///
+/// - The sign is encoded in the least-significant bit while the
+///   remaining 31-bit are encoding the represented variable.
+/// - A literal can only represent valid variables.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Lit(u32);
 
 impl Lit {
     /// Creates a new literal from the given variable and sign.
@@ -165,6 +136,36 @@ impl ops::Neg for Lit {
     fn neg(self) -> Self::Output {
         self.flip()
     }
+}
+
+impl From<Var> for Lit {
+    fn from(var: Var) -> Self {
+        Lit::new(var, Sign::Pos)
+    }
+}
+
+/// This impl exists solely to allow for generic iterator
+/// approach using variables instead of literals within slices.
+impl<'a> From<&'a Lit> for Lit {
+    fn from(lit: &'a Lit) -> Self {
+        *lit
+    }
+}
+
+/// Represents a contiguous pack of literals.
+///
+/// # Note
+///
+/// This is just a more efficient way to relate to a bunch of
+/// related variables.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct LitPack {
+    /// The identifier of the lowest-value variable in `self`.
+    off: u32,
+    /// The number of variables in `self`.
+    len: u32,
+    /// Sign of the represented literals when accessed.
+    sign: Sign,
 }
 
 impl LitPack {
