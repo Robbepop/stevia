@@ -107,20 +107,14 @@ where
     }
 
     fn bitblast_bitnot(&self, input: LitPack) -> LitPack {
-        let width = input.len();
-        let res = self.enc.new_lit_pack(width);
-        for i in 0..width {
-            self.enc.not_with_output(input(i), Output(res(i)))
-        }
-        res
-        // We could also simply flip all bits in the input `LitPack`
+        // We can simply flip all bits in the input `LitPack`
         // and return the flipped representation which would be very cheap
         // since this would avoid allocating new literals.
-        // input.flip_all()
+        input.flip_all()
     }
 
     fn bitblast_neg(&self, input: LitPack) -> LitPack {
-        self.bitblast_add1(input.flip_all())
+        self.bitblast_add1(self.bitblast_bitnot(input))
     }
 
     fn bitblast_add1(&self, input: LitPack) -> LitPack {
