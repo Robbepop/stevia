@@ -397,10 +397,12 @@ mod tests {
         }
 
         #[test]
-        fn flip() {
+        fn neg_or_flip() {
             fn assert_both_polarity(var: Var) {
                 assert_eq!(Lit::pos(var).flip(), Lit::neg(var));
                 assert_eq!(Lit::neg(var).flip(), Lit::pos(var));
+                assert_eq!(-Lit::pos(var), Lit::neg(var));
+                assert_eq!(-Lit::neg(var), Lit::pos(var));
             }
             assert_both_polarity(Var(1));
             assert_both_polarity(Var(5));
