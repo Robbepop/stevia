@@ -124,14 +124,6 @@ impl From<Var> for Lit {
 
 /// This impl exists solely to allow for generic iterator
 /// approach using variables instead of literals within slices.
-impl<'a> From<&'a Var> for Lit {
-    fn from(var: &'a Var) -> Self {
-        Lit::new(*var, Sign::Pos)
-    }
-}
-
-/// This impl exists solely to allow for generic iterator
-/// approach using variables instead of literals within slices.
 impl<'a> From<&'a Lit> for Lit {
     fn from(lit: &'a Lit) -> Self {
         *lit
