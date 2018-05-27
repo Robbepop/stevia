@@ -241,6 +241,15 @@ impl FnOnce<(usize,)> for LitPack {
     }
 }
 
+impl IntoIterator for LitPack {
+    type Item = Lit;
+    type IntoIter = LitPackIter;
+
+    fn into_iter(self) -> Self::IntoIter {
+        LitPackIter::new(self)
+    }
+}
+
 /// An iterator through a pack of variables.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct LitPackIter {
@@ -250,14 +259,14 @@ pub struct LitPackIter {
     ///
     /// # Note
     ///
-    /// The following invariant must hold: `self.begin < self.end`. 
+    /// The following invariant must hold: `self.begin < self.end`.
     begin: usize,
     /// The current end position.
     ///
     /// # Note
     ///
     /// The following invariant must hold: `self.begin < self.end`.
-    end: usize
+    end: usize,
 }
 
 impl LitPackIter {
@@ -266,7 +275,7 @@ impl LitPackIter {
         Self {
             lit_pack: lp,
             begin: 0,
-            end: lp.len()
+            end: lp.len(),
         }
     }
 }
@@ -276,7 +285,7 @@ impl Iterator for LitPackIter {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.begin == self.end {
-            return None
+            return None;
         }
         let lit = self.lit_pack.get(self.begin);
         self.begin += 1;
@@ -299,19 +308,10 @@ impl Iterator for LitPackIter {
 impl DoubleEndedIterator for LitPackIter {
     fn next_back(&mut self) -> Option<Self::Item> {
         if self.begin == self.end {
-            return None
+            return None;
         }
         self.end -= 1;
         self.lit_pack.get(self.end)
-    }
-}
-
-impl IntoIterator for LitPack {
-    type Item = Lit;
-    type IntoIter = LitPackIter;
-
-    fn into_iter(self) -> Self::IntoIter {
-        LitPackIter::new(self)
     }
 }
 
