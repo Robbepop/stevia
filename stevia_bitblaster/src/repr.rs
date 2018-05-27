@@ -1,4 +1,8 @@
 use std::ops;
+use std::u32;
+
+/// The maximum representable variable value.
+const MAX_VAR_VALUE: u32 = u32::MAX >> 1;
 
 /// A boolean variable.
 ///
@@ -82,13 +86,12 @@ impl Var {
     ///
     /// If the given value is zero (0).
     pub fn new(val: u32) -> Result<Var, String> {
-        use std::u32;
         if val == 0 {
             return Err(String::from(
                 "Var::new: error: Zero is an invalid representation for a variable.",
             ));
         }
-        if val > (u32::MAX >> 1) {
+        if val > MAX_VAR_VALUE {
             return Err(format!(
                 "Var::new: error: Given value (= {}) is too large to represent a variable.",
                 val
@@ -104,9 +107,8 @@ impl Var {
     /// The user code has to ensure that this is not being called
     /// with val being zero (0).
     pub fn new_unchecked(val: u32) -> Var {
-        use std::u32;
         debug_assert!(val != 0);
-        debug_assert!(val <= (u32::MAX >> 1));
+        debug_assert!(val <= MAX_VAR_VALUE);
         Var(val)
     }
 
@@ -299,13 +301,13 @@ mod tests {
         fn new_ok() {
             assert_eq!(Var::new(1), Ok(Var(1)));
             assert_eq!(Var::new(42), Ok(Var(42)));
-            assert_eq!(Var::new(u32::MAX >> 1), Ok(Var(u32::MAX >> 1)))
+            assert_eq!(Var::new(u32::MAX >> 1), Ok(Var(MAX_VAR_VALUE)))
         }
 
         #[test]
         fn new_err() {
             assert!(Var::new(0).is_err());
-            assert!(Var::new((u32::MAX >> 1) + 1).is_err());
+            assert!(Var::new(MAX_VAR_VALUE + 1).is_err());
             assert!(Var::new(u32::MAX).is_err());
         }
 
@@ -313,7 +315,7 @@ mod tests {
         fn new_unchecked_ok() {
             assert_eq!(Var::new_unchecked(1), Var(1));
             assert_eq!(Var::new_unchecked(42), Var(42));
-            assert_eq!(Var::new_unchecked(u32::MAX >> 1), Var(u32::MAX >> 1));
+            assert_eq!(Var::new_unchecked(MAX_VAR_VALUE), Var(MAX_VAR_VALUE));
         }
 
         #[test]
@@ -325,7 +327,7 @@ mod tests {
         #[test]
         #[should_panic]
         fn new_unchecked_err_1() {
-            Var::new_unchecked((u32::MAX >> 1) + 1);
+            Var::new_unchecked(MAX_VAR_VALUE + 1);
         }
 
         #[test]
@@ -333,7 +335,7 @@ mod tests {
             assert_eq!(Var(1).to_u32(), 1);
             assert_eq!(Var(5).to_u32(), 5);
             assert_eq!(Var(42).to_u32(), 42);
-            assert_eq!(Var(u32::MAX >> 1).to_u32(), u32::MAX >> 1);
+            assert_eq!(Var(MAX_VAR_VALUE).to_u32(), MAX_VAR_VALUE);
         }
     }
 
@@ -355,14 +357,13 @@ mod tests {
 
     mod lit {
         use super::*;
-        use std::u32;
 
         #[test]
         fn from_var() {
             assert_eq!(Lit::from(Var(1)), Lit::pos(Var(1)));
             assert_eq!(Lit::from(Var(5)), Lit::pos(Var(5)));
             assert_eq!(Lit::from(Var(42)), Lit::pos(Var(42)));
-            assert_eq!(Lit::from(Var(u32::MAX >> 1)), Lit::pos(Var(u32::MAX >> 1)));
+            assert_eq!(Lit::from(Var(MAX_VAR_VALUE)), Lit::pos(Var(MAX_VAR_VALUE)));
         }
 
         #[test]
@@ -370,7 +371,7 @@ mod tests {
             assert_eq!(Lit::pos(Var(1)), Lit::new(Var(1), Sign::Pos));
             assert_eq!(Lit::pos(Var(5)), Lit::new(Var(5), Sign::Pos));
             assert_eq!(Lit::pos(Var(42)), Lit::new(Var(42), Sign::Pos));
-            assert_eq!(Lit::pos(Var(u32::MAX >> 1)), Lit::new(Var(u32::MAX >> 1), Sign::Pos));
+            assert_eq!(Lit::pos(Var(MAX_VAR_VALUE)), Lit::new(Var(MAX_VAR_VALUE), Sign::Pos));
         }
 
         #[test]
@@ -378,7 +379,7 @@ mod tests {
             assert_eq!(Lit::neg(Var(1)), Lit::new(Var(1), Sign::Neg));
             assert_eq!(Lit::neg(Var(5)), Lit::new(Var(5), Sign::Neg));
             assert_eq!(Lit::neg(Var(42)), Lit::new(Var(42), Sign::Neg));
-            assert_eq!(Lit::neg(Var(u32::MAX >> 1)), Lit::new(Var(u32::MAX >> 1), Sign::Neg));
+            assert_eq!(Lit::neg(Var(MAX_VAR_VALUE)), Lit::new(Var(MAX_VAR_VALUE), Sign::Neg));
         }
 
         #[test]
@@ -393,7 +394,7 @@ mod tests {
             assert_both_polarity(Var(1));
             assert_both_polarity(Var(5));
             assert_both_polarity(Var(42));
-            assert_both_polarity(Var(u32::MAX >> 1));
+            assert_both_polarity(Var(MAX_VAR_VALUE));
         }
 
         #[test]
@@ -407,7 +408,7 @@ mod tests {
             assert_both_polarity(Var(1));
             assert_both_polarity(Var(5));
             assert_both_polarity(Var(42));
-            assert_both_polarity(Var(u32::MAX >> 1));
+            assert_both_polarity(Var(MAX_VAR_VALUE));
         }
 
         #[test]
@@ -419,7 +420,7 @@ mod tests {
             assert_both_polarity(Var(1));
             assert_both_polarity(Var(5));
             assert_both_polarity(Var(42));
-            assert_both_polarity(Var(u32::MAX >> 1));
+            assert_both_polarity(Var(MAX_VAR_VALUE));
         }
 
         #[test]
@@ -431,7 +432,7 @@ mod tests {
             assert_both_polarity(Var(1));
             assert_both_polarity(Var(5));
             assert_both_polarity(Var(42));
-            assert_both_polarity(Var(u32::MAX >> 1));
+            assert_both_polarity(Var(MAX_VAR_VALUE));
         }
     }
 }
