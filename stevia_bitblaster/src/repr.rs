@@ -217,13 +217,13 @@ impl LitPack {
     ///
     /// If the given position is out of bounds.
     pub fn get(self, pos: usize) -> Option<Lit> {
-        if pos < self.len {
-            return Some(Lit::new(
-                Var::new_unchecked((self.off + pos) as u32),
-                self.sign,
-            ));
+        if pos >= self.len() {
+            return None;
         }
-        None
+        Some(Lit::new(
+            Var::new_unchecked(self.off + pos as u32),
+            self.sign,
+        ))
     }
 
     /// Returns the literal of `self` at the given position.
@@ -233,9 +233,7 @@ impl LitPack {
     /// This does not check if `pos` is out of bounds.
     pub fn get_unchecked(self, pos: usize) -> Lit {
         debug_assert!(pos < self.len());
-        Lit::new(Var::new_unchecked((self.off + pos) as u32), self.sign)
-    }
-
+        Lit::new(Var::new_unchecked(self.off + pos as u32), self.sign)
     }
 
     /// Returns the length (number of represented variables) of `self`.
