@@ -251,6 +251,17 @@ impl IntoIterator for LitPack {
 }
 
 /// An iterator through a pack of variables.
+//
+// # Dev Note
+//
+// This data structure could benefit greatly from packing bits.
+// We do not really need the `lit_pack` here. Instead we could
+// directly compute the `begin` and `end` variables upon
+// construction and simply use them as raw literal identifiers
+// instead of as offsets into the `lit_pack`.
+//
+// Without testing and benchmarking this however is premature
+// optimization as it could yield an ugly implementation.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct LitPackIter {
     /// The variable pack to be iterated.
