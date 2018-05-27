@@ -374,7 +374,10 @@ mod tests {
             assert_eq!(Lit::pos(Var(1)), Lit::new(Var(1), Sign::Pos));
             assert_eq!(Lit::pos(Var(5)), Lit::new(Var(5), Sign::Pos));
             assert_eq!(Lit::pos(Var(42)), Lit::new(Var(42), Sign::Pos));
-            assert_eq!(Lit::pos(Var(MAX_VAR_VALUE)), Lit::new(Var(MAX_VAR_VALUE), Sign::Pos));
+            assert_eq!(
+                Lit::pos(Var(MAX_VAR_VALUE)),
+                Lit::new(Var(MAX_VAR_VALUE), Sign::Pos)
+            );
         }
 
         #[test]
@@ -382,13 +385,19 @@ mod tests {
             assert_eq!(Lit::neg(Var(1)), Lit::new(Var(1), Sign::Neg));
             assert_eq!(Lit::neg(Var(5)), Lit::new(Var(5), Sign::Neg));
             assert_eq!(Lit::neg(Var(42)), Lit::new(Var(42), Sign::Neg));
-            assert_eq!(Lit::neg(Var(MAX_VAR_VALUE)), Lit::new(Var(MAX_VAR_VALUE), Sign::Neg));
+            assert_eq!(
+                Lit::neg(Var(MAX_VAR_VALUE)),
+                Lit::new(Var(MAX_VAR_VALUE), Sign::Neg)
+            );
         }
 
         #[test]
         fn new() {
             fn assert_for_sign(var: Var, sign: Sign) {
-                assert_eq!(Lit::new(var, sign), Lit((var.to_u32() << 1) | sign.to_u32()));
+                assert_eq!(
+                    Lit::new(var, sign),
+                    Lit((var.to_u32() << 1) | sign.to_u32())
+                );
             }
             fn assert_both_polarity(var: Var) {
                 assert_for_sign(var, Sign::Pos);
