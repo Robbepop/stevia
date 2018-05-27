@@ -228,9 +228,6 @@ impl LitPack {
         Lit::new(Var::new_unchecked((self.off + pos) as u32), self.sign)
     }
 
-    /// Returns the offset of `self`.
-    pub fn offset(self) -> usize {
-        self.off
     }
 
     /// Returns the length (number of represented variables) of `self`.
