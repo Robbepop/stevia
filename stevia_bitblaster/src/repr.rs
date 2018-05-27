@@ -295,6 +295,16 @@ impl Iterator for LitPackIter {
     }
 }
 
+impl DoubleEndedIterator for LitPackIter {
+    fn next_back(&mut self) -> Option<Self::Item> {
+        if self.begin == self.end {
+            return None
+        }
+        self.end -= 1;
+        self.lit_pack.get(self.end)
+    }
+}
+
 impl IntoIterator for LitPack {
     type Item = Lit;
     type IntoIter = LitPackIter;
