@@ -170,7 +170,8 @@ where
         I: IntoIterator<Item = L>,
         L: Into<Lit>,
     {
-        self.enc.and_gate(output.into(), lits.into_iter().map(Into::into))
+        self.enc
+            .and_gate(output.into(), lits.into_iter().map(Into::into))
     }
 
     /// Define an AND gate with an implicit output.
@@ -204,7 +205,8 @@ where
         I: IntoIterator<Item = L>,
         L: Into<Lit>,
     {
-        self.enc.or_gate(output.into(), lits.into_iter().map(Into::into))
+        self.enc
+            .or_gate(output.into(), lits.into_iter().map(Into::into))
     }
 
     /// Define an OR gate with an implicit output.
@@ -309,7 +311,7 @@ where
     /// [`RawGateEncoder::not_gate`](struct.RawGateEncoder.html#method.not_gate).
     pub fn not_with_output<L>(&self, input: L, output: Output)
     where
-        L: Into<Lit>
+        L: Into<Lit>,
     {
         self.enc.not_gate(output.into(), input.into())
     }
@@ -318,7 +320,7 @@ where
     /// The generated output is returned to allow for nesting of gates.
     pub fn not<L>(&self, input: L) -> Lit
     where
-        L: Into<Lit>
+        L: Into<Lit>,
     {
         let output = self.lit_gen.new_lit();
         self.not_with_output(input.into(), Output(output));
@@ -333,7 +335,7 @@ where
     /// [`RawGateEncoder::eq_gate`](struct.RawGateEncoder.html#method.eq_gate).
     pub fn eq_with_output<L>(&self, input: L, output: Output)
     where
-        L: Into<Lit>
+        L: Into<Lit>,
     {
         self.enc.eq_gate(output.into(), input.into())
     }
@@ -342,7 +344,7 @@ where
     /// The generated output is returned to allow for nesting of gates.
     pub fn eq<L>(&self, input: L) -> Lit
     where
-        L: Into<Lit>
+        L: Into<Lit>,
     {
         let output = self.lit_gen.new_lit();
         self.eq_with_output(input.into(), Output(output));
