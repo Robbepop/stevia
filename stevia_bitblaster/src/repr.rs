@@ -179,7 +179,7 @@ impl Lit {
         if (self.0 & 1) != 0 {
             return Sign::Neg;
         }
-        Sign::Neg
+        Sign::Pos
     }
 }
 
