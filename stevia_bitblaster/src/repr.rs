@@ -582,4 +582,56 @@ mod tests {
             assert_eq!(LitPack::new(42, 42).unwrap().len(), 42);
         }
     }
+
+    mod lit_pack_iter {
+        use super::*;
+
+        #[test]
+        fn new() {
+            assert_eq!(
+                LitPack::new(1, 1).unwrap().into_iter(),
+                LitPackIter {
+                    lit_pack: LitPack::new(1, 1).unwrap(),
+                    begin: 0,
+                    end: 1
+                }
+            )
+        }
+
+        #[test]
+        fn next() {
+            let mut it = LitPack::new(100, 4).unwrap().into_iter();
+            assert_eq!(it.next(), Some(Lit::pos(Var(100))));
+            assert_eq!(it.next(), Some(Lit::pos(Var(101))));
+            assert_eq!(it.next(), Some(Lit::pos(Var(102))));
+            assert_eq!(it.next(), Some(Lit::pos(Var(103))));
+            assert_eq!(it.next(), None);
+        }
+
+        #[test]
+        fn next_back() {
+            let mut it = LitPack::new(100, 4).unwrap().into_iter();
+            assert_eq!(it.next_back(), Some(Lit::pos(Var(103))));
+            assert_eq!(it.next_back(), Some(Lit::pos(Var(102))));
+            assert_eq!(it.next_back(), Some(Lit::pos(Var(101))));
+            assert_eq!(it.next_back(), Some(Lit::pos(Var(100))));
+            assert_eq!(it.next_back(), None);
+        }
+
+        #[test]
+        fn next_mixed() {
+            let mut it = LitPack::new(100, 4).unwrap().into_iter();
+            assert_eq!(it.next(), Some(Lit::pos(Var(100))));
+            assert_eq!(it.next_back(), Some(Lit::pos(Var(103))));
+            assert_eq!(it.next(), Some(Lit::pos(Var(101))));
+            assert_eq!(it.next_back(), Some(Lit::pos(Var(102))));
+            assert_eq!(it.next(), None);
+            assert_eq!(it.next_back(), None);
+        }
+
+        #[test]
+        fn size_hint() {
+            assert_eq!(LitPack::new(100, 4).unwrap().into_iter().size_hint(), (4, Some(4)))
+        }
+    }
 }
