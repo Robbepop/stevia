@@ -32,7 +32,7 @@ pub struct LitPack {
     /// The number of variables in `self`.
     len: usize,
     /// Sign of the represented literals when accessed.
-    sign: Sign
+    sign: Sign,
 }
 
 /// An iterator through a pack of variables.
@@ -70,7 +70,7 @@ impl Sign {
     fn flip(self) -> Sign {
         match self {
             Sign::Pos => Sign::Neg,
-            Sign::Neg => Sign::Pos
+            Sign::Neg => Sign::Pos,
         }
     }
 }
@@ -82,8 +82,17 @@ impl Var {
     ///
     /// If the given value is zero (0).
     pub fn new(val: u32) -> Result<Var, String> {
+        use std::u32;
         if val == 0 {
-            return Err(String::from("Cannot create a `Var` from `0`."));
+            return Err(String::from(
+                "Var::new: error: Zero is an invalid representation for a variable.",
+            ));
+        }
+        if val > (u32::MAX >> 1) {
+            return Err(format!(
+                "Var::new: error: Given value (= {}) is too large to represent a variable.",
+                val
+            ));
         }
         Ok(Var(val))
     }
@@ -95,7 +104,9 @@ impl Var {
     /// The user code has to ensure that this is not being called
     /// with val being zero (0).
     pub fn new_unchecked(val: u32) -> Var {
+        use std::u32;
         debug_assert!(val != 0);
+        debug_assert!(val <= (u32::MAX >> 1));
         Var(val)
     }
 
@@ -190,12 +201,20 @@ impl LitPack {
         if offset == 0 {
             return Err(String::from("VarPack::new: error: invalid offset of 0"));
         }
-        Ok(Self { off: offset, len, sign: Sign::Pos })
+        Ok(Self {
+            off: offset,
+            len,
+            sign: Sign::Pos,
+        })
     }
 
     /// Creates a `LitPack` representing the same literals but with flipped signs.
     pub fn flip_all(self) -> LitPack {
-        Self{ off: self.offset(), len: self.len(), sign: self.sign.flip() }
+        Self {
+            off: self.offset(),
+            len: self.len(),
+            sign: self.sign.flip(),
+        }
     }
 
     /// Returns the literal of `self` at the given position.
@@ -205,7 +224,10 @@ impl LitPack {
     /// If the given position is out of bounds.
     pub fn get(self, pos: usize) -> Option<Lit> {
         if pos < self.len {
-            return Some(Lit::new(Var::new_unchecked((self.off + pos) as u32), self.sign));
+            return Some(Lit::new(
+                Var::new_unchecked((self.off + pos) as u32),
+                self.sign,
+            ));
         }
         None
     }
@@ -278,5 +300,64 @@ impl IntoIterator for LitPack {
 
     fn into_iter(self) -> Self::IntoIter {
         LitPackIter::new(self)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod var {
+        use super::*;
+        use std::u32;
+
+        #[test]
+        fn new_ok() {
+            assert_eq!(Var::new(1), Ok(Var(1)));
+            assert_eq!(Var::new(42), Ok(Var(42)));
+            assert_eq!(Var::new(u32::MAX >> 1), Ok(Var(u32::MAX >> 1)))
+        }
+
+        #[test]
+        fn new_err() {
+            assert!(Var::new(0).is_err());
+            assert!(Var::new((u32::MAX >> 1) + 1).is_err());
+            assert!(Var::new(u32::MAX).is_err());
+        }
+
+        #[test]
+        fn new_unchecked_ok() {
+            assert_eq!(Var::new_unchecked(1), Var(1));
+            assert_eq!(Var::new_unchecked(42), Var(42));
+            assert_eq!(Var::new_unchecked(u32::MAX >> 1), Var(u32::MAX >> 1));
+        }
+
+        #[test]
+        #[should_panic]
+        fn new_unchecked_err_0() {
+            Var::new_unchecked(0);
+        }
+
+        #[test]
+        #[should_panic]
+        fn new_unchecked_err_1() {
+            Var::new_unchecked((u32::MAX >> 1) + 1);
+        }
+
+        #[test]
+        fn to_u32() {
+            assert_eq!(Var(1).to_u32(), 1);
+            assert_eq!(Var(5).to_u32(), 5);
+            assert_eq!(Var(42).to_u32(), 42);
+            assert_eq!(Var(u32::MAX >> 1).to_u32(), u32::MAX >> 1);
+        }
+
+        #[test]
+        fn neg() {
+            assert_eq!(-Var(1), Lit::neg(Var(1)));
+            assert_eq!(-Var(5), Lit::neg(Var(5)));
+            assert_eq!(-Var(42), Lit::neg(Var(42)));
+            assert_eq!(-Var(u32::MAX >> 1), Lit::neg(Var(u32::MAX >> 1)));
+        }
     }
 }
