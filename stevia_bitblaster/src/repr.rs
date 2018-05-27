@@ -32,9 +32,9 @@ pub struct Lit(u32);
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct LitPack {
     /// The identifier of the lowest-value variable in `self`.
-    off: usize,
+    off: u32,
     /// The number of variables in `self`.
-    len: usize,
+    len: u32,
     /// Sign of the represented literals when accessed.
     sign: Sign,
 }
@@ -197,8 +197,8 @@ impl LitPack {
     /// Creates a `LitPack` representing the same literals but with flipped signs.
     pub fn flip_all(self) -> LitPack {
         Self {
-            off: self.offset(),
-            len: self.len(),
+            off: self.off,
+            len: self.len,
             sign: self.sign.flip(),
         }
     }
@@ -232,7 +232,7 @@ impl LitPack {
 
     /// Returns the length (number of represented variables) of `self`.
     pub fn len(self) -> usize {
-        self.len
+        self.len as usize
     }
 }
 
