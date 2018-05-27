@@ -1,23 +1,23 @@
 use crate::prelude::*;
 
-use std::slice;
 use std::mem;
+use std::slice;
 
 /// Iterator over mutable child expressions.
 #[derive(Debug, Clone)]
 pub struct ChildrenIter<'p> {
-	kind: ChildrenIterKind<'p>
+	kind: ChildrenIterKind<'p>,
 }
 
 impl<'p> ChildrenIter<'p> {
 	fn from_kind(kind: ChildrenIterKind<'p>) -> Self {
-		Self{ kind: kind }
+		Self { kind }
 	}
 
 	/// Create an empty iterator.
-    pub fn none() -> Self {
-        Self::from_kind(ChildrenIterKind::from(InlChildrenIter::none()))
-    }
+	pub fn none() -> Self {
+		Self::from_kind(ChildrenIterKind::from(InlChildrenIter::none()))
+	}
 
 	/// Create an iterator that yields only `fst`.
 	pub fn unary(fst: &'p AnyExpr) -> Self {
@@ -30,19 +30,17 @@ impl<'p> ChildrenIter<'p> {
 	}
 
 	/// Create an iterator that yields `fst`, `snd` and `trd`.
-	pub fn ternary(
-		fst: &'p AnyExpr,
-		snd: &'p AnyExpr,
-		trd: &'p AnyExpr
-	)
-		-> Self
-	{
-		Self::from_kind(ChildrenIterKind::from(InlChildrenIter::ternary(fst, snd, trd)))
+	pub fn ternary(fst: &'p AnyExpr, snd: &'p AnyExpr, trd: &'p AnyExpr) -> Self {
+		Self::from_kind(ChildrenIterKind::from(InlChildrenIter::ternary(
+			fst, snd, trd,
+		)))
 	}
 
 	/// Create an iterator that yields all children within the given slice.
 	pub fn nary(children: &'p [AnyExpr]) -> Self {
-		Self::from_kind(ChildrenIterKind::from(ExtChildrenIter::from_slice(children)))
+		Self::from_kind(ChildrenIterKind::from(ExtChildrenIter::from_slice(
+			children,
+		)))
 	}
 }
 
@@ -53,7 +51,7 @@ impl<'p> Iterator for ChildrenIter<'p> {
 		use self::ChildrenIterKind::*;
 		match &mut self.kind {
 			Inl(iter) => iter.next(),
-			Ext(iter) => iter.next()
+			Ext(iter) => iter.next(),
 		}
 	}
 }
@@ -63,7 +61,7 @@ impl<'p> DoubleEndedIterator for ChildrenIter<'p> {
 		use self::ChildrenIterKind::*;
 		match &mut self.kind {
 			Inl(iter) => iter.next_back(),
-			Ext(iter) => iter.next_back()
+			Ext(iter) => iter.next_back(),
 		}
 	}
 }
@@ -71,8 +69,8 @@ impl<'p> DoubleEndedIterator for ChildrenIter<'p> {
 /// Iterator over mutable child expressions.
 #[derive(Debug, Clone)]
 enum ChildrenIterKind<'p> {
-    Inl(InlChildrenIter<'p>),
-    Ext(ExtChildrenIter<'p>)
+	Inl(InlChildrenIter<'p>),
+	Ext(ExtChildrenIter<'p>),
 }
 
 impl<'p> From<InlChildrenIter<'p>> for ChildrenIterKind<'p> {
@@ -96,20 +94,24 @@ impl<'p> From<ExtChildrenIter<'p>> for ChildrenIterKind<'p> {
 /// The remaining yielded elements are within the range `self.begin..self.end`.
 #[derive(Debug, Copy, Clone)]
 struct InlChildrenIter<'p> {
-    children: [Option<&'p AnyExpr>; 3],
-    begin: usize,
-	end: usize
+	children: [Option<&'p AnyExpr>; 3],
+	begin: usize,
+	end: usize,
 }
 
 impl<'p> InlChildrenIter<'p> {
-    fn from_array(num_children: usize, children: [Option<&'p AnyExpr>; 3]) -> Self {
-        InlChildrenIter{children, begin: 0, end: num_children}
-    }
+	fn from_array(num_children: usize, children: [Option<&'p AnyExpr>; 3]) -> Self {
+		InlChildrenIter {
+			children,
+			begin: 0,
+			end: num_children,
+		}
+	}
 
 	/// Create an empty iterator.
-    pub fn none() -> Self {
-        InlChildrenIter::from_array(0, [None, None, None])
-    }
+	pub fn none() -> Self {
+		InlChildrenIter::from_array(0, [None, None, None])
+	}
 
 	/// Create an iterator that yields only `fst`.
 	pub fn unary(fst: &'p AnyExpr) -> Self {
@@ -128,17 +130,17 @@ impl<'p> InlChildrenIter<'p> {
 }
 
 impl<'p> Iterator for InlChildrenIter<'p> {
-    type Item = &'p AnyExpr;
+	type Item = &'p AnyExpr;
 
-    fn next(&mut self) -> Option<Self::Item> {
+	fn next(&mut self) -> Option<Self::Item> {
 		if self.begin == self.end {
-			return None
+			return None;
 		}
-        // FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
-        let elem = mem::replace(&mut self.children[self.begin], None);
+		// FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
+		let elem = mem::replace(&mut self.children[self.begin], None);
 		self.begin += 1;
-        elem
-    }
+		elem
+	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		let remaining = self.end - self.begin;
@@ -147,14 +149,14 @@ impl<'p> Iterator for InlChildrenIter<'p> {
 }
 
 impl<'p> DoubleEndedIterator for InlChildrenIter<'p> {
-    fn next_back(&mut self) -> Option<Self::Item> {
+	fn next_back(&mut self) -> Option<Self::Item> {
 		if self.begin == self.end {
-			return None
+			return None;
 		}
-        // FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
+		// FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
 		self.end -= 1;
-        mem::replace(&mut self.children[self.end], None)
-    }
+		mem::replace(&mut self.children[self.end], None)
+	}
 }
 
 /// Iterator over mutable child expressions.
@@ -162,21 +164,23 @@ impl<'p> DoubleEndedIterator for InlChildrenIter<'p> {
 /// This represents the special case where there are more than 3 children.
 #[derive(Debug, Clone)]
 struct ExtChildrenIter<'p> {
-    children: slice::Iter<'p, AnyExpr>
+	children: slice::Iter<'p, AnyExpr>,
 }
 
 impl<'p> ExtChildrenIter<'p> {
-    fn from_slice(children: &'p [AnyExpr]) -> Self {
-        ExtChildrenIter{children: children.into_iter()}
-    }
+	fn from_slice(children: &'p [AnyExpr]) -> Self {
+		ExtChildrenIter {
+			children: children.into_iter(),
+		}
+	}
 }
 
 impl<'p> Iterator for ExtChildrenIter<'p> {
-    type Item = &'p AnyExpr;
+	type Item = &'p AnyExpr;
 
-    fn next(&mut self) -> Option<Self::Item> {
-        self.children.next()
-    }
+	fn next(&mut self) -> Option<Self::Item> {
+		self.children.next()
+	}
 
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		self.children.size_hint()
@@ -212,10 +216,7 @@ mod tests {
 	#[test]
 	fn binary() {
 		let b = PlainExprTreeBuilder::default();
-		let expr = b.and(
-			b.bool_const(false),
-			b.bool_const(true)
-		).unwrap();
+		let expr = b.and(b.bool_const(false), b.bool_const(true)).unwrap();
 		let mut iter = expr.children();
 		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BoolConst::t())));
@@ -236,8 +237,14 @@ mod tests {
 		let expr = test_cond();
 		let mut iter = expr.children();
 		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BoolConst::f())));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(42))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(5))));
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(42)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(5)))
+		);
 		assert_eq!(iter.next(), None);
 	}
 
@@ -256,11 +263,26 @@ mod tests {
 	fn nary() {
 		let expr = big_test_expr();
 		let mut iter = expr.children();
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(42))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(1337))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(77))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(0))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(5))));
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(42)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(1337)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(77)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(0)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(5)))
+		);
 		assert_eq!(iter.next(), None);
 	}
 
@@ -268,8 +290,14 @@ mod tests {
 	fn ternary_next_back() {
 		let expr = test_cond();
 		let mut iter = expr.children();
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(5))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(5)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next_back(), None);
 	}
@@ -278,11 +306,26 @@ mod tests {
 	fn nary_next_back() {
 		let expr = big_test_expr();
 		let mut iter = expr.children();
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(5))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(0))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(77))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(1337))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(5)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(0)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(77)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(1337)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next_back(), None);
 	}
 
@@ -290,9 +333,15 @@ mod tests {
 	fn ternary_next_and_next_back() {
 		let expr = test_cond();
 		let mut iter = expr.children();
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(5))));
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(5)))
+		);
 		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BoolConst::f())));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next(), None);
 		assert_eq!(iter.next_back(), None);
 	}
@@ -301,11 +350,26 @@ mod tests {
 	fn nary_next_and_next_back() {
 		let expr = big_test_expr();
 		let mut iter = expr.children();
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(5))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(42))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(0))));
-		assert_eq!(iter.next(), Some(&AnyExpr::from(expr::BitvecConst::from(1337))));
-		assert_eq!(iter.next_back(), Some(&AnyExpr::from(expr::BitvecConst::from(77))));
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(5)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(42)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(0)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(1337)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(&AnyExpr::from(expr::BitvecConst::from(77)))
+		);
 		assert_eq!(iter.next(), None);
 		assert_eq!(iter.next_back(), None);
 	}

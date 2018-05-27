@@ -1,8 +1,4 @@
-use crate::child_iters::{
-    ChildrenIter,
-    ChildrenIterMut,
-    IntoChildrenIter
-};
+use crate::child_iters::{ChildrenIter, ChildrenIterMut, IntoChildrenIter};
 
 /// Types that implement this trait allow to traverse their children immutably.
 pub trait Children {

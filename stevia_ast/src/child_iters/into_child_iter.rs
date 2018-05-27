@@ -5,34 +5,35 @@ use smallvec;
 use std::iter::FromIterator;
 
 /// Consuming iterator over child expressions.
-/// 
+///
 /// Can transform ownership.
 pub struct IntoChildrenIter {
-	children: smallvec::IntoIter<[AnyExpr; 3]>
+	children: smallvec::IntoIter<[AnyExpr; 3]>,
 }
 
 impl FromIterator<AnyExpr> for IntoChildrenIter {
-    fn from_iter<T>(iter: T) -> IntoChildrenIter
-        where T: IntoIterator<Item = AnyExpr>
-    {
-        IntoChildrenIter{
-            children: smallvec::SmallVec::from_iter(iter).into_iter()
-        }
-    }
+	fn from_iter<T>(iter: T) -> IntoChildrenIter
+	where
+		T: IntoIterator<Item = AnyExpr>,
+	{
+		IntoChildrenIter {
+			children: smallvec::SmallVec::from_iter(iter).into_iter(),
+		}
+	}
 }
 
 impl<'parent> IntoChildrenIter {
 	/// Create an empty iterator.
 	pub fn none() -> IntoChildrenIter {
-        IntoChildrenIter::from_iter(vec![])
+		IntoChildrenIter::from_iter(vec![])
 	}
 
 	/// Create an iterator that yields only `fst`.
 	pub fn unary(fst: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
-		IntoChildrenIter{
-			children: vec.into_iter()
+		IntoChildrenIter {
+			children: vec.into_iter(),
 		}
 	}
 
@@ -41,8 +42,8 @@ impl<'parent> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
 		vec.push(snd);
-		IntoChildrenIter{
-			children: vec.into_iter()
+		IntoChildrenIter {
+			children: vec.into_iter(),
 		}
 	}
 
@@ -52,8 +53,8 @@ impl<'parent> IntoChildrenIter {
 		vec.push(fst);
 		vec.push(snd);
 		vec.push(trd);
-		IntoChildrenIter{
-			children: vec.into_iter()
+		IntoChildrenIter {
+			children: vec.into_iter(),
 		}
 	}
 
@@ -68,6 +69,10 @@ impl Iterator for IntoChildrenIter {
 
 	fn next(&mut self) -> Option<Self::Item> {
 		self.children.next()
+	}
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		self.children.size_hint()
 	}
 }
 
@@ -100,10 +105,7 @@ mod tests {
 	#[test]
 	fn binary() {
 		let b = PlainExprTreeBuilder::default();
-		let expr = b.and(
-			b.bool_const(false),
-			b.bool_const(true)
-		).unwrap();
+		let expr = b.and(b.bool_const(false), b.bool_const(true)).unwrap();
 		let mut iter = expr.into_children();
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::t())));
@@ -124,7 +126,10 @@ mod tests {
 		let expr = test_cond();
 		let mut iter = expr.into_children();
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
-		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next(),
+			Some(AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
 		assert_eq!(iter.next(), None);
 	}
@@ -144,9 +149,18 @@ mod tests {
 	fn nary() {
 		let expr = big_test_expr();
 		let mut iter = expr.into_children();
-		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
-		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(1337))));
-		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(77))));
+		assert_eq!(
+			iter.next(),
+			Some(AnyExpr::from(expr::BitvecConst::from(42)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(AnyExpr::from(expr::BitvecConst::from(1337)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(AnyExpr::from(expr::BitvecConst::from(77)))
+		);
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(0))));
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
 		assert_eq!(iter.next(), None);
@@ -156,8 +170,14 @@ mod tests {
 	fn ternary_next_back() {
 		let expr = test_cond();
 		let mut iter = expr.into_children();
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(5)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BoolConst::f())));
 		assert_eq!(iter.next_back(), None);
 	}
@@ -166,11 +186,26 @@ mod tests {
 	fn nary_next_back() {
 		let expr = big_test_expr();
 		let mut iter = expr.into_children();
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(0))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(77))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(1337))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(5)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(0)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(77)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(1337)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next_back(), None);
 	}
 
@@ -178,9 +213,15 @@ mod tests {
 	fn ternary_next_and_next_back() {
 		let expr = test_cond();
 		let mut iter = expr.into_children();
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(5)))
+		);
 		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BoolConst::f())));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(42)))
+		);
 		assert_eq!(iter.next(), None);
 		assert_eq!(iter.next_back(), None);
 	}
@@ -189,11 +230,26 @@ mod tests {
 	fn nary_next_and_next_back() {
 		let expr = big_test_expr();
 		let mut iter = expr.into_children();
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(5))));
-		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(42))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(0))));
-		assert_eq!(iter.next(), Some(AnyExpr::from(expr::BitvecConst::from(1337))));
-		assert_eq!(iter.next_back(), Some(AnyExpr::from(expr::BitvecConst::from(77))));
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(5)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(AnyExpr::from(expr::BitvecConst::from(42)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(0)))
+		);
+		assert_eq!(
+			iter.next(),
+			Some(AnyExpr::from(expr::BitvecConst::from(1337)))
+		);
+		assert_eq!(
+			iter.next_back(),
+			Some(AnyExpr::from(expr::BitvecConst::from(77)))
+		);
 		assert_eq!(iter.next(), None);
 		assert_eq!(iter.next_back(), None);
 	}
