@@ -351,3 +351,21 @@ where
         output
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod output {
+        use super::*;
+        use repr::Var;
+
+        #[test]
+        fn into_lit() {
+            assert_eq!(
+                Lit::from(Output(Lit::pos(Var::new(1).unwrap()))),
+                Lit::pos(Var::new(1).unwrap())
+            );
+        }
+    }
+}
