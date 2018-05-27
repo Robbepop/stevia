@@ -376,4 +376,84 @@ mod tests {
             assert_eq!(Sign::Neg.flip(), Sign::Pos);
         }
     }
+
+    mod lit {
+        use super::*;
+        use std::u32;
+
+        #[test]
+        fn from_var() {
+            assert_eq!(Lit::from(Var(1)), Lit::pos(Var(1)));
+            assert_eq!(Lit::from(Var(5)), Lit::pos(Var(5)));
+            assert_eq!(Lit::from(Var(42)), Lit::pos(Var(42)));
+            assert_eq!(Lit::from(Var(u32::MAX >> 1)), Lit::pos(Var(u32::MAX >> 1)));
+        }
+
+        #[test]
+        fn pos() {
+            assert_eq!(Lit::pos(Var(1)), Lit::new(Var(1), Sign::Pos));
+            assert_eq!(Lit::pos(Var(5)), Lit::new(Var(5), Sign::Pos));
+            assert_eq!(Lit::pos(Var(42)), Lit::new(Var(42), Sign::Pos));
+            assert_eq!(Lit::pos(Var(u32::MAX >> 1)), Lit::new(Var(u32::MAX >> 1), Sign::Pos));
+        }
+
+        #[test]
+        fn neg() {
+            assert_eq!(Lit::neg(Var(1)), Lit::new(Var(1), Sign::Neg));
+            assert_eq!(Lit::neg(Var(5)), Lit::new(Var(5), Sign::Neg));
+            assert_eq!(Lit::neg(Var(42)), Lit::new(Var(42), Sign::Neg));
+            assert_eq!(Lit::neg(Var(u32::MAX >> 1)), Lit::new(Var(u32::MAX >> 1), Sign::Neg));
+        }
+
+        #[test]
+        fn new() {
+            fn assert_for_sign(var: Var, sign: Sign) {
+                assert_eq!(Lit::new(var, sign), Lit((var.to_u32() << 1) | sign.to_u32()));
+            }
+            fn assert_both_polarity(var: Var) {
+                assert_for_sign(var, Sign::Pos);
+                assert_for_sign(var, Sign::Neg);
+            }
+            assert_both_polarity(Var(1));
+            assert_both_polarity(Var(5));
+            assert_both_polarity(Var(42));
+            assert_both_polarity(Var(u32::MAX >> 1));
+        }
+
+        #[test]
+        fn flip() {
+            fn assert_both_polarity(var: Var) {
+                assert_eq!(Lit::pos(var).flip(), Lit::neg(var));
+                assert_eq!(Lit::neg(var).flip(), Lit::pos(var));
+            }
+            assert_both_polarity(Var(1));
+            assert_both_polarity(Var(5));
+            assert_both_polarity(Var(42));
+            assert_both_polarity(Var(u32::MAX >> 1));
+        }
+
+        #[test]
+        fn var() {
+            fn assert_both_polarity(var: Var) {
+                assert_eq!(Lit::pos(var).var(), var);
+                assert_eq!(Lit::neg(var).var(), var);
+            }
+            assert_both_polarity(Var(1));
+            assert_both_polarity(Var(5));
+            assert_both_polarity(Var(42));
+            assert_both_polarity(Var(u32::MAX >> 1));
+        }
+
+        #[test]
+        fn sign() {
+            fn assert_both_polarity(var: Var) {
+                assert_eq!(Lit::pos(var).sign(), Sign::Pos);
+                assert_eq!(Lit::neg(var).sign(), Sign::Neg);
+            }
+            assert_both_polarity(Var(1));
+            assert_both_polarity(Var(5));
+            assert_both_polarity(Var(42));
+            assert_both_polarity(Var(u32::MAX >> 1));
+        }
+    }
 }
