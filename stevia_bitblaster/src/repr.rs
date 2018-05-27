@@ -447,4 +447,116 @@ mod tests {
             assert_both_polarity(Var(MAX_VAR_VALUE));
         }
     }
+
+    mod lit_pack {
+        use super::*;
+
+        #[test]
+        fn new_invalid_offset() {
+            assert!(LitPack::new(0, 1).is_err());
+            assert!(LitPack::new(0, 5).is_err());
+            assert!(LitPack::new(0, 42).is_err());
+            assert!(LitPack::new(0, MAX_VAR_VALUE).is_err());
+        }
+
+        #[test]
+        fn new_invalid_length() {
+            assert!(LitPack::new(1, 0).is_err());
+            assert!(LitPack::new(5, 0).is_err());
+            assert!(LitPack::new(42, 0).is_err());
+            assert!(LitPack::new(MAX_VAR_VALUE, 0).is_err());
+        }
+
+        #[test]
+        fn new_off_len_out_of_bounds() {
+            assert!(LitPack::new(MAX_VAR_VALUE, 1).is_err());
+            assert!(LitPack::new(1, MAX_VAR_VALUE).is_err());
+        }
+
+        #[test]
+        fn new_ok() {
+            fn assert_for_off_len(valid_off: u32, valid_len: u32) {
+                assert_eq!(
+                    LitPack::new(valid_off, valid_len),
+                    Ok(LitPack {
+                        off: valid_off,
+                        len: valid_len,
+                        sign: Sign::Pos
+                    })
+                );
+            }
+            assert_for_off_len(1, 1);
+            assert_for_off_len(5, 1);
+            assert_for_off_len(1, 5);
+            assert_for_off_len(5, 5);
+            assert_for_off_len(42, 5);
+            assert_for_off_len(5, 42);
+            assert_for_off_len(42, 42);
+            assert_for_off_len(MAX_VAR_VALUE - 1, 1);
+            assert_for_off_len(1, MAX_VAR_VALUE - 1);
+        }
+
+        #[test]
+        fn flip_all() {
+            assert_eq!(
+                LitPack::new(1, 1).map(|lp| lp.flip_all()),
+                Ok(LitPack {
+                    off: 1,
+                    len: 1,
+                    sign: Sign::Neg
+                })
+            )
+        }
+
+        #[test]
+        fn flip_all_involution() {
+            assert_eq!(
+                LitPack::new(1, 1).map(|lp| lp.flip_all().flip_all()),
+                Ok(LitPack {
+                    off: 1,
+                    len: 1,
+                    sign: Sign::Pos
+                })
+            )
+        }
+
+        #[test]
+        fn get_ok() {
+            let lp = LitPack::new(100, 42).unwrap();
+            assert_eq!(lp.get(0), Some(Lit::pos(Var(100))));
+            assert_eq!(lp.get(1), Some(Lit::pos(Var(101))));
+            assert_eq!(lp.get(5), Some(Lit::pos(Var(105))));
+            assert_eq!(lp.get(41), Some(Lit::pos(Var(141))));
+        }
+
+        #[test]
+        fn get_err() {
+            let lp = LitPack::new(100, 42).unwrap();
+            assert_eq!(lp.get(42), None);
+            assert_eq!(lp.get(100), None);
+        }
+
+        #[test]
+        fn get_unchecked_ok() {
+            let lp = LitPack::new(100, 42).unwrap();
+            assert_eq!(lp.get_unchecked(0), Lit::pos(Var(100)));
+            assert_eq!(lp.get_unchecked(1), Lit::pos(Var(101)));
+            assert_eq!(lp.get_unchecked(5), Lit::pos(Var(105)));
+            assert_eq!(lp.get_unchecked(41), Lit::pos(Var(141)));
+        }
+
+        #[test]
+        #[should_panic]
+        fn get_unchecked_err() {
+            LitPack::new(100, 42).unwrap().get_unchecked(42);
+        }
+
+        #[test]
+        fn len() {
+            assert_eq!(LitPack::new(1, 1).unwrap().len(), 1);
+            assert_eq!(LitPack::new(5, 1).unwrap().len(), 1);
+            assert_eq!(LitPack::new(1, 5).unwrap().len(), 5);
+            assert_eq!(LitPack::new(42, 42).unwrap().len(), 42);
+        }
+    }
 }
