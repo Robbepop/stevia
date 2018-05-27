@@ -360,4 +360,20 @@ mod tests {
             assert_eq!(-Var(u32::MAX >> 1), Lit::neg(Var(u32::MAX >> 1)));
         }
     }
+
+    mod sign {
+        use super::*;
+
+        #[test]
+        fn to_u32() {
+            assert_eq!(Sign::Pos.to_u32(), 0);
+            assert_eq!(Sign::Neg.to_u32(), 1);
+        }
+
+        #[test]
+        fn flip() {
+            assert_eq!(Sign::Pos.flip(), Sign::Neg);
+            assert_eq!(Sign::Neg.flip(), Sign::Pos);
+        }
+    }
 }
