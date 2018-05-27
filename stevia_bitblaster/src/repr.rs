@@ -116,14 +116,6 @@ impl Var {
     }
 }
 
-impl ops::Neg for Var {
-    type Output = Lit;
-
-    fn neg(self) -> Self::Output {
-        Lit::from(self).flip()
-    }
-}
-
 impl From<Var> for Lit {
     fn from(var: Var) -> Self {
         Lit::new(var, Sign::Pos)
@@ -350,14 +342,6 @@ mod tests {
             assert_eq!(Var(5).to_u32(), 5);
             assert_eq!(Var(42).to_u32(), 42);
             assert_eq!(Var(u32::MAX >> 1).to_u32(), u32::MAX >> 1);
-        }
-
-        #[test]
-        fn neg() {
-            assert_eq!(-Var(1), Lit::neg(Var(1)));
-            assert_eq!(-Var(5), Lit::neg(Var(5)));
-            assert_eq!(-Var(42), Lit::neg(Var(42)));
-            assert_eq!(-Var(u32::MAX >> 1), Lit::neg(Var(u32::MAX >> 1)));
         }
     }
 
