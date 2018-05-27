@@ -4,13 +4,6 @@ use smallvec;
 
 use std::iter::FromIterator;
 
-/// Re-exports commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-		IntoChildrenIter	
-	};
-}
-
 /// Consuming iterator over child expressions.
 /// 
 /// Can transform ownership.
@@ -29,10 +22,12 @@ impl FromIterator<AnyExpr> for IntoChildrenIter {
 }
 
 impl<'parent> IntoChildrenIter {
+	/// Create an empty iterator.
 	pub fn none() -> IntoChildrenIter {
         IntoChildrenIter::from_iter(vec![])
 	}
 
+	/// Create an iterator that yields only `fst`.
 	pub fn unary(fst: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
@@ -41,6 +36,7 @@ impl<'parent> IntoChildrenIter {
 		}
 	}
 
+	/// Create an iterator that yields `fst` and `snd`.
 	pub fn binary(fst: AnyExpr, snd: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
@@ -50,6 +46,7 @@ impl<'parent> IntoChildrenIter {
 		}
 	}
 
+	/// Create an iterator that yields `fst`, `snd` and `trd`.
 	pub fn ternary(fst: AnyExpr, snd: AnyExpr, trd: AnyExpr) -> IntoChildrenIter {
 		let mut vec = smallvec::SmallVec::new();
 		vec.push(fst);
@@ -60,6 +57,7 @@ impl<'parent> IntoChildrenIter {
 		}
 	}
 
+	/// Create an iterator that yields all children within the given vector.
 	pub fn nary(children: Vec<AnyExpr>) -> IntoChildrenIter {
 		IntoChildrenIter::from_iter(children)
 	}

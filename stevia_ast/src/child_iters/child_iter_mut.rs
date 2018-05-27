@@ -1,25 +1,101 @@
 use crate::prelude::*;
 
 use std::slice;
-use std::cmp;
 use std::mem;
 
-/// Re-exports commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-		ChildrenIterMut	
-	};
+/// Iterator over mutable child expressions.
+#[derive(Debug)]
+pub struct ChildrenIterMut<'p> {
+	kind: ChildrenIterMutKind<'p>
+}
+
+impl<'p> ChildrenIterMut<'p> {
+	fn from_kind(kind: ChildrenIterMutKind<'p>) -> Self {
+		Self{ kind: kind }
+	}
+
+	/// Create an empty iterator.
+    pub fn none() -> Self {
+        Self::from_kind(ChildrenIterMutKind::from(InlChildrenIterMut::none()))
+    }
+
+	/// Create an iterator that yields only `fst`.
+	pub fn unary(fst: &'p mut AnyExpr) -> Self {
+		Self::from_kind(ChildrenIterMutKind::from(InlChildrenIterMut::unary(fst)))
+	}
+
+	/// Create an iterator that yields `fst` and `snd`.
+	pub fn binary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr) -> Self {
+		Self::from_kind(ChildrenIterMutKind::from(InlChildrenIterMut::binary(fst, snd)))
+	}
+
+	/// Create an iterator that yields `fst`, `snd` and `trd`.
+	pub fn ternary(
+		fst: &'p mut AnyExpr,
+		snd: &'p mut AnyExpr,
+		trd: &'p mut AnyExpr
+	)
+		-> Self
+	{
+		Self::from_kind(ChildrenIterMutKind::from(InlChildrenIterMut::ternary(fst, snd, trd)))
+	}
+
+	/// Create an iterator that yields all children within the given slice.
+	pub fn nary(children: &'p mut [AnyExpr]) -> ChildrenIterMut<'p> {
+		Self::from_kind(ChildrenIterMutKind::from(ExtChildrenIterMut::from_slice(children)))
+	}
+}
+
+impl<'p> Iterator for ChildrenIterMut<'p> {
+	type Item = &'p mut AnyExpr;
+
+	fn next(&mut self) -> Option<Self::Item> {
+		use self::ChildrenIterMutKind::*;
+		match &mut self.kind {
+			Inl(iter) => iter.next(),
+			Ext(iter) => iter.next()
+		}
+	}
+}
+
+impl<'p> DoubleEndedIterator for ChildrenIterMut<'p> {
+	fn next_back(&mut self) -> Option<Self::Item> {
+		use self::ChildrenIterMutKind::*;
+		match &mut self.kind {
+			Inl(iter) => iter.next_back(),
+			Ext(iter) => iter.next_back()
+		}
+	}
 }
 
 /// Iterator over mutable child expressions.
 #[derive(Debug)]
-pub enum ChildrenIterMut<'p> {
+enum ChildrenIterMutKind<'p> {
     Inl(InlChildrenIterMut<'p>),
     Ext(ExtChildrenIterMut<'p>)
 }
 
+impl<'p> From<InlChildrenIterMut<'p>> for ChildrenIterMutKind<'p> {
+	fn from(inl: InlChildrenIterMut<'p>) -> Self {
+		ChildrenIterMutKind::Inl(inl)
+	}
+}
+
+impl<'p> From<ExtChildrenIterMut<'p>> for ChildrenIterMutKind<'p> {
+	fn from(ext: ExtChildrenIterMut<'p>) -> Self {
+		ChildrenIterMutKind::Ext(ext)
+	}
+}
+
+/// Iterator over mutable child expressions.
+///
+/// This represents the special case where there are only 3 or fewer children.
+///
+/// # Note
+///
+/// The remaining yielded elements are within the range `self.begin..self.end`.
 #[derive(Debug)]
-pub struct InlChildrenIterMut<'p> {
+struct InlChildrenIterMut<'p> {
     children: [Option<&'p mut AnyExpr>; 3],
     begin: usize,
 	end: usize
@@ -27,21 +103,25 @@ pub struct InlChildrenIterMut<'p> {
 
 impl<'p> InlChildrenIterMut<'p> {
     fn from_array(num_children: usize, children: [Option<&'p mut AnyExpr>; 3]) -> InlChildrenIterMut {
-        InlChildrenIterMut{children, begin: 0, end: num_children.saturating_sub(1)}
+        InlChildrenIterMut{children, begin: 0, end: num_children}
     }
 
+	/// Create an empty iterator.
     pub fn none() -> InlChildrenIterMut<'p> {
         InlChildrenIterMut::from_array(0, [None, None, None])
     }
 
+	/// Create an iterator that yields only `fst`.
 	pub fn unary(fst: &'p mut AnyExpr) -> InlChildrenIterMut<'p> {
 		InlChildrenIterMut::from_array(1, [Some(fst), None, None])
 	}
 
+	/// Create an iterator that yields `fst` and `snd`.
 	pub fn binary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr) -> InlChildrenIterMut<'p> {
 		InlChildrenIterMut::from_array(2, [Some(fst), Some(snd), None])
 	}
 
+	/// Create an iterator that yields `fst`, `snd` and `trd`.
 	pub fn ternary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr, trd: &'p mut AnyExpr) -> InlChildrenIterMut<'p> {
 		InlChildrenIterMut::from_array(3, [Some(fst), Some(snd), Some(trd)])
 	}
@@ -51,24 +131,37 @@ impl<'p> Iterator for InlChildrenIterMut<'p> {
     type Item = &'p mut AnyExpr;
 
     fn next(&mut self) -> Option<Self::Item> {
+		if self.begin == self.end {
+			return None
+		}
         // FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
         let elem = mem::replace(&mut self.children[self.begin], None);
-        self.begin = cmp::min(self.begin + 1, 2);
+		self.begin += 1;
         elem
     }
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		let remaining = self.end - self.begin;
+		(remaining, Some(remaining))
+	}
 }
 
 impl<'p> DoubleEndedIterator for InlChildrenIterMut<'p> {
     fn next_back(&mut self) -> Option<Self::Item> {
+		if self.begin == self.end {
+			return None
+		}
         // FIXME: Using replace here is a hack to fight the borrow-checker but works for now!
-        let elem = mem::replace(&mut self.children[self.end], None);
-        self.end = self.end.saturating_sub(1);
-        elem
+		self.end -= 1;
+        mem::replace(&mut self.children[self.end], None)
     }
 }
 
+/// Iterator over mutable child expressions.
+///
+/// This represents the special case where there are more than 3 children.
 #[derive(Debug)]
-pub struct ExtChildrenIterMut<'p> {
+struct ExtChildrenIterMut<'p> {
     children: slice::IterMut<'p, AnyExpr>
 }
 
@@ -84,59 +177,15 @@ impl<'p> Iterator for ExtChildrenIterMut<'p> {
     fn next(&mut self) -> Option<Self::Item> {
         self.children.next()
     }
+
+	fn size_hint(&self) -> (usize, Option<usize>) {
+		self.children.size_hint()
+	}
 }
 
 impl<'p> DoubleEndedIterator for ExtChildrenIterMut<'p> {
 	fn next_back(&mut self) -> Option<Self::Item> {
 		self.children.next_back()
-	}
-}
-
-impl<'p> ChildrenIterMut<'p> {
-	pub fn none() -> ChildrenIterMut<'p> {
-        ChildrenIterMut::Inl(InlChildrenIterMut::none())
-	}
-
-	pub fn unary(fst: &'p mut AnyExpr) -> ChildrenIterMut<'p> {
-        ChildrenIterMut::Inl(InlChildrenIterMut::unary(fst))
-	}
-
-	pub fn binary(fst: &'p mut AnyExpr, snd: &'p mut AnyExpr) -> ChildrenIterMut<'p> {
-        ChildrenIterMut::Inl(InlChildrenIterMut::binary(fst, snd))
-	}
-
-	pub fn ternary(
-		fst: &'p mut AnyExpr,
-		snd: &'p mut AnyExpr,
-		trd: &'p mut AnyExpr) -> ChildrenIterMut<'p>
-	{
-		ChildrenIterMut::Inl(InlChildrenIterMut::ternary(fst, snd, trd))
-	}
-
-	pub fn nary(children: &'p mut [AnyExpr]) -> ChildrenIterMut<'p> {
-		ChildrenIterMut::Ext(ExtChildrenIterMut::from_slice(children))
-	}
-}
-
-impl<'p> Iterator for ChildrenIterMut<'p> {
-	type Item = &'p mut AnyExpr;
-
-	fn next(&mut self) -> Option<Self::Item> {
-		use self::ChildrenIterMut::*;
-		match *self {
-			Inl(ref mut iter) => iter.next(),
-			Ext(ref mut iter) => iter.next()
-		}
-	}
-}
-
-impl<'p> DoubleEndedIterator for ChildrenIterMut<'p> {
-	fn next_back(&mut self) -> Option<Self::Item> {
-		use self::ChildrenIterMut::*;
-		match *self {
-			Inl(ref mut iter) => iter.next_back(),
-			Ext(ref mut iter) => iter.next_back()
-		}
 	}
 }
 

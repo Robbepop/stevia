@@ -1,13 +1,8 @@
-use crate::child_iters::prelude::*;
-
-/// Re-exports all commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        Children,
-        ChildrenMut,
-        IntoChildren
-    };
-}
+use crate::child_iters::{
+    ChildrenIter,
+    ChildrenIterMut,
+    IntoChildrenIter
+};
 
 /// Types that implement this trait allow to traverse their children immutably.
 pub trait Children {

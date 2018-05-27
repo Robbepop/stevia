@@ -1,16 +1,5 @@
 use crate::prelude::*;
 
-pub mod prelude {
-    pub use super::{
-        YieldEvent,
-        AnyExprAndEvent,
-        RecursiveChildrenIter,
-        children_recursive_with_event,
-        children_recursive_entering,
-        children_recursive_leaving
-    };
-}
-
 /// Iterate recursively over the given `AnyExpr` and all of its child expressions
 /// with an indicator whether the node was entered or left.
 /// 
