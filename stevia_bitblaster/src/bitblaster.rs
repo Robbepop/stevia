@@ -106,6 +106,20 @@ where
         Ok(res)
     }
 
+    fn bitblast_eq(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<Lit> {
+        let width = checks::assert_litpack_len(lhs, rhs)?;
+        Ok(self
+            .enc
+            .and((0..width).map(|i| self.enc.iff(lhs(i), rhs(i)))))
+    }
+
+    fn bitblast_not_eq(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<Lit> {
+        let width = checks::assert_litpack_len(lhs, rhs)?;
+        Ok(self
+            .enc
+            .and((0..width).map(|i| self.enc.xor(lhs(i), rhs(i)))))
+    }
+
     fn bitblast_bitnot(&self, input: LitPack) -> LitPack {
         // We can simply flip all bits in the input `LitPack`
         // and return the flipped representation which would be very cheap
