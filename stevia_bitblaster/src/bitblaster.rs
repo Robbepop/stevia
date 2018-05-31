@@ -13,8 +13,8 @@
 //! simply and directly forward this to an IPASIR implementing SAT
 //! solver in an efficient way.
 
-use gate_encoder::{GateEncoder, LitGen, Output, RawGateEncoder, AssertEncoder};
-use repr::LitPack;
+use gate_encoder::{AssertEncoder, GateEncoder, LitGen, Output, RawGateEncoder};
+use repr::{Lit, LitPack};
 
 /// The result type for bit blasting operations.
 type BitblastResult<T> = ::std::result::Result<T, String>;
@@ -46,7 +46,7 @@ mod checks {
         if shamt >= to_be_shifted.len() {
             return Err(String::from(
                 "assert_valid_shamt: error: the given shamt is too large for the given literal pack"
-            ))
+            ));
         }
         Ok(())
     }
@@ -62,21 +62,21 @@ struct Bitblaster<G, E, A>
 where
     G: LitGen,
     E: RawGateEncoder,
-    A: AssertEncoder
+    A: AssertEncoder,
 {
     enc: GateEncoder<G, E>,
-    asserter: A
+    asserter: A,
 }
 
 impl<G, E, A> Bitblaster<G, E, A>
 where
     G: LitGen,
     E: RawGateEncoder,
-    A: AssertEncoder
+    A: AssertEncoder,
 {
     /// Creates a new bit blaster from the given gate encoder.
     pub fn new(enc: GateEncoder<G, E>, asserter: A) -> Self {
-        Self{ enc: enc, asserter: asserter }
+        Self { enc, asserter }
     }
 
     fn bitblast_bitand(&self, lhs: LitPack, rhs: LitPack) -> BitblastResult<LitPack> {
@@ -124,8 +124,10 @@ where
         self.enc.not_with_output(input(0), Output(res(0)));
         self.enc.eq_with_output(input(0), Output(carries(0)));
         for i in 1..width {
-            self.enc.xor_with_output(input(i), carries(i-1), Output(res(i)));
-            self.enc.and_with_output(&[input(i), carries(i-1)], Output(carries(i)));
+            self.enc
+                .xor_with_output(input(i), carries(i - 1), Output(res(i)));
+            self.enc
+                .and_with_output(&[input(i), carries(i - 1)], Output(carries(i)));
         }
         res
     }
@@ -137,15 +139,13 @@ where
         let carries = self.enc.new_lit_pack(width);
         // Compute least-significant bit
         self.enc.xor_with_output(lhs(0), rhs(0), Output(res(0)));
-        self.enc.or_with_output(&[lhs(0), rhs(0)], Output(carries(0)));
+        self.enc
+            .or_with_output(&[lhs(0), rhs(0)], Output(carries(0)));
         // Compute result for all other bits
         for i in 1..width {
             // Calculation of result_i
-            self.enc.xor_with_output(
-                self.enc.xor(lhs(i), rhs(i)),
-                carries(i - 1),
-                Output(res(i)),
-            );
+            self.enc
+                .xor_with_output(self.enc.xor(lhs(i), rhs(i)), carries(i - 1), Output(res(i)));
             // Calculation of carry_i
             self.enc.and_with_output(
                 &[
