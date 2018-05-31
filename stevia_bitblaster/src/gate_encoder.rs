@@ -106,6 +106,13 @@ pub trait RawGateEncoder {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Output(pub Lit);
 
+impl Output {
+    /// Returns the represented literal of `self`.
+    pub fn lit(self) -> Lit {
+        self.0
+    }
+}
+
 impl From<Output> for Lit {
     fn from(output: Output) -> Lit {
         output.0
