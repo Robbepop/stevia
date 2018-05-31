@@ -173,6 +173,20 @@ where
         Ok(res)
     }
 
+
+    fn bitblast_mux<S>(&self, s: S, a: LitPack, b: LitPack, output: LitPack) -> BitblastResult<Lit>
+    where
+        S: Into<Lit>,
+    {
+        let s = s.into();
+        let result = self.enc.or(&[
+            self.enc.and(&[s, self.bitblast_eq(a, output)?]),
+            self.enc
+                .and(&[s.flip(), self.bitblast_eq(b, output)?]),
+        ]);
+        Ok(result)
+    }
+
     fn bitblast_shl_by_const(&self, input: LitPack, shamt: usize) -> BitblastResult<LitPack> {
         checks::assert_valid_shamt(input, shamt)?;
         let width = input.len();
