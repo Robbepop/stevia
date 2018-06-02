@@ -39,8 +39,6 @@ pub enum BitvecErrorKind {
 pub struct BitvecError {
     /// The kind of the error.
     kind: BitvecErrorKind,
-    // /// The optional additional context of the error.
-    // context: Option<String>,
 }
 
 impl From<apint::Error> for BitvecError {
@@ -50,6 +48,16 @@ impl From<apint::Error> for BitvecError {
 }
 
 impl BitvecError {
+    /// Returns the kind of this error.
+    pub fn kind(&self) -> &BitvecErrorKind {
+        &self.kind
+    }
+
+    /// Unwrap this error into its underlying type.
+    pub fn into_kind(self) -> BitvecErrorKind {
+        self.kind
+    }
+
     /// Creates a new `ExprError` from the given `ExprErrorKind`.
     fn new(kind: BitvecErrorKind) -> Self {
         BitvecError { kind }
