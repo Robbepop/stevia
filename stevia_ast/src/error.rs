@@ -156,6 +156,30 @@ impl ExprError {
 		self.kind
 	}
 
+	/// Returns `true` if this is a casting error.
+	pub fn is_cast_error(&self) -> bool {
+		if let ExprErrorKind::CastError(_) = self.kind() {
+			return true
+		}
+		false
+	}
+
+	/// Returns `true` if this is a bitvector error.
+	pub fn is_bitvec_error(&self) -> bool {
+		if let ExprErrorKind::BitvecError(_) = self.kind() {
+			return true
+		}
+		false
+	}
+
+	/// Returns `true` if this is a type error.
+	pub fn is_type_error(&self) -> bool {
+		if let ExprErrorKind::TypeError(_) = self.kind() {
+			return true
+		}
+		false
+	}
+
 	/// Returns an `ExprError` that indicates that the given expression has too few child expressions.
 	pub fn too_few_children(expected_min: usize, actual_num: usize) -> Self {
 		debug_assert!(expected_min > actual_num);
