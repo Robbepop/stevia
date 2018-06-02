@@ -231,6 +231,25 @@ impl LitPack {
     pub fn len(self) -> usize {
         self.len as usize
     }
+
+    /// Returns a left hand-side `LitPack` representing literals from `0..mid`
+    /// and a right hand-side `LitPack` representing literals from `mid..len` of `self`.
+    pub fn split(self, mid: usize) -> Result<(LitPack, LitPack), String> {
+        if mid == 0 {
+            return Err(format!("LitPack::split: error: cannot split at index 0"))
+        }
+        if mid >= self.len() {
+            return Err(format!("LitPack::split: error: given mid (= {:?}) is out
+                                of bounds for self (= {:?}).", mid, self))
+        }
+        let mid = mid as u32; // Safe to cast at this point!
+        Ok(
+            (
+                LitPack::new(self.off, mid)?,
+                LitPack::new(self.off + mid, self.len - mid)?
+            )
+        )
+    }
 }
 
 impl FnOnce<(usize,)> for LitPack {
@@ -591,6 +610,43 @@ mod tests {
             assert_eq!(LitPack::new(5, 1).unwrap().len(), 1);
             assert_eq!(LitPack::new(1, 5).unwrap().len(), 5);
             assert_eq!(LitPack::new(42, 42).unwrap().len(), 42);
+        }
+
+        #[test]
+        fn split_at_0() {
+            assert!(LitPack::new(1, 5).unwrap().split(0).is_err())
+        }
+
+        #[test]
+        fn split_out_of_bounds_close() {
+            assert!(LitPack::new(1, 5).unwrap().split(5).is_err())
+        }
+
+        #[test]
+        fn split_out_of_bounds() {
+            assert!(LitPack::new(100, 500).unwrap().split(1000).is_err())
+        }
+
+        #[test]
+        fn split_ok() {
+            assert_eq!(
+                LitPack::new(1, 2).unwrap().split(1),
+                Ok(
+                    (
+                        LitPack::new(1, 1).unwrap(),
+                        LitPack::new(2, 1).unwrap()
+                    )
+                )
+            );
+            assert_eq!(
+                LitPack::new(100, 500).unwrap().split(200),
+                Ok(
+                    (
+                        LitPack::new(100, 200).unwrap(),
+                        LitPack::new(300, 300).unwrap()
+                    )
+                )
+            )
         }
     }
 
