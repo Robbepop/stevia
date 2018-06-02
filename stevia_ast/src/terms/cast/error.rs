@@ -44,10 +44,20 @@ pub enum CastErrorKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CastError {
 	// The kind of this error.
-	pub kind: CastErrorKind,
+	kind: CastErrorKind,
 }
 
 impl CastError {
+	/// Returns the kind of this error.
+	pub fn kind(&self) -> &CastErrorKind {
+		&self.kind
+	}
+
+	/// Unwrap this error into its underlying type.
+	pub fn into_kind(self) -> CastErrorKind {
+		self.kind
+	}
+
 	/// Creates a new `CastError` from the given `CastErrorKind`.
 	fn new(kind: CastErrorKind) -> Self {
 		CastError { kind }
