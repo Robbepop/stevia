@@ -357,6 +357,43 @@ where
         self.eq_with_output(input.into(), Output(output));
         output
     }
+
+    /// Define a MUX (multiplexer) for the given selector, the two inputs and the given output.
+    ///
+    /// # Note
+    ///
+    /// This operation might use some implicit literals and equivalences internally and has not
+    /// yet a native interface in the `RawGateEncoder`.
+    pub fn mux_with_output<S, L1, L2>(&self, selector: S, input1: L1, input2: L2, output: Output)
+    where
+        S: Into<Lit>,
+        L1: Into<Lit>,
+        L2: Into<Lit>
+    {
+        let selector = selector.into();
+        let input1 = input1.into();
+        let input2 = input2.into();
+        self.and_with_output(
+            &[
+                self.or(&[ selector, -input1]),
+                self.or(&[-selector, -input2]),
+            ],
+            Output(output.lit().flip()),
+        )
+    }
+
+    /// Define a MUX (multiplxer) gate for the given selector and input literals.
+    /// The generated output is returned to allow for nesting of gates.
+    pub fn mux<S, L1, L2>(&self, selector: S, input1: L1, input2: L2) -> Lit
+    where
+        S: Into<Lit>,
+        L1: Into<Lit>,
+        L2: Into<Lit>
+    {
+        let output = self.lit_gen.new_lit();
+        self.mux_with_output(selector, input1, input2, Output(output));
+        output
+    }
 }
 
 #[cfg(test)]
