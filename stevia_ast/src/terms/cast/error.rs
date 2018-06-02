@@ -4,15 +4,6 @@ use std::result;
 use std::error;
 use std::fmt;
 
-/// Module for exports of commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        CastError,
-        CastErrorKind,
-        CastResult
-    };
-}
-
 /// A special `Result` type where the error part is always a `CastError`.
 pub type CastResult<T> = result::Result<T, CastError>;
 

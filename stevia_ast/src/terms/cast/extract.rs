@@ -1,9 +1,5 @@
 use crate::prelude::*;
 
-pub mod prelude {
-    pub use super::Extract;
-}
-
 /// Binary concatenate term expression.
 ///
 /// Concatenates the given bitvec term expressions together.

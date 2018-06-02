@@ -1,23 +1,23 @@
 mod concat;
-mod extract;
-mod extend;
 mod error;
+mod extend;
+mod extract;
 
 pub mod prelude {
     pub use super::{
-        Concat,
-        Extract,
         AnyExtendExpr,
-        ExtendExpr,
-        SignExtend,
-        ZeroExtend,
         CastError,
         CastErrorKind,
         CastResult,
+        Concat,
+        ExtendExpr,
+        Extract,
+        SignExtend,
+        ZeroExtend,
     };
 }
 
-pub use self::concat::prelude::*;
-pub use self::extract::prelude::*;
-pub use self::extend::prelude::*;
-pub use self::error::prelude::*;
+pub use self::concat::Concat;
+pub use self::error::{CastError, CastErrorKind, CastResult};
+pub use self::extend::{AnyExtendExpr, ExtendExpr, SignExtend, ZeroExtend};
+pub use self::extract::{Extract};

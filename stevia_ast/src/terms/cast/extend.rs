@@ -3,10 +3,6 @@ use crate::ExprMarker;
 
 use std::marker::PhantomData;
 
-pub mod prelude {
-    pub use super::{AnyExtendExpr, ExtendExpr, SignExtend, ZeroExtend};
-}
-
 /// Any extend expression.
 /// 
 /// # Note
