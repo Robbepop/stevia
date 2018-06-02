@@ -27,10 +27,20 @@ pub enum TypeErrorKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct TypeError {
 	/// The kind of this type error.
-	pub kind: TypeErrorKind,
+	kind: TypeErrorKind,
 }
 
 impl TypeError {
+	/// Returns the kind of this error.
+	pub fn kind(&self) -> &TypeErrorKind {
+		&self.kind
+	}
+
+	/// Unwrap this error into its underlying type.
+	pub fn into_kind(self) -> TypeErrorKind {
+		self.kind
+	}
+
 	/// Creates a new `TypeError` from the given `TypeErrorKind`.
 	fn new(kind: TypeErrorKind) -> Self {
 		Self { kind }
