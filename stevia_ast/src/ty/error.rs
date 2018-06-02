@@ -28,14 +28,12 @@ pub enum TypeErrorKind {
 pub struct TypeError {
 	/// The kind of this type error.
 	pub kind: TypeErrorKind,
-	/// The optional context of this type error.
-	pub context: Option<String>
 }
 
 impl TypeError {
 	/// Creates a new `TypeError` from the given `TypeErrorKind`.
 	fn new(kind: TypeErrorKind) -> Self {
-		Self { kind, context: None }
+		Self { kind }
 	}
 
 	/// Returns a `TypeError` that indicates an unexpected type kind for the given expression.
