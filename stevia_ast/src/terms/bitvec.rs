@@ -58,6 +58,14 @@ impl BitvecError {
         self.kind
     }
 
+    /// Returns `true` if this is an internal bitvector error from the apint crate.
+    pub fn is_internal_error(&self) -> bool {
+        if let BitvecErrorKind::InternalError(_) = self.kind() {
+            return true;
+        }
+        false
+    }
+
     /// Creates a new `ExprError` from the given `ExprErrorKind`.
     fn new(kind: BitvecErrorKind) -> Self {
         BitvecError { kind }
