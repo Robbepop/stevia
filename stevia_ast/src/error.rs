@@ -89,13 +89,13 @@ pub enum ExprErrorKind {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ExprError {
 	// The kind of this error.
-	pub kind: ExprErrorKind,
+	kind: ExprErrorKind,
 	/// The optional context of this error.
 	///
 	/// # Note
 	///
 	/// Used for additional information about the error.
-	pub context: Vec<ErrorContext>,
+	context: Vec<ErrorContext>,
 }
 
 impl From<CastError> for ExprError {
@@ -144,6 +144,16 @@ impl ExprError {
 		let mut this = self;
 		this.context.push(ErrorContext::expr(description, entity));
 		this
+	}
+
+	/// Returns the kind of this error.
+	pub fn kind(&self) -> &ExprErrorKind {
+		&self.kind
+	}
+
+	/// Unwrap this error into its underlying type.
+	pub fn into_kind(self) -> ExprErrorKind {
+		self.kind
 	}
 
 	/// Returns an `ExprError` that indicates that the given expression has too few child expressions.
