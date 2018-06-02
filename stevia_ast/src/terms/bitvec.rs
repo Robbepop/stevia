@@ -3,9 +3,9 @@ use crate::prelude::*;
 use apint;
 use apint::Width;
 
-use std::result;
-use std::fmt;
 use std::error;
+use std::fmt;
+use std::result;
 
 /// Represents a bitvector in the sense of the SMT theory of bitvectors.
 ///
@@ -39,8 +39,8 @@ pub enum BitvecErrorKind {
 pub struct BitvecError {
     /// The kind of the error.
     kind: BitvecErrorKind,
-    /// The optional additional context of the error.
-    context: Option<String>,
+    // /// The optional additional context of the error.
+    // context: Option<String>,
 }
 
 impl From<apint::Error> for BitvecError {
@@ -50,22 +50,9 @@ impl From<apint::Error> for BitvecError {
 }
 
 impl BitvecError {
-    /// Sets the context of this error to the given context string.
-    pub fn context<C>(self, context: C) -> Self
-    where
-        C: Into<String>,
-    {
-        let mut this = self;
-        this.context = Some(context.into());
-        this
-    }
-
     /// Creates a new `ExprError` from the given `ExprErrorKind`.
     fn new(kind: BitvecErrorKind) -> Self {
-        BitvecError {
-            kind,
-            context: None,
-        }
+        BitvecError { kind }
     }
 
     /// Returns a `BitvecError` that indicates that the extract operation has invalid lo-hi bounds.
