@@ -251,10 +251,8 @@ impl<'c> LexemIter<'c> {
                 c if c.is_digit(10) => {
                     self.consume();
                 }
-                '.' => {
-                    return self.scan_decimal()
-                }
-                _ => break
+                '.' => return self.scan_decimal(),
+                _ => break,
             }
         }
         self.tok(TokenKind::Numeral)
@@ -275,12 +273,10 @@ impl<'c> LexemIter<'c> {
                         }
                         self.consume();
                     }
-                    return self.tok(TokenKind::Decimal)
+                    return self.tok(TokenKind::Decimal);
                 }
-                _ => {
-                    panic!("unexpected character while scanning a decimal number")
-                }
-            }
+                _ => panic!("unexpected character while scanning a decimal number"),
+            },
         }
     }
 
@@ -319,8 +315,8 @@ impl<'c> LexemIter<'c> {
                     }
                     self.tok(TokenKind::Numeral)
                 }
-                _ => panic!("unexpected character (= {:?}) while scanning for hexdec numeral")
-            }
+                _ => panic!("unexpected character (= {:?}) while scanning for hexdec numeral"),
+            },
         }
     }
 
@@ -341,8 +337,8 @@ impl<'c> LexemIter<'c> {
                     }
                     self.tok(TokenKind::Numeral)
                 }
-                _ => panic!("unexpected character (= {:?}) while scanning for binary numeral")
-            }
+                _ => panic!("unexpected character (= {:?}) while scanning for binary numeral"),
+            },
         }
     }
 
@@ -356,8 +352,10 @@ impl<'c> LexemIter<'c> {
             Some(peek) => match peek {
                 'x' => self.scan_hexdec_numeral(),
                 'b' => self.scan_binary_numeral(),
-                _ => panic!("unexpected character (= {:?}) while scanning binary or hexdec numeral")
-            }
+                _ => {
+                    panic!("unexpected character (= {:?}) while scanning binary or hexdec numeral")
+                }
+            },
         }
     }
 
