@@ -458,5 +458,25 @@ mod tests {
         fn non_zero_start() {
             assert_input("7.77", vec![(TokenKind::Decimal, (0, 3))])
         }
+
+        #[test]
+        #[should_panic]
+        fn zero_missing_after_dot_err() {
+            assert_input("0.", vec![])
+        }
+
+        #[test]
+        #[should_panic]
+        fn one_missing_after_dot_err() {
+            assert_input("1.", vec![])
+        }
+
+        #[test]
+        #[should_panic]
+        fn double_dot_err() {
+            assert_input("1..2", vec![])
+        }
+    }
+
     }
 }
