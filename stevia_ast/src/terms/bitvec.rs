@@ -94,12 +94,19 @@ impl fmt::Display for BitvecError {
 impl error::Error for BitvecError {
     fn description(&self) -> &str {
         use self::BitvecErrorKind::*;
-        match &self.kind {
+        match self.kind() {
             InternalError(internal_error) => internal_error.description(),
             InvalidExtractLoHiBounds { .. } => {
                 "Encountered invalid lo-hi bounds for extract operation"
             }
         }
+    }
+
+    fn cause(&self) -> Option<&error::Error> {
+        if let BitvecErrorKind::InternalError(internal) = self.kind() {
+            return Some(internal)
+        }
+        None
     }
 }
 
