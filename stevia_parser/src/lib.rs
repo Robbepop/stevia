@@ -328,7 +328,22 @@ impl<'c> LexemIter<'c> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), 'b');
 
-        unimplemented!()
+        self.consume();
+        match self.peek() {
+            None => panic!("unexpected end of file while scanning for binary numeral"),
+            Some(peek) => match peek {
+                c if c.is_digit(2) => {
+                    while let Some(peek) = self.peek() {
+                        if !peek.is_digit(2) {
+                            break;
+                        }
+                        self.consume();
+                    }
+                    self.tok(TokenKind::Numeral)
+                }
+                _ => panic!("unexpected character (= {:?}) while scanning for binary numeral")
+            }
+        }
     }
 
     fn scan_binary_or_hexdec_numeral(&mut self) -> Token {
@@ -545,6 +560,37 @@ mod tests {
         #[should_panic]
         fn empty_after_x_err() {
             assert_input("#x", vec![])
+        }
+    }
+
+    mod binary_numeral {
+        use super::*;
+
+        #[test]
+        fn zero() {
+            assert_input("#b0", vec![(TokenKind::Numeral, (0, 2))])
+        }
+
+        #[test]
+        fn whole_range_upper_case() {
+            assert_input("#b01", vec![(TokenKind::Numeral, (0, 3))])
+        }
+
+        #[test]
+        fn long() {
+            assert_input("#b01101101010111001", vec![(TokenKind::Numeral, (0, 18))])
+        }
+
+        #[test]
+        #[should_panic]
+        fn empty_after_x_err() {
+            assert_input("#b", vec![])
+        }
+
+        #[test]
+        #[should_panic]
+        fn out_of_bounds_digit_err() {
+            assert_input("#b012", vec![])
         }
     }
 }
