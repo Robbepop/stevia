@@ -198,13 +198,11 @@ impl<'c> LexemIter<'c> {
     }
 
     fn peek(&mut self) -> Option<char> {
-        // assert!(self.peek.is_some(), "unexpected end of file");
         self.peek.map(|ch_loc| ch_loc.ch)
-        // .unwrap()
     }
 
     fn consume(&mut self) -> &mut Self {
-        assert!(self.peek.is_some(), "unexpected end of file");
+        debug_assert!(self.peek.is_some(), "unexpected end of file");
         let peek = self.peek.unwrap();
         self.loc.end = peek.loc;
         // println!("consume: peek = {:?}, peek, self.loc.end = {:?}", peek, self.loc.end);
