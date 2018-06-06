@@ -276,6 +276,23 @@ impl<'c> Iterator for LexemIter<'c> {
 mod tests {
     use super::*;
 
+    fn assert_input<I>(input: &str, expected_toks: I)
+    where
+        I: IntoIterator<Item = (TokenKind, (u32, u32))>,
+    {
+        let expected_toks = expected_toks
+            .into_iter()
+            .map(|(kind, (begin, end))| {
+                Token::new(kind, Span::new(Loc::from(begin), Loc::from(end)))
+            })
+            .collect::<Vec<_>>();
+        let actual_toks = lex_smtlib2(input).collect::<Vec<_>>();
+        assert_eq!(actual_toks.len(), expected_toks.len());
+        for (actual, expected) in actual_toks.into_iter().zip(expected_toks.into_iter()) {
+            assert_eq!(actual, expected);
+        }
+    }
+
     mod comment {
         use super::*;
 
