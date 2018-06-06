@@ -473,6 +473,30 @@ mod tests {
         fn close() {
             assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
         }
+
+        #[test]
+        fn open_close() {
+            assert_input(
+                "()",
+                vec![
+                    (TokenKind::OpenParen, (0, 0)),
+                    (TokenKind::CloseParen, (1, 1)),
+                ],
+            );
+        }
+
+        #[test]
+        fn nested() {
+            assert_input(
+                "(())",
+                vec![
+                    (TokenKind::OpenParen, (0, 0)),
+                    (TokenKind::OpenParen, (1, 1)),
+                    (TokenKind::CloseParen, (2, 2)),
+                    (TokenKind::CloseParen, (3, 3)),
+                ],
+            );
+        }
     }
 
     mod numeral {
