@@ -302,6 +302,50 @@ impl<'c> LexemIter<'c> {
         }
     }
 
+    fn scan_hexdec_numeral(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), 'x');
+
+        self.consume();
+        match self.peek() {
+            None => panic!("unexpected end of file while scanning for hexdec numeral"),
+            Some(peek) => match peek {
+                c if c.is_digit(16) => {
+                    while let Some(peek) = self.peek() {
+                        if !peek.is_digit(16) {
+                            break;
+                        }
+                        self.consume();
+                    }
+                    self.tok(TokenKind::Numeral)
+                }
+                _ => panic!("unexpected character (= {:?}) while scanning for hexdec numeral")
+            }
+        }
+    }
+
+    fn scan_binary_numeral(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), 'b');
+
+        unimplemented!()
+    }
+
+    fn scan_binary_or_hexdec_numeral(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), '#');
+
+        self.consume();
+        match self.peek() {
+            None => panic!("unexpected end of file while scanning binary or hexdec numeral"),
+            Some(peek) => match peek {
+                'x' => self.scan_hexdec_numeral(),
+                'b' => self.scan_binary_numeral(),
+                _ => panic!("unexpected character (= {:?}) while scanning binary or hexdec numeral")
+            }
+        }
+    }
+
     fn next_token(&mut self) -> Token {
         use self::TokenKind::*;
         let peek = match self.peek() {
@@ -314,6 +358,7 @@ impl<'c> LexemIter<'c> {
             ';' => self.scan_comment(),
             '(' => self.consume().tok(OpenParen),
             ')' => self.consume().tok(CloseParen),
+            '#' => self.scan_binary_or_hexdec_numeral(),
             _ => self.consume().tok(Unknown),
         }
     }
@@ -478,5 +523,28 @@ mod tests {
         }
     }
 
+    mod hexdec_numeral {
+        use super::*;
+
+        #[test]
+        fn zero() {
+            assert_input("#x0", vec![(TokenKind::Numeral, (0, 2))])
+        }
+
+        #[test]
+        fn whole_range_upper_case() {
+            assert_input("#xFEDCBA9876543210", vec![(TokenKind::Numeral, (0, 17))])
+        }
+
+        #[test]
+        fn whole_range_lower_case() {
+            assert_input("#xfedcba9876543210", vec![(TokenKind::Numeral, (0, 17))])
+        }
+
+        #[test]
+        #[should_panic]
+        fn empty_after_x_err() {
+            assert_input("#x", vec![])
+        }
     }
 }
