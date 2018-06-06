@@ -298,44 +298,40 @@ mod tests {
 
         #[test]
         fn single_line() {
-            let mut toks = lex_smtlib2("; this is a comment");
-            assert_eq!(toks.next(), Some(Token::new(TokenKind::Comment, Span::new(Loc::from(0), Loc::from(18)))));
-            assert_eq!(toks.next(), None)
+            assert_input("; this is a comment", vec![(TokenKind::Comment, (0, 18))]);
         }
 
         #[test]
         fn multi_line() {
-            let mut toks = lex_smtlib2(indoc!(
-                "; first line
-                 ; second line
-                 ; third line")
+            assert_input(
+                indoc!(
+                    "; first line
+                     ; second line
+                     ; third line"
+                ),
+                vec![
+                    (TokenKind::Comment, (0, 12)),
+                    (TokenKind::Comment, (13, 26)),
+                    (TokenKind::Comment, (27, 38)),
+                ],
             );
-            use self::TokenKind::Comment;
-            assert_eq!(toks.next(), Some(Token::new(Comment, Span::new(Loc::from(0), Loc::from(12)))));
-            assert_eq!(toks.next(), Some(Token::new(Comment, Span::new(Loc::from(13), Loc::from(26)))));
-            assert_eq!(toks.next(), Some(Token::new(Comment, Span::new(Loc::from(27), Loc::from(38)))));
-            assert_eq!(toks.next(), None)
         }
 
         #[test]
         fn multiple_semi_colons() {
-            let mut toks = lex_smtlib2(";;;;;");
-            assert_eq!(toks.next(), Some(Token::new(TokenKind::Comment, Span::new(Loc::from(0), Loc::from(4)))));
-            assert_eq!(toks.next(), None)
+            assert_input(";;;;;", vec![(TokenKind::Comment, (0, 4))]);
         }
 
         #[test]
         fn empty_lines() {
-            let mut toks = lex_smtlib2(indoc!(
-                ";
-                 ;
-                 ;"
-            ));
-            use self::TokenKind::Comment;
-            assert_eq!(toks.next(), Some(Token::new(Comment, Span::new(Loc::from(0), Loc::from(1)))));
-            assert_eq!(toks.next(), Some(Token::new(Comment, Span::new(Loc::from(2), Loc::from(3)))));
-            assert_eq!(toks.next(), Some(Token::new(Comment, Span::new(Loc::from(4), Loc::from(4)))));
-            assert_eq!(toks.next(), None)
+            assert_input(
+                ";\n;\n;",
+                vec![
+                    (TokenKind::Comment, (0, 1)),
+                    (TokenKind::Comment, (2, 3)),
+                    (TokenKind::Comment, (4, 4)),
+                ],
+            );
         }
     }
 
@@ -344,9 +340,10 @@ mod tests {
 
         #[test]
         fn any() {
-            let mut toks = lex_smtlib2(" \t\n\r");
-            assert_eq!(toks.next(), Some(Token::new(TokenKind::Whitespace, Span::new(Loc::from(0), Loc::from(3)))));
-            assert_eq!(toks.next(), None)
+            assert_input(" \t\n\r", vec![(TokenKind::Whitespace, (0, 3))]);
+        }
+    }
+
     mod paren {
         use super::*;
 
