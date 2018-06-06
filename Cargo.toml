@@ -2,5 +2,6 @@
 members = [
     "stevia_ast",
     "stevia_simplifier",
-    "stevia_bitblaster"
+    "stevia_bitblaster",
+    "stevia_parser"
 ]

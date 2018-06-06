@@ -1,0 +1,28 @@
+[package]
+name = "stevia_parser"
+version = "0.1.0" # remember to update html_root_url
+authors = ["Robbepop <robbepop@web.de>"]
+
+license = "MIT/Apache-2.0"
+readme = "README.md"
+description = "SMTLib 2.0 parser for the stevia SMT solver."
+
+repository = "https://github.com/robbepop/stevia"
+# documentation = "https://docs.rs/stevia"
+# homepage =
+
+keywords   = ["smt", "solver", "formal methods"]
+categories = ["science"]
+
+include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
+
+[lib]
+name = "stevia_parser"
+
+[dependencies]
+indoc = "0.2"
+string-interner = "0.6"
+
+[badges]
+travis-ci = { repository = "Robbepop/stevia" }
+appveyor = { repository = "Robbepop/stevia", branch = "master", service = "github" }
