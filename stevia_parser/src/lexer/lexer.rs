@@ -1,4 +1,4 @@
-use lexer::{Span, Loc, Token, TokenKind};
+use lexer::{Loc, Span, Token, TokenKind};
 
 pub fn lex_smtlib2(input: &str) -> LexemeIter {
     LexemeIter::new(input)
@@ -203,6 +203,33 @@ impl<'c> LexemeIter<'c> {
         }
     }
 
+    fn scan_string_literal(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), '"');
+
+        self.consume();
+        'outer: while let Some(peek) = self.peek() {
+            self.consume();
+            if peek == '"' {
+                match self.peek() {
+                    None => {
+                        return self.tok(TokenKind::StringLiteral)
+                    },
+                    Some(peek) => match peek {
+                        '"' => {
+                            self.consume();
+                            continue 'outer;
+                        }
+                        _ => {
+                            return self.tok(TokenKind::StringLiteral)
+                        }
+                    }
+                }
+            }
+        }
+        panic!("unexpected end of file before closing the current string literal")
+    }
+
     fn next_token(&mut self) -> Token {
         use self::TokenKind::*;
         let peek = match self.peek() {
@@ -216,6 +243,7 @@ impl<'c> LexemeIter<'c> {
             '(' => self.consume().tok(OpenParen),
             ')' => self.consume().tok(CloseParen),
             '#' => self.scan_binary_or_hexdec_numeral(),
+            '"' => self.scan_string_literal(),
             _ => self.consume().tok(Unknown),
         }
     }
@@ -457,6 +485,49 @@ mod tests {
         #[should_panic]
         fn out_of_bounds_digit_err() {
             assert_input("#b012", vec![])
+        }
+    }
+
+    mod string_literal {
+        use super::*;
+
+        #[test]
+        fn empty() {
+            assert_input(r#""""#, vec![(TokenKind::StringLiteral, (0, 1))])
+        }
+
+        #[test]
+        fn single_char() {
+            assert_input(r#""a""#, vec![(TokenKind::StringLiteral, (0, 2))])
+        }
+
+        #[test]
+        fn escaped_quote() {
+            assert_input(r#""""""#, vec![(TokenKind::StringLiteral, (0, 3))])
+        }
+
+        #[test]
+        fn new_line() {
+            assert_input(indoc!(
+                "\"first
+                 second\""
+            ), vec![(TokenKind::StringLiteral, (0, 13))])
+        }
+
+        #[test]
+        fn seperating_whitespace() {
+            assert_input("\"this is a string literal\"", vec![(TokenKind::StringLiteral, (0, 25))])
+        }
+
+        #[test]
+        fn ignore_default_escapes() {
+            assert_input(r#""\n\r\t\\""#, vec![(TokenKind::StringLiteral, (0, 9))])
+        }
+
+        #[test]
+        #[should_panic]
+        fn unexpected_end_of_file() {
+            assert_input(r#""not terminated correctly"#, vec![])
         }
     }
 }
