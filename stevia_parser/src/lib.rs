@@ -242,6 +242,49 @@ impl<'c> LexemIter<'c> {
         self.tok(TokenKind::Comment)
     }
 
+    fn scan_numeral(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert!(self.peek().unwrap().is_digit(10));
+
+        while let Some(peek) = self.peek() {
+            match peek {
+                c if c.is_digit(10) => {
+                    self.consume();
+                }
+                '.' => {
+                    return self.scan_decimal()
+                }
+                _ => break
+            }
+        }
+        self.tok(TokenKind::Numeral)
+    }
+
+    fn scan_decimal(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert!(self.peek().unwrap() == '.');
+
+        unimplemented!()
+    }
+
+    fn scan_numeral_or_decimal(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert!(self.peek().unwrap().is_digit(10));
+
+        match self.peek().unwrap() {
+            '0' => match self.consume().peek() {
+                None => self.tok(TokenKind::Numeral),
+                Some(peek) => match peek {
+                    c if c.is_digit(10) => self.scan_numeral(),
+                    '.' => self.scan_decimal(),
+                    c => panic!(
+                        "unexpected character (= {:?}) after while scanning for numeral or decimal literal", c)
+                }
+            }
+            _ => self.scan_numeral()
+        }
+    }
+
     fn next_token(&mut self) -> Token {
         use self::TokenKind::*;
         let peek = match self.peek() {
@@ -250,6 +293,7 @@ impl<'c> LexemIter<'c> {
         };
         match peek {
             c if c.is_whitespace() => self.scan_whitespace(),
+            c if c.is_digit(10) => self.scan_numeral_or_decimal(),
             ';' => self.scan_comment(),
             '(' => self.consume().tok(OpenParen),
             ')' => self.consume().tok(CloseParen),
@@ -353,6 +397,25 @@ mod tests {
         #[test]
         fn close() {
             assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
+        }
+    }
+
+    mod numeral {
+        use super::*;
+
+        #[test]
+        fn single_zero() {
+            assert_input("0", vec![(TokenKind::Numeral, (0, 0))]);
+        }
+
+        #[test]
+        fn multiple_zeros() {
+            assert_input("000", vec![(TokenKind::Numeral, (0, 2))]);
+        }
+
+        #[test]
+        fn simple() {
+            assert_input("123456789", vec![(TokenKind::Numeral, (0, 8))]);
         }
     }
 }
