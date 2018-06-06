@@ -85,6 +85,10 @@ impl Loc {
     pub fn zero() -> Self {
         Loc(0)
     }
+
+    pub fn to_u32(self) -> u32 {
+        self.0
+    }
 }
 
 impl From<u32> for Loc {
