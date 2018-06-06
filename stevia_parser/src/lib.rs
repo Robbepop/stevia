@@ -158,8 +158,8 @@ impl Token {
     }
 }
 
-pub fn lex_smtlib2(input: &str) -> LexemIter {
-    LexemIter::new(input)
+pub fn lex_smtlib2(input: &str) -> LexemeIter {
+    LexemeIter::new(input)
 }
 
 use std::str::CharIndices;
@@ -176,16 +176,17 @@ impl CharAndLoc {
     }
 }
 
+
 #[derive(Debug, Clone)]
-pub struct LexemIter<'c> {
+pub struct LexemeIter<'c> {
     input: CharIndices<'c>,
     loc: Span,
     peek: Option<CharAndLoc>,
 }
 
-impl<'c> LexemIter<'c> {
+impl<'c> LexemeIter<'c> {
     pub(self) fn new(input: &'c str) -> Self {
-        let mut iter = LexemIter {
+        let mut iter = LexemeIter {
             input: input.char_indices(),
             loc: Span::zero(),
             peek: None,
@@ -209,14 +210,12 @@ impl<'c> LexemIter<'c> {
         debug_assert!(self.peek.is_some(), "unexpected end of file");
         let peek = self.peek.unwrap();
         self.loc.end = peek.loc;
-        // println!("consume: peek = {:?}, peek, self.loc.end = {:?}", peek, self.loc.end);
         self.pull();
         self
     }
 
     fn tok(&mut self, kind: TokenKind) -> Token {
         let tok = Token::new(kind, self.loc);
-        // println!("tok: kind = {:?}, self.loc.begin = {:?}, self.loc.end = {:?}", kind, self.loc.begin, self.loc.end);
         if let Some(peek) = self.peek {
             self.loc.begin = peek.loc;
         };
@@ -381,7 +380,7 @@ impl<'c> LexemIter<'c> {
     }
 }
 
-impl<'c> Iterator for LexemIter<'c> {
+impl<'c> Iterator for LexemeIter<'c> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
