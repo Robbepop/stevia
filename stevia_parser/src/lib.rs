@@ -99,8 +99,8 @@ impl From<u32> for Loc {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Span {
-    begin: Loc,
-    end: Loc,
+    pub begin: Loc,
+    pub end: Loc,
 }
 
 impl Span {
