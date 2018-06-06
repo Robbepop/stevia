@@ -347,6 +347,17 @@ mod tests {
             let mut toks = lex_smtlib2(" \t\n\r");
             assert_eq!(toks.next(), Some(Token::new(TokenKind::Whitespace, Span::new(Loc::from(0), Loc::from(3)))));
             assert_eq!(toks.next(), None)
+    mod paren {
+        use super::*;
+
+        #[test]
+        fn open() {
+            assert_input("(", vec![(TokenKind::OpenParen, (0, 0))]);
+        }
+
+        #[test]
+        fn close() {
+            assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
         }
     }
 }
