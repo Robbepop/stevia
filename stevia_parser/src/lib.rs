@@ -264,7 +264,24 @@ impl<'c> LexemIter<'c> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap() == '.');
 
-        unimplemented!()
+        self.consume();
+        match self.peek() {
+            None => panic!("unexpected end of file while scanning a decimal number"),
+            Some(peek) => match peek {
+                c if c.is_digit(10) => {
+                    while let Some(peek) = self.peek() {
+                        if !peek.is_digit(10) {
+                            break;
+                        }
+                        self.consume();
+                    }
+                    return self.tok(TokenKind::Decimal)
+                }
+                _ => {
+                    panic!("unexpected character while scanning a decimal number")
+                }
+            }
+        }
     }
 
     fn scan_numeral_or_decimal(&mut self) -> Token {
@@ -416,6 +433,30 @@ mod tests {
         #[test]
         fn simple() {
             assert_input("123456789", vec![(TokenKind::Numeral, (0, 8))]);
+        }
+    }
+
+    mod decimal {
+        use super::*;
+
+        #[test]
+        fn zero_dot_zero() {
+            assert_input("0.0", vec![(TokenKind::Decimal, (0, 2))])
+        }
+
+        #[test]
+        fn multiple_zero_dot_zero() {
+            assert_input("00.0", vec![(TokenKind::Decimal, (0, 3))])
+        }
+
+        #[test]
+        fn simple() {
+            assert_input("12345.67890", vec![(TokenKind::Decimal, (0, 10))])
+        }
+
+        #[test]
+        fn non_zero_start() {
+            assert_input("7.77", vec![(TokenKind::Decimal, (0, 3))])
         }
     }
 }
