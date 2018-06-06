@@ -74,6 +74,7 @@
 //! Is a token of the form ':<Simple Symbol>'
 //! They have special use in the language: Used as attributes or option names.
 
+#[cfg(test)]
 #[macro_use]
 extern crate indoc;
 
@@ -100,11 +101,14 @@ pub struct Span {
 
 impl Span {
     pub fn zero() -> Self {
-        Span{ begin: Loc::zero(), end: Loc::zero() }
+        Span {
+            begin: Loc::zero(),
+            end: Loc::zero(),
+        }
     }
 
     pub fn new(begin: Loc, end: Loc) -> Self {
-        Span{ begin, end }
+        Span { begin, end }
     }
 }
 
@@ -135,7 +139,7 @@ pub enum TokenKind {
     Keyword,
 
     EndOfFile,
-    Unknown
+    Unknown,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -146,7 +150,7 @@ pub struct Token {
 
 impl Token {
     pub fn new(kind: TokenKind, span: Span) -> Self {
-        Self{ kind, span }
+        Self { kind, span }
     }
 }
 
@@ -159,12 +163,12 @@ use std::str::CharIndices;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 struct CharAndLoc {
     pub ch: char,
-    pub loc: Loc
+    pub loc: Loc,
 }
 
 impl CharAndLoc {
     pub fn new(ch: char, loc: Loc) -> Self {
-        Self{ ch, loc }
+        Self { ch, loc }
     }
 }
 
@@ -172,7 +176,7 @@ impl CharAndLoc {
 pub struct LexemIter<'c> {
     input: CharIndices<'c>,
     loc: Span,
-    peek: Option<CharAndLoc>
+    peek: Option<CharAndLoc>,
 }
 
 impl<'c> LexemIter<'c> {
@@ -180,26 +184,23 @@ impl<'c> LexemIter<'c> {
         let mut iter = LexemIter {
             input: input.char_indices(),
             loc: Span::zero(),
-            peek: None
+            peek: None,
         };
         iter.pull();
         iter
     }
 
     fn pull(&mut self) {
-        self.peek =
-            self.input
+        self.peek = self
+            .input
             .next()
-            .map(|(loc, ch)| {
-                CharAndLoc::new(ch, Loc::from(loc as u32))
-            })
+            .map(|(loc, ch)| CharAndLoc::new(ch, Loc::from(loc as u32)))
     }
 
     fn peek(&mut self) -> Option<char> {
         // assert!(self.peek.is_some(), "unexpected end of file");
-        self.peek
-            .map(|ch_loc| ch_loc.ch)
-            // .unwrap()
+        self.peek.map(|ch_loc| ch_loc.ch)
+        // .unwrap()
     }
 
     fn consume(&mut self) -> &mut Self {
@@ -247,14 +248,14 @@ impl<'c> LexemIter<'c> {
         use self::TokenKind::*;
         let peek = match self.peek() {
             Some(peek) => peek,
-            None => return self.tok(EndOfFile)
+            None => return self.tok(EndOfFile),
         };
         match peek {
-			c if c.is_whitespace() => self.scan_whitespace(),
+            c if c.is_whitespace() => self.scan_whitespace(),
             ';' => self.scan_comment(),
             '(' => self.consume().tok(OpenParen),
             ')' => self.consume().tok(CloseParen),
-            _ => self.consume().tok(Unknown)
+            _ => self.consume().tok(Unknown),
         }
     }
 }
@@ -265,7 +266,7 @@ impl<'c> Iterator for LexemIter<'c> {
     fn next(&mut self) -> Option<Self::Item> {
         let tok = self.next_token();
         if let TokenKind::EndOfFile = tok.kind {
-            return None
+            return None;
         }
         Some(tok)
     }
