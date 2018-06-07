@@ -8,6 +8,7 @@ pub type LexerResult<T> = result::Result<T, LexerError>;
 pub enum LexerErrorKind {
     UnexpectedEndOfFile,
     UnexpectedCharacter(char),
+    PreviousErrorOccured,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -18,7 +19,7 @@ pub struct LexerError {
 }
 
 impl LexerError {
-    fn new(kind: LexerErrorKind, span: Span) -> Self {
+    pub(crate) fn new(kind: LexerErrorKind, span: Span) -> Self {
         Self {
             kind,
             span,
@@ -33,6 +34,11 @@ impl LexerError {
         let mut this = self;
         this.context = Some(msg.into());
         this
+    }
+
+    #[cfg(test)]
+    pub fn clear_context(&mut self) {
+        self.context = None;
     }
 
     pub fn kind(&self) -> LexerErrorKind {
@@ -57,6 +63,10 @@ impl LexerError {
     pub fn unexpected_character(span: Span, ch: char) -> Self {
         Self::new(LexerErrorKind::UnexpectedCharacter(ch), span)
     }
+
+    pub fn previous_error_occured(span: Span) -> Self {
+        Self::new(LexerErrorKind::PreviousErrorOccured, span)
+    }
 }
 
 impl fmt::Display for LexerError {
@@ -77,6 +87,13 @@ impl fmt::Display for LexerError {
                 self.span.end.to_u32(),
                 ch,
                 self.context
+            ),
+            PreviousErrorOccured => write!(
+                f,
+                "error c({}:{}): cannot continue lexing: previous error occured: {:?}",
+                self.span.begin.to_u32(),
+                self.span.end.to_u32(),
+                self.context
             )
         }
     }
@@ -88,6 +105,7 @@ impl error::Error for LexerError {
         match self.kind() {
             UnexpectedEndOfFile => "unexpected end of file",
             UnexpectedCharacter(_) => "unexpected character",
+            PreviousErrorOccured => "previous error occured"
         }
     }
 }
