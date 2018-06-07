@@ -195,9 +195,9 @@ impl<'c> LexemeIter<'c> {
                             continue 'inner;
                         }
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
-                            return Ok(self.tok(TokenKind::Numeral))
+                            return Ok(self.tok(TokenKind::Numeral));
                         }
-                        return Err(self.unexpected_char(peek, "while scanning for hexdec numeral"))
+                        return Err(self.unexpected_char(peek, "while scanning for hexdec numeral"));
                     }
                     Ok(self.tok(TokenKind::Numeral))
                 }
@@ -221,9 +221,9 @@ impl<'c> LexemeIter<'c> {
                             continue 'inner;
                         }
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
-                            return Ok(self.tok(TokenKind::Numeral))
+                            return Ok(self.tok(TokenKind::Numeral));
                         }
-                        return Err(self.unexpected_char(peek, "while scanning for binary numeral"))
+                        return Err(self.unexpected_char(peek, "while scanning for binary numeral"));
                     }
                     Ok(self.tok(TokenKind::Numeral))
                 }
@@ -284,9 +284,9 @@ impl<'c> LexemeIter<'c> {
                 continue;
             }
             if peek.is_whitespace() || peek == '(' || peek == ')' {
-                return Ok(self.tok(TokenKind::SimpleSymbol))
+                return Ok(self.tok(TokenKind::SimpleSymbol));
             }
-            return Err(self.unexpected_char(peek, "while scanning for a simple symbol"))
+            return Err(self.unexpected_char(peek, "while scanning for a simple symbol"));
         }
         Ok(self.tok(TokenKind::SimpleSymbol))
     }
@@ -550,16 +550,18 @@ mod tests {
 
         #[test]
         fn one_missing_after_dot_err() {
-            assert_raw_input("1.", vec![
-                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))
-            ]);
+            assert_raw_input(
+                "1.",
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))],
+            );
         }
 
         #[test]
         fn double_dot_err() {
-            assert_raw_input("1..2", vec![
-                (Err(LexerErrorKind::UnexpectedCharacter('.')), (0, 2))
-            ]);
+            assert_raw_input(
+                "1..2",
+                vec![(Err(LexerErrorKind::UnexpectedCharacter('.')), (0, 2))],
+            );
         }
     }
 
@@ -583,16 +585,18 @@ mod tests {
 
         #[test]
         fn empty_after_x_err() {
-            assert_raw_input("#x", vec![
-                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))
-            ]);
+            assert_raw_input(
+                "#x",
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))],
+            );
         }
 
         #[test]
         fn out_of_bounds_digit_err() {
-            assert_raw_input("#xABFG", vec![
-                (Err(LexerErrorKind::UnexpectedCharacter('G')), (0, 5))
-            ]);
+            assert_raw_input(
+                "#xABFG",
+                vec![(Err(LexerErrorKind::UnexpectedCharacter('G')), (0, 5))],
+            );
         }
     }
 
@@ -616,16 +620,18 @@ mod tests {
 
         #[test]
         fn empty_after_x_err() {
-            assert_raw_input("#b", vec![
-                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))
-            ]);
+            assert_raw_input(
+                "#b",
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))],
+            );
         }
 
         #[test]
         fn out_of_bounds_digit_err() {
-            assert_raw_input("#b012", vec![
-                (Err(LexerErrorKind::UnexpectedCharacter('2')), (0, 4))
-            ]);
+            assert_raw_input(
+                "#b012",
+                vec![(Err(LexerErrorKind::UnexpectedCharacter('2')), (0, 4))],
+            );
         }
     }
 
@@ -673,9 +679,10 @@ mod tests {
 
         #[test]
         fn unexpected_end_of_file() {
-            assert_raw_input(r#""not terminated correctly"#, vec![
-                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 24))
-            ]);
+            assert_raw_input(
+                r#""not terminated correctly"#,
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 24))],
+            );
         }
     }
 
@@ -684,26 +691,33 @@ mod tests {
 
         #[test]
         fn unexpected_colon() {
-            assert_raw_input("hello:world", vec![
-                (Err(LexerErrorKind::UnexpectedCharacter(':')), (0, 5))
-            ]);
+            assert_raw_input(
+                "hello:world",
+                vec![(Err(LexerErrorKind::UnexpectedCharacter(':')), (0, 5))],
+            );
         }
 
         #[test]
         fn before_close_paren() {
-            assert_input("hello)", vec![
-                (TokenKind::SimpleSymbol, (0, 4)),
-                (TokenKind::CloseParen, (5, 5))
-            ]);
+            assert_input(
+                "hello)",
+                vec![
+                    (TokenKind::SimpleSymbol, (0, 4)),
+                    (TokenKind::CloseParen, (5, 5)),
+                ],
+            );
         }
 
         #[test]
         fn separated_by_whitespace() {
-            assert_input("hello world", vec![
-                (TokenKind::SimpleSymbol, (0, 4)),
-                (TokenKind::Whitespace, (5, 5)),
-                (TokenKind::SimpleSymbol, (6, 10))
-            ]);
+            assert_input(
+                "hello world",
+                vec![
+                    (TokenKind::SimpleSymbol, (0, 4)),
+                    (TokenKind::Whitespace, (5, 5)),
+                    (TokenKind::SimpleSymbol, (6, 10)),
+                ],
+            );
         }
 
         #[test]
@@ -755,9 +769,10 @@ mod tests {
 
         #[test]
         fn empty() {
-            assert_raw_input(":", vec![
-                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 0))
-            ]);
+            assert_raw_input(
+                ":",
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 0))],
+            );
         }
 
         #[test]
