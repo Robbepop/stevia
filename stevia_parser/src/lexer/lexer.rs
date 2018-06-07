@@ -226,6 +226,19 @@ impl<'c> LexemeIter<'c> {
         panic!("unexpected end of file before closing the current string literal")
     }
 
+    fn scan_simple_symbol(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert!(is_symbol_char(self.peek().unwrap()));
+
+        while let Some(peek) = self.peek() {
+            if !(peek.is_digit(10) || is_symbol_char(peek)) {
+                break;
+            }
+            self.consume();
+        }
+        self.tok(TokenKind::SimpleSymbol)
+    }
+
     fn next_token(&mut self) -> Token {
         use self::TokenKind::*;
         let peek = match self.peek() {
@@ -235,6 +248,7 @@ impl<'c> LexemeIter<'c> {
         match peek {
             c if c.is_whitespace() => self.scan_whitespace(),
             c if c.is_digit(10) => self.scan_numeral_or_decimal(),
+            c if is_symbol_char(c) => self.scan_simple_symbol(),
             ';' => self.scan_comment(),
             '(' => self.consume().tok(OpenParen),
             ')' => self.consume().tok(CloseParen),
@@ -243,6 +257,18 @@ impl<'c> LexemeIter<'c> {
             _ => self.consume().tok(Unknown),
         }
     }
+}
+
+fn is_symbol_punctuation(ch: char) -> bool {
+    match ch {
+        | '~' | '!' | '@' | '$' | '%' | '^' | '&' | '*' | '_' | '-' | '+' | '=' | '<' | '>' | '.'
+        | '?' | '/' => true,
+        _ => false,
+    }
+}
+
+fn is_symbol_char(ch: char) -> bool {
+    ch.is_ascii_alphabetic() || is_symbol_punctuation(ch)
 }
 
 impl<'c> Iterator for LexemeIter<'c> {
@@ -530,6 +556,50 @@ mod tests {
         #[should_panic]
         fn unexpected_end_of_file() {
             assert_input(r#""not terminated correctly"#, vec![])
+        }
+    }
+
+    mod simple_symbol {
+        use super::*;
+
+        #[test]
+        fn single_punctuation() {
+            fn assert_single_punctuation(punctuation: &str) {
+                assert_input(punctuation, vec![(TokenKind::SimpleSymbol, (0, 0))]);
+            }
+            assert_single_punctuation("~");
+            assert_single_punctuation("!");
+            assert_single_punctuation("@");
+            assert_single_punctuation("$");
+            assert_single_punctuation("%");
+            assert_single_punctuation("^");
+            assert_single_punctuation("&");
+            assert_single_punctuation("*");
+            assert_single_punctuation("_");
+            assert_single_punctuation("-");
+            assert_single_punctuation("+");
+            assert_single_punctuation("=");
+            assert_single_punctuation("<");
+            assert_single_punctuation(">");
+            assert_single_punctuation(".");
+        }
+
+        #[test]
+        fn selection() {
+            assert_input("<=", vec![(TokenKind::SimpleSymbol, (0, 1))]);
+            assert_input("x", vec![(TokenKind::SimpleSymbol, (0, 0))]);
+            assert_input("plus", vec![(TokenKind::SimpleSymbol, (0, 3))]);
+            assert_input("**", vec![(TokenKind::SimpleSymbol, (0, 1))]);
+            assert_input("<sas", vec![(TokenKind::SimpleSymbol, (0, 3))]);
+            assert_input("<adf>", vec![(TokenKind::SimpleSymbol, (0, 4))]);
+            assert_input("abc77", vec![(TokenKind::SimpleSymbol, (0, 4))]);
+            assert_input("*$s&6", vec![(TokenKind::SimpleSymbol, (0, 4))]);
+            assert_input(".kkk", vec![(TokenKind::SimpleSymbol, (0, 3))]);
+            assert_input(".8", vec![(TokenKind::SimpleSymbol, (0, 1))]);
+            assert_input("+34", vec![(TokenKind::SimpleSymbol, (0, 2))]);
+            assert_input("-32", vec![(TokenKind::SimpleSymbol, (0, 2))]);
+            assert_input("SMTLib2.0", vec![(TokenKind::SimpleSymbol, (0, 8))]);
+            assert_input("this_is-unfortunate", vec![(TokenKind::SimpleSymbol, (0, 18))]);
         }
     }
 }
