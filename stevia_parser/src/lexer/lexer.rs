@@ -197,11 +197,7 @@ impl<'c> LexemeIter<'c> {
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
                             return Ok(self.tok(TokenKind::Numeral))
                         }
-                        match peek {
-                            '(' | ')' => return Ok(self.tok(TokenKind::Numeral)),
-                            c if c.is_whitespace() => return Ok(self.tok(TokenKind::Numeral)),
-                            c => return Err(self.unexpected_char(c, "while scanning for hexdec numeral"))
-                        }
+                        return Err(self.unexpected_char(peek, "while scanning for hexdec numeral"))
                     }
                     Ok(self.tok(TokenKind::Numeral))
                 }
@@ -227,11 +223,7 @@ impl<'c> LexemeIter<'c> {
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
                             return Ok(self.tok(TokenKind::Numeral))
                         }
-                        match peek {
-                            '(' | ')' => return Ok(self.tok(TokenKind::Numeral)),
-                            c if c.is_whitespace() => return Ok(self.tok(TokenKind::Numeral)),
-                            c => return Err(self.unexpected_char(c, "while scanning for binary numeral"))
-                        }
+                        return Err(self.unexpected_char(peek, "while scanning for binary numeral"))
                     }
                     Ok(self.tok(TokenKind::Numeral))
                 }
