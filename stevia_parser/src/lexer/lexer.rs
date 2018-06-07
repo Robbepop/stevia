@@ -330,13 +330,13 @@ impl<'c> LexemeIter<'c> {
         while let Some(peek) = self.peek() {
             self.consume();
             if peek == '\\' {
-                return Err(self.unexpected_char('\\', "while scanning for quoted symbol"))
+                return Err(self.unexpected_char('\\', "while scanning for quoted symbol"));
             }
             if peek == '|' {
-                return Ok(self.tok(TokenKind::QuotedSymbol))
+                return Ok(self.tok(TokenKind::QuotedSymbol));
             }
         }
-        return Err(self.unexpected_end_of_file("while scanning for quoted symbol"))
+        return Err(self.unexpected_end_of_file("while scanning for quoted symbol"));
     }
 
     pub fn next_token(&mut self) -> LexerResult<Token> {
@@ -831,7 +831,7 @@ mod tests {
         fn backslash_err() {
             assert_raw_input(
                 r#"|\|"#,
-                vec![(Err(LexerErrorKind::UnexpectedCharacter('\\')), (0, 2))]
+                vec![(Err(LexerErrorKind::UnexpectedCharacter('\\')), (0, 2))],
             );
         }
 
@@ -839,13 +839,16 @@ mod tests {
         fn missing_ending_pipe() {
             assert_raw_input(
                 "|hello",
-                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 5))]
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 5))],
             );
         }
 
         #[test]
         fn simple_sentence() {
-            assert_input("|this is a quoted symbol|", vec![(TokenKind::QuotedSymbol, (0, 24))]);
+            assert_input(
+                "|this is a quoted symbol|",
+                vec![(TokenKind::QuotedSymbol, (0, 24))],
+            );
         }
 
         #[test]
@@ -855,19 +858,29 @@ mod tests {
                     "|also with
                      line break|"
                 ),
-                vec![(TokenKind::QuotedSymbol, (0, 21))]
+                vec![(TokenKind::QuotedSymbol, (0, 21))],
             )
         }
 
         #[test]
         fn with_quote() {
-            assert_input(r#"| " can occure, too|"#, vec![(TokenKind::QuotedSymbol, (0, 19))]);
+            assert_input(
+                r#"| " can occure, too|"#,
+                vec![(TokenKind::QuotedSymbol, (0, 19))],
+            );
         }
 
         #[test]
         fn many_punctuations() {
             // Note: '´' requires two bytes.
-            assert_input(r##"|af klj ^*0 asfe2 (&*)&(#^$>> >?" ´]]984|"##, vec![(TokenKind::QuotedSymbol, (0, 41))]);
+            assert_input(
+                r##"|af klj ^*0 asfe2 (&*)&(#^$>> >?" ´]]984|"##,
+                vec![(TokenKind::QuotedSymbol, (0, 41))]
+            );
+            assert_input(
+                r##"|Löwe 老虎 Léopard|"##,
+                vec![(TokenKind::QuotedSymbol, (0, 22))],
+            );
         }
     }
 }
