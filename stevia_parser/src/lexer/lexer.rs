@@ -313,6 +313,23 @@ impl<'c> LexemeIter<'c> {
         Ok(self.tok(TokenKind::Keyword))
     }
 
+    fn scan_quoted_symbol(&mut self) -> LexerResult<Token> {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), '|');
+
+        self.consume();
+        while let Some(peek) = self.peek() {
+            self.consume();
+            if peek == '\\' {
+                return Err(self.unexpected_char('\\', "while scanning for quoted symbol"))
+            }
+            if peek == '|' {
+                return Ok(self.tok(TokenKind::QuotedSymbol))
+            }
+        }
+        return Err(self.unexpected_end_of_file("while scanning for quoted symbol"))
+    }
+
     pub fn next_token(&mut self) -> LexerResult<Token> {
         if self.error_occured {
             return Err(LexerError::previous_error_occured(self.loc));
@@ -331,6 +348,7 @@ impl<'c> LexemeIter<'c> {
             ')' => Ok(self.consume().tok(CloseParen)),
             '#' => self.scan_binary_or_hexdec_numeral(),
             '"' => self.scan_string_literal(),
+            '|' => self.scan_quoted_symbol(),
             c => Err(self.unexpected_char(c, "while scanning for the start of a new token")),
         }
     }
@@ -784,6 +802,63 @@ mod tests {
             assert_input(":42", vec![(TokenKind::Keyword, (0, 2))]);
             assert_input(":-56", vec![(TokenKind::Keyword, (0, 3))]);
             assert_input(":->", vec![(TokenKind::Keyword, (0, 2))]);
+        }
+    }
+
+    mod quoted_symbol {
+        use super::*;
+
+        #[test]
+        fn empty() {
+            assert_input("||", vec![(TokenKind::QuotedSymbol, (0, 1))]);
+        }
+
+        #[test]
+        fn single_alpha() {
+            assert_input("|a|", vec![(TokenKind::QuotedSymbol, (0, 2))]);
+        }
+
+        #[test]
+        fn backslash_err() {
+            assert_raw_input(
+                r#"|\|"#,
+                vec![(Err(LexerErrorKind::UnexpectedCharacter('\\')), (0, 2))]
+            );
+        }
+
+        #[test]
+        fn missing_ending_pipe() {
+            assert_raw_input(
+                "|hello",
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 5))]
+            );
+        }
+
+        #[test]
+        fn simple_sentence() {
+            assert_input("|this is a quoted symbol|", vec![(TokenKind::QuotedSymbol, (0, 24))]);
+        }
+
+        #[test]
+        fn with_line_break() {
+            assert_input(
+                indoc!(
+                    "|also with
+                     line break|"
+                ),
+                vec![(TokenKind::QuotedSymbol, (0, 21))]
+            )
+        }
+
+        #[test]
+        fn with_quote() {
+            assert_input(r#"| " can occure, too|"#, vec![(TokenKind::QuotedSymbol, (0, 19))]);
+        }
+
+        #[test]
+        fn many_punctuations() {
+            // Note: '´' requires two bytes.
+            assert_input(r##"|af klj ^*0 asfe2 (&*)&(#^$>> >?" ´]]984|"##, vec![(TokenKind::QuotedSymbol, (0, 41))]);
         }
     }
 }
