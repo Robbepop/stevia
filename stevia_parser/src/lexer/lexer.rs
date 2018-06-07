@@ -1,4 +1,4 @@
-use lexer::{Loc, Span, Token, TokenKind};
+use lexer::{LexerError, LexerErrorKind, LexerResult, Loc, Span, Token, TokenKind};
 
 pub fn lex_smtlib2(input: &str) -> LexemeIter {
     LexemeIter::new(input)
@@ -23,6 +23,7 @@ pub struct LexemeIter<'c> {
     input: CharIndices<'c>,
     loc: Span,
     peek: Option<CharAndLoc>,
+    error_occured: bool,
 }
 
 impl<'c> LexemeIter<'c> {
@@ -31,6 +32,7 @@ impl<'c> LexemeIter<'c> {
             input: input.char_indices(),
             loc: Span::zero(),
             peek: None,
+            error_occured: false,
         };
         iter.pull();
         iter
@@ -49,6 +51,7 @@ impl<'c> LexemeIter<'c> {
 
     fn consume(&mut self) -> &mut Self {
         debug_assert!(self.peek.is_some(), "unexpected end of file");
+
         let peek = self.peek.unwrap();
         self.loc.end = peek.loc;
         self.pull();
@@ -63,17 +66,50 @@ impl<'c> LexemeIter<'c> {
         tok
     }
 
-    fn scan_whitespace(&mut self) -> Token {
+    fn unexpected_char<C>(&mut self, ch: char, opt_ctx: C) -> LexerError
+    where
+        C: Into<Option<&'static str>>,
+    {
+        debug_assert!(self.peek().is_some());
+
+        self.error_occured = true;
+        self.consume();
+        let err = LexerError::unexpected_character(self.loc, ch);
+        if let Some(ctx) = opt_ctx.into() {
+            return err.context_msg(ctx.to_owned());
+        }
+        err
+    }
+
+    fn unexpected_end_of_file<C>(&mut self, opt_ctx: C) -> LexerError
+    where
+        C: Into<Option<&'static str>>,
+    {
+        self.error_occured = true;
+        let err = LexerError::unexpected_end_of_file(self.loc);
+        if let Some(ctx) = opt_ctx.into() {
+            return err.context_msg(ctx.to_owned());
+        }
+        err
+    }
+
+    fn scan_whitespace(&mut self) -> LexerResult<Token> {
+        debug_assert!(self.peek().is_some());
+        debug_assert!(self.peek().unwrap().is_whitespace());
+
         while let Some(peek) = self.peek() {
             if !peek.is_whitespace() {
                 break;
             }
             self.consume();
         }
-        self.tok(TokenKind::Whitespace)
+        Ok(self.tok(TokenKind::Whitespace))
     }
 
-    fn scan_comment(&mut self) -> Token {
+    fn scan_comment(&mut self) -> LexerResult<Token> {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), ';');
+
         fn is_line_ending(ch: char) -> bool {
             ch == '\n' || ch == '\r'
         }
@@ -83,10 +119,10 @@ impl<'c> LexemeIter<'c> {
                 break;
             }
         }
-        self.tok(TokenKind::Comment)
+        Ok(self.tok(TokenKind::Comment))
     }
 
-    fn scan_numeral(&mut self) -> Token {
+    fn scan_numeral(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap().is_digit(10));
 
@@ -99,16 +135,16 @@ impl<'c> LexemeIter<'c> {
                 _ => break,
             }
         }
-        self.tok(TokenKind::Numeral)
+        Ok(self.tok(TokenKind::Numeral))
     }
 
-    fn scan_decimal(&mut self) -> Token {
+    fn scan_decimal(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap() == '.');
 
         self.consume();
         match self.peek() {
-            None => panic!("unexpected end of file while scanning a decimal number"),
+            None => return Err(self.unexpected_end_of_file("while scanning for a decimal number")),
             Some(peek) => match peek {
                 c if c.is_digit(10) => {
                     while let Some(peek) = self.peek() {
@@ -117,93 +153,113 @@ impl<'c> LexemeIter<'c> {
                         }
                         self.consume();
                     }
-                    return self.tok(TokenKind::Decimal);
+                    return Ok(self.tok(TokenKind::Decimal));
                 }
-                _ => panic!("unexpected character while scanning a decimal number"),
+                c => Err(self.unexpected_char(c, "while scanning for a decimal number")),
             },
         }
     }
 
-    fn scan_numeral_or_decimal(&mut self) -> Token {
+    fn scan_numeral_or_decimal(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap().is_digit(10));
 
         match self.peek().unwrap() {
             '0' => match self.consume().peek() {
-                None => self.tok(TokenKind::Numeral),
+                None => Ok(self.tok(TokenKind::Numeral)),
                 Some(peek) => match peek {
-                    c if c.is_digit(10) => self.scan_numeral(),
                     '.' => self.scan_decimal(),
-                    c => panic!(
-                        "unexpected character (= {:?}) after while scanning for numeral or decimal literal", c)
-                }
-            }
-            _ => self.scan_numeral()
+                    c if c.is_digit(10) => self.scan_numeral(),
+                    c => {
+                        return Err(self
+                            .unexpected_char(c, "while scanning for numeral or decimal literal"))
+                    }
+                },
+            },
+            _ => self.scan_numeral(),
         }
     }
 
-    fn scan_hexdec_numeral(&mut self) -> Token {
+    fn scan_hexdec_numeral(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), 'x');
 
         self.consume();
         match self.peek() {
-            None => panic!("unexpected end of file while scanning for hexdec numeral"),
+            None => return Err(self.unexpected_end_of_file("while scanning for hexdec numeral")),
             Some(peek) => match peek {
                 c if c.is_digit(16) => {
-                    while let Some(peek) = self.peek() {
-                        if !peek.is_digit(16) {
-                            break;
+                    'inner: while let Some(peek) = self.peek() {
+                        if peek.is_digit(16) {
+                            self.consume();
+                            continue 'inner;
                         }
-                        self.consume();
+                        if peek == '(' || peek == ')' || peek.is_whitespace() {
+                            return Ok(self.tok(TokenKind::Numeral))
+                        }
+                        match peek {
+                            '(' | ')' => return Ok(self.tok(TokenKind::Numeral)),
+                            c if c.is_whitespace() => return Ok(self.tok(TokenKind::Numeral)),
+                            c => return Err(self.unexpected_char(c, "while scanning for hexdec numeral"))
+                        }
                     }
-                    self.tok(TokenKind::Numeral)
+                    Ok(self.tok(TokenKind::Numeral))
                 }
-                _ => panic!("unexpected character (= {:?}) while scanning for hexdec numeral"),
+                c => return Err(self.unexpected_char(c, "while scanning for hexdec numeral")),
             },
         }
     }
 
-    fn scan_binary_numeral(&mut self) -> Token {
+    fn scan_binary_numeral(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), 'b');
 
         self.consume();
         match self.peek() {
-            None => panic!("unexpected end of file while scanning for binary numeral"),
+            None => return Err(self.unexpected_end_of_file("while scanning for binary numeral")),
             Some(peek) => match peek {
                 c if c.is_digit(2) => {
-                    while let Some(peek) = self.peek() {
-                        if !peek.is_digit(2) {
-                            break;
+                    'inner: while let Some(peek) = self.peek() {
+                        if peek.is_digit(2) {
+                            self.consume();
+                            continue 'inner;
                         }
-                        self.consume();
+                        if peek == '(' || peek == ')' || peek.is_whitespace() {
+                            return Ok(self.tok(TokenKind::Numeral))
+                        }
+                        match peek {
+                            '(' | ')' => return Ok(self.tok(TokenKind::Numeral)),
+                            c if c.is_whitespace() => return Ok(self.tok(TokenKind::Numeral)),
+                            c => return Err(self.unexpected_char(c, "while scanning for binary numeral"))
+                        }
                     }
-                    self.tok(TokenKind::Numeral)
+                    Ok(self.tok(TokenKind::Numeral))
                 }
-                _ => panic!("unexpected character (= {:?}) while scanning for binary numeral"),
+                c => return Err(self.unexpected_char(c, "while scanning for binary numeral")),
             },
         }
     }
 
-    fn scan_binary_or_hexdec_numeral(&mut self) -> Token {
+    fn scan_binary_or_hexdec_numeral(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), '#');
 
         self.consume();
         match self.peek() {
-            None => panic!("unexpected end of file while scanning binary or hexdec numeral"),
+            None => {
+                return Err(
+                    self.unexpected_end_of_file("while scanning for binary or hexdec numeral")
+                )
+            }
             Some(peek) => match peek {
                 'x' => self.scan_hexdec_numeral(),
                 'b' => self.scan_binary_numeral(),
-                _ => {
-                    panic!("unexpected character (= {:?}) while scanning binary or hexdec numeral")
-                }
+                c => Err(self.unexpected_char(c, "while scanning for binary or hexdec numeral")),
             },
         }
     }
 
-    fn scan_string_literal(&mut self) -> Token {
+    fn scan_string_literal(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), '"');
 
@@ -212,44 +268,48 @@ impl<'c> LexemeIter<'c> {
             self.consume();
             if peek == '"' {
                 match self.peek() {
-                    None => return self.tok(TokenKind::StringLiteral),
+                    None => return Ok(self.tok(TokenKind::StringLiteral)),
                     Some(peek) => match peek {
                         '"' => {
                             self.consume();
                             continue 'outer;
                         }
-                        _ => return self.tok(TokenKind::StringLiteral),
+                        _ => return Ok(self.tok(TokenKind::StringLiteral)),
                     },
                 }
             }
         }
-        panic!("unexpected end of file before closing the current string literal")
+        Err(self.unexpected_end_of_file("before closing the current string literal"))
     }
 
-    fn scan_simple_symbol(&mut self) -> Token {
+    fn scan_simple_symbol(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert!(is_symbol_char(self.peek().unwrap()));
 
         while let Some(peek) = self.peek() {
-            if !(peek.is_digit(10) || is_symbol_char(peek)) {
-                break;
+            if peek.is_digit(10) || is_symbol_char(peek) {
+                self.consume();
+                continue;
             }
-            self.consume();
+            if peek.is_whitespace() || peek == '(' || peek == ')' {
+                return Ok(self.tok(TokenKind::SimpleSymbol))
+            }
+            return Err(self.unexpected_char(peek, "while scanning for a simple symbol"))
         }
-        self.tok(TokenKind::SimpleSymbol)
+        Ok(self.tok(TokenKind::SimpleSymbol))
     }
 
-    fn scan_keyword(&mut self) -> Token {
+    fn scan_keyword(&mut self) -> LexerResult<Token> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), ':');
 
         self.consume();
         if self.peek().is_none() {
-            panic!("unexpected end of file while scanning for keyword")
+            return Err(self.unexpected_end_of_file("while scanning for keyword"));
         }
         let peek = self.peek().unwrap();
         if !(peek.is_digit(10) || is_symbol_char(peek)) {
-            panic!("unexpected character (= {:?}) while scanning for keyword")
+            return Err(self.unexpected_char(peek, "while scanning for keyword"));
         }
         self.consume();
         while let Some(peek) = self.peek() {
@@ -258,34 +318,36 @@ impl<'c> LexemeIter<'c> {
             }
             self.consume();
         }
-        self.tok(TokenKind::Keyword)
+        Ok(self.tok(TokenKind::Keyword))
     }
 
-    fn next_token(&mut self) -> Token {
+    pub fn next_token(&mut self) -> LexerResult<Token> {
+        if self.error_occured {
+            return Err(LexerError::previous_error_occured(self.loc));
+        }
+        if self.peek().is_none() {
+            return Err(self.unexpected_end_of_file(None));
+        }
         use self::TokenKind::*;
-        let peek = match self.peek() {
-            Some(peek) => peek,
-            None => return self.tok(EndOfFile),
-        };
-        match peek {
+        match self.peek().unwrap() {
             c if c.is_whitespace() => self.scan_whitespace(),
             c if c.is_digit(10) => self.scan_numeral_or_decimal(),
             c if is_symbol_char(c) => self.scan_simple_symbol(),
             ';' => self.scan_comment(),
             ':' => self.scan_keyword(),
-            '(' => self.consume().tok(OpenParen),
-            ')' => self.consume().tok(CloseParen),
+            '(' => Ok(self.consume().tok(OpenParen)),
+            ')' => Ok(self.consume().tok(CloseParen)),
             '#' => self.scan_binary_or_hexdec_numeral(),
             '"' => self.scan_string_literal(),
-            _ => self.consume().tok(Unknown),
+            c => Err(self.unexpected_char(c, "while scanning for the start of a new token")),
         }
     }
 }
 
 fn is_symbol_punctuation(ch: char) -> bool {
     match ch {
-        | '~' | '!' | '@' | '$' | '%' | '^' | '&' | '*' | '_' | '-' | '+' | '=' | '<' | '>' | '.'
-        | '?' | '/' => true,
+        | '~' | '!' | '@' | '$' | '%' | '^' | '&' | '*' | '_' | '-' | '+' | '=' | '<' | '>'
+        | '.' | '?' | '/' => true,
         _ => false,
     }
 }
@@ -298,11 +360,7 @@ impl<'c> Iterator for LexemeIter<'c> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let tok = self.next_token();
-        if let TokenKind::EndOfFile = tok.kind() {
-            return None;
-        }
-        Some(tok)
+        self.next_token().ok()
     }
 }
 
@@ -325,6 +383,38 @@ mod tests {
         for (actual, expected) in actual_toks.into_iter().zip(expected_toks.into_iter()) {
             assert_eq!(actual, expected);
         }
+    }
+
+    type RawResult = ::std::result::Result<TokenKind, LexerErrorKind>;
+
+    fn assert_raw_input<I>(input: &str, expected_toks: I)
+    where
+        I: IntoIterator<Item = (RawResult, (u32, u32))>,
+    {
+        let expected_toks = expected_toks.into_iter().map(|(raw, (begin, end))| {
+            let loc = Span::new(Loc::from(begin), Loc::from(end));
+            raw.map(|tok| Token::new(tok, loc))
+                .map_err(|err| LexerError::new(err, loc))
+        });
+        let mut actual_toks = lex_smtlib2(input);
+        for expected in expected_toks {
+            let actual = actual_toks.next_token().map_err(|mut err| {
+                err.clear_context();
+                err
+            });
+            assert_eq!(actual, expected)
+        }
+    }
+
+    #[test]
+    fn ret_errors_after_encountering_one() {
+        assert_raw_input(
+            "\0",
+            vec![
+                (Err(LexerErrorKind::UnexpectedCharacter('\0')), (0, 0)),
+                (Err(LexerErrorKind::PreviousErrorOccured), (0, 0)),
+            ],
+        );
     }
 
     mod comment {
@@ -459,21 +549,25 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
         fn zero_missing_after_dot_err() {
-            assert_input("0.", vec![])
+            assert_raw_input(
+                "0.",
+                vec![(Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))],
+            )
         }
 
         #[test]
-        #[should_panic]
         fn one_missing_after_dot_err() {
-            assert_input("1.", vec![])
+            assert_raw_input("1.", vec![
+                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))
+            ]);
         }
 
         #[test]
-        #[should_panic]
         fn double_dot_err() {
-            assert_input("1..2", vec![])
+            assert_raw_input("1..2", vec![
+                (Err(LexerErrorKind::UnexpectedCharacter('.')), (0, 2))
+            ]);
         }
     }
 
@@ -496,9 +590,17 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
         fn empty_after_x_err() {
-            assert_input("#x", vec![])
+            assert_raw_input("#x", vec![
+                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))
+            ]);
+        }
+
+        #[test]
+        fn out_of_bounds_digit_err() {
+            assert_raw_input("#xABFG", vec![
+                (Err(LexerErrorKind::UnexpectedCharacter('G')), (0, 5))
+            ]);
         }
     }
 
@@ -521,15 +623,17 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
         fn empty_after_x_err() {
-            assert_input("#b", vec![])
+            assert_raw_input("#b", vec![
+                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 1))
+            ]);
         }
 
         #[test]
-        #[should_panic]
         fn out_of_bounds_digit_err() {
-            assert_input("#b012", vec![])
+            assert_raw_input("#b012", vec![
+                (Err(LexerErrorKind::UnexpectedCharacter('2')), (0, 4))
+            ]);
         }
     }
 
@@ -576,14 +680,39 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
         fn unexpected_end_of_file() {
-            assert_input(r#""not terminated correctly"#, vec![])
+            assert_raw_input(r#""not terminated correctly"#, vec![
+                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 24))
+            ]);
         }
     }
 
     mod simple_symbol {
         use super::*;
+
+        #[test]
+        fn unexpected_colon() {
+            assert_raw_input("hello:world", vec![
+                (Err(LexerErrorKind::UnexpectedCharacter(':')), (0, 5))
+            ]);
+        }
+
+        #[test]
+        fn before_close_paren() {
+            assert_input("hello)", vec![
+                (TokenKind::SimpleSymbol, (0, 4)),
+                (TokenKind::CloseParen, (5, 5))
+            ]);
+        }
+
+        #[test]
+        fn separated_by_whitespace() {
+            assert_input("hello world", vec![
+                (TokenKind::SimpleSymbol, (0, 4)),
+                (TokenKind::Whitespace, (5, 5)),
+                (TokenKind::SimpleSymbol, (6, 10))
+            ]);
+        }
 
         #[test]
         fn single_punctuation() {
@@ -622,7 +751,10 @@ mod tests {
             assert_input("+34", vec![(TokenKind::SimpleSymbol, (0, 2))]);
             assert_input("-32", vec![(TokenKind::SimpleSymbol, (0, 2))]);
             assert_input("SMTLib2.0", vec![(TokenKind::SimpleSymbol, (0, 8))]);
-            assert_input("this_is-unfortunate", vec![(TokenKind::SimpleSymbol, (0, 18))]);
+            assert_input(
+                "this_is-unfortunate",
+                vec![(TokenKind::SimpleSymbol, (0, 18))],
+            );
         }
     }
 
@@ -630,9 +762,10 @@ mod tests {
         use super::*;
 
         #[test]
-        #[should_panic]
         fn empty() {
-            assert_input(":", vec![]);
+            assert_raw_input(":", vec![
+                (Err(LexerErrorKind::UnexpectedEndOfFile), (0, 0))
+            ]);
         }
 
         #[test]
