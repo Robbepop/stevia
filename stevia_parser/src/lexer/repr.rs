@@ -10,6 +10,10 @@ impl Loc {
     pub fn to_u32(self) -> u32 {
         self.0
     }
+
+    pub fn to_usize(self) -> usize {
+        self.0 as usize
+    }
 }
 
 impl From<u32> for Loc {
