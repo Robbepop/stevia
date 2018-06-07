@@ -212,18 +212,14 @@ impl<'c> LexemeIter<'c> {
             self.consume();
             if peek == '"' {
                 match self.peek() {
-                    None => {
-                        return self.tok(TokenKind::StringLiteral)
-                    },
+                    None => return self.tok(TokenKind::StringLiteral),
                     Some(peek) => match peek {
                         '"' => {
                             self.consume();
                             continue 'outer;
                         }
-                        _ => {
-                            return self.tok(TokenKind::StringLiteral)
-                        }
-                    }
+                        _ => return self.tok(TokenKind::StringLiteral),
+                    },
                 }
             }
         }
@@ -508,15 +504,21 @@ mod tests {
 
         #[test]
         fn new_line() {
-            assert_input(indoc!(
-                "\"first
+            assert_input(
+                indoc!(
+                    "\"first
                  second\""
-            ), vec![(TokenKind::StringLiteral, (0, 13))])
+                ),
+                vec![(TokenKind::StringLiteral, (0, 13))],
+            )
         }
 
         #[test]
         fn seperating_whitespace() {
-            assert_input("\"this is a string literal\"", vec![(TokenKind::StringLiteral, (0, 25))])
+            assert_input(
+                "\"this is a string literal\"",
+                vec![(TokenKind::StringLiteral, (0, 25))],
+            )
         }
 
         #[test]
