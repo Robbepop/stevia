@@ -35,6 +35,10 @@ impl Span {
     pub fn new(begin: Loc, end: Loc) -> Self {
         Span { begin, end }
     }
+
+    pub fn len(self) -> usize {
+        (self.end.to_usize()) - (self.begin.to_usize()) + 1
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
