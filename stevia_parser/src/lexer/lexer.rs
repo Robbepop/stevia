@@ -239,6 +239,28 @@ impl<'c> LexemeIter<'c> {
         self.tok(TokenKind::SimpleSymbol)
     }
 
+    fn scan_keyword(&mut self) -> Token {
+        debug_assert!(self.peek().is_some());
+        debug_assert_eq!(self.peek().unwrap(), ':');
+
+        self.consume();
+        if self.peek().is_none() {
+            panic!("unexpected end of file while scanning for keyword")
+        }
+        let peek = self.peek().unwrap();
+        if !(peek.is_digit(10) || is_symbol_char(peek)) {
+            panic!("unexpected character (= {:?}) while scanning for keyword")
+        }
+        self.consume();
+        while let Some(peek) = self.peek() {
+            if !(peek.is_digit(10) || is_symbol_char(peek)) {
+                break;
+            }
+            self.consume();
+        }
+        self.tok(TokenKind::Keyword)
+    }
+
     fn next_token(&mut self) -> Token {
         use self::TokenKind::*;
         let peek = match self.peek() {
@@ -250,6 +272,7 @@ impl<'c> LexemeIter<'c> {
             c if c.is_digit(10) => self.scan_numeral_or_decimal(),
             c if is_symbol_char(c) => self.scan_simple_symbol(),
             ';' => self.scan_comment(),
+            ':' => self.scan_keyword(),
             '(' => self.consume().tok(OpenParen),
             ')' => self.consume().tok(CloseParen),
             '#' => self.scan_binary_or_hexdec_numeral(),
@@ -600,6 +623,27 @@ mod tests {
             assert_input("-32", vec![(TokenKind::SimpleSymbol, (0, 2))]);
             assert_input("SMTLib2.0", vec![(TokenKind::SimpleSymbol, (0, 8))]);
             assert_input("this_is-unfortunate", vec![(TokenKind::SimpleSymbol, (0, 18))]);
+        }
+    }
+
+    mod keyword {
+        use super::*;
+
+        #[test]
+        #[should_panic]
+        fn empty() {
+            assert_input(":", vec![]);
+        }
+
+        #[test]
+        fn selection() {
+            assert_input(":date", vec![(TokenKind::Keyword, (0, 4))]);
+            assert_input(":a2", vec![(TokenKind::Keyword, (0, 2))]);
+            assert_input(":foo-bar", vec![(TokenKind::Keyword, (0, 7))]);
+            assert_input(":<=", vec![(TokenKind::Keyword, (0, 2))]);
+            assert_input(":42", vec![(TokenKind::Keyword, (0, 2))]);
+            assert_input(":-56", vec![(TokenKind::Keyword, (0, 3))]);
+            assert_input(":->", vec![(TokenKind::Keyword, (0, 2))]);
         }
     }
 }
