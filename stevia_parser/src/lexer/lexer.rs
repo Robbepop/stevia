@@ -66,6 +66,15 @@ impl<'c> LexemeIter<'c> {
         tok
     }
 
+    fn span_to_str(&self, span: Span) -> &str {
+        let input_str = self.input.as_str();
+        debug_assert!(span.begin.to_usize() < input_str.len());
+        debug_assert!(span.end.to_usize() < input_str.len());
+        unsafe {
+            input_str.slice_unchecked(span.begin.to_usize(), span.end.to_usize() + 1)
+        }
+    }
+
     fn unexpected_char<C>(&mut self, ch: char, opt_ctx: C) -> LexerError
     where
         C: Into<Option<&'static str>>,
