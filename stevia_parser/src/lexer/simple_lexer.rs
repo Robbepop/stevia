@@ -211,38 +211,18 @@ mod tests {
     }
 
     #[test]
-    fn underscore() {
+    fn keywords() {
         assert_input("_", vec![(TokenKind::Underscore, (0, 0))]);
-    }
-
-    #[test]
-    fn exclamation_mark() {
         assert_input("!", vec![(TokenKind::ExclamationMark, (0, 0))]);
-    }
-
-    #[test]
-    fn as_keyword() {
         assert_input("as", vec![(TokenKind::As, (0, 1))]);
-    }
-
-    #[test]
-    fn let_keyword() {
         assert_input("let", vec![(TokenKind::Let, (0, 2))]);
-    }
-
-    #[test]
-    fn exists_keyword() {
         assert_input("exists", vec![(TokenKind::Exists, (0, 5))]);
-    }
-
-    #[test]
-    fn forall_keyword() {
         assert_input("forall", vec![(TokenKind::Forall, (0, 5))]);
+        assert_input("match", vec![(TokenKind::Match, (0, 4))]);
+        assert_input("par", vec![(TokenKind::Par, (0, 2))]);
     }
 
     #[test]
-    fn match_keyword() {
-        assert_input("match", vec![(TokenKind::Match, (0, 4))]);
     }
 
     #[test]
