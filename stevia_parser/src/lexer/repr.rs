@@ -193,7 +193,7 @@ impl Command {
             GetInfo => "get-info",
             GetModel => "get-model",
             GetOption => "get-option",
-            GetProof => "get-proff",
+            GetProof => "get-proof",
             GetUnsatAssumptions => "get-unsat-assumptions",
             GetUnsatCore => "get-unsat-core",
             GetValue => "get-value",
