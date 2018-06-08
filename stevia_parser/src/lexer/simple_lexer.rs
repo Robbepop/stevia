@@ -223,14 +223,45 @@ mod tests {
     }
 
     #[test]
+    fn meta_spec() {
+        assert_input("BINARY", vec![(TokenKind::MetaSpec(MetaSpec::Binary), (0, 5))]);
+        assert_input("DECIMAL", vec![(TokenKind::MetaSpec(MetaSpec::Decimal), (0, 6))]);
+        assert_input("HEXADECIMAL", vec![(TokenKind::MetaSpec(MetaSpec::Hexadecimal), (0, 10))]);
+        assert_input("STRING", vec![(TokenKind::MetaSpec(MetaSpec::String), (0, 5))]);
+        assert_input("NUMERAL", vec![(TokenKind::MetaSpec(MetaSpec::Numeral), (0, 6))]);
     }
 
     #[test]
-    fn par_keyword() {
-        assert_input("par", vec![(TokenKind::Par, (0, 2))]);
+    fn commands() {
+        assert_input("assert", vec![(TokenKind::Command(Command::Assert), (0, 5))]);
+        assert_input("check-sat", vec![(TokenKind::Command(Command::CheckSat), (0, 8))]);
+        assert_input("check-sat-assuming", vec![(TokenKind::Command(Command::CheckSatAssuming), (0, 17))]);
+        assert_input("declare-const", vec![(TokenKind::Command(Command::DeclareConst), (0, 12))]);
+        assert_input("declare-datatype", vec![(TokenKind::Command(Command::DeclareDatatype), (0, 15))]);
+        assert_input("declare-datatypes", vec![(TokenKind::Command(Command::DeclareDatatypes), (0, 16))]);
+        assert_input("declare-fun", vec![(TokenKind::Command(Command::DeclareFun), (0, 10))]);
+        assert_input("declare-sort", vec![(TokenKind::Command(Command::DeclareSort), (0, 11))]);
+        assert_input("define-fun", vec![(TokenKind::Command(Command::DefineFun), (0, 9))]);
+        assert_input("define-fun-rec", vec![(TokenKind::Command(Command::DefineFunRec), (0, 13))]);
+        assert_input("define-funs-rec", vec![(TokenKind::Command(Command::DefineFunsRec), (0, 14))]);
+        assert_input("define-sort", vec![(TokenKind::Command(Command::DefineSort), (0, 10))]);
+        assert_input("echo", vec![(TokenKind::Command(Command::Echo), (0, 3))]);
+        assert_input("exit", vec![(TokenKind::Command(Command::Exit), (0, 3))]);
+        assert_input("get-assertions", vec![(TokenKind::Command(Command::GetAssertions), (0, 13))]);
+        assert_input("get-assignment", vec![(TokenKind::Command(Command::GetAssignment), (0, 13))]);
+        assert_input("get-info", vec![(TokenKind::Command(Command::GetInfo), (0, 7))]);
+        assert_input("get-model", vec![(TokenKind::Command(Command::GetModel), (0, 8))]);
+        assert_input("get-option", vec![(TokenKind::Command(Command::GetOption), (0, 9))]);
+        assert_input("get-proof", vec![(TokenKind::Command(Command::GetProof), (0, 8))]);
+        assert_input("get-unsat-assumptions", vec![(TokenKind::Command(Command::GetUnsatAssumptions), (0, 20))]);
+        assert_input("get-unsat-core", vec![(TokenKind::Command(Command::GetUnsatCore), (0, 13))]);
+        assert_input("get-value", vec![(TokenKind::Command(Command::GetValue), (0, 8))]);
+        assert_input("pop", vec![(TokenKind::Command(Command::Pop), (0, 2))]);
+        assert_input("push", vec![(TokenKind::Command(Command::Push), (0, 3))]);
+        assert_input("reset", vec![(TokenKind::Command(Command::Reset), (0, 4))]);
+        assert_input("reset-assertions", vec![(TokenKind::Command(Command::ResetAssertions), (0, 15))]);
+        assert_input("set-info", vec![(TokenKind::Command(Command::SetInfo), (0, 7))]);
+        assert_input("set-logic", vec![(TokenKind::Command(Command::SetLogic), (0, 8))]);
+        assert_input("set-option", vec![(TokenKind::Command(Command::SetOption), (0, 9))]);
     }
-
-    // MetaSpec(MetaSpec),
-    // Command(Command),
-
 }
