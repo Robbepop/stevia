@@ -48,7 +48,14 @@ impl From<ReservedWord> for TokenKind {
     }
 }
 
+fn longest_reserved_name() -> usize {
+    *LONGEST_RESERVED_NAME
+}
+
 lazy_static! {
+    static ref LONGEST_RESERVED_NAME: usize = {
+        RESERVED_NAMES.iter().map(|r| r.0.len()).max().unwrap()
+    };
     static ref RESERVED_NAMES: HashMap<&'static str, ReservedWord> = {
         let mut reserved_names = HashMap::new();
         reserved_names.insert("_", ReservedWord::Underscore);
@@ -117,6 +124,12 @@ impl<'c> TokenIter<'c> {
     }
 
     fn resolve_simple_symbol(&self, span: Span) -> TokenKind {
+        if span.len() > longest_reserved_name() {
+            // This is an optimization:
+            // Early return for all symbol names for which their
+            // length exceeds the length of even the longest reserved name.
+            return TokenKind::Symbol
+        }
         if let Some(&reserved) = RESERVED_NAMES.get(self.raw_lexer.span_to_str(span)) {
             return TokenKind::from(reserved);
         }
