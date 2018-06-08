@@ -20,9 +20,24 @@ impl CharAndLoc {
 
 #[derive(Debug, Clone)]
 pub struct RawTokenIter<'c> {
+    /// The input iterator over characters and their byte offsets.
     input: CharIndices<'c>,
+    /// The input string slice.
+    /// 
+    /// # Note
+    /// 
+    /// `CharIndices::as_str` cannot be used since it returns the remaining
+    /// string slice instead of the full which is required.
+    input_str: &'c str,
+    /// The location of the token that is to be yielded next.
     loc: Span,
+    /// The currently peeked token and its byte position.
     peek: Option<CharAndLoc>,
+    /// If an error has already occured.
+    /// 
+    /// # Note
+    /// 
+    /// This is important to only return errors after the first error has happened.
     error_occured: bool,
 }
 
@@ -30,6 +45,7 @@ impl<'c> RawTokenIter<'c> {
     pub(self) fn new(input: &'c str) -> Self {
         let mut iter = RawTokenIter {
             input: input.char_indices(),
+            input_str: input,
             loc: Span::zero(),
             peek: None,
             error_occured: false,
@@ -67,11 +83,14 @@ impl<'c> RawTokenIter<'c> {
     }
 
     pub(crate) fn span_to_str(&self, span: Span) -> &str {
-        let input_str = self.input.as_str();
-        debug_assert!(span.begin.to_usize() < input_str.len());
-        debug_assert!(span.end.to_usize() < input_str.len());
+        println!("input_str.as_bytes().len() = {}", self.input_str.as_bytes().len());
+        println!("span.begin.to_usize() = {}", span.begin.to_usize());
+        println!("span.end.to_usize() = {}", span.end.to_usize());
+        debug_assert!(self.input_str.as_bytes().len() >= 1);
+        debug_assert!(span.begin.to_usize() < self.input_str.as_bytes().len());
+        debug_assert!(span.end.to_usize() < self.input_str.as_bytes().len());
         unsafe {
-            input_str.slice_unchecked(span.begin.to_usize(), span.end.to_usize() + 1)
+            self.input_str.slice_unchecked(span.begin.to_usize(), span.end.to_usize() + 1)
         }
     }
 
