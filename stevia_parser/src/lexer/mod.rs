@@ -86,7 +86,7 @@ pub use self::{
         LexerResult
     },
     raw_lexer::{
-        lex_smtlib2,
+        raw_smtlib2_tokens,
         RawTokenIter
     },
     simple_lexer::{

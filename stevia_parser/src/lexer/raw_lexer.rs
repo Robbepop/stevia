@@ -1,6 +1,6 @@
 use lexer::{LexerError, LexerErrorKind, LexerResult, Loc, Span, RawToken, RawTokenKind};
 
-pub fn lex_smtlib2(input: &str) -> RawTokenIter {
+pub fn raw_smtlib2_tokens(input: &str) -> RawTokenIter {
     RawTokenIter::new(input)
 }
 
@@ -416,7 +416,7 @@ mod tests {
                 RawToken::new(kind, Span::new(Loc::from(begin), Loc::from(end)))
             })
             .collect::<Vec<_>>();
-        let actual_toks = lex_smtlib2(input).collect::<Vec<_>>();
+        let actual_toks = raw_smtlib2_tokens(input).collect::<Vec<_>>();
         assert_eq!(actual_toks.len(), expected_toks.len());
         for (actual, expected) in actual_toks.into_iter().zip(expected_toks.into_iter()) {
             assert_eq!(actual, expected);
@@ -434,7 +434,7 @@ mod tests {
             raw.map(|tok| RawToken::new(tok, loc))
                 .map_err(|err| LexerError::new(err, loc))
         });
-        let mut actual_toks = lex_smtlib2(input);
+        let mut actual_toks = raw_smtlib2_tokens(input);
         for expected in expected_toks {
             let actual = actual_toks.next_token().map_err(|mut err| {
                 err.clear_context();
