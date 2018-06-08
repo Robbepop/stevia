@@ -75,7 +75,8 @@
 //! They have special use in the language: Used as attributes or option names.
 
 mod error;
-mod lexer;
+mod raw_lexer;
+mod simple_lexer;
 mod repr;
 
 pub use self::{
@@ -84,14 +85,17 @@ pub use self::{
         LexerErrorKind,
         LexerResult
     },
-    lexer::{
+    raw_lexer::{
         lex_smtlib2,
-        LexemeIter
+        RawTokenIter
+    },
+    simple_lexer::{
+        
     },
     repr::{
         Loc,
         Span,
-        TokenKind,
-        Token
+        RawTokenKind,
+        RawToken
     }
 };

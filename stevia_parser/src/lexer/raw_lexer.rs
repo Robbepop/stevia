@@ -1,7 +1,7 @@
-use lexer::{LexerError, LexerErrorKind, LexerResult, Loc, Span, Token, TokenKind};
+use lexer::{LexerError, LexerErrorKind, LexerResult, Loc, Span, RawToken, RawTokenKind};
 
-pub fn lex_smtlib2(input: &str) -> LexemeIter {
-    LexemeIter::new(input)
+pub fn lex_smtlib2(input: &str) -> RawTokenIter {
+    RawTokenIter::new(input)
 }
 
 use std::str::CharIndices;
@@ -19,16 +19,16 @@ impl CharAndLoc {
 }
 
 #[derive(Debug, Clone)]
-pub struct LexemeIter<'c> {
+pub struct RawTokenIter<'c> {
     input: CharIndices<'c>,
     loc: Span,
     peek: Option<CharAndLoc>,
     error_occured: bool,
 }
 
-impl<'c> LexemeIter<'c> {
+impl<'c> RawTokenIter<'c> {
     pub(self) fn new(input: &'c str) -> Self {
-        let mut iter = LexemeIter {
+        let mut iter = RawTokenIter {
             input: input.char_indices(),
             loc: Span::zero(),
             peek: None,
@@ -58,15 +58,15 @@ impl<'c> LexemeIter<'c> {
         self
     }
 
-    fn tok(&mut self, kind: TokenKind) -> Token {
-        let tok = Token::new(kind, self.loc);
+    fn tok(&mut self, kind: RawTokenKind) -> RawToken {
+        let tok = RawToken::new(kind, self.loc);
         if let Some(peek) = self.peek {
             self.loc.begin = peek.loc;
         };
         tok
     }
 
-    fn span_to_str(&self, span: Span) -> &str {
+    pub(crate) fn span_to_str(&self, span: Span) -> &str {
         let input_str = self.input.as_str();
         debug_assert!(span.begin.to_usize() < input_str.len());
         debug_assert!(span.end.to_usize() < input_str.len());
@@ -102,7 +102,7 @@ impl<'c> LexemeIter<'c> {
         err
     }
 
-    fn scan_whitespace(&mut self) -> LexerResult<Token> {
+    fn scan_whitespace(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap().is_whitespace());
 
@@ -112,10 +112,10 @@ impl<'c> LexemeIter<'c> {
             }
             self.consume();
         }
-        Ok(self.tok(TokenKind::Whitespace))
+        Ok(self.tok(RawTokenKind::Whitespace))
     }
 
-    fn scan_comment(&mut self) -> LexerResult<Token> {
+    fn scan_comment(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), ';');
 
@@ -128,10 +128,10 @@ impl<'c> LexemeIter<'c> {
                 break;
             }
         }
-        Ok(self.tok(TokenKind::Comment))
+        Ok(self.tok(RawTokenKind::Comment))
     }
 
-    fn scan_numeral(&mut self) -> LexerResult<Token> {
+    fn scan_numeral(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap().is_digit(10));
 
@@ -144,10 +144,10 @@ impl<'c> LexemeIter<'c> {
                 _ => break,
             }
         }
-        Ok(self.tok(TokenKind::Numeral))
+        Ok(self.tok(RawTokenKind::Numeral))
     }
 
-    fn scan_decimal(&mut self) -> LexerResult<Token> {
+    fn scan_decimal(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap() == '.');
 
@@ -162,20 +162,20 @@ impl<'c> LexemeIter<'c> {
                         }
                         self.consume();
                     }
-                    return Ok(self.tok(TokenKind::Decimal));
+                    return Ok(self.tok(RawTokenKind::Decimal));
                 }
                 c => Err(self.unexpected_char(c, "while scanning for a decimal number")),
             },
         }
     }
 
-    fn scan_numeral_or_decimal(&mut self) -> LexerResult<Token> {
+    fn scan_numeral_or_decimal(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert!(self.peek().unwrap().is_digit(10));
 
         match self.peek().unwrap() {
             '0' => match self.consume().peek() {
-                None => Ok(self.tok(TokenKind::Numeral)),
+                None => Ok(self.tok(RawTokenKind::Numeral)),
                 Some(peek) => match peek {
                     '.' => self.scan_decimal(),
                     c if c.is_digit(10) => self.scan_numeral(),
@@ -189,7 +189,7 @@ impl<'c> LexemeIter<'c> {
         }
     }
 
-    fn scan_hexdec_numeral(&mut self) -> LexerResult<Token> {
+    fn scan_hexdec_numeral(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), 'x');
 
@@ -204,18 +204,18 @@ impl<'c> LexemeIter<'c> {
                             continue 'inner;
                         }
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
-                            return Ok(self.tok(TokenKind::Numeral));
+                            return Ok(self.tok(RawTokenKind::Numeral));
                         }
                         return Err(self.unexpected_char(peek, "while scanning for hexdec numeral"));
                     }
-                    Ok(self.tok(TokenKind::Numeral))
+                    Ok(self.tok(RawTokenKind::Numeral))
                 }
                 c => return Err(self.unexpected_char(c, "while scanning for hexdec numeral")),
             },
         }
     }
 
-    fn scan_binary_numeral(&mut self) -> LexerResult<Token> {
+    fn scan_binary_numeral(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), 'b');
 
@@ -230,18 +230,18 @@ impl<'c> LexemeIter<'c> {
                             continue 'inner;
                         }
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
-                            return Ok(self.tok(TokenKind::Numeral));
+                            return Ok(self.tok(RawTokenKind::Numeral));
                         }
                         return Err(self.unexpected_char(peek, "while scanning for binary numeral"));
                     }
-                    Ok(self.tok(TokenKind::Numeral))
+                    Ok(self.tok(RawTokenKind::Numeral))
                 }
                 c => return Err(self.unexpected_char(c, "while scanning for binary numeral")),
             },
         }
     }
 
-    fn scan_binary_or_hexdec_numeral(&mut self) -> LexerResult<Token> {
+    fn scan_binary_or_hexdec_numeral(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), '#');
 
@@ -260,7 +260,7 @@ impl<'c> LexemeIter<'c> {
         }
     }
 
-    fn scan_string_literal(&mut self) -> LexerResult<Token> {
+    fn scan_string_literal(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), '"');
 
@@ -269,13 +269,13 @@ impl<'c> LexemeIter<'c> {
             self.consume();
             if peek == '"' {
                 match self.peek() {
-                    None => return Ok(self.tok(TokenKind::StringLiteral)),
+                    None => return Ok(self.tok(RawTokenKind::StringLiteral)),
                     Some(peek) => match peek {
                         '"' => {
                             self.consume();
                             continue 'outer;
                         }
-                        _ => return Ok(self.tok(TokenKind::StringLiteral)),
+                        _ => return Ok(self.tok(RawTokenKind::StringLiteral)),
                     },
                 }
             }
@@ -283,7 +283,7 @@ impl<'c> LexemeIter<'c> {
         Err(self.unexpected_end_of_file("before closing the current string literal"))
     }
 
-    fn scan_simple_symbol(&mut self) -> LexerResult<Token> {
+    fn scan_simple_symbol(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert!(is_symbol_char(self.peek().unwrap()));
 
@@ -293,14 +293,14 @@ impl<'c> LexemeIter<'c> {
                 continue;
             }
             if peek.is_whitespace() || peek == '(' || peek == ')' {
-                return Ok(self.tok(TokenKind::SimpleSymbol));
+                return Ok(self.tok(RawTokenKind::SimpleSymbol));
             }
             return Err(self.unexpected_char(peek, "while scanning for a simple symbol"));
         }
-        Ok(self.tok(TokenKind::SimpleSymbol))
+        Ok(self.tok(RawTokenKind::SimpleSymbol))
     }
 
-    fn scan_keyword(&mut self) -> LexerResult<Token> {
+    fn scan_keyword(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), ':');
 
@@ -319,10 +319,10 @@ impl<'c> LexemeIter<'c> {
             }
             self.consume();
         }
-        Ok(self.tok(TokenKind::Keyword))
+        Ok(self.tok(RawTokenKind::Keyword))
     }
 
-    fn scan_quoted_symbol(&mut self) -> LexerResult<Token> {
+    fn scan_quoted_symbol(&mut self) -> LexerResult<RawToken> {
         debug_assert!(self.peek().is_some());
         debug_assert_eq!(self.peek().unwrap(), '|');
 
@@ -333,20 +333,20 @@ impl<'c> LexemeIter<'c> {
                 return Err(self.unexpected_char('\\', "while scanning for quoted symbol"));
             }
             if peek == '|' {
-                return Ok(self.tok(TokenKind::QuotedSymbol));
+                return Ok(self.tok(RawTokenKind::QuotedSymbol));
             }
         }
         return Err(self.unexpected_end_of_file("while scanning for quoted symbol"));
     }
 
-    pub fn next_token(&mut self) -> LexerResult<Token> {
+    pub fn next_token(&mut self) -> LexerResult<RawToken> {
         if self.error_occured {
             return Err(LexerError::previous_error_occured(self.loc));
         }
         if self.peek().is_none() {
             return Err(self.unexpected_end_of_file(None));
         }
-        use self::TokenKind::*;
+        use self::RawTokenKind::*;
         match self.peek().unwrap() {
             c if c.is_whitespace() => self.scan_whitespace(),
             c if c.is_digit(10) => self.scan_numeral_or_decimal(),
@@ -375,8 +375,8 @@ fn is_symbol_char(ch: char) -> bool {
     ch.is_ascii_alphabetic() || is_symbol_punctuation(ch)
 }
 
-impl<'c> Iterator for LexemeIter<'c> {
-    type Item = Token;
+impl<'c> Iterator for RawTokenIter<'c> {
+    type Item = RawToken;
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_token().ok()
@@ -389,12 +389,12 @@ mod tests {
 
     fn assert_input<I>(input: &str, expected_toks: I)
     where
-        I: IntoIterator<Item = (TokenKind, (u32, u32))>,
+        I: IntoIterator<Item = (RawTokenKind, (u32, u32))>,
     {
         let expected_toks = expected_toks
             .into_iter()
             .map(|(kind, (begin, end))| {
-                Token::new(kind, Span::new(Loc::from(begin), Loc::from(end)))
+                RawToken::new(kind, Span::new(Loc::from(begin), Loc::from(end)))
             })
             .collect::<Vec<_>>();
         let actual_toks = lex_smtlib2(input).collect::<Vec<_>>();
@@ -404,7 +404,7 @@ mod tests {
         }
     }
 
-    type RawResult = ::std::result::Result<TokenKind, LexerErrorKind>;
+    type RawResult = ::std::result::Result<RawTokenKind, LexerErrorKind>;
 
     fn assert_raw_input<I>(input: &str, expected_toks: I)
     where
@@ -412,7 +412,7 @@ mod tests {
     {
         let expected_toks = expected_toks.into_iter().map(|(raw, (begin, end))| {
             let loc = Span::new(Loc::from(begin), Loc::from(end));
-            raw.map(|tok| Token::new(tok, loc))
+            raw.map(|tok| RawToken::new(tok, loc))
                 .map_err(|err| LexerError::new(err, loc))
         });
         let mut actual_toks = lex_smtlib2(input);
@@ -441,7 +441,7 @@ mod tests {
 
         #[test]
         fn single_line() {
-            assert_input("; this is a comment", vec![(TokenKind::Comment, (0, 18))]);
+            assert_input("; this is a comment", vec![(RawTokenKind::Comment, (0, 18))]);
         }
 
         #[test]
@@ -453,16 +453,16 @@ mod tests {
                      ; third line"
                 ),
                 vec![
-                    (TokenKind::Comment, (0, 12)),
-                    (TokenKind::Comment, (13, 26)),
-                    (TokenKind::Comment, (27, 38)),
+                    (RawTokenKind::Comment, (0, 12)),
+                    (RawTokenKind::Comment, (13, 26)),
+                    (RawTokenKind::Comment, (27, 38)),
                 ],
             );
         }
 
         #[test]
         fn multiple_semi_colons() {
-            assert_input(";;;;;", vec![(TokenKind::Comment, (0, 4))]);
+            assert_input(";;;;;", vec![(RawTokenKind::Comment, (0, 4))]);
         }
 
         #[test]
@@ -470,9 +470,9 @@ mod tests {
             assert_input(
                 ";\n;\n;",
                 vec![
-                    (TokenKind::Comment, (0, 1)),
-                    (TokenKind::Comment, (2, 3)),
-                    (TokenKind::Comment, (4, 4)),
+                    (RawTokenKind::Comment, (0, 1)),
+                    (RawTokenKind::Comment, (2, 3)),
+                    (RawTokenKind::Comment, (4, 4)),
                 ],
             );
         }
@@ -483,7 +483,7 @@ mod tests {
 
         #[test]
         fn any() {
-            assert_input(" \t\n\r", vec![(TokenKind::Whitespace, (0, 3))]);
+            assert_input(" \t\n\r", vec![(RawTokenKind::Whitespace, (0, 3))]);
         }
     }
 
@@ -492,12 +492,12 @@ mod tests {
 
         #[test]
         fn open() {
-            assert_input("(", vec![(TokenKind::OpenParen, (0, 0))]);
+            assert_input("(", vec![(RawTokenKind::OpenParen, (0, 0))]);
         }
 
         #[test]
         fn close() {
-            assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
+            assert_input(")", vec![(RawTokenKind::CloseParen, (0, 0))]);
         }
 
         #[test]
@@ -505,8 +505,8 @@ mod tests {
             assert_input(
                 "()",
                 vec![
-                    (TokenKind::OpenParen, (0, 0)),
-                    (TokenKind::CloseParen, (1, 1)),
+                    (RawTokenKind::OpenParen, (0, 0)),
+                    (RawTokenKind::CloseParen, (1, 1)),
                 ],
             );
         }
@@ -516,10 +516,10 @@ mod tests {
             assert_input(
                 "(())",
                 vec![
-                    (TokenKind::OpenParen, (0, 0)),
-                    (TokenKind::OpenParen, (1, 1)),
-                    (TokenKind::CloseParen, (2, 2)),
-                    (TokenKind::CloseParen, (3, 3)),
+                    (RawTokenKind::OpenParen, (0, 0)),
+                    (RawTokenKind::OpenParen, (1, 1)),
+                    (RawTokenKind::CloseParen, (2, 2)),
+                    (RawTokenKind::CloseParen, (3, 3)),
                 ],
             );
         }
@@ -530,17 +530,17 @@ mod tests {
 
         #[test]
         fn single_zero() {
-            assert_input("0", vec![(TokenKind::Numeral, (0, 0))]);
+            assert_input("0", vec![(RawTokenKind::Numeral, (0, 0))]);
         }
 
         #[test]
         fn multiple_zeros() {
-            assert_input("000", vec![(TokenKind::Numeral, (0, 2))]);
+            assert_input("000", vec![(RawTokenKind::Numeral, (0, 2))]);
         }
 
         #[test]
         fn simple() {
-            assert_input("123456789", vec![(TokenKind::Numeral, (0, 8))]);
+            assert_input("123456789", vec![(RawTokenKind::Numeral, (0, 8))]);
         }
     }
 
@@ -549,22 +549,22 @@ mod tests {
 
         #[test]
         fn zero_dot_zero() {
-            assert_input("0.0", vec![(TokenKind::Decimal, (0, 2))])
+            assert_input("0.0", vec![(RawTokenKind::Decimal, (0, 2))])
         }
 
         #[test]
         fn multiple_zero_dot_zero() {
-            assert_input("00.0", vec![(TokenKind::Decimal, (0, 3))])
+            assert_input("00.0", vec![(RawTokenKind::Decimal, (0, 3))])
         }
 
         #[test]
         fn simple() {
-            assert_input("12345.67890", vec![(TokenKind::Decimal, (0, 10))])
+            assert_input("12345.67890", vec![(RawTokenKind::Decimal, (0, 10))])
         }
 
         #[test]
         fn non_zero_start() {
-            assert_input("7.77", vec![(TokenKind::Decimal, (0, 3))])
+            assert_input("7.77", vec![(RawTokenKind::Decimal, (0, 3))])
         }
 
         #[test]
@@ -597,17 +597,17 @@ mod tests {
 
         #[test]
         fn zero() {
-            assert_input("#x0", vec![(TokenKind::Numeral, (0, 2))])
+            assert_input("#x0", vec![(RawTokenKind::Numeral, (0, 2))])
         }
 
         #[test]
         fn whole_range_upper_case() {
-            assert_input("#xFEDCBA9876543210", vec![(TokenKind::Numeral, (0, 17))])
+            assert_input("#xFEDCBA9876543210", vec![(RawTokenKind::Numeral, (0, 17))])
         }
 
         #[test]
         fn whole_range_lower_case() {
-            assert_input("#xfedcba9876543210", vec![(TokenKind::Numeral, (0, 17))])
+            assert_input("#xfedcba9876543210", vec![(RawTokenKind::Numeral, (0, 17))])
         }
 
         #[test]
@@ -632,17 +632,17 @@ mod tests {
 
         #[test]
         fn zero() {
-            assert_input("#b0", vec![(TokenKind::Numeral, (0, 2))])
+            assert_input("#b0", vec![(RawTokenKind::Numeral, (0, 2))])
         }
 
         #[test]
         fn whole_range_upper_case() {
-            assert_input("#b01", vec![(TokenKind::Numeral, (0, 3))])
+            assert_input("#b01", vec![(RawTokenKind::Numeral, (0, 3))])
         }
 
         #[test]
         fn long() {
-            assert_input("#b01101101010111001", vec![(TokenKind::Numeral, (0, 18))])
+            assert_input("#b01101101010111001", vec![(RawTokenKind::Numeral, (0, 18))])
         }
 
         #[test]
@@ -667,17 +667,17 @@ mod tests {
 
         #[test]
         fn empty() {
-            assert_input(r#""""#, vec![(TokenKind::StringLiteral, (0, 1))])
+            assert_input(r#""""#, vec![(RawTokenKind::StringLiteral, (0, 1))])
         }
 
         #[test]
         fn single_char() {
-            assert_input(r#""a""#, vec![(TokenKind::StringLiteral, (0, 2))])
+            assert_input(r#""a""#, vec![(RawTokenKind::StringLiteral, (0, 2))])
         }
 
         #[test]
         fn escaped_quote() {
-            assert_input(r#""""""#, vec![(TokenKind::StringLiteral, (0, 3))])
+            assert_input(r#""""""#, vec![(RawTokenKind::StringLiteral, (0, 3))])
         }
 
         #[test]
@@ -687,7 +687,7 @@ mod tests {
                     "\"first
                  second\""
                 ),
-                vec![(TokenKind::StringLiteral, (0, 13))],
+                vec![(RawTokenKind::StringLiteral, (0, 13))],
             )
         }
 
@@ -695,13 +695,13 @@ mod tests {
         fn seperating_whitespace() {
             assert_input(
                 "\"this is a string literal\"",
-                vec![(TokenKind::StringLiteral, (0, 25))],
+                vec![(RawTokenKind::StringLiteral, (0, 25))],
             )
         }
 
         #[test]
         fn ignore_default_escapes() {
-            assert_input(r#""\n\r\t\\""#, vec![(TokenKind::StringLiteral, (0, 9))])
+            assert_input(r#""\n\r\t\\""#, vec![(RawTokenKind::StringLiteral, (0, 9))])
         }
 
         #[test]
@@ -729,8 +729,8 @@ mod tests {
             assert_input(
                 "hello)",
                 vec![
-                    (TokenKind::SimpleSymbol, (0, 4)),
-                    (TokenKind::CloseParen, (5, 5)),
+                    (RawTokenKind::SimpleSymbol, (0, 4)),
+                    (RawTokenKind::CloseParen, (5, 5)),
                 ],
             );
         }
@@ -740,9 +740,9 @@ mod tests {
             assert_input(
                 "hello world",
                 vec![
-                    (TokenKind::SimpleSymbol, (0, 4)),
-                    (TokenKind::Whitespace, (5, 5)),
-                    (TokenKind::SimpleSymbol, (6, 10)),
+                    (RawTokenKind::SimpleSymbol, (0, 4)),
+                    (RawTokenKind::Whitespace, (5, 5)),
+                    (RawTokenKind::SimpleSymbol, (6, 10)),
                 ],
             );
         }
@@ -750,7 +750,7 @@ mod tests {
         #[test]
         fn single_punctuation() {
             fn assert_single_punctuation(punctuation: &str) {
-                assert_input(punctuation, vec![(TokenKind::SimpleSymbol, (0, 0))]);
+                assert_input(punctuation, vec![(RawTokenKind::SimpleSymbol, (0, 0))]);
             }
             assert_single_punctuation("~");
             assert_single_punctuation("!");
@@ -771,22 +771,22 @@ mod tests {
 
         #[test]
         fn selection() {
-            assert_input("<=", vec![(TokenKind::SimpleSymbol, (0, 1))]);
-            assert_input("x", vec![(TokenKind::SimpleSymbol, (0, 0))]);
-            assert_input("plus", vec![(TokenKind::SimpleSymbol, (0, 3))]);
-            assert_input("**", vec![(TokenKind::SimpleSymbol, (0, 1))]);
-            assert_input("<sas", vec![(TokenKind::SimpleSymbol, (0, 3))]);
-            assert_input("<adf>", vec![(TokenKind::SimpleSymbol, (0, 4))]);
-            assert_input("abc77", vec![(TokenKind::SimpleSymbol, (0, 4))]);
-            assert_input("*$s&6", vec![(TokenKind::SimpleSymbol, (0, 4))]);
-            assert_input(".kkk", vec![(TokenKind::SimpleSymbol, (0, 3))]);
-            assert_input(".8", vec![(TokenKind::SimpleSymbol, (0, 1))]);
-            assert_input("+34", vec![(TokenKind::SimpleSymbol, (0, 2))]);
-            assert_input("-32", vec![(TokenKind::SimpleSymbol, (0, 2))]);
-            assert_input("SMTLib2.0", vec![(TokenKind::SimpleSymbol, (0, 8))]);
+            assert_input("<=", vec![(RawTokenKind::SimpleSymbol, (0, 1))]);
+            assert_input("x", vec![(RawTokenKind::SimpleSymbol, (0, 0))]);
+            assert_input("plus", vec![(RawTokenKind::SimpleSymbol, (0, 3))]);
+            assert_input("**", vec![(RawTokenKind::SimpleSymbol, (0, 1))]);
+            assert_input("<sas", vec![(RawTokenKind::SimpleSymbol, (0, 3))]);
+            assert_input("<adf>", vec![(RawTokenKind::SimpleSymbol, (0, 4))]);
+            assert_input("abc77", vec![(RawTokenKind::SimpleSymbol, (0, 4))]);
+            assert_input("*$s&6", vec![(RawTokenKind::SimpleSymbol, (0, 4))]);
+            assert_input(".kkk", vec![(RawTokenKind::SimpleSymbol, (0, 3))]);
+            assert_input(".8", vec![(RawTokenKind::SimpleSymbol, (0, 1))]);
+            assert_input("+34", vec![(RawTokenKind::SimpleSymbol, (0, 2))]);
+            assert_input("-32", vec![(RawTokenKind::SimpleSymbol, (0, 2))]);
+            assert_input("SMTLib2.0", vec![(RawTokenKind::SimpleSymbol, (0, 8))]);
             assert_input(
                 "this_is-unfortunate",
-                vec![(TokenKind::SimpleSymbol, (0, 18))],
+                vec![(RawTokenKind::SimpleSymbol, (0, 18))],
             );
         }
     }
@@ -804,13 +804,13 @@ mod tests {
 
         #[test]
         fn selection() {
-            assert_input(":date", vec![(TokenKind::Keyword, (0, 4))]);
-            assert_input(":a2", vec![(TokenKind::Keyword, (0, 2))]);
-            assert_input(":foo-bar", vec![(TokenKind::Keyword, (0, 7))]);
-            assert_input(":<=", vec![(TokenKind::Keyword, (0, 2))]);
-            assert_input(":42", vec![(TokenKind::Keyword, (0, 2))]);
-            assert_input(":-56", vec![(TokenKind::Keyword, (0, 3))]);
-            assert_input(":->", vec![(TokenKind::Keyword, (0, 2))]);
+            assert_input(":date", vec![(RawTokenKind::Keyword, (0, 4))]);
+            assert_input(":a2", vec![(RawTokenKind::Keyword, (0, 2))]);
+            assert_input(":foo-bar", vec![(RawTokenKind::Keyword, (0, 7))]);
+            assert_input(":<=", vec![(RawTokenKind::Keyword, (0, 2))]);
+            assert_input(":42", vec![(RawTokenKind::Keyword, (0, 2))]);
+            assert_input(":-56", vec![(RawTokenKind::Keyword, (0, 3))]);
+            assert_input(":->", vec![(RawTokenKind::Keyword, (0, 2))]);
         }
     }
 
@@ -819,12 +819,12 @@ mod tests {
 
         #[test]
         fn empty() {
-            assert_input("||", vec![(TokenKind::QuotedSymbol, (0, 1))]);
+            assert_input("||", vec![(RawTokenKind::QuotedSymbol, (0, 1))]);
         }
 
         #[test]
         fn single_alpha() {
-            assert_input("|a|", vec![(TokenKind::QuotedSymbol, (0, 2))]);
+            assert_input("|a|", vec![(RawTokenKind::QuotedSymbol, (0, 2))]);
         }
 
         #[test]
@@ -847,7 +847,7 @@ mod tests {
         fn simple_sentence() {
             assert_input(
                 "|this is a quoted symbol|",
-                vec![(TokenKind::QuotedSymbol, (0, 24))],
+                vec![(RawTokenKind::QuotedSymbol, (0, 24))],
             );
         }
 
@@ -858,7 +858,7 @@ mod tests {
                     "|also with
                      line break|"
                 ),
-                vec![(TokenKind::QuotedSymbol, (0, 21))],
+                vec![(RawTokenKind::QuotedSymbol, (0, 21))],
             )
         }
 
@@ -866,7 +866,7 @@ mod tests {
         fn with_quote() {
             assert_input(
                 r#"| " can occure, too|"#,
-                vec![(TokenKind::QuotedSymbol, (0, 19))],
+                vec![(RawTokenKind::QuotedSymbol, (0, 19))],
             );
         }
 
@@ -875,11 +875,11 @@ mod tests {
             // Note: '´' requires two bytes.
             assert_input(
                 r##"|af klj ^*0 asfe2 (&*)&(#^$>> >?" ´]]984|"##,
-                vec![(TokenKind::QuotedSymbol, (0, 41))]
+                vec![(RawTokenKind::QuotedSymbol, (0, 41))]
             );
             assert_input(
                 r##"|Löwe 老虎 Léopard|"##,
-                vec![(TokenKind::QuotedSymbol, (0, 22))],
+                vec![(RawTokenKind::QuotedSymbol, (0, 22))],
             );
         }
     }

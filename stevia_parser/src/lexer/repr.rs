@@ -46,6 +46,46 @@ impl Span {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum RawTokenKind {
+    Comment,
+    Whitespace,
+
+    Numeral,
+    Decimal,
+    StringLiteral,
+
+    OpenParen,
+    CloseParen,
+
+    SimpleSymbol,
+    QuotedSymbol,
+    Keyword
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct GenericToken<T> {
+    kind: T,
+    span: Span,
+}
+
+pub type RawToken = GenericToken<RawTokenKind>;
+pub type Token = GenericToken<TokenKind>;
+
+impl<T> GenericToken<T> {
+    pub fn new(kind: T, span: Span) -> Self {
+        Self { kind, span }
+    }
+
+    pub fn kind(self) -> T {
+        self.kind
+    }
+
+    pub fn span(self) -> Span {
+        self.span
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum TokenKind {
     Comment,
     Whitespace,
@@ -57,8 +97,11 @@ pub enum TokenKind {
     OpenParen,
     CloseParen,
 
-    Underscore,
+    Symbol,
+    Keyword,
+
     ExclamationMark,
+    Underscore,
 
     As,
     Let,
@@ -67,30 +110,100 @@ pub enum TokenKind {
     Match,
     Par,
 
-    SimpleSymbol,
-    QuotedSymbol,
-    Keyword,
-
-    EndOfFile,
-    Unknown,
+    MetaSpec(MetaSpec),
+    Command(Command)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub struct Token {
-    kind: TokenKind,
-    span: Span,
+pub enum MetaSpec {
+    Binary,
+    Hexadecimal,
+    Decimal,
+    Numeral,
+    String
 }
 
-impl Token {
-    pub fn new(kind: TokenKind, span: Span) -> Self {
-        Self { kind, span }
+impl MetaSpec {
+    pub fn to_str(self) -> &'static str {
+        use self::MetaSpec::*;
+        match self {
+            Binary => "BINARY",
+            Hexadecimal => "HEXADECIMAL",
+            Decimal => "DECIMAL",
+            Numeral => "NUMERAL",
+            String => "STRING"
+        }
     }
+}
 
-    pub fn kind(self) -> TokenKind {
-        self.kind
-    }
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub enum Command {
+    Assert,
+    CheckSat,
+    CheckSatAssuming,
+    DeclareConst,
+    DeclareDatatype,
+    DeclareDatatypes,
+    DeclareFun,
+    DeclareSort,
+    DefineFun,
+    DefineFunRec,
+    DefineFunsRec,
+    DefineSort,
+    Echo,
+    Exit,
+    GetAssertions,
+    GetAssignment,
+    GetInfo,
+    GetModel,
+    GetOption,
+    GetProof,
+    GetUnsatAssumptions,
+    GetUnsatCore,
+    GetValue,
+    Pop,
+    Push,
+    Reset,
+    ResetAssertions,
+    SetInfo,
+    SetLogic,
+    SetOption
+}
 
-    pub fn span(self) -> Span {
-        self.span
+impl Command {
+    pub fn to_str(self) -> &'static str {
+        use self::Command::*;
+        match self {
+            Assert => "assert",
+            CheckSat => "check-sat",
+            CheckSatAssuming => "check-sat-assuming",
+            DeclareConst => "declare-const",
+            DeclareDatatype => "declare-datatype",
+            DeclareDatatypes => "declare-datatypes",
+            DeclareFun => "declare-fun",
+            DeclareSort => "declare-sort",
+            DefineFun => "define-fun",
+            DefineFunRec => "define-fun-rec",
+            DefineFunsRec => "define-funs-rec",
+            DefineSort => "define-sort",
+            Echo => "echo",
+            Exit => "exit",
+            GetAssertions => "get-assertions",
+            GetAssignment => "get-assignment",
+            GetInfo => "get-info",
+            GetModel => "get-model",
+            GetOption => "get-option",
+            GetProof => "get-proff",
+            GetUnsatAssumptions => "get-unsat-assumptions",
+            GetUnsatCore => "get-unsat-core",
+            GetValue => "get-value",
+            Pop => "pop",
+            Push => "push",
+            Reset => "reset",
+            ResetAssertions => "reset-assertions",
+            SetInfo => "set-info",
+            SetLogic => "set-logic",
+            SetOption => "set-option"
+        }
     }
 }
