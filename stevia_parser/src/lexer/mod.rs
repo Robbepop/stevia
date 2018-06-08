@@ -90,7 +90,7 @@ pub use self::{
         RawTokenIter
     },
     simple_lexer::{
-        
+        smtlib2_tokens
     },
     repr::{
         Loc,

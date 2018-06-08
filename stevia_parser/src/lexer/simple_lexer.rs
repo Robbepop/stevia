@@ -1,8 +1,14 @@
-use lexer::error::LexerResult;
+use lexer::error::{LexerResult, LexerError, LexerErrorKind};
 use lexer::raw_lexer::RawTokenIter;
 use lexer::repr::{Command, Loc, MetaSpec, RawTokenKind, Span, Token, TokenKind};
+use lexer::raw_smtlib2_tokens;
 
 use std::collections::HashMap;
+
+pub fn smtlib2_tokens(input: &str) -> TokenIter {
+    debug_assert!(input.len() >= 1); // TODO: convert to error.
+    TokenIter::new(raw_smtlib2_tokens(input))
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum ReservedWord {
@@ -104,6 +110,10 @@ pub struct TokenIter<'c> {
 }
 
 impl<'c> TokenIter<'c> {
+    pub(crate) fn new(raw_lexer: RawTokenIter<'c>) -> Self {
+        Self{ raw_lexer }
+    }
+
     fn resolve_simple_symbol(&self, span: Span) -> TokenKind {
         if let Some(&reserved) = RESERVED_NAMES.get(self.raw_lexer.span_to_str(span)) {
             return TokenKind::from(reserved);
@@ -140,5 +150,66 @@ impl<'c> Iterator for TokenIter<'c> {
 
     fn next(&mut self) -> Option<Self::Item> {
         self.next_token().ok()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn assert_input<I>(input: &str, expected_toks: I)
+    where
+        I: IntoIterator<Item = (TokenKind, (u32, u32))>,
+    {
+        let expected_toks = expected_toks
+            .into_iter()
+            .map(|(kind, (begin, end))| {
+                Token::new(kind, Span::new(Loc::from(begin), Loc::from(end)))
+            })
+            .collect::<Vec<_>>();
+        let actual_toks = smtlib2_tokens(input).collect::<Vec<_>>();
+        assert_eq!(actual_toks.len(), expected_toks.len());
+        for (actual, expected) in actual_toks.into_iter().zip(expected_toks.into_iter()) {
+            assert_eq!(actual, expected);
+        }
+    }
+
+    type RawResult = ::std::result::Result<TokenKind, LexerErrorKind>;
+
+    fn assert_raw_input<I>(input: &str, expected_toks: I)
+    where
+        I: IntoIterator<Item = (RawResult, (u32, u32))>,
+    {
+        let expected_toks = expected_toks.into_iter().map(|(raw, (begin, end))| {
+            let loc = Span::new(Loc::from(begin), Loc::from(end));
+            raw.map(|tok| Token::new(tok, loc))
+                .map_err(|err| LexerError::new(err, loc))
+        });
+        let mut actual_toks = smtlib2_tokens(input);
+        for expected in expected_toks {
+            let actual = actual_toks.next_token().map_err(|mut err| {
+                err.clear_context();
+                err
+            });
+            assert_eq!(actual, expected)
+        }
+    }
+
+    // Underscore,
+    // ExclamationMark,
+
+    // As,
+    // Let,
+    // Exists,
+    // Forall,
+    // Match,
+    // Par,
+
+    // MetaSpec(MetaSpec),
+    // Command(Command),
+
+    #[test]
+    fn underscore() {
+        assert_input("_", vec![(TokenKind::Underscore, (0, 0))]);
     }
 }
