@@ -6,6 +6,9 @@ use std::collections::HashMap;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 enum ReservedWord {
+    Underscore,
+    ExclamationMark,
+
     As,
     Let,
     Exists,
@@ -21,6 +24,9 @@ impl From<ReservedWord> for TokenKind {
     fn from(reserved_word: ReservedWord) -> Self {
         use self::ReservedWord::*;
         match reserved_word {
+            Underscore => TokenKind::Underscore,
+            ExclamationMark => TokenKind::ExclamationMark,
+
             As => TokenKind::As,
             Let => TokenKind::Let,
             Exists => TokenKind::Exists,
@@ -37,6 +43,8 @@ impl From<ReservedWord> for TokenKind {
 lazy_static! {
     static ref RESERVED_NAMES: HashMap<&'static str, ReservedWord> = {
         let mut reserved_names = HashMap::new();
+        reserved_names.insert("_", ReservedWord::Underscore);
+        reserved_names.insert("!", ReservedWord::ExclamationMark);
         reserved_names.insert("as", ReservedWord::As);
         reserved_names.insert("let", ReservedWord::Let);
         reserved_names.insert("exists", ReservedWord::Exists);
