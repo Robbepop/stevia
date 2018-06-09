@@ -207,3 +207,24 @@ impl Command {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    mod span {
+        use super::*;
+
+        #[test]
+        fn len_ok() {
+            assert_eq!(Span::new(Loc::from(0), Loc::from(42)).len(), 43);
+            assert_eq!(Span::new(Loc::from(100), Loc::from(200)).len(), 101);
+            assert_eq!(Span::new(Loc::from(3), Loc::from(5)).len(), 3);
+        }
+
+        #[test]
+        fn empty_span_len() {
+            assert_eq!(Span::new(Loc::from(1), Loc::from(0)).len(), 0);
+        }
+    }
+}

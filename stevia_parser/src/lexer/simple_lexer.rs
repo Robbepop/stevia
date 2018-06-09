@@ -287,5 +287,4 @@ mod tests {
         assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
         assert_input(":keyword", vec![(TokenKind::Keyword, (0, 7))]);
     }
-
 }
