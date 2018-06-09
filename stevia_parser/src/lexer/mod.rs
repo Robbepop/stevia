@@ -90,12 +90,16 @@ pub use self::{
         RawTokenIter
     },
     simple_lexer::{
-        smtlib2_tokens
+        smtlib2_tokens,
+        TokenIter
     },
     repr::{
         Loc,
         Span,
         RawTokenKind,
-        RawToken
+        RawToken,
+        TokenKind,
+        Token,
+        Command
     }
 };
