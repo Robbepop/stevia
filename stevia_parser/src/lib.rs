@@ -6,4 +6,5 @@ extern crate indoc;
 extern crate lazy_static;
 
 mod lexer;
+mod parser;
 mod commands;
