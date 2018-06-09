@@ -41,7 +41,7 @@ impl Span {
     }
 
     pub fn len(self) -> usize {
-        (self.end.to_usize()) - (self.begin.to_usize()) + 1
+        ((self.end.to_usize() as isize) - (self.begin.to_usize() as isize) + 1) as usize
     }
 }
 
