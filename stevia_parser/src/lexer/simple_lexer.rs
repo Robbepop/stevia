@@ -114,6 +114,7 @@ lazy_static! {
     };
 }
 
+#[derive(Debug, Clone)]
 pub struct TokenIter<'c> {
     raw_lexer: RawTokenIter<'c>,
 }
