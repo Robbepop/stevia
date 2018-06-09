@@ -264,4 +264,14 @@ mod tests {
         assert_input("set-logic", vec![(TokenKind::Command(Command::SetLogic), (0, 8))]);
         assert_input("set-option", vec![(TokenKind::Command(Command::SetOption), (0, 9))]);
     }
+
+    #[test]
+    fn quoted_symbol() {
+        assert_input("|Hello|", vec![(TokenKind::Symbol, (1, 5))]);
+        assert_input("|separated with whitespace|", vec![(TokenKind::Symbol, (1, 25))]);
+        assert_input("|= is also allowed|", vec![(TokenKind::Symbol, (1, 17))]);
+        assert_input("| whitespaced |", vec![(TokenKind::Symbol, (1, 13))]);
+        assert_input("||", vec![(TokenKind::Symbol, (1, 0))]); // Here we need a special case!
+    }
+
 }
