@@ -274,4 +274,18 @@ mod tests {
         assert_input("||", vec![(TokenKind::Symbol, (1, 0))]); // Here we need a special case!
     }
 
+    #[test]
+    fn simple_forwards() {
+        assert_input("; this is a comment", vec![(TokenKind::Comment, (0, 18))]);
+        assert_input(" \t\n\r", vec![(TokenKind::Whitespace, (0, 3))]);
+        assert_input("0", vec![(TokenKind::Numeral, (0, 0))]);
+        assert_input("42", vec![(TokenKind::Numeral, (0, 1))]);
+        assert_input("0.0", vec![(TokenKind::Decimal, (0, 2))]);
+        assert_input("7.42", vec![(TokenKind::Decimal, (0, 3))]);
+        assert_input(r#""this is a string""#, vec![(TokenKind::StringLiteral, (0, 17))]);
+        assert_input("(", vec![(TokenKind::OpenParen, (0, 0))]);
+        assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
+        assert_input(":keyword", vec![(TokenKind::Keyword, (0, 7))]);
+    }
+
 }
