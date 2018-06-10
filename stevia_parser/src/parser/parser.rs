@@ -28,13 +28,20 @@ where
         }
     }
 
+    fn pull(&mut self) -> ParseResult<Token> {
+        let tok = self.token_iter.next_token()?;
+        if !tok.kind().has_semantic_meaning() {
+            return self.pull()
+        }
+        self.peek = Some(tok);
+        Ok(tok)
+    }
+
     fn peek(&mut self) -> ParseResult<Token> {
         if let Some(tok) = self.peek {
             return Ok(tok);
         }
-        let tok = self.token_iter.next_token()?;
-        self.peek = Some(tok);
-        Ok(tok)
+        self.pull()
     }
 
     fn consume(&mut self) {
@@ -276,6 +283,34 @@ mod tests {
             assert_parse_valid_smtlib2("(reset-assertions)", vec![ParseEvent::ResetAssertions]);
         }
 
+        #[test]
+        fn simple_chain() {
+            assert_parse_valid_smtlib2(
+                indoc!(
+                "(check-sat)
+                 (exit)
+                 (get-assertions)
+                 (get-assignment)
+                 (get-model)
+                 (get-proof)
+                 (get-unsat-assumptions)
+                 (get-unsat-core)
+                 (reset)
+                 (reset-assertions)"
+                ),
+                vec![
+                    ParseEvent::CheckSat,
+                    ParseEvent::Exit,
+                    ParseEvent::GetAssertions,
+                    ParseEvent::GetAssignment,
+                    ParseEvent::GetModel,
+                    ParseEvent::GetProof,
+                    ParseEvent::GetUnsatAssumptions,
+                    ParseEvent::GetUnsatCore,
+                    ParseEvent::Reset,
+                    ParseEvent::ResetAssertions
+                ]
+            );
         }
     }
 }
