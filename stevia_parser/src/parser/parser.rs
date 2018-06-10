@@ -76,6 +76,33 @@ where
             Command::CheckSat => {
                 self.solver.check_sat();
             }
+            Command::Exit => {
+                self.solver.exit();
+            }
+            Command::GetAssertions => {
+                self.solver.get_assertions();
+            }
+            Command::GetAssignment => {
+                self.solver.get_assignment();
+            }
+            Command::GetModel => {
+                self.solver.get_model();
+            }
+            Command::GetProof => {
+                self.solver.get_proof();
+            }
+            Command::GetUnsatAssumptions => {
+                self.solver.get_unsat_assumptions();
+            }
+            Command::GetUnsatCore => {
+                self.solver.get_unsat_core();
+            }
+            Command::Reset => {
+                self.solver.reset();
+            }
+            Command::ResetAssertions => {
+                self.solver.reset_assertions();
+            }
             _ => unimplemented!(),
         }
         Ok(())
@@ -159,14 +186,17 @@ mod tests {
         }
 
         fn exit(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::Exit);
             ParserResponse::Success
         }
 
         fn get_assertions(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::GetAssertions);
             ParserResponse::Success
         }
 
         fn get_assignment(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::GetAssignment);
             ParserResponse::Success
         }
 
@@ -175,6 +205,7 @@ mod tests {
         }
 
         fn get_model(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::GetModel);
             ParserResponse::Success
         }
 
@@ -183,14 +214,17 @@ mod tests {
         }
 
         fn get_proof(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::GetProof);
             ParserResponse::Success
         }
 
         fn get_unsat_assumptions(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::GetUnsatAssumptions);
             ParserResponse::Success
         }
 
         fn get_unsat_core(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::GetUnsatCore);
             ParserResponse::Success
         }
 
@@ -203,10 +237,12 @@ mod tests {
         }
 
         fn reset(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::Reset);
             ParserResponse::Success
         }
 
         fn reset_assertions(&mut self) -> ParserResponse {
+            self.events.push(ParseEvent::ResetAssertions);
             ParserResponse::Success
         }
 
@@ -223,8 +259,23 @@ mod tests {
         }
     }
 
-    #[test]
-    fn simple() {
-        assert_parse_valid_smtlib2("(check-sat)", vec![ParseEvent::CheckSat]);
+    mod commands {
+        use super::*;
+
+        #[test]
+        fn simple() {
+            assert_parse_valid_smtlib2("(check-sat)", vec![ParseEvent::CheckSat]);
+            assert_parse_valid_smtlib2("(exit)", vec![ParseEvent::Exit]);
+            assert_parse_valid_smtlib2("(get-assertions)", vec![ParseEvent::GetAssertions]);
+            assert_parse_valid_smtlib2("(get-assignment)", vec![ParseEvent::GetAssignment]);
+            assert_parse_valid_smtlib2("(get-model)", vec![ParseEvent::GetModel]);
+            assert_parse_valid_smtlib2("(get-proof)", vec![ParseEvent::GetProof]);
+            assert_parse_valid_smtlib2("(get-unsat-assumptions)", vec![ParseEvent::GetUnsatAssumptions]);
+            assert_parse_valid_smtlib2("(get-unsat-core)", vec![ParseEvent::GetUnsatCore]);
+            assert_parse_valid_smtlib2("(reset)", vec![ParseEvent::Reset]);
+            assert_parse_valid_smtlib2("(reset-assertions)", vec![ParseEvent::ResetAssertions]);
+        }
+
+        }
     }
 }
