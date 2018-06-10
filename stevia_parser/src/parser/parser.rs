@@ -1,4 +1,4 @@
-use commands::SMTLib2Solver;
+use commands::{ParserResponse, SMTLib2Solver};
 use lexer::{smtlib2_tokens, Command, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
 
@@ -31,7 +31,7 @@ where
     fn pull(&mut self) -> ParseResult<Token> {
         let tok = self.token_iter.next_token()?;
         if !tok.kind().has_semantic_meaning() {
-            return self.pull()
+            return self.pull();
         }
         self.peek = Some(tok);
         Ok(tok)
@@ -75,44 +75,36 @@ where
         }
     }
 
+    fn parse_simple_command<C>(&mut self, _kind: Command, command: C) -> ParseResult<()>
+    where
+        C: Fn(&mut S) -> ParserResponse,
+    {
+        debug_assert!(self.peek().is_ok());
+        debug_assert_eq!(self.peek().unwrap().kind(), TokenKind::CloseParen);
+
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+        command(self.solver);
+        Ok(())
+    }
+
     fn parse_command(&mut self) -> ParseResult<()> {
         self.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.expect_command_tok()?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
+        use self::Command::*;
+        #[cfg_attr(rustfmt, rustfmt_skip)]
         match command {
-            Command::CheckSat => {
-                self.solver.check_sat();
-            }
-            Command::Exit => {
-                self.solver.exit();
-            }
-            Command::GetAssertions => {
-                self.solver.get_assertions();
-            }
-            Command::GetAssignment => {
-                self.solver.get_assignment();
-            }
-            Command::GetModel => {
-                self.solver.get_model();
-            }
-            Command::GetProof => {
-                self.solver.get_proof();
-            }
-            Command::GetUnsatAssumptions => {
-                self.solver.get_unsat_assumptions();
-            }
-            Command::GetUnsatCore => {
-                self.solver.get_unsat_core();
-            }
-            Command::Reset => {
-                self.solver.reset();
-            }
-            Command::ResetAssertions => {
-                self.solver.reset_assertions();
-            }
+            CheckSat            => self.parse_simple_command(CheckSat, S::check_sat),
+            Exit                => self.parse_simple_command(Exit, S::exit),
+            GetAssertions       => self.parse_simple_command(GetAssertions, S::get_assertions),
+            GetAssignment       => self.parse_simple_command(GetAssignment, S::get_assignment),
+            GetModel            => self.parse_simple_command(GetModel, S::get_model),
+            GetProof            => self.parse_simple_command(GetProof, S::get_proof),
+            GetUnsatAssumptions => self.parse_simple_command(GetUnsatAssumptions, S::get_unsat_assumptions),
+            GetUnsatCore        => self.parse_simple_command(GetUnsatCore, S::get_unsat_core),
+            Reset               => self.parse_simple_command(Reset, S::reset),
+            ResetAssertions     => self.parse_simple_command(ResetAssertions, S::reset_assertions),
             _ => unimplemented!(),
         }
-        Ok(())
     }
 
     pub fn parse_script(&mut self) -> ParseResult<()> {
@@ -126,42 +118,27 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use commands::{ParserResponse, InfoKind, OptionKind};
+    use commands::{InfoKind, OptionKind, ParserResponse};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum ParseEvent<'c> {
         CheckSat,
-        DeclareSort{
-            symbol: &'c str,
-            arity: usize
-        },
-        Echo{
-            content: &'c str
-        },
+        DeclareSort { symbol: &'c str, arity: usize },
+        Echo { content: &'c str },
         Exit,
         GetAssertions,
         GetAssignment,
-        GetInfo{
-            info: InfoKind
-        },
+        GetInfo { info: InfoKind },
         GetModel,
-        GetOption{
-            option: OptionKind
-        },
+        GetOption { option: OptionKind },
         GetProof,
         GetUnsatAssumptions,
         GetUnsatCore,
-        Pop{
-            levels: usize
-        },
-        Push{
-            levels: usize
-        },
+        Pop { levels: usize },
+        Push { levels: usize },
         Reset,
         ResetAssertions,
-        SetLogic{
-            symbol: &'c str
-        }
+        SetLogic { symbol: &'c str },
     }
 
     #[derive(Debug, Default, Clone)]
@@ -277,7 +254,10 @@ mod tests {
             assert_parse_valid_smtlib2("(get-assignment)", vec![ParseEvent::GetAssignment]);
             assert_parse_valid_smtlib2("(get-model)", vec![ParseEvent::GetModel]);
             assert_parse_valid_smtlib2("(get-proof)", vec![ParseEvent::GetProof]);
-            assert_parse_valid_smtlib2("(get-unsat-assumptions)", vec![ParseEvent::GetUnsatAssumptions]);
+            assert_parse_valid_smtlib2(
+                "(get-unsat-assumptions)",
+                vec![ParseEvent::GetUnsatAssumptions],
+            );
             assert_parse_valid_smtlib2("(get-unsat-core)", vec![ParseEvent::GetUnsatCore]);
             assert_parse_valid_smtlib2("(reset)", vec![ParseEvent::Reset]);
             assert_parse_valid_smtlib2("(reset-assertions)", vec![ParseEvent::ResetAssertions]);
@@ -287,7 +267,7 @@ mod tests {
         fn simple_chain() {
             assert_parse_valid_smtlib2(
                 indoc!(
-                "(check-sat)
+                    "(check-sat)
                  (exit)
                  (get-assertions)
                  (get-assignment)
@@ -308,8 +288,8 @@ mod tests {
                     ParseEvent::GetUnsatAssumptions,
                     ParseEvent::GetUnsatCore,
                     ParseEvent::Reset,
-                    ParseEvent::ResetAssertions
-                ]
+                    ParseEvent::ResetAssertions,
+                ],
             );
         }
     }
