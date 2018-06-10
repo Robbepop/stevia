@@ -114,6 +114,16 @@ pub enum TokenKind {
     Command(Command)
 }
 
+impl TokenKind {
+    pub fn has_semantic_meaning(self) -> bool {
+        match self {
+            TokenKind::Comment    |
+            TokenKind::Whitespace => false,
+            _ => true
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum MetaSpec {
     Binary,
