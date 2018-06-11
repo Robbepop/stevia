@@ -1,5 +1,5 @@
 use commands::{ParserResponse, SMTLib2Solver};
-use lexer::{smtlib2_tokens, Command, Token, TokenIter, TokenKind};
+use lexer::{smtlib2_tokens, Command, Span, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
 
 pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
@@ -271,15 +271,15 @@ mod tests {
             assert_parse_valid_smtlib2(
                 indoc!(
                     "(check-sat)
-                 (exit)
-                 (get-assertions)
-                 (get-assignment)
-                 (get-model)
-                 (get-proof)
-                 (get-unsat-assumptions)
-                 (get-unsat-core)
-                 (reset)
-                 (reset-assertions)"
+                     (exit)
+                     (get-assertions)
+                     (get-assignment)
+                     (get-model)
+                     (get-proof)
+                     (get-unsat-assumptions)
+                     (get-unsat-core)
+                     (reset)
+                     (reset-assertions)"
                 ),
                 vec![
                     ParseEvent::CheckSat,
