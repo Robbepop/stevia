@@ -12,8 +12,47 @@ where
 #[derive(Debug)]
 pub struct Parser<'c, 's, S: 's> {
     token_iter: TokenIter<'c>,
+    input_str: ParseContent<'c>,
     peek: Option<Token>,
     solver: &'s mut S,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct ParseContent<'c> {
+    content: &'c str,
+}
+
+impl<'c> From<&'c str> for ParseContent<'c> {
+    fn from(content: &'c str) -> Self {
+        Self { content }
+    }
+}
+
+impl<'c> ParseContent<'c> {
+    pub fn span_to_str(&self, span: Span) -> Option<&str> {
+        debug_assert!(self.content.as_bytes().len() >= 1);
+
+        let content_bytes = self.content.as_bytes();
+        let begin_offset = span.begin.to_usize();
+        let end_offset = span.end.to_usize();
+        if begin_offset >= content_bytes.len() {
+            return None;
+        }
+        if end_offset >= content_bytes.len() {
+            return None;
+        }
+        Some(&self.content[span.begin.to_usize()..span.end.to_usize() + 1])
+    }
+
+    pub fn span_to_str_unchecked(&self, span: Span) -> &str {
+        debug_assert!(self.content.as_bytes().len() >= 1);
+        debug_assert!(span.begin.to_usize() < self.content.as_bytes().len());
+        debug_assert!(span.end.to_usize() < self.content.as_bytes().len());
+        unsafe {
+            self.content
+                .slice_unchecked(span.begin.to_usize(), span.end.to_usize() + 1)
+        }
+    }
 }
 
 impl<'c, 's, S> Parser<'c, 's, S>
@@ -23,6 +62,7 @@ where
     pub(self) fn new(input: &'c str, solver: &'s mut S) -> Self {
         Self {
             token_iter: smtlib2_tokens(input),
+            input_str: ParseContent::from(input),
             peek: None,
             solver,
         }
