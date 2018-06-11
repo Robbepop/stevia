@@ -121,10 +121,10 @@ mod tests {
     use commands::{InfoKind, OptionKind, ParserResponse};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
-    enum ParseEvent<'c> {
+    enum ParseEvent {
         CheckSat,
-        DeclareSort { symbol: &'c str, arity: usize },
-        Echo { content: &'c str },
+        DeclareSort { symbol: String, arity: usize },
+        Echo { content: String },
         Exit,
         GetAssertions,
         GetAssignment,
@@ -138,30 +138,31 @@ mod tests {
         Push { levels: usize },
         Reset,
         ResetAssertions,
-        SetLogic { symbol: &'c str },
+        SetLogic { symbol: String },
     }
 
     #[derive(Debug, Default, Clone)]
-    struct DummySolver<'c> {
-        events: Vec<ParseEvent<'c>>,
+    struct DummySolver {
+        events: Vec<ParseEvent>,
     }
 
-    impl<'c> IntoIterator for DummySolver<'c> {
-        type Item = ParseEvent<'c>;
-        type IntoIter = <Vec<ParseEvent<'c>> as IntoIterator>::IntoIter;
+    impl IntoIterator for DummySolver {
+        type Item = ParseEvent;
+        type IntoIter = <Vec<ParseEvent> as IntoIterator>::IntoIter;
 
         fn into_iter(self) -> Self::IntoIter {
             self.events.into_iter()
         }
     }
 
-    impl<'c> SMTLib2Solver for DummySolver<'c> {
+    impl SMTLib2Solver for DummySolver {
         fn check_sat(&mut self) -> ParserResponse {
             self.events.push(ParseEvent::CheckSat);
             ParserResponse::Success
         }
 
-        fn declare_sort(&mut self, _symbol: &str, _arity: usize) -> ParserResponse {
+        fn declare_sort(&mut self, symbol: &str, arity: usize) -> ParserResponse {
+            self.events.push(ParseEvent::DeclareSort{ symbol: symbol.to_owned(), arity });
             ParserResponse::Success
         }
 
@@ -238,7 +239,9 @@ mod tests {
     fn assert_parse_valid_smtlib2(input: &str, expected_events: Vec<ParseEvent>) {
         let mut dummy_solver = DummySolver::default();
         parse_smtlib2(input, &mut dummy_solver).unwrap();
-        for (actual, expected) in dummy_solver.into_iter().zip(expected_events.into_iter()) {
+        let actual_events = dummy_solver.into_iter().collect::<Vec<_>>();
+        assert_eq!(actual_events.len(), expected_events.len());
+        for (actual, expected) in actual_events.into_iter().zip(expected_events.into_iter()) {
             assert_eq!(actual, expected)
         }
     }
