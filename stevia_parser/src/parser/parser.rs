@@ -120,7 +120,6 @@ where
         C: Fn(&mut S) -> ParserResponse,
     {
         debug_assert!(self.peek().is_ok());
-        debug_assert_eq!(self.peek().unwrap().kind(), TokenKind::CloseParen);
 
         self.expect_tok_kind(TokenKind::CloseParen)?;
         command(self.solver);
