@@ -83,9 +83,9 @@ impl<'c> RawTokenIter<'c> {
     }
 
     pub(crate) fn span_to_str(&self, span: Span) -> &str {
-        println!("input_str.as_bytes().len() = {}", self.input_str.as_bytes().len());
-        println!("span.begin.to_usize() = {}", span.begin.to_usize());
-        println!("span.end.to_usize() = {}", span.end.to_usize());
+        // println!("input_str.as_bytes().len() = {}", self.input_str.as_bytes().len());
+        // println!("span.begin.to_usize() = {}", span.begin.to_usize());
+        // println!("span.end.to_usize() = {}", span.end.to_usize());
         debug_assert!(self.input_str.as_bytes().len() >= 1);
         debug_assert!(span.begin.to_usize() < self.input_str.as_bytes().len());
         debug_assert!(span.end.to_usize() < self.input_str.as_bytes().len());
