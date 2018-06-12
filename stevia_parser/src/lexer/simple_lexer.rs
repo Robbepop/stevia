@@ -144,11 +144,17 @@ impl<'c> TokenIter<'c> {
             RawTokenKind::Whitespace => TokenKind::Whitespace,
             RawTokenKind::Numeral => TokenKind::Numeral,
             RawTokenKind::Decimal => TokenKind::Decimal,
-            RawTokenKind::StringLiteral => TokenKind::StringLiteral,
             RawTokenKind::OpenParen => TokenKind::OpenParen,
             RawTokenKind::CloseParen => TokenKind::CloseParen,
             RawTokenKind::Keyword => TokenKind::Keyword,
             RawTokenKind::SimpleSymbol => self.resolve_simple_symbol(raw_tok.span()),
+            RawTokenKind::StringLiteral => {
+                let simple_span = Span::new(
+                    Loc::from(raw_tok.span().begin.to_u32() + 1),
+                    Loc::from(raw_tok.span().end.to_u32() - 1),
+                );
+                return Ok(Token::new(TokenKind::StringLiteral, simple_span));
+            }
             RawTokenKind::QuotedSymbol => {
                 let simple_span = Span::new(
                     Loc::from(raw_tok.span().begin.to_u32() + 1),
@@ -276,6 +282,15 @@ mod tests {
     }
 
     #[test]
+    fn string_literal() {
+        assert_input(r#""Hello""#, vec![(TokenKind::StringLiteral, (1, 5))]);
+        assert_input(r#""separated with whitespace""#, vec![(TokenKind::StringLiteral, (1, 25))]);
+        assert_input(r#""= is also allowed""#, vec![(TokenKind::StringLiteral, (1, 17))]);
+        assert_input(r#"" whitespaced ""#, vec![(TokenKind::StringLiteral, (1, 13))]);
+        assert_input(r#""""#, vec![(TokenKind::StringLiteral, (1, 0))]); // Here we need a special case!
+    }
+
+    #[test]
     fn simple_forwards() {
         assert_input("; this is a comment", vec![(TokenKind::Comment, (0, 18))]);
         assert_input(" \t\n\r", vec![(TokenKind::Whitespace, (0, 3))]);
@@ -283,7 +298,7 @@ mod tests {
         assert_input("42", vec![(TokenKind::Numeral, (0, 1))]);
         assert_input("0.0", vec![(TokenKind::Decimal, (0, 2))]);
         assert_input("7.42", vec![(TokenKind::Decimal, (0, 3))]);
-        assert_input(r#""this is a string""#, vec![(TokenKind::StringLiteral, (0, 17))]);
+        assert_input(r#""this is a string""#, vec![(TokenKind::StringLiteral, (1, 16))]);
         assert_input("(", vec![(TokenKind::OpenParen, (0, 0))]);
         assert_input(")", vec![(TokenKind::CloseParen, (0, 0))]);
         assert_input(":keyword", vec![(TokenKind::Keyword, (0, 7))]);
