@@ -147,6 +147,18 @@ where
         Ok(())
     }
 
+    fn parse_echo_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let text = self.expect_tok_kind(TokenKind::StringLiteral)?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let text_str = self.input_str.span_to_str_unchecked(text.span());
+
+        self.solver.echo(text_str);
+        Ok(())
+    }
+
     fn parse_command(&mut self) -> ParseResult<()> {
         self.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.expect_command_tok()?;
@@ -166,6 +178,15 @@ where
             ResetAssertions     => self.parse_simple_command(ResetAssertions, S::reset_assertions),
 
             DeclareSort => self.parse_declare_sort_command(),
+            Echo => self.parse_echo_command(),
+
+            // fn declare_sort(&mut self, _symbol: &str, _arity: usize) -> ParserResponse {
+            // fn echo(&mut self, _content: &str) -> ParserResponse {
+            // fn get_info(&mut self, _info: InfoKind) -> ParserResponse {
+            // fn get_option(&mut self, _option: OptionKind) -> ParserResponse {
+            // fn pop(&mut self, _levels: usize) -> ParserResponse {
+            // fn push(&mut self, _levels: usize) -> ParserResponse {
+            // fn set_logic(&mut self, _symbol: &str) -> ParserResponse {
 
             _ => unimplemented!(),
         }
@@ -230,7 +251,8 @@ mod tests {
             ParserResponse::Success
         }
 
-        fn echo(&mut self, _content: &str) -> ParserResponse {
+        fn echo(&mut self, content: &str) -> ParserResponse {
+            self.events.push(ParseEvent::Echo{ content: content.to_owned() });
             ParserResponse::Success
         }
 
@@ -364,6 +386,9 @@ mod tests {
         fn fixed_size() {
             assert_parse_valid_smtlib2("(declare-sort FooTypeName 42)", vec![ParseEvent::DeclareSort{
                 symbol: String::from("FooTypeName"), arity: 42
+            }]);
+            assert_parse_valid_smtlib2("(echo \"Hello, World!\")", vec![ParseEvent::Echo{
+                content: String::from("Hello, World!")
             }]);
         }
     }
