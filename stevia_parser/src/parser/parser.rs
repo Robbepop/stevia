@@ -183,6 +183,42 @@ where
         Ok(())
     }
 
+    fn parse_get_info_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let info_tok = self.expect_tok_kind(TokenKind::Keyword)?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let info_str = self.input_str.span_to_str_unchecked(info_tok.span());
+
+        self.solver.get_info(info_str);
+        Ok(())
+    }
+
+    fn parse_get_option_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let option_tok = self.expect_tok_kind(TokenKind::Keyword)?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let option_str = self.input_str.span_to_str_unchecked(option_tok.span());
+
+        self.solver.get_option(option_str);
+        Ok(())
+    }
+
+    fn parse_set_logic_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let logic_tok = self.expect_tok_kind(TokenKind::Symbol)?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let logic_str = self.input_str.span_to_str_unchecked(logic_tok.span());
+
+        self.solver.set_logic(logic_str);
+        Ok(())
+    }
+
     fn parse_command(&mut self) -> ParseResult<()> {
         self.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.expect_command_tok()?;
@@ -206,15 +242,9 @@ where
             Pop => self.parse_pop_command(),
             Push => self.parse_push_command(),
 
-            // fn declare_sort(&mut self, _symbol: &str, _arity: usize) -> ParserResponse {
-            // fn echo(&mut self, _content: &str) -> ParserResponse {
-
-            // fn pop(&mut self, _levels: usize) -> ParserResponse {
-            // fn push(&mut self, _levels: usize) -> ParserResponse {
-            // fn set_logic(&mut self, _symbol: &str) -> ParserResponse {
-
-            // fn get_info(&mut self, _info: InfoKind) -> ParserResponse {
-            // fn get_option(&mut self, _option: OptionKind) -> ParserResponse {
+            GetInfo => self.parse_get_info_command(),
+            GetOption => self.parse_get_option_command(),
+            SetLogic => self.parse_set_logic_command(),
 
             _ => unimplemented!(),
         }
@@ -275,12 +305,17 @@ mod tests {
         }
 
         fn declare_sort(&mut self, symbol: &str, arity: usize) -> ParserResponse {
-            self.events.push(ParseEvent::DeclareSort{ symbol: symbol.to_owned(), arity });
+            self.events.push(ParseEvent::DeclareSort {
+                symbol: symbol.to_owned(),
+                arity,
+            });
             ParserResponse::Success
         }
 
         fn echo(&mut self, content: &str) -> ParserResponse {
-            self.events.push(ParseEvent::Echo{ content: content.to_owned() });
+            self.events.push(ParseEvent::Echo {
+                content: content.to_owned(),
+            });
             ParserResponse::Success
         }
 
@@ -334,12 +369,12 @@ mod tests {
         }
 
         fn pop(&mut self, levels: usize) -> ParserResponse {
-            self.events.push(ParseEvent::Pop{ levels });
+            self.events.push(ParseEvent::Pop { levels });
             ParserResponse::Success
         }
 
         fn push(&mut self, levels: usize) -> ParserResponse {
-            self.events.push(ParseEvent::Push{ levels });
+            self.events.push(ParseEvent::Push { levels });
             ParserResponse::Success
         }
 
@@ -421,14 +456,53 @@ mod tests {
 
         #[test]
         fn fixed_size() {
-            assert_parse_valid_smtlib2("(declare-sort FooTypeName 42)", vec![ParseEvent::DeclareSort{
-                symbol: String::from("FooTypeName"), arity: 42
-            }]);
-            assert_parse_valid_smtlib2("(echo \"Hello, World!\")", vec![ParseEvent::Echo{
-                content: String::from("Hello, World!")
-            }]);
-            assert_parse_valid_smtlib2("(push 42)", vec![ParseEvent::Push{ levels: 42 }]);
-            assert_parse_valid_smtlib2("(pop 5)", vec![ParseEvent::Pop{ levels: 5 }]);
+            assert_parse_valid_smtlib2(
+                "(declare-sort FooTypeName 42)",
+                vec![ParseEvent::DeclareSort {
+                    symbol: String::from("FooTypeName"),
+                    arity: 42,
+                }],
+            );
+            assert_parse_valid_smtlib2(
+                "(echo \"Hello, World!\")",
+                vec![ParseEvent::Echo {
+                    content: String::from("Hello, World!"),
+                }],
+            );
+            assert_parse_valid_smtlib2("(push 42)", vec![ParseEvent::Push { levels: 42 }]);
+            assert_parse_valid_smtlib2("(pop 5)", vec![ParseEvent::Pop { levels: 5 }]);
+            assert_parse_valid_smtlib2(
+                "(get-option :my-option)",
+                vec![ParseEvent::GetOption {
+                    option: ":my-option".to_owned(),
+                }],
+            );
+            assert_parse_valid_smtlib2(
+                "(set-logic QF_ABV)",
+                vec![ParseEvent::SetLogic {
+                    id: "QF_ABV".to_owned(),
+                }],
+            );
+        }
+
+        #[test]
+        fn get_info_command() {
+            fn assert_get_info_for(info: &str) {
+                assert_parse_valid_smtlib2(
+                    &format!("(get-info {})", info),
+                    vec![ParseEvent::GetInfo {
+                        info: info.to_owned(),
+                    }],
+                );
+            }
+            assert_get_info_for(":all-statistics");
+            assert_get_info_for(":assert-non-stack-levels");
+            assert_get_info_for(":authors");
+            assert_get_info_for(":error-behaviour");
+            assert_get_info_for(":name");
+            assert_get_info_for(":reason-unknown");
+            assert_get_info_for(":version");
+            assert_get_info_for(":my-custom-info-flag");
         }
     }
 }
