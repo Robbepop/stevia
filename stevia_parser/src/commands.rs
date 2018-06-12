@@ -7,16 +7,6 @@ pub enum ParserResponse {
     UnexpectedCommand
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum InfoKind {
-    X
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum OptionKind {
-    X
-}
-
 pub trait SMTLib2Solver {
     // Variable-size commands:
     // 
@@ -60,7 +50,7 @@ pub trait SMTLib2Solver {
         ParserResponse::Unsupported
     }
 
-    fn get_info(&mut self, _info: InfoKind) -> ParserResponse {
+    fn get_info(&mut self, _info: &str) -> ParserResponse {
         ParserResponse::Unsupported
     }
 
@@ -68,7 +58,7 @@ pub trait SMTLib2Solver {
         ParserResponse::Unsupported
     }
 
-    fn get_option(&mut self, _option: OptionKind) -> ParserResponse {
+    fn get_option(&mut self, _option: &str) -> ParserResponse {
         ParserResponse::Unsupported
     }
 

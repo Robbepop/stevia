@@ -231,7 +231,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use commands::{InfoKind, OptionKind, ParserResponse};
+    use commands::{ParserResponse};
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum ParseEvent {
@@ -241,9 +241,9 @@ mod tests {
         Exit,
         GetAssertions,
         GetAssignment,
-        GetInfo { info: InfoKind },
+        GetInfo { info: String },
         GetModel,
-        GetOption { option: OptionKind },
+        GetOption { option: String },
         GetProof,
         GetUnsatAssumptions,
         GetUnsatCore,
@@ -251,7 +251,7 @@ mod tests {
         Push { levels: usize },
         Reset,
         ResetAssertions,
-        SetLogic { symbol: String },
+        SetLogic { id: String },
     }
 
     #[derive(Debug, Default, Clone)]
@@ -299,7 +299,10 @@ mod tests {
             ParserResponse::Success
         }
 
-        fn get_info(&mut self, _info: InfoKind) -> ParserResponse {
+        fn get_info(&mut self, info: &str) -> ParserResponse {
+            self.events.push(ParseEvent::GetInfo {
+                info: info.to_owned(),
+            });
             ParserResponse::Success
         }
 
@@ -308,7 +311,10 @@ mod tests {
             ParserResponse::Success
         }
 
-        fn get_option(&mut self, _option: OptionKind) -> ParserResponse {
+        fn get_option(&mut self, option: &str) -> ParserResponse {
+            self.events.push(ParseEvent::GetOption {
+                option: option.to_owned(),
+            });
             ParserResponse::Success
         }
 
@@ -347,7 +353,8 @@ mod tests {
             ParserResponse::Success
         }
 
-        fn set_logic(&mut self, _symbol: &str) -> ParserResponse {
+        fn set_logic(&mut self, id: &str) -> ParserResponse {
+            self.events.push(ParseEvent::SetLogic { id: id.to_owned() });
             ParserResponse::Success
         }
     }
