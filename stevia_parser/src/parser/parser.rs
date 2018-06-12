@@ -163,6 +163,26 @@ where
         Ok(())
     }
 
+    fn parse_pop_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let levels = self.expect_usize_numeral()?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+
+        self.solver.pop(levels);
+        Ok(())
+    }
+
+    fn parse_push_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let levels = self.expect_usize_numeral()?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+
+        self.solver.push(levels);
+        Ok(())
+    }
+
     fn parse_command(&mut self) -> ParseResult<()> {
         self.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.expect_command_tok()?;
@@ -183,14 +203,18 @@ where
 
             DeclareSort => self.parse_declare_sort_command(),
             Echo => self.parse_echo_command(),
+            Pop => self.parse_pop_command(),
+            Push => self.parse_push_command(),
 
             // fn declare_sort(&mut self, _symbol: &str, _arity: usize) -> ParserResponse {
             // fn echo(&mut self, _content: &str) -> ParserResponse {
-            // fn get_info(&mut self, _info: InfoKind) -> ParserResponse {
-            // fn get_option(&mut self, _option: OptionKind) -> ParserResponse {
+
             // fn pop(&mut self, _levels: usize) -> ParserResponse {
             // fn push(&mut self, _levels: usize) -> ParserResponse {
             // fn set_logic(&mut self, _symbol: &str) -> ParserResponse {
+
+            // fn get_info(&mut self, _info: InfoKind) -> ParserResponse {
+            // fn get_option(&mut self, _option: OptionKind) -> ParserResponse {
 
             _ => unimplemented!(),
         }
@@ -303,11 +327,13 @@ mod tests {
             ParserResponse::Success
         }
 
-        fn pop(&mut self, _levels: usize) -> ParserResponse {
+        fn pop(&mut self, levels: usize) -> ParserResponse {
+            self.events.push(ParseEvent::Pop{ levels });
             ParserResponse::Success
         }
 
-        fn push(&mut self, _levels: usize) -> ParserResponse {
+        fn push(&mut self, levels: usize) -> ParserResponse {
+            self.events.push(ParseEvent::Push{ levels });
             ParserResponse::Success
         }
 
@@ -394,6 +420,8 @@ mod tests {
             assert_parse_valid_smtlib2("(echo \"Hello, World!\")", vec![ParseEvent::Echo{
                 content: String::from("Hello, World!")
             }]);
+            assert_parse_valid_smtlib2("(push 42)", vec![ParseEvent::Push{ levels: 42 }]);
+            assert_parse_valid_smtlib2("(pop 5)", vec![ParseEvent::Pop{ levels: 5 }]);
         }
     }
 }
