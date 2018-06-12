@@ -126,24 +126,28 @@ where
         Ok(())
     }
 
+    fn expect_usize_numeral(&mut self) -> ParseResult<usize> {
+        debug_assert!(self.peek().is_ok());
+
+        let numeral_tok = self.expect_tok_kind(TokenKind::Numeral)?;
+        let numeric = self
+            .input_str
+            .span_to_str_unchecked(numeral_tok.span())
+            .parse()
+            .unwrap(); // TODO: better error handling here
+        Ok(numeric)
+    }
+
     fn parse_declare_sort_command(&mut self) -> ParseResult<()> {
         debug_assert!(self.peek().is_ok());
 
         let symbol = self.expect_tok_kind(TokenKind::Symbol)?;
-        let arity = self.expect_tok_kind(TokenKind::Numeral)?;
+        let arity = self.expect_usize_numeral()?;
         self.expect_tok_kind(TokenKind::CloseParen)?;
 
         let symbol_str = self.input_str.span_to_str_unchecked(symbol.span());
-        let arity_num = self
-            .input_str
-            .span_to_str_unchecked(arity.span())
-            .parse()
-            .unwrap(); // TODO: better error handling here
 
-        println!("symbol_str = {}", symbol_str);
-        println!("arity_num = {}", arity_num);
-
-        self.solver.declare_sort(symbol_str, arity_num);
+        self.solver.declare_sort(symbol_str, arity);
         Ok(())
     }
 
