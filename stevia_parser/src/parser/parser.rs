@@ -17,6 +17,32 @@ pub struct Parser<'c, 's, S: 's> {
     solver: &'s mut S,
 }
 
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum PropLit<'c> {
+    Pos(&'c str),
+    Neg(&'c str),
+}
+
+#[derive(Debug, Clone)]
+pub struct PropLitsIter<'c> {
+    token_iter: TokenIter<'c>,
+    input_str: ParseContent<'c>,
+}
+
+impl<'c> PropLitsIter<'c> {
+    /// # Safety
+    ///
+    /// The caller has to verify that the given slice of the token iter is a valid
+    /// sequence for propositional literals in SMTLib2 format.
+    pub(self) unsafe fn new(token_iter: TokenIter<'c>, input_str: ParseContent<'c>) -> Self {
+        Self {
+            token_iter,
+            input_str,
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct ParseContent<'c> {
     content: &'c str,
@@ -219,6 +245,45 @@ where
         Ok(())
     }
 
+    fn expect_symbol_matching_str(&mut self, match_str: &str) -> ParseResult<()> {
+        let sym = self.expect_tok_kind(TokenKind::Symbol)?;
+        let sym_str = self.input_str.span_to_str_unchecked(sym.span());
+        if sym_str != match_str {
+            return Err(unimplemented!()); // error: unexpected symbol string.
+        }
+        Ok(())
+    }
+
+    fn parse_check_sat_assuming(&mut self) -> ParseResult<()> {
+        debug_assert!(self.peek().is_ok());
+
+        let tok_iter = self.token_iter.clone();
+        self.expect_tok_kind(TokenKind::OpenParen)?;
+        let mut count_toks = 0;
+
+        while let Ok(tok) = self.peek() {
+            match tok.kind() {
+                TokenKind::Symbol => {
+                    self.consume();
+                    count_toks += 1;
+                }
+                TokenKind::OpenParen => {
+                    self.consume();
+                    self.expect_symbol_matching_str("not")?;
+                    self.expect_tok_kind(TokenKind::Symbol)?;
+                    self.expect_tok_kind(TokenKind::CloseParen)?;
+                    count_toks += 4;
+                }
+                _ => break,
+            }
+        }
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+        self.expect_tok_kind(TokenKind::CloseParen)?;
+        self.solver
+            .check_sat_assuming(unsafe{ PropLitsIter::new(tok_iter, self.input_str) });
+        Ok(())
+    }
+
     fn parse_command(&mut self) -> ParseResult<()> {
         self.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.expect_command_tok()?;
@@ -245,6 +310,7 @@ where
             GetInfo     => self.parse_get_info_command(),
             GetOption   => self.parse_get_option_command(),
             SetLogic    => self.parse_set_logic_command(),
+            CheckSatAssuming => self.parse_check_sat_assuming(),
 
             _ => unimplemented!(),
         }
@@ -261,11 +327,34 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use commands::{ParserResponse};
+    use commands::ParserResponse;
+
+    #[derive(Debug, Clone, PartialEq, Eq)]
+    enum PropLit {
+        Pos(String),
+        Neg(String),
+    }
+
+    impl PropLit {
+        pub fn pos<S>(id: S) -> Self
+        where
+            S: Into<String>,
+        {
+            PropLit::Pos(id.into())
+        }
+
+        pub fn neg<S>(id: S) -> Self
+        where
+            S: Into<String>,
+        {
+            PropLit::Neg(id.into())
+        }
+    }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum ParseEvent {
         CheckSat,
+        CheckSatAssuming { prop_lits: Vec<PropLit> },
         DeclareSort { symbol: String, arity: usize },
         Echo { content: String },
         Exit,
@@ -301,6 +390,12 @@ mod tests {
     impl SMTLib2Solver for DummySolver {
         fn check_sat(&mut self) -> ParserResponse {
             self.events.push(ParseEvent::CheckSat);
+            ParserResponse::Success
+        }
+
+        fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ParserResponse {
+            self.events
+                .push(ParseEvent::CheckSatAssuming { prop_lits: vec![] });
             ParserResponse::Success
         }
 
@@ -503,6 +598,42 @@ mod tests {
             assert_get_info_for(":reason-unknown");
             assert_get_info_for(":version");
             assert_get_info_for(":my-custom-info-flag");
+        }
+
+        mod check_sat_assuming {
+            use super::*;
+
+            #[test]
+            fn empty_prop_lits() {
+                assert_parse_valid_smtlib2(
+                    "(check-sat-assuming ())",
+                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                );
+            }
+
+            #[test]
+            fn only_pos() {
+                assert_parse_valid_smtlib2(
+                    "(check-sat-assuming (fst snd trd))",
+                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                );
+            }
+
+            #[test]
+            fn only_neg() {
+                assert_parse_valid_smtlib2(
+                    "(check-sat-assuming ((not fst) (not snd) (not trd)))",
+                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                );
+            }
+
+            #[test]
+            fn mixed() {
+                assert_parse_valid_smtlib2(
+                    "(check-sat-assuming (fst (not snd) trd))",
+                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                );
+            }
         }
     }
 }

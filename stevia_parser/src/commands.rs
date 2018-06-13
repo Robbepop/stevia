@@ -1,3 +1,4 @@
+use parser::PropLitsIter;
 
 /// The response from the SMT solver back to the parser.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -27,6 +28,10 @@ pub trait SMTLib2Solver {
     // (set-option <option>)
 
     fn check_sat(&mut self) -> ParserResponse {
+        ParserResponse::Unsupported
+    }
+
+    fn check_sat_assuming(&mut self, _prop_lits: PropLitsIter) -> ParserResponse {
         ParserResponse::Unsupported
     }
 
