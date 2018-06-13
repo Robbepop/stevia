@@ -237,14 +237,14 @@ where
             Reset               => self.parse_simple_command(Reset, S::reset),
             ResetAssertions     => self.parse_simple_command(ResetAssertions, S::reset_assertions),
 
+            // Fixed-size commands that have a fixed set of fixed-size parameters.
             DeclareSort => self.parse_declare_sort_command(),
-            Echo => self.parse_echo_command(),
-            Pop => self.parse_pop_command(),
-            Push => self.parse_push_command(),
-
-            GetInfo => self.parse_get_info_command(),
-            GetOption => self.parse_get_option_command(),
-            SetLogic => self.parse_set_logic_command(),
+            Echo        => self.parse_echo_command(),
+            Pop         => self.parse_pop_command(),
+            Push        => self.parse_push_command(),
+            GetInfo     => self.parse_get_info_command(),
+            GetOption   => self.parse_get_option_command(),
+            SetLogic    => self.parse_set_logic_command(),
 
             _ => unimplemented!(),
         }
