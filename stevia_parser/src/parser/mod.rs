@@ -1,14 +1,15 @@
 mod parser;
 mod error;
 
-use self::{
+pub use self::{
     parser::{
         parse_smtlib2,
-        Parser
+        Parser,
+        PropLitsIter
     },
     error::{
         ParseResult,
         ParseErrorKind,
-        ParseError
+        ParseError,
     }
 };
