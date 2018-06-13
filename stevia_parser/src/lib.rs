@@ -1,5 +1,4 @@
-#[cfg(test)]
-#[macro_use]
+#[cfg_attr(test, macro_use)]
 extern crate indoc;
 
 #[macro_use]
