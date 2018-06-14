@@ -6,17 +6,23 @@ pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
 where
     S: SMTLib2Solver,
 {
-    Parser::new(input, solver).parse_script()
+    ParserDriver{ parser: Parser::new(input), solver }.parse_script()
 }
 
-#[derive(Debug)]
-pub struct Parser<'c, 's, S: 's> {
+#[derive(Debug, Clone)]
+pub struct Parser<'c> {
     token_iter: TokenIter<'c>,
     input_str: ParseContent<'c>,
     peek: Option<Token>,
-    solver: &'s mut S,
 }
 
+pub struct ParserDriver<'c, 's, S>
+where
+    S: 's
+{
+    parser: Parser<'c>,
+    solver: &'s mut S
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum PropLit<'c> {
@@ -26,8 +32,7 @@ enum PropLit<'c> {
 
 #[derive(Debug, Clone)]
 pub struct PropLitsIter<'c> {
-    token_iter: TokenIter<'c>,
-    input_str: ParseContent<'c>,
+    parser: Parser<'c>
 }
 
 impl<'c> PropLitsIter<'c> {
@@ -35,11 +40,8 @@ impl<'c> PropLitsIter<'c> {
     ///
     /// The caller has to verify that the given slice of the token iter is a valid
     /// sequence for propositional literals in SMTLib2 format.
-    pub(self) unsafe fn new(token_iter: TokenIter<'c>, input_str: ParseContent<'c>) -> Self {
-        Self {
-            token_iter,
-            input_str,
-        }
+    pub(self) unsafe fn new(parser: Parser<'c>) -> Self {
+        Self { parser }
     }
 }
 
@@ -81,16 +83,12 @@ impl<'c> ParseContent<'c> {
     }
 }
 
-impl<'c, 's, S> Parser<'c, 's, S>
-where
-    S: SMTLib2Solver,
-{
-    pub(self) fn new(input: &'c str, solver: &'s mut S) -> Self {
+impl<'c> Parser<'c> {
+    pub(self) fn new(input: &'c str) -> Self {
         Self {
             token_iter: smtlib2_tokens(input),
             input_str: ParseContent::from(input),
             peek: None,
-            solver,
         }
     }
 
@@ -137,19 +135,8 @@ where
                 self.consume();
                 Ok(command)
             }
-            _ => Err(unimplemented!()),
+            _ => Err(unimplemented!()), // error: unexpected non-command token
         }
-    }
-
-    fn parse_simple_command<C>(&mut self, _kind: Command, command: C) -> ParseResult<()>
-    where
-        C: Fn(&mut S) -> ParserResponse,
-    {
-        debug_assert!(self.peek().is_ok());
-
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-        command(self.solver);
-        Ok(())
     }
 
     fn expect_usize_numeral(&mut self) -> ParseResult<usize> {
@@ -164,87 +151,6 @@ where
         Ok(numeric)
     }
 
-    fn parse_declare_sort_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let symbol = self.expect_tok_kind(TokenKind::Symbol)?;
-        let arity = self.expect_usize_numeral()?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        let symbol_str = self.input_str.span_to_str_unchecked(symbol.span());
-
-        self.solver.declare_sort(symbol_str, arity);
-        Ok(())
-    }
-
-    fn parse_echo_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let text = self.expect_tok_kind(TokenKind::StringLiteral)?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        let text_str = self.input_str.span_to_str_unchecked(text.span());
-
-        self.solver.echo(text_str);
-        Ok(())
-    }
-
-    fn parse_pop_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let levels = self.expect_usize_numeral()?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        self.solver.pop(levels);
-        Ok(())
-    }
-
-    fn parse_push_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let levels = self.expect_usize_numeral()?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        self.solver.push(levels);
-        Ok(())
-    }
-
-    fn parse_get_info_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let info_tok = self.expect_tok_kind(TokenKind::Keyword)?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        let info_str = self.input_str.span_to_str_unchecked(info_tok.span());
-
-        self.solver.get_info(info_str);
-        Ok(())
-    }
-
-    fn parse_get_option_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let option_tok = self.expect_tok_kind(TokenKind::Keyword)?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        let option_str = self.input_str.span_to_str_unchecked(option_tok.span());
-
-        self.solver.get_option(option_str);
-        Ok(())
-    }
-
-    fn parse_set_logic_command(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
-
-        let logic_tok = self.expect_tok_kind(TokenKind::Symbol)?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-
-        let logic_str = self.input_str.span_to_str_unchecked(logic_tok.span());
-
-        self.solver.set_logic(logic_str);
-        Ok(())
-    }
-
     fn expect_symbol_matching_str(&mut self, match_str: &str) -> ParseResult<()> {
         let sym = self.expect_tok_kind(TokenKind::Symbol)?;
         let sym_str = self.input_str.span_to_str_unchecked(sym.span());
@@ -253,40 +159,134 @@ where
         }
         Ok(())
     }
+}
+
+impl<'c, 's, S> ParserDriver<'c, 's, S>
+where
+    S: SMTLib2Solver + 's
+{
+    fn parse_simple_command<C>(&mut self, _kind: Command, command: C) -> ParseResult<()>
+    where
+        C: Fn(&mut S) -> ParserResponse,
+    {
+        debug_assert!(self.parser.peek().is_ok());
+
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        command(self.solver);
+        Ok(())
+    }
+
+    fn parse_declare_sort_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let symbol = self.parser.expect_tok_kind(TokenKind::Symbol)?;
+        let arity = self.parser.expect_usize_numeral()?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let symbol_str = self.parser.input_str.span_to_str_unchecked(symbol.span());
+
+        self.solver.declare_sort(symbol_str, arity);
+        Ok(())
+    }
+
+    fn parse_echo_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let text = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let text_str = self.parser.input_str.span_to_str_unchecked(text.span());
+
+        self.solver.echo(text_str);
+        Ok(())
+    }
+
+    fn parse_pop_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let levels = self.parser.expect_usize_numeral()?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        self.solver.pop(levels);
+        Ok(())
+    }
+
+    fn parse_push_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let levels = self.parser.expect_usize_numeral()?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        self.solver.push(levels);
+        Ok(())
+    }
+
+    fn parse_get_info_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let info_tok = self.parser.expect_tok_kind(TokenKind::Keyword)?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let info_str = self.parser.input_str.span_to_str_unchecked(info_tok.span());
+
+        self.solver.get_info(info_str);
+        Ok(())
+    }
+
+    fn parse_get_option_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let option_tok = self.parser.expect_tok_kind(TokenKind::Keyword)?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let option_str = self.parser.input_str.span_to_str_unchecked(option_tok.span());
+
+        self.solver.get_option(option_str);
+        Ok(())
+    }
+
+    fn parse_set_logic_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let logic_tok = self.parser.expect_tok_kind(TokenKind::Symbol)?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        let logic_str = self.parser.input_str.span_to_str_unchecked(logic_tok.span());
+
+        self.solver.set_logic(logic_str);
+        Ok(())
+    }
 
     fn parse_check_sat_assuming(&mut self) -> ParseResult<()> {
-        debug_assert!(self.peek().is_ok());
+        debug_assert!(self.parser.peek().is_ok());
 
-        let tok_iter = self.token_iter.clone();
-        self.expect_tok_kind(TokenKind::OpenParen)?;
-        let mut count_toks = 0;
+        let parser_before_sequence = self.parser.clone();
+        self.parser.expect_tok_kind(TokenKind::OpenParen)?;
 
-        while let Ok(tok) = self.peek() {
+        while let Ok(tok) = self.parser.peek() {
             match tok.kind() {
                 TokenKind::Symbol => {
-                    self.consume();
-                    count_toks += 1;
+                    self.parser.consume();
                 }
                 TokenKind::OpenParen => {
-                    self.consume();
-                    self.expect_symbol_matching_str("not")?;
-                    self.expect_tok_kind(TokenKind::Symbol)?;
-                    self.expect_tok_kind(TokenKind::CloseParen)?;
-                    count_toks += 4;
+                    self.parser.consume();
+                    self.parser.expect_symbol_matching_str("not")?;
+                    self.parser.expect_tok_kind(TokenKind::Symbol)?;
+                    self.parser.expect_tok_kind(TokenKind::CloseParen)?;
                 }
                 _ => break,
             }
         }
-        self.expect_tok_kind(TokenKind::CloseParen)?;
-        self.expect_tok_kind(TokenKind::CloseParen)?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         self.solver
-            .check_sat_assuming(unsafe{ PropLitsIter::new(tok_iter, self.input_str) });
+            .check_sat_assuming(unsafe{ PropLitsIter::new(parser_before_sequence) });
         Ok(())
     }
 
     fn parse_command(&mut self) -> ParseResult<()> {
-        self.expect_tok_kind(TokenKind::OpenParen)?;
-        let command = self.expect_command_tok()?;
+        self.parser.expect_tok_kind(TokenKind::OpenParen)?;
+        let command = self.parser.expect_command_tok()?;
         use self::Command::*;
         #[cfg_attr(rustfmt, rustfmt_skip)]
         match command {
@@ -317,7 +317,7 @@ where
     }
 
     pub fn parse_script(&mut self) -> ParseResult<()> {
-        while let Ok(_) = self.peek() {
+        while let Ok(_) = self.parser.peek() {
             self.parse_command()?
         }
         Ok(())
