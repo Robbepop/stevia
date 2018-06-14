@@ -57,7 +57,7 @@ impl<'c> From<&'c str> for ParseContent<'c> {
 }
 
 impl<'c> ParseContent<'c> {
-    pub fn span_to_str(&self, span: Span) -> Option<&str> {
+    pub fn span_to_str(&self, span: Span) -> Option<&'c str> {
         debug_assert!(self.content.as_bytes().len() >= 1);
 
         let content_bytes = self.content.as_bytes();
@@ -72,7 +72,7 @@ impl<'c> ParseContent<'c> {
         Some(&self.content[span.begin.to_usize()..span.end.to_usize() + 1])
     }
 
-    pub fn span_to_str_unchecked(&self, span: Span) -> &str {
+    pub fn span_to_str_unchecked(&self, span: Span) -> &'c str {
         debug_assert!(self.content.as_bytes().len() >= 1);
         debug_assert!(span.begin.to_usize() < self.content.as_bytes().len());
         debug_assert!(span.end.to_usize() < self.content.as_bytes().len());
