@@ -5,7 +5,8 @@ use parser::PropLitsIter;
 pub enum ParserResponse {
     Success,
     Unsupported,
-    UnexpectedCommand
+    UnexpectedCommand,
+    InvalidState
 }
 
 pub trait SMTLib2Solver {
