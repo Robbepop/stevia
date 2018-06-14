@@ -6,7 +6,10 @@ pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
 where
     S: SMTLib2Solver,
 {
-    ParserDriver{ parser: Parser::new(input), solver }.parse_script()
+    ParserDriver {
+        parser: Parser::new(input),
+        solver,
+    }.parse_script()
 }
 
 #[derive(Debug, Clone)]
@@ -18,7 +21,7 @@ pub struct Parser<'c> {
 
 pub struct ParserDriver<'c, 's, S>
 where
-    S: 's
+    S: 's,
 {
     parser: Parser<'c>,
     solver: &'s mut S
@@ -167,7 +170,7 @@ impl<'c> Parser<'c> {
 
 impl<'c, 's, S> ParserDriver<'c, 's, S>
 where
-    S: SMTLib2Solver + 's
+    S: SMTLib2Solver + 's,
 {
     fn parse_simple_command<C>(&mut self, _kind: Command, command: C) -> ParseResult<()>
     where
@@ -243,7 +246,10 @@ where
         let option_tok = self.parser.expect_tok_kind(TokenKind::Keyword)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        let option_str = self.parser.input_str.span_to_str_unchecked(option_tok.span());
+        let option_str = self
+            .parser
+            .input_str
+            .span_to_str_unchecked(option_tok.span());
 
         self.solver.get_option(option_str);
         Ok(())
@@ -255,7 +261,10 @@ where
         let logic_tok = self.parser.expect_tok_kind(TokenKind::Symbol)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        let logic_str = self.parser.input_str.span_to_str_unchecked(logic_tok.span());
+        let logic_str = self
+            .parser
+            .input_str
+            .span_to_str_unchecked(logic_tok.span());
 
         self.solver.set_logic(logic_str);
         Ok(())
@@ -284,7 +293,7 @@ where
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         self.solver
-            .check_sat_assuming(unsafe{ PropLitsIter::new(parser_before_sequence) });
+            .check_sat_assuming(unsafe { PropLitsIter::new(parser_before_sequence) });
         Ok(())
     }
 
