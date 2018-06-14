@@ -151,10 +151,14 @@ impl<'c> Parser<'c> {
         Ok(numeric)
     }
 
-    fn expect_symbol_matching_str(&mut self, match_str: &str) -> ParseResult<()> {
+    fn expect_symbol_tok(&mut self) -> ParseResult<&'c str> {
         let sym = self.expect_tok_kind(TokenKind::Symbol)?;
         let sym_str = self.input_str.span_to_str_unchecked(sym.span());
-        if sym_str != match_str {
+        Ok(sym_str)
+    }
+
+    fn expect_symbol_matching_str(&mut self, match_str: &str) -> ParseResult<()> {
+        if self.expect_symbol_tok()? != match_str {
             return Err(unimplemented!()); // error: unexpected symbol string.
         }
         Ok(())
