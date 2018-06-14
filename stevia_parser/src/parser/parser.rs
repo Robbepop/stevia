@@ -24,28 +24,7 @@ where
     S: 's,
 {
     parser: Parser<'c>,
-    solver: &'s mut S
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum PropLit<'c> {
-    Pos(&'c str),
-    Neg(&'c str),
-}
-
-#[derive(Debug, Clone)]
-pub struct PropLitsIter<'c> {
-    parser: Parser<'c>
-}
-
-impl<'c> PropLitsIter<'c> {
-    /// # Safety
-    ///
-    /// The caller has to verify that the given slice of the token iter is a valid
-    /// sequence for propositional literals in SMTLib2 format.
-    pub(self) unsafe fn new(parser: Parser<'c>) -> Self {
-        Self { parser }
-    }
+    solver: &'s mut S,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -269,7 +248,88 @@ where
         self.solver.set_logic(logic_str);
         Ok(())
     }
+}
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum Sign {
+    Pos,
+    Neg,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub struct PropLit<'c> {
+    name: &'c str,
+    sign: Sign,
+}
+
+impl<'c> PropLit<'c> {
+    fn new(name: &'c str, sign: Sign) -> Self {
+        Self { name, sign }
+    }
+
+    pub fn pos(name: &'c str) -> PropLit {
+        Self::new(name, Sign::Pos)
+    }
+
+    pub fn neg(name: &'c str) -> PropLit {
+        Self::new(name, Sign::Neg)
+    }
+
+    pub fn name(self) -> &'c str {
+        self.name
+    }
+
+    pub fn sign(self) -> Sign {
+        self.sign
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PropLitsIter<'c> {
+    parser: Parser<'c>,
+}
+
+impl<'c> PropLitsIter<'c> {
+    /// # Safety
+    ///
+    /// The caller has to verify that the given slice of the token iter is a valid
+    /// sequence for propositional literals in SMTLib2 format.
+    pub(self) unsafe fn new(parser: Parser<'c>) -> Self {
+        let mut iter = Self { parser };
+        iter.parser.expect_tok_kind(TokenKind::OpenParen).unwrap();
+        iter
+    }
+}
+
+impl<'c> Iterator for PropLitsIter<'c> {
+    type Item = PropLit<'c>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let tok = self.parser.peek().unwrap();
+        match tok.kind() {
+            TokenKind::Symbol => {
+                self.parser.consume();
+                Some(PropLit::pos(
+                    self.parser.input_str.span_to_str_unchecked(tok.span()),
+                ))
+            }
+            TokenKind::OpenParen => {
+                self.parser.consume();
+                self.parser.expect_symbol_matching_str("not").unwrap();
+                let lit_str = self.parser.expect_symbol_tok().unwrap();
+                self.parser.expect_tok_kind(TokenKind::CloseParen).unwrap();
+                Some(PropLit::neg(lit_str))
+            }
+            TokenKind::CloseParen => None,
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl<'c, 's, S> ParserDriver<'c, 's, S>
+where
+    S: SMTLib2Solver + 's,
+{
     fn parse_check_sat_assuming(&mut self) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
@@ -343,31 +403,31 @@ mod tests {
     use commands::ParserResponse;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
-    enum PropLit {
+    enum DummyPropLit {
         Pos(String),
         Neg(String),
     }
 
-    impl PropLit {
+    impl DummyPropLit {
         pub fn pos<S>(id: S) -> Self
         where
             S: Into<String>,
         {
-            PropLit::Pos(id.into())
+            DummyPropLit::Pos(id.into())
         }
 
         pub fn neg<S>(id: S) -> Self
         where
             S: Into<String>,
         {
-            PropLit::Neg(id.into())
+            DummyPropLit::Neg(id.into())
         }
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum ParseEvent {
         CheckSat,
-        CheckSatAssuming { prop_lits: Vec<PropLit> },
+        CheckSatAssuming { prop_lits: Vec<DummyPropLit> },
         DeclareSort { symbol: String, arity: usize },
         Echo { content: String },
         Exit,
@@ -407,8 +467,14 @@ mod tests {
         }
 
         fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ParserResponse {
-            self.events
-                .push(ParseEvent::CheckSatAssuming { prop_lits: vec![] });
+            self.events.push(ParseEvent::CheckSatAssuming {
+                prop_lits: prop_lits
+                    .map(|lit| match lit.sign() {
+                        Sign::Pos => DummyPropLit::pos(lit.name()),
+                        Sign::Neg => DummyPropLit::neg(lit.name()),
+                    })
+                    .collect(),
+            });
             ParserResponse::Success
         }
 
@@ -628,7 +694,13 @@ mod tests {
             fn only_pos() {
                 assert_parse_valid_smtlib2(
                     "(check-sat-assuming (fst snd trd))",
-                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                    vec![ParseEvent::CheckSatAssuming {
+                        prop_lits: vec![
+                            DummyPropLit::pos("fst"),
+                            DummyPropLit::pos("snd"),
+                            DummyPropLit::pos("trd"),
+                        ],
+                    }],
                 );
             }
 
@@ -636,7 +708,13 @@ mod tests {
             fn only_neg() {
                 assert_parse_valid_smtlib2(
                     "(check-sat-assuming ((not fst) (not snd) (not trd)))",
-                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                    vec![ParseEvent::CheckSatAssuming {
+                        prop_lits: vec![
+                            DummyPropLit::neg("fst"),
+                            DummyPropLit::neg("snd"),
+                            DummyPropLit::neg("trd"),
+                        ],
+                    }],
                 );
             }
 
@@ -644,7 +722,13 @@ mod tests {
             fn mixed() {
                 assert_parse_valid_smtlib2(
                     "(check-sat-assuming (fst (not snd) trd))",
-                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
+                    vec![ParseEvent::CheckSatAssuming {
+                        prop_lits: vec![
+                            DummyPropLit::pos("fst"),
+                            DummyPropLit::neg("snd"),
+                            DummyPropLit::pos("trd"),
+                        ],
+                    }],
                 );
             }
         }
