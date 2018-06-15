@@ -1,4 +1,4 @@
-use commands::{ParserResponse, SMTLib2Solver};
+use commands::{ResponseResult, SMTLib2Solver};
 use lexer::{smtlib2_tokens, Command, Span, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
 
@@ -153,7 +153,7 @@ where
 {
     fn parse_simple_command<C>(&mut self, _kind: Command, command: C) -> ParseResult<()>
     where
-        C: Fn(&mut S) -> ParserResponse,
+        C: Fn(&mut S) -> ResponseResult,
     {
         debug_assert!(self.parser.peek().is_ok());
 
@@ -400,7 +400,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use commands::ParserResponse;
+    use commands::ResponseResult;
 
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum DummyPropLit {
@@ -461,12 +461,12 @@ mod tests {
     }
 
     impl SMTLib2Solver for DummySolver {
-        fn check_sat(&mut self) -> ParserResponse {
+        fn check_sat(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::CheckSat);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ParserResponse {
+        fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ResponseResult {
             self.events.push(ParseEvent::CheckSatAssuming {
                 prop_lits: prop_lits
                     .map(|lit| match lit.sign() {
@@ -475,96 +475,96 @@ mod tests {
                     })
                     .collect(),
             });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn declare_sort(&mut self, symbol: &str, arity: usize) -> ParserResponse {
+        fn declare_sort(&mut self, symbol: &str, arity: usize) -> ResponseResult {
             self.events.push(ParseEvent::DeclareSort {
                 symbol: symbol.to_owned(),
                 arity,
             });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn echo(&mut self, content: &str) -> ParserResponse {
+        fn echo(&mut self, content: &str) -> ResponseResult {
             self.events.push(ParseEvent::Echo {
                 content: content.to_owned(),
             });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn exit(&mut self) -> ParserResponse {
+        fn exit(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::Exit);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_assertions(&mut self) -> ParserResponse {
+        fn get_assertions(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::GetAssertions);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_assignment(&mut self) -> ParserResponse {
+        fn get_assignment(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::GetAssignment);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_info(&mut self, info: &str) -> ParserResponse {
+        fn get_info(&mut self, info: &str) -> ResponseResult {
             self.events.push(ParseEvent::GetInfo {
                 info: info.to_owned(),
             });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_model(&mut self) -> ParserResponse {
+        fn get_model(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::GetModel);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_option(&mut self, option: &str) -> ParserResponse {
+        fn get_option(&mut self, option: &str) -> ResponseResult {
             self.events.push(ParseEvent::GetOption {
                 option: option.to_owned(),
             });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_proof(&mut self) -> ParserResponse {
+        fn get_proof(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::GetProof);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_unsat_assumptions(&mut self) -> ParserResponse {
+        fn get_unsat_assumptions(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::GetUnsatAssumptions);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn get_unsat_core(&mut self) -> ParserResponse {
+        fn get_unsat_core(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::GetUnsatCore);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn pop(&mut self, levels: usize) -> ParserResponse {
+        fn pop(&mut self, levels: usize) -> ResponseResult {
             self.events.push(ParseEvent::Pop { levels });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn push(&mut self, levels: usize) -> ParserResponse {
+        fn push(&mut self, levels: usize) -> ResponseResult {
             self.events.push(ParseEvent::Push { levels });
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn reset(&mut self) -> ParserResponse {
+        fn reset(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::Reset);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn reset_assertions(&mut self) -> ParserResponse {
+        fn reset_assertions(&mut self) -> ResponseResult {
             self.events.push(ParseEvent::ResetAssertions);
-            ParserResponse::Success
+            Ok(())
         }
 
-        fn set_logic(&mut self, id: &str) -> ParserResponse {
+        fn set_logic(&mut self, id: &str) -> ResponseResult {
             self.events.push(ParseEvent::SetLogic { id: id.to_owned() });
-            ParserResponse::Success
+            Ok(())
         }
     }
 
