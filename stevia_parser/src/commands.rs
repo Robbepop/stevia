@@ -12,6 +12,58 @@ pub enum ResponseError {
 
 pub type ResponseResult = std::result::Result<(), ResponseError>;
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Literal<'c> {
+    Bool(bool),
+    String(&'c str),
+    Symbol(&'c str),
+    Numeral(NumeralLit<'c>),
+    Keyword(&'c str),
+    Decimal(DecimalLit<'c>)
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct NumeralLit<'c> {
+    repr: &'c str
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct DecimalLit<'c> {
+    repr: &'c str
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum OutputChannel<'c> {
+    Stderr,
+    Stdout,
+    File(&'c std::path::Path)
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum OptionAndValue<'c> {
+    DiagnosticOutputChannel(OutputChannel<'c>),
+    GlobalDeclarations(bool),
+    InteractiveMode(bool),
+    PrintSuccess(bool),
+    ProduceAssertions(bool),
+    ProduceAssignments(bool),
+    ProduceModels(bool),
+    ProduceProofs(bool),
+    ProduceUnsatAssumptions(bool),
+    ProduceUnsatCores(bool),
+    RandomSeed(NumeralLit<'c>),
+    RegularOutputChannel(OutputChannel<'c>),
+    ReproducibleResourceLimit(NumeralLit<'c>),
+    Verbosity(NumeralLit<'c>),
+    SimpleCustom{
+        key: &'c str,
+        value: Option<Literal<'c>>
+    },
+    ComplexCustom{
+        key: &'c str
+    }
+}
+
 
 pub trait SMTLib2Solver {
     // Variable-size commands:
@@ -106,5 +158,7 @@ pub trait SMTLib2Solver {
         Ok(())
     }
 
+    fn set_option(&mut self, _option: OptionAndValue) -> ResponseResult {
+        Ok(())
     }
 }
