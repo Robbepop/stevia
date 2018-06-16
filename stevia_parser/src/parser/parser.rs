@@ -10,6 +10,7 @@ use commands::{
     OutputChannelBase,
     ResponseResult,
     SMTLib2Solver,
+    CategoryKind,
     SetInfoKind,
     SetInfoKindBase,
 };
@@ -584,7 +585,22 @@ where
     }
 
     fn parse_set_info_category_command(&mut self) -> ParseResult<()> {
-        unimplemented!()
+        debug_assert!(self.parser.peek().is_ok());
+
+        let text_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
+
+        let category = match text_str {
+            "crafted" => CategoryKind::Crafted,
+            "random" => CategoryKind::Random,
+            "industrial" => CategoryKind::Industrial,
+            _ => return Err(unimplemented!()) // error: unknown category kind
+        };
+
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        self.solver.set_info(SetInfoKindBase::Category(category))?;
+
+        Ok(())
     }
 
     fn parse_set_info_license_command(&mut self) -> ParseResult<()> {
@@ -1427,6 +1443,28 @@ mod tests {
                     "(set-info :source |Hello, World!|)",
                     vec![ParseEvent::SetInfo {
                         info_and_value: Source(String::from("Hello, World!")),
+                    }],
+                );
+            }
+
+            #[test]
+            fn category() {
+                assert_parse_valid_smtlib2(
+                    "(set-info :category \"crafted\")",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Category(CategoryKind::Crafted),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-info :category \"random\")",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Category(CategoryKind::Random),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-info :category \"industrial\")",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Category(CategoryKind::Industrial),
                     }],
                 );
             }
