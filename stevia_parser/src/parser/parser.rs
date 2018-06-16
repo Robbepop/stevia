@@ -1,4 +1,5 @@
 use commands::{
+    CategoryKind,
     DecimalLit,
     DecimalLitBase,
     LiteralBase,
@@ -10,10 +11,9 @@ use commands::{
     OutputChannelBase,
     ResponseResult,
     SMTLib2Solver,
-    CategoryKind,
-    StatusKind,
     SetInfoKind,
     SetInfoKindBase,
+    StatusKind,
 };
 use lexer::{smtlib2_tokens, Command, Span, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
@@ -595,7 +595,7 @@ where
             "crafted" => CategoryKind::Crafted,
             "random" => CategoryKind::Random,
             "industrial" => CategoryKind::Industrial,
-            _ => return Err(unimplemented!()) // error: unknown category kind
+            _ => return Err(unimplemented!()), // error: unknown category kind
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
@@ -625,7 +625,7 @@ where
             "sat" => StatusKind::Sat,
             "unsat" => StatusKind::Unsat,
             "unknown" => StatusKind::Unknown,
-            _ => return Err(unimplemented!()) // error: unknown status kind
+            _ => return Err(unimplemented!()), // error: unknown status kind
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
@@ -634,8 +634,43 @@ where
         Ok(())
     }
 
-    fn parse_set_info_custom_command(&mut self, _key: &'c str) -> ParseResult<()> {
+    fn parse_set_info_complex_custom_command(&mut self, _key: &'c str) -> ParseResult<()> {
         unimplemented!()
+    }
+
+    fn parse_set_info_custom_command(&mut self, key: &'c str) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let peek_tok = self.parser.peek()?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+
+        if let TokenKind::OpenParen = peek_tok.kind() {
+            return self.parse_set_info_complex_custom_command(key);
+        }
+
+        let value = match peek_tok.kind() {
+            TokenKind::CloseParen => None,
+            TokenKind::StringLiteral => Some(LiteralBase::String(peek_str)),
+            TokenKind::Keyword => Some(LiteralBase::Keyword(peek_str)),
+            TokenKind::Numeral => Some(LiteralBase::Numeral(NumeralLitBase { repr: peek_str })),
+            TokenKind::Decimal => Some(LiteralBase::Decimal(DecimalLitBase { repr: peek_str })),
+            TokenKind::Symbol => match peek_str {
+                "true" => Some(LiteralBase::Bool(true)),
+                "false" => Some(LiteralBase::Bool(false)),
+                _ => Some(LiteralBase::Symbol(peek_str)),
+            },
+            _ => return Err(unimplemented!()), // unexpected token
+        };
+
+        self.parser.consume();
+        if value.is_some() {
+            self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        }
+
+        self.solver
+            .set_info(SetInfoKindBase::SimpleCustom { key, value })?;
+
+        Ok(())
     }
 
     fn parse_set_info_command(&mut self) -> ParseResult<()> {
@@ -1522,6 +1557,102 @@ mod tests {
                         info_and_value: License(String::from("This is my license.")),
                     }],
                 );
+            }
+
+            mod simple_custom {
+                use self::SetInfoKindBase::*;
+                use super::*;
+
+                #[test]
+                fn empty_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: None,
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn bool_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info true)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: Some(LiteralBase::Bool(true)),
+                            },
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info false)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: Some(LiteralBase::Bool(false)),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn symbol_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info Foo)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: Some(LiteralBase::Symbol(String::from("Foo"))),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn numeral_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info 42)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: Some(LiteralBase::Numeral(NumeralLitBase {
+                                    repr: String::from("42"),
+                                })),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn decimal_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info 7.7)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: Some(LiteralBase::Decimal(DecimalLitBase {
+                                    repr: String::from("7.7"),
+                                })),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn keyword_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-info :my-custom-info :my-keyword)",
+                        vec![ParseEvent::SetInfo {
+                            info_and_value: SimpleCustom {
+                                key: String::from(":my-custom-info"),
+                                value: Some(LiteralBase::Keyword(String::from(":my-keyword"))),
+                            },
+                        }],
+                    );
+                }
             }
         }
     }
