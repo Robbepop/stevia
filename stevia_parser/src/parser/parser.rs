@@ -1,5 +1,8 @@
 use commands::{
+    DecimalLitBase,
+    LiteralBase,
     NumeralLit,
+    NumeralLitBase,
     OptionAndValue,
     OptionAndValueBase,
     OptionKind,
@@ -483,8 +486,43 @@ where
         Ok(())
     }
 
-    fn parse_set_custom_option_command(&mut self, _repr: &'c str) -> ParseResult<()> {
+    fn parse_set_complex_custom_option_command(&mut self, _key_str: &'c str) -> ParseResult<()> {
         unimplemented!()
+    }
+
+    fn parse_set_custom_option_command(&mut self, key_str: &'c str) -> ParseResult<()> {
+        let peek_tok = self.parser.peek()?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+
+        if peek_tok.kind() == TokenKind::OpenParen {
+            return self.parse_set_complex_custom_option_command(key_str);
+        }
+
+        let value = match peek_tok.kind() {
+            TokenKind::CloseParen => None,
+            TokenKind::StringLiteral => Some(LiteralBase::String(peek_str)),
+            TokenKind::Keyword => Some(LiteralBase::Keyword(peek_str)),
+            TokenKind::Numeral => Some(LiteralBase::Numeral(NumeralLitBase { repr: peek_str })),
+            TokenKind::Decimal => Some(LiteralBase::Decimal(DecimalLitBase { repr: peek_str })),
+            TokenKind::Symbol => match peek_str {
+                "true" => Some(LiteralBase::Bool(true)),
+                "false" => Some(LiteralBase::Bool(false)),
+                _ => Some(LiteralBase::Symbol(peek_str)),
+            },
+            _ => return Err(unimplemented!()), // unexpected token
+        };
+
+        self.parser.consume();
+        if value.is_some() {
+            self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        }
+
+        self.solver.set_option(OptionAndValueBase::SimpleCustom {
+            key: key_str,
+            value,
+        })?;
+
+        Ok(())
     }
 
     fn parse_set_option_command(&mut self) -> ParseResult<()> {
@@ -503,7 +541,7 @@ where
                 self.parse_set_option_output_channel_command(opt)
             }
             opt if opt.has_numeral_param() => self.parse_set_option_numeral_command(opt),
-            Custom(repr) => self.parse_set_custom_option_command(repr),
+            Custom(key_str) => self.parse_set_custom_option_command(key_str),
             _ => unreachable!(),
         }
     }
@@ -1158,6 +1196,102 @@ mod tests {
                             option_and_value: RegularOutputChannel(OutputChannelBase::File(
                                 std::path::PathBuf::from("my_file"),
                             )),
+                        }],
+                    );
+                }
+            }
+
+            mod simple_custom {
+                use self::OptionAndValueBase::*;
+                use super::*;
+
+                #[test]
+                fn empty_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: None,
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn bool_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd true)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: Some(LiteralBase::Bool(true)),
+                            },
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd false)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: Some(LiteralBase::Bool(false)),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn symbol_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd Foo)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: Some(LiteralBase::Symbol(String::from("Foo"))),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn numeral_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd 42)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: Some(LiteralBase::Numeral(NumeralLitBase {
+                                    repr: String::from("42"),
+                                })),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn decimal_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd 7.7)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: Some(LiteralBase::Decimal(DecimalLitBase {
+                                    repr: String::from("7.7"),
+                                })),
+                            },
+                        }],
+                    );
+                }
+
+                #[test]
+                fn keyword_value() {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :my-custom-cmd :my-keyword)",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: SimpleCustom {
+                                key: String::from(":my-custom-cmd"),
+                                value: Some(LiteralBase::Keyword(String::from(":my-keyword"))),
+                            },
                         }],
                     );
                 }
