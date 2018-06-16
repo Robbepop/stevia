@@ -207,74 +207,74 @@ pub trait SMTLib2Solver {
     }
 
     fn check_sat_assuming(&mut self, _prop_lits: PropLitsIter) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn declare_sort(&mut self, _symbol: &str, _arity: usize) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn echo(&mut self, _content: &str) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn exit(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_assertions(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_assignment(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_info(&mut self, _info: &str) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_model(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_option(&mut self, _option: OptionKind) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_proof(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_unsat_assumptions(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn get_unsat_core(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn pop(&mut self, _levels: usize) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn push(&mut self, _levels: usize) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn reset(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn reset_assertions(&mut self) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn set_logic(&mut self, _symbol: &str) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 
     fn set_option(&mut self, _option: OptionAndValue) -> ResponseResult {
-        Ok(())
+        Err(ResponseError::Unsupported)
     }
 }
