@@ -1,4 +1,5 @@
 use commands::{
+    DecimalLit,
     DecimalLitBase,
     LiteralBase,
     NumeralLit,
@@ -9,6 +10,8 @@ use commands::{
     OutputChannelBase,
     ResponseResult,
     SMTLib2Solver,
+    SetInfoKind,
+    SetInfoKindBase,
 };
 use lexer::{smtlib2_tokens, Command, Span, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
@@ -544,6 +547,61 @@ where
         }
     }
 
+    fn parse_set_info_smt_lib_version_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let version_tok = self.parser.expect_tok_kind(TokenKind::Decimal)?;
+        let version_str = self
+            .parser
+            .input_str
+            .span_to_str_unchecked(version_tok.span());
+        let version_lit = DecimalLit { repr: version_str };
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        self.solver
+            .set_info(SetInfoKindBase::SMTLibVersion(version_lit))?;
+
+        Ok(())
+    }
+
+    fn parse_set_info_source_command(&mut self) -> ParseResult<()> {
+        unimplemented!()
+    }
+
+    fn parse_set_info_category_command(&mut self) -> ParseResult<()> {
+        unimplemented!()
+    }
+
+    fn parse_set_info_license_command(&mut self) -> ParseResult<()> {
+        unimplemented!()
+    }
+
+    fn parse_set_info_status_command(&mut self) -> ParseResult<()> {
+        unimplemented!()
+    }
+
+    fn parse_set_info_custom_command(&mut self) -> ParseResult<()> {
+        unimplemented!()
+    }
+
+    fn parse_set_info_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let info_tok = self.parser.expect_tok_kind(TokenKind::Keyword)?;
+        let info_str = self.parser.input_str.span_to_str_unchecked(info_tok.span());
+
+        match info_str {
+            ":smt-lib-version" => self.parse_set_info_smt_lib_version_command(),
+            ":source" => self.parse_set_info_source_command(),
+            ":category" => self.parse_set_info_category_command(),
+            ":license" => self.parse_set_info_license_command(),
+            ":status" => self.parse_set_info_status_command(),
+            custom => self.parse_set_info_custom_command(),
+        }?;
+
+        Ok(())
+    }
+
     fn parse_command(&mut self) -> ParseResult<()> {
         self.parser.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.parser.expect_command_tok()?;
@@ -572,6 +630,7 @@ where
             SetLogic         => self.parse_set_logic_command(),
             CheckSatAssuming => self.parse_check_sat_assuming_command(),
             SetOption        => self.parse_set_option_command(),
+            SetInfo          => self.parse_set_info_command(),
 
             _ => unimplemented!(),
         }
@@ -632,6 +691,7 @@ mod tests {
     pub type DummyDecimalLit = DecimalLitBase<String>;
     pub type DummyOutputChannel = OutputChannelBase<std::path::PathBuf>;
     pub type DummyOptionAndValue = OptionAndValueBase<String, std::path::PathBuf>;
+    pub type DummySetInfoKind = SetInfoKindBase<String>;
 
     impl<'c> From<NumeralLit<'c>> for DummyNumeralLit {
         fn from(lit: NumeralLit<'c>) -> Self {
@@ -726,6 +786,24 @@ mod tests {
         }
     }
 
+    impl<'c> From<SetInfoKind<'c>> for DummySetInfoKind {
+        fn from(kind: SetInfoKind<'c>) -> Self {
+            use self::SetInfoKindBase::*;
+            match kind {
+                SMTLibVersion(dec) => SMTLibVersion(dec.into()),
+                Source(s) => Source(s.into()),
+                Category(cat) => Category(cat.into()),
+                License(text) => License(text.into()),
+                Status(kind) => Status(kind.into()),
+                SimpleCustom { key, value } => SimpleCustom {
+                    key: key.into(),
+                    value: value.map(|v| v.into()),
+                },
+                ComplexCustom { key } => ComplexCustom { key: key.into() },
+            }
+        }
+    }
+
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum ParseEvent {
         CheckSat,
@@ -765,6 +843,9 @@ mod tests {
         },
         SetOption {
             option_and_value: DummyOptionAndValue,
+        },
+        SetInfo {
+            info_and_value: DummySetInfoKind,
         },
     }
 
@@ -892,6 +973,13 @@ mod tests {
         fn set_option(&mut self, option_and_value: OptionAndValue) -> ResponseResult {
             self.events.push(ParseEvent::SetOption {
                 option_and_value: option_and_value.into(),
+            });
+            Ok(())
+        }
+
+        fn set_info(&mut self, info_and_value: SetInfoKind) -> ResponseResult {
+            self.events.push(ParseEvent::SetInfo {
+                info_and_value: info_and_value.into(),
             });
             Ok(())
         }
@@ -1293,6 +1381,23 @@ mod tests {
                         }],
                     );
                 }
+            }
+        }
+
+        mod set_info {
+            use self::SetInfoKindBase::*;
+            use super::*;
+
+            #[test]
+            fn smt_lib_version() {
+                assert_parse_valid_smtlib2(
+                    "(set-info :smt-lib-version 2.6)",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: SMTLibVersion(DecimalLitBase {
+                            repr: String::from("2.6"),
+                        }),
+                    }],
+                );
             }
         }
     }

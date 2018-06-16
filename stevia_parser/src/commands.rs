@@ -159,6 +159,37 @@ pub enum OptionAndValueBase<S, P> {
 }
 pub type OptionAndValue<'c> = OptionAndValueBase<&'c str, &'c std::path::Path>;
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum CategoryKind {
+    Crafted,
+    Random,
+    Industrial
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum StatusKind {
+    Sat,
+    Unsat,
+    Unknown
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum SetInfoKindBase<S> {
+    SMTLibVersion(DecimalLitBase<S>),
+    Source(S),
+    Category(CategoryKind),
+    License(S),
+    Status(StatusKind),
+    SimpleCustom{
+        key: S,
+        value: Option<LiteralBase<S>>
+    },
+    ComplexCustom{
+        key: S
+    }
+}
+pub type SetInfoKind<'c> = SetInfoKindBase<&'c str>;
+
 pub trait SMTLib2Solver {
     // Variable-size commands:
     // 
@@ -275,6 +306,10 @@ pub trait SMTLib2Solver {
     }
 
     fn set_option(&mut self, _option: OptionAndValue) -> ResponseResult {
+        Err(ResponseError::Unsupported)
+    }
+
+    fn set_info(&mut self, _info: SetInfoKind) -> ResponseResult {
         Err(ResponseError::Unsupported)
     }
 }
