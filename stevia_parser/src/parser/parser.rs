@@ -580,7 +580,7 @@ where
         unimplemented!()
     }
 
-    fn parse_set_info_custom_command(&mut self) -> ParseResult<()> {
+    fn parse_set_info_custom_command(&mut self, _key: &'c str) -> ParseResult<()> {
         unimplemented!()
     }
 
@@ -596,7 +596,7 @@ where
             ":category" => self.parse_set_info_category_command(),
             ":license" => self.parse_set_info_license_command(),
             ":status" => self.parse_set_info_status_command(),
-            custom => self.parse_set_info_custom_command(),
+            custom => self.parse_set_info_custom_command(custom),
         }?;
 
         Ok(())
