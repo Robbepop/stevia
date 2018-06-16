@@ -565,7 +565,22 @@ where
     }
 
     fn parse_set_info_source_command(&mut self) -> ParseResult<()> {
-        unimplemented!()
+        debug_assert!(self.parser.peek().is_ok());
+
+        let peek_tok = self.parser.peek()?;
+        let peek_str = match peek_tok.kind() {
+            TokenKind::StringLiteral | TokenKind::Symbol => {
+                self.parser.input_str.span_to_str_unchecked(peek_tok.span())
+            }
+            _ => return Err(unimplemented!()), // unexpected token
+        };
+
+        self.parser.consume();
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        self.solver.set_info(SetInfoKindBase::Source(peek_str))?;
+
+        Ok(())
     }
 
     fn parse_set_info_category_command(&mut self) -> ParseResult<()> {
@@ -1396,6 +1411,22 @@ mod tests {
                         info_and_value: SMTLibVersion(DecimalLitBase {
                             repr: String::from("2.6"),
                         }),
+                    }],
+                );
+            }
+
+            #[test]
+            fn source() {
+                assert_parse_valid_smtlib2(
+                    "(set-info :source \"Hello, World!\")",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Source(String::from("Hello, World!")),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-info :source |Hello, World!|)",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Source(String::from("Hello, World!")),
                     }],
                 );
             }
