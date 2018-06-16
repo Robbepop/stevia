@@ -1,10 +1,12 @@
 use lexer::{TokenKind, LexerError};
+use commands::{ResponseError};
 
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseErrorKind {
     LexerError(LexerError),
+    ResponseError(ResponseError),
     UnexpectedTokenKind{
         found: TokenKind,
         expected: Option<TokenKind>
@@ -20,6 +22,12 @@ pub struct ParseError {
 impl From<LexerError> for ParseError {
     fn from(lexer_error: LexerError) -> Self {
         Self::new(ParseErrorKind::LexerError(lexer_error))
+    }
+}
+
+impl From<ResponseError> for ParseError {
+    fn from(response_error: ResponseError) -> Self {
+        Self::new(ParseErrorKind::ResponseError(response_error))
     }
 }
 

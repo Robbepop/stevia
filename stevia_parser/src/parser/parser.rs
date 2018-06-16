@@ -1,4 +1,14 @@
-use commands::{ResponseResult, SMTLib2Solver};
+use commands::{
+    NumeralLit,
+    OptionAndValue,
+    OptionAndValueBase,
+    OptionKind,
+    OptionKindBase,
+    OutputChannel,
+    OutputChannelBase,
+    ResponseResult,
+    SMTLib2Solver,
+};
 use lexer::{smtlib2_tokens, Command, Span, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
 
@@ -139,11 +149,20 @@ impl<'c> Parser<'c> {
         Ok(sym_str)
     }
 
-    fn expect_symbol_matching_str(&mut self, match_str: &str) -> ParseResult<()> {
-        if self.expect_symbol_tok()? != match_str {
-            return Err(unimplemented!()); // error: unexpected symbol string.
+    fn expect_symbol_matching_pred<P>(&mut self, pred: P) -> ParseResult<&'c str>
+    where
+        P: Fn(&str) -> bool,
+    {
+        let symbol_str = self.expect_symbol_tok()?;
+        if !pred(symbol_str) {
+            return Err(unimplemented!());
         }
-        Ok(())
+        Ok(symbol_str)
+    }
+
+    fn expect_symbol_matching_str(&mut self, match_str: &str) -> ParseResult<()> {
+        self.expect_symbol_matching_pred(|s| s == match_str)
+            .map(|_| ())
     }
 }
 
@@ -158,7 +177,7 @@ where
         debug_assert!(self.parser.peek().is_ok());
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        command(self.solver);
+        command(self.solver)?;
         Ok(())
     }
 
@@ -171,7 +190,7 @@ where
 
         let symbol_str = self.parser.input_str.span_to_str_unchecked(symbol.span());
 
-        self.solver.declare_sort(symbol_str, arity);
+        self.solver.declare_sort(symbol_str, arity)?;
         Ok(())
     }
 
@@ -183,7 +202,7 @@ where
 
         let text_str = self.parser.input_str.span_to_str_unchecked(text.span());
 
-        self.solver.echo(text_str);
+        self.solver.echo(text_str)?;
         Ok(())
     }
 
@@ -193,7 +212,7 @@ where
         let levels = self.parser.expect_usize_numeral()?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver.pop(levels);
+        self.solver.pop(levels)?;
         Ok(())
     }
 
@@ -203,7 +222,7 @@ where
         let levels = self.parser.expect_usize_numeral()?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver.push(levels);
+        self.solver.push(levels)?;
         Ok(())
     }
 
@@ -215,7 +234,7 @@ where
 
         let info_str = self.parser.input_str.span_to_str_unchecked(info_tok.span());
 
-        self.solver.get_info(info_str);
+        self.solver.get_info(info_str)?;
         Ok(())
     }
 
@@ -230,7 +249,7 @@ where
             .input_str
             .span_to_str_unchecked(option_tok.span());
 
-        self.solver.get_option(option_str);
+        self.solver.get_option(option_str.into())?;
         Ok(())
     }
 
@@ -245,7 +264,7 @@ where
             .input_str
             .span_to_str_unchecked(logic_tok.span());
 
-        self.solver.set_logic(logic_str);
+        self.solver.set_logic(logic_str)?;
         Ok(())
     }
 }
@@ -330,7 +349,7 @@ impl<'c, 's, S> ParserDriver<'c, 's, S>
 where
     S: SMTLib2Solver + 's,
 {
-    fn parse_check_sat_assuming(&mut self) -> ParseResult<()> {
+    fn parse_check_sat_assuming_command(&mut self) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
         let parser_before_sequence = self.parser.clone();
@@ -353,8 +372,140 @@ where
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         self.solver
-            .check_sat_assuming(unsafe { PropLitsIter::new(parser_before_sequence) });
+            .check_sat_assuming(unsafe { PropLitsIter::new(parser_before_sequence) })
+            .unwrap(); // TODO: proper error handling
         Ok(())
+    }
+
+    fn parse_set_option_bool_command(&mut self, opt: OptionKind) -> ParseResult<()> {
+        debug_assert!(opt.has_bool_param());
+
+        let bool_str = self
+            .parser
+            .expect_symbol_matching_pred(|s| s == "true" || s == "false")?;
+        let flag = match bool_str {
+            "true" => true,
+            "false" => false,
+            _ => unreachable!(),
+        };
+
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        use self::OptionKindBase::*;
+        match opt {
+            GlobalDeclarations => self
+                .solver
+                .set_option(OptionAndValueBase::GlobalDeclarations(flag)),
+            InteractiveMode => self
+                .solver
+                .set_option(OptionAndValueBase::InteractiveMode(flag)),
+            PrintSuccess => self
+                .solver
+                .set_option(OptionAndValueBase::PrintSuccess(flag)),
+            ProduceAssertions => self
+                .solver
+                .set_option(OptionAndValueBase::ProduceAssertions(flag)),
+            ProduceAssignments => self
+                .solver
+                .set_option(OptionAndValueBase::ProduceAssignments(flag)),
+            ProduceModels => self
+                .solver
+                .set_option(OptionAndValueBase::ProduceModels(flag)),
+            ProduceProofs => self
+                .solver
+                .set_option(OptionAndValueBase::ProduceProofs(flag)),
+            ProduceUnsatAssumptions => self
+                .solver
+                .set_option(OptionAndValueBase::ProduceUnsatAssumptions(flag)),
+            ProduceUnsatCores => self
+                .solver
+                .set_option(OptionAndValueBase::ProduceUnsatCores(flag)),
+            _ => unreachable!(),
+        }?;
+        Ok(())
+    }
+
+    fn parse_set_option_output_channel_command(&mut self, opt: OptionKind) -> ParseResult<()> {
+        debug_assert!(opt.has_output_channel_param());
+
+        let outch_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let outch_str = self
+            .parser
+            .input_str
+            .span_to_str_unchecked(outch_tok.span());
+
+        use std;
+        let outch_ch = match outch_str {
+            "stderr" => OutputChannelBase::Stderr,
+            "stdout" => OutputChannelBase::Stdout,
+            file => OutputChannelBase::File(std::path::Path::new(file)),
+        };
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        match opt {
+            OptionKindBase::DiagnosticOutputChannel => self
+                .solver
+                .set_option(OptionAndValueBase::DiagnosticOutputChannel(outch_ch)),
+            OptionKindBase::RegularOutputChannel => self
+                .solver
+                .set_option(OptionAndValueBase::RegularOutputChannel(outch_ch)),
+            _ => unreachable!(),
+        }?;
+
+        Ok(())
+    }
+
+    fn parse_set_option_numeral_command(&mut self, opt: OptionKind) -> ParseResult<()> {
+        debug_assert!(opt.has_numeral_param());
+
+        let numeral_tok = self.parser.expect_tok_kind(TokenKind::Numeral)?;
+        let numeral_str = self
+            .parser
+            .input_str
+            .span_to_str_unchecked(numeral_tok.span());
+        let numeral_lit = NumeralLit { repr: numeral_str };
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+
+        use self::OptionKindBase::*;
+        match opt {
+            RandomSeed => self
+                .solver
+                .set_option(OptionAndValueBase::RandomSeed(numeral_lit)),
+            ReproducibleResourceLimit => self
+                .solver
+                .set_option(OptionAndValueBase::ReproducibleResourceLimit(numeral_lit)),
+            Verbosity => self
+                .solver
+                .set_option(OptionAndValueBase::Verbosity(numeral_lit)),
+            _ => unreachable!(),
+        }?;
+
+        Ok(())
+    }
+
+    fn parse_set_custom_option_command(&mut self, _repr: &'c str) -> ParseResult<()> {
+        unimplemented!()
+    }
+
+    fn parse_set_option_command(&mut self) -> ParseResult<()> {
+        debug_assert!(self.parser.peek().is_ok());
+
+        let option_tok = self.parser.expect_tok_kind(TokenKind::Keyword)?;
+        let option_str = self
+            .parser
+            .input_str
+            .span_to_str_unchecked(option_tok.span());
+
+        use self::OptionKindBase::*;
+        match option_str.into() {
+            opt if opt.has_bool_param() => self.parse_set_option_bool_command(opt),
+            opt if opt.has_output_channel_param() => {
+                self.parse_set_option_output_channel_command(opt)
+            }
+            opt if opt.has_numeral_param() => self.parse_set_option_numeral_command(opt),
+            Custom(repr) => self.parse_set_custom_option_command(repr),
+            _ => unreachable!(),
+        }
     }
 
     fn parse_command(&mut self) -> ParseResult<()> {
@@ -376,14 +527,15 @@ where
             ResetAssertions     => self.parse_simple_command(ResetAssertions, S::reset_assertions),
 
             // Fixed-size commands that have a fixed set of fixed-size parameters.
-            DeclareSort => self.parse_declare_sort_command(),
-            Echo        => self.parse_echo_command(),
-            Pop         => self.parse_pop_command(),
-            Push        => self.parse_push_command(),
-            GetInfo     => self.parse_get_info_command(),
-            GetOption   => self.parse_get_option_command(),
-            SetLogic    => self.parse_set_logic_command(),
-            CheckSatAssuming => self.parse_check_sat_assuming(),
+            DeclareSort      => self.parse_declare_sort_command(),
+            Echo             => self.parse_echo_command(),
+            Pop              => self.parse_pop_command(),
+            Push             => self.parse_push_command(),
+            GetInfo          => self.parse_get_info_command(),
+            GetOption        => self.parse_get_option_command(),
+            SetLogic         => self.parse_set_logic_command(),
+            CheckSatAssuming => self.parse_check_sat_assuming_command(),
+            SetOption        => self.parse_set_option_command(),
 
             _ => unimplemented!(),
         }
@@ -424,26 +576,160 @@ mod tests {
         }
     }
 
+    use commands::{
+        DecimalLit,
+        DecimalLitBase,
+        Literal,
+        LiteralBase,
+        NumeralLit,
+        NumeralLitBase,
+        OptionAndValue,
+        OptionAndValueBase,
+        OutputChannel,
+        OutputChannelBase,
+    };
+    use std;
+
+    pub type DummyOptionKind = OptionKindBase<String>;
+    pub type DummyLiteral = LiteralBase<String>;
+    pub type DummyNumeralLit = NumeralLitBase<String>;
+    pub type DummyDecimalLit = DecimalLitBase<String>;
+    pub type DummyOutputChannel = OutputChannelBase<std::path::PathBuf>;
+    pub type DummyOptionAndValue = OptionAndValueBase<String, std::path::PathBuf>;
+
+    impl<'c> From<NumeralLit<'c>> for DummyNumeralLit {
+        fn from(lit: NumeralLit<'c>) -> Self {
+            Self {
+                repr: lit.into_repr().to_owned(),
+            }
+        }
+    }
+
+    impl<'c> From<DecimalLit<'c>> for DummyDecimalLit {
+        fn from(lit: DecimalLit<'c>) -> Self {
+            Self {
+                repr: lit.into_repr().to_owned(),
+            }
+        }
+    }
+
+    impl<'c> From<OutputChannel<'c>> for DummyOutputChannel {
+        fn from(och: OutputChannel<'c>) -> Self {
+            use self::OutputChannelBase::*;
+            match och {
+                Stdout => Stdout,
+                Stderr => Stderr,
+                File(p) => File(p.to_owned()),
+            }
+        }
+    }
+
+    impl<'c> From<Literal<'c>> for DummyLiteral {
+        fn from(lit: Literal<'c>) -> Self {
+            use self::LiteralBase::*;
+            match lit {
+                Bool(repr) => Bool(repr),
+                String(repr) => String(repr.to_owned()),
+                Symbol(repr) => Symbol(repr.into()),
+                Numeral(repr) => Numeral(repr.into()),
+                Keyword(repr) => Keyword(repr.to_owned()),
+                Decimal(repr) => Decimal(repr.into()),
+            }
+        }
+    }
+
+    impl<'c> From<OptionKind<'c>> for DummyOptionKind {
+        fn from(kind: OptionKind<'c>) -> Self {
+            use self::OptionKindBase::*;
+            match kind {
+                DiagnosticOutputChannel => DiagnosticOutputChannel,
+                GlobalDeclarations => GlobalDeclarations,
+                InteractiveMode => InteractiveMode,
+                PrintSuccess => PrintSuccess,
+                ProduceAssertions => ProduceAssertions,
+                ProduceAssignments => ProduceAssignments,
+                ProduceModels => ProduceModels,
+                ProduceProofs => ProduceProofs,
+                ProduceUnsatAssumptions => ProduceUnsatAssumptions,
+                ProduceUnsatCores => ProduceUnsatCores,
+                RandomSeed => RandomSeed,
+                RegularOutputChannel => RegularOutputChannel,
+                ReproducibleResourceLimit => ReproducibleResourceLimit,
+                Verbosity => Verbosity,
+                Custom(s) => Custom(s.to_owned()),
+            }
+        }
+    }
+
+    impl<'c> From<OptionAndValue<'c>> for DummyOptionAndValue {
+        fn from(kind: OptionAndValue<'c>) -> Self {
+            use self::OptionAndValueBase::*;
+            match kind {
+                DiagnosticOutputChannel(ch) => DiagnosticOutputChannel(ch.into()),
+                GlobalDeclarations(f) => GlobalDeclarations(f),
+                InteractiveMode(f) => InteractiveMode(f),
+                PrintSuccess(f) => PrintSuccess(f),
+                ProduceAssertions(f) => ProduceAssertions(f),
+                ProduceAssignments(f) => ProduceAssignments(f),
+                ProduceModels(f) => ProduceModels(f),
+                ProduceProofs(f) => ProduceProofs(f),
+                ProduceUnsatAssumptions(f) => ProduceUnsatAssumptions(f),
+                ProduceUnsatCores(f) => ProduceUnsatCores(f),
+                RandomSeed(r) => RandomSeed(r.into()),
+                RegularOutputChannel(ch) => RegularOutputChannel(ch.into()),
+                ReproducibleResourceLimit(n) => ReproducibleResourceLimit(n.into()),
+                Verbosity(n) => Verbosity(n.into()),
+                SimpleCustom { key, value } => SimpleCustom {
+                    key: key.into(),
+                    value: value.map(Into::into),
+                },
+                ComplexCustom { key } => ComplexCustom {
+                    key: key.to_owned(),
+                },
+            }
+        }
+    }
+
     #[derive(Debug, Clone, PartialEq, Eq)]
     enum ParseEvent {
         CheckSat,
-        CheckSatAssuming { prop_lits: Vec<DummyPropLit> },
-        DeclareSort { symbol: String, arity: usize },
-        Echo { content: String },
+        CheckSatAssuming {
+            prop_lits: Vec<DummyPropLit>,
+        },
+        DeclareSort {
+            symbol: String,
+            arity: usize,
+        },
+        Echo {
+            content: String,
+        },
         Exit,
         GetAssertions,
         GetAssignment,
-        GetInfo { info: String },
+        GetInfo {
+            info: String,
+        },
         GetModel,
-        GetOption { option: String },
+        GetOption {
+            option: DummyOptionKind,
+        },
         GetProof,
         GetUnsatAssumptions,
         GetUnsatCore,
-        Pop { levels: usize },
-        Push { levels: usize },
+        Pop {
+            levels: usize,
+        },
+        Push {
+            levels: usize,
+        },
         Reset,
         ResetAssertions,
-        SetLogic { id: String },
+        SetLogic {
+            id: String,
+        },
+        SetOption {
+            option_and_value: DummyOptionAndValue,
+        },
     }
 
     #[derive(Debug, Default, Clone)]
@@ -520,9 +806,9 @@ mod tests {
             Ok(())
         }
 
-        fn get_option(&mut self, option: &str) -> ResponseResult {
+        fn get_option(&mut self, option: OptionKind) -> ResponseResult {
             self.events.push(ParseEvent::GetOption {
-                option: option.to_owned(),
+                option: option.into(),
             });
             Ok(())
         }
@@ -564,6 +850,13 @@ mod tests {
 
         fn set_logic(&mut self, id: &str) -> ResponseResult {
             self.events.push(ParseEvent::SetLogic { id: id.to_owned() });
+            Ok(())
+        }
+
+        fn set_option(&mut self, option_and_value: OptionAndValue) -> ResponseResult {
+            self.events.push(ParseEvent::SetOption {
+                option_and_value: option_and_value.into(),
+            });
             Ok(())
         }
     }
@@ -648,7 +941,7 @@ mod tests {
             assert_parse_valid_smtlib2(
                 "(get-option :my-option)",
                 vec![ParseEvent::GetOption {
-                    option: ":my-option".to_owned(),
+                    option: OptionKindBase::Custom(":my-option".to_owned()),
                 }],
             );
             assert_parse_valid_smtlib2(
@@ -730,6 +1023,144 @@ mod tests {
                         ],
                     }],
                 );
+            }
+        }
+
+        mod set_option {
+            use super::*;
+
+            #[test]
+            fn simple_bool() {
+                use self::OptionAndValueBase::*;
+                fn assert_simple_bool(
+                    opt_str: &str,
+                    true_case: DummyOptionAndValue,
+                    false_case: DummyOptionAndValue,
+                ) {
+                    assert_parse_valid_smtlib2(
+                        &format!("(set-option {} true)", opt_str),
+                        vec![ParseEvent::SetOption {
+                            option_and_value: true_case,
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        &format!("(set-option {} false)", opt_str),
+                        vec![ParseEvent::SetOption {
+                            option_and_value: false_case,
+                        }],
+                    );
+                }
+                assert_simple_bool(
+                    ":global-declarations",
+                    GlobalDeclarations(true),
+                    GlobalDeclarations(false),
+                );
+                assert_simple_bool(
+                    ":interactive-mode",
+                    InteractiveMode(true),
+                    InteractiveMode(false),
+                );
+                assert_simple_bool(":print-success", PrintSuccess(true), PrintSuccess(false));
+                assert_simple_bool(
+                    ":produce-assertions",
+                    ProduceAssertions(true),
+                    ProduceAssertions(false),
+                );
+                assert_simple_bool(
+                    ":produce-assignments",
+                    ProduceAssignments(true),
+                    ProduceAssignments(false),
+                );
+                assert_simple_bool(":produce-models", ProduceModels(true), ProduceModels(false));
+                assert_simple_bool(":produce-proofs", ProduceProofs(true), ProduceProofs(false));
+                assert_simple_bool(
+                    ":produce-unsat-assumptions",
+                    ProduceUnsatAssumptions(true),
+                    ProduceUnsatAssumptions(false),
+                );
+                assert_simple_bool(
+                    ":produce-unsat-cores",
+                    ProduceUnsatCores(true),
+                    ProduceUnsatCores(false),
+                );
+            }
+
+            #[test]
+            fn simple_numeral() {
+                use self::OptionAndValueBase::*;
+                assert_parse_valid_smtlib2(
+                    "(set-option :random-seed 5)",
+                    vec![ParseEvent::SetOption {
+                        option_and_value: RandomSeed(DummyNumeralLit {
+                            repr: String::from("5"),
+                        }),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-option :reproducible-resource-limit 42)",
+                    vec![ParseEvent::SetOption {
+                        option_and_value: ReproducibleResourceLimit(DummyNumeralLit {
+                            repr: String::from("42"),
+                        }),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-option :verbosity 1337)",
+                    vec![ParseEvent::SetOption {
+                        option_and_value: Verbosity(DummyNumeralLit {
+                            repr: String::from("1337"),
+                        }),
+                    }],
+                );
+            }
+
+            #[test]
+            fn simple_output_channel() {
+                use self::OptionAndValueBase::*;
+                {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :diagnostic-output-channel \"stderr\")",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: DiagnosticOutputChannel(OutputChannelBase::Stderr),
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        "(set-option :diagnostic-output-channel \"stdout\")",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: DiagnosticOutputChannel(OutputChannelBase::Stdout),
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        "(set-option :diagnostic-output-channel \"my_file\")",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: DiagnosticOutputChannel(OutputChannelBase::File(
+                                std::path::PathBuf::from("my_file"),
+                            )),
+                        }],
+                    );
+                }
+                {
+                    assert_parse_valid_smtlib2(
+                        "(set-option :regular-output-channel \"stderr\")",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: RegularOutputChannel(OutputChannelBase::Stderr),
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        "(set-option :regular-output-channel \"stdout\")",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: RegularOutputChannel(OutputChannelBase::Stdout),
+                        }],
+                    );
+                    assert_parse_valid_smtlib2(
+                        "(set-option :regular-output-channel \"my_file\")",
+                        vec![ParseEvent::SetOption {
+                            option_and_value: RegularOutputChannel(OutputChannelBase::File(
+                                std::path::PathBuf::from("my_file"),
+                            )),
+                        }],
+                    );
+                }
             }
         }
     }
