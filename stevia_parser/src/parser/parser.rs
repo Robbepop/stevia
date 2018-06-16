@@ -11,6 +11,7 @@ use commands::{
     ResponseResult,
     SMTLib2Solver,
     CategoryKind,
+    StatusKind,
     SetInfoKind,
     SetInfoKindBase,
 };
@@ -608,7 +609,21 @@ where
     }
 
     fn parse_set_info_status_command(&mut self) -> ParseResult<()> {
-        unimplemented!()
+        debug_assert!(self.parser.peek().is_ok());
+
+        let sym_str = self.parser.expect_symbol_tok()?;
+
+        let status = match sym_str {
+            "sat" => StatusKind::Sat,
+            "unsat" => StatusKind::Unsat,
+            "unknown" => StatusKind::Unknown,
+            _ => return Err(unimplemented!()) // error: unknown status kind
+        };
+
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        self.solver.set_info(SetInfoKindBase::Status(status))?;
+
+        Ok(())
     }
 
     fn parse_set_info_custom_command(&mut self, _key: &'c str) -> ParseResult<()> {
@@ -1465,6 +1480,28 @@ mod tests {
                     "(set-info :category \"industrial\")",
                     vec![ParseEvent::SetInfo {
                         info_and_value: Category(CategoryKind::Industrial),
+                    }],
+                );
+            }
+
+            #[test]
+            fn status() {
+                assert_parse_valid_smtlib2(
+                    "(set-info :status sat)",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Status(StatusKind::Sat),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-info :status unsat)",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Status(StatusKind::Unsat),
+                    }],
+                );
+                assert_parse_valid_smtlib2(
+                    "(set-info :status unknown)",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: Status(StatusKind::Unknown),
                     }],
                 );
             }
