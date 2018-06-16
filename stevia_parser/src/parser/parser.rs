@@ -605,7 +605,15 @@ where
     }
 
     fn parse_set_info_license_command(&mut self) -> ParseResult<()> {
-        unimplemented!()
+        debug_assert!(self.parser.peek().is_ok());
+
+        let text_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
+
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        self.solver.set_info(SetInfoKindBase::License(text_str))?;
+
+        Ok(())
     }
 
     fn parse_set_info_status_command(&mut self) -> ParseResult<()> {
@@ -1502,6 +1510,16 @@ mod tests {
                     "(set-info :status unknown)",
                     vec![ParseEvent::SetInfo {
                         info_and_value: Status(StatusKind::Unknown),
+                    }],
+                );
+            }
+
+            #[test]
+            fn license() {
+                assert_parse_valid_smtlib2(
+                    "(set-info :license \"This is my license.\")",
+                    vec![ParseEvent::SetInfo {
+                        info_and_value: License(String::from("This is my license.")),
                     }],
                 );
             }
