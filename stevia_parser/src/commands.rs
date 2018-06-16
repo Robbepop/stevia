@@ -159,23 +159,6 @@ pub enum OptionAndValueBase<S, P> {
 }
 pub type OptionAndValue<'c> = OptionAndValueBase<&'c str, &'c std::path::Path>;
 
-pub enum VarSizeCommand {
-    Assert,
-    DeclareConst,
-    DeclareDatatype,
-    DeclareDatatypes,
-    DeclareFun,
-    DefineFun,
-    DefineFunRec,
-    DefineFunsRec,
-    DefineSort,
-    GetValue,
-    SetInfo,
-    SetOption
-}
-
-fn end(command: VarSizeCommand) {}
-
 pub trait SMTLib2Solver {
     // Variable-size commands:
     // 
