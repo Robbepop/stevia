@@ -100,6 +100,5 @@ pub use self::{
         RawToken,
         TokenKind,
         Token,
-        Command
     }
 };

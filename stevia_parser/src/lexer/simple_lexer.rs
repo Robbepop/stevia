@@ -1,8 +1,9 @@
+use solver::Command;
 use lexer::{
     error::{LexerError, LexerErrorKind, LexerResult},
     raw_lexer::RawTokenIter,
     raw_smtlib2_tokens,
-    repr::{Command, Loc, MetaSpec, RawTokenKind, Span, Token, TokenKind},
+    repr::{Loc, MetaSpec, RawTokenKind, Span, Token, TokenKind},
 };
 
 use std::collections::HashMap;
@@ -12,7 +13,7 @@ pub fn smtlib2_tokens(input: &str) -> TokenIter {
     TokenIter::new(raw_smtlib2_tokens(input))
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 enum ReservedWord {
     Underscore,
     ExclamationMark,

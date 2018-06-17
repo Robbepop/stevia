@@ -1,3 +1,4 @@
+use solver::Command;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Loc(u32);
@@ -85,7 +86,7 @@ impl<T> GenericToken<T> {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum TokenKind {
     Comment,
     Whitespace,
@@ -142,78 +143,6 @@ impl MetaSpec {
             Decimal => "DECIMAL",
             Numeral => "NUMERAL",
             String => "STRING"
-        }
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
-pub enum Command {
-    Assert,
-    CheckSat,
-    CheckSatAssuming,
-    DeclareConst,
-    DeclareDatatype,
-    DeclareDatatypes,
-    DeclareFun,
-    DeclareSort,
-    DefineFun,
-    DefineFunRec,
-    DefineFunsRec,
-    DefineSort,
-    Echo,
-    Exit,
-    GetAssertions,
-    GetAssignment,
-    GetInfo,
-    GetModel,
-    GetOption,
-    GetProof,
-    GetUnsatAssumptions,
-    GetUnsatCore,
-    GetValue,
-    Pop,
-    Push,
-    Reset,
-    ResetAssertions,
-    SetInfo,
-    SetLogic,
-    SetOption
-}
-
-impl Command {
-    pub fn to_str(self) -> &'static str {
-        use self::Command::*;
-        match self {
-            Assert => "assert",
-            CheckSat => "check-sat",
-            CheckSatAssuming => "check-sat-assuming",
-            DeclareConst => "declare-const",
-            DeclareDatatype => "declare-datatype",
-            DeclareDatatypes => "declare-datatypes",
-            DeclareFun => "declare-fun",
-            DeclareSort => "declare-sort",
-            DefineFun => "define-fun",
-            DefineFunRec => "define-fun-rec",
-            DefineFunsRec => "define-funs-rec",
-            DefineSort => "define-sort",
-            Echo => "echo",
-            Exit => "exit",
-            GetAssertions => "get-assertions",
-            GetAssignment => "get-assignment",
-            GetInfo => "get-info",
-            GetModel => "get-model",
-            GetOption => "get-option",
-            GetProof => "get-proof",
-            GetUnsatAssumptions => "get-unsat-assumptions",
-            GetUnsatCore => "get-unsat-core",
-            GetValue => "get-value",
-            Pop => "pop",
-            Push => "push",
-            Reset => "reset",
-            ResetAssertions => "reset-assertions",
-            SetInfo => "set-info",
-            SetLogic => "set-logic",
-            SetOption => "set-option"
         }
     }
 }

@@ -15,7 +15,8 @@ use commands::{
     SetInfoKindBase,
     StatusKind,
 };
-use lexer::{smtlib2_tokens, Command, Span, Token, TokenIter, TokenKind};
+use solver::{Command};
+use lexer::{smtlib2_tokens, Span, Token, TokenIter, TokenKind};
 use parser::error::{ParseError, ParseResult};
 
 pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>

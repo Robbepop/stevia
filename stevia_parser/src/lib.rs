@@ -7,6 +7,7 @@ extern crate lazy_static;
 mod lexer;
 mod parser;
 mod commands;
+pub mod solver;
 
 pub use self::{
     lexer::{
@@ -15,8 +16,7 @@ pub use self::{
         smtlib2_tokens,
         TokenIter,
         Loc,
-        Span,
-        Command
+        Span
     },
     parser::{
         parse_smtlib2,
@@ -34,10 +34,15 @@ pub use self::{
         LiteralBase,
         Literal,
         NumeralLitBase,
+        DecimalLitBase,
         OutputChannelBase,
         OutputChannel,
         OptionAndValueBase,
         OptionAndValue,
-        SMTLib2Solver
+        SetInfoKindBase,
+        SetInfoKind,
+        SMTLib2Solver,
+        CategoryKind,
+        StatusKind,
     }
 };

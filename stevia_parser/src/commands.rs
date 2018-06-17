@@ -209,9 +209,6 @@ pub trait SMTLib2Solver {
     //
     // (get-value (<term>+))
     //
-    // (set-info <attribute>)
-    // (set-option <option>)
-    //
     //
     // At QPR we use a SAX (Simple API XML) parser with the following interface:
     //
