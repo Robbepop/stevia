@@ -110,8 +110,45 @@ impl ResponseError {
     }
 }
 
+impl std::fmt::Display for ResponseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        use self::ResponseErrorKind::*;
+        match self.kind() {
+            Unsupported(entity) => {
+                use self::UnsupportedEntity::*;
+                match entity {
+                    Theory(theory) => write!(f, "encountered unsupported theory: {:?}", theory),
+                    Command(command) => write!(f, "encountered unsupported command: {:?}", command),
+                    Other => write!(f, "encountered unsupported entity"),
+                }
+            }
+            UnexpectedCommand { cmd, mode } => write!(
+                f,
+                "encountered unexpected command (= {:?}) in the current execution mode (= {:?})",
+                cmd, mode
+            ),
+        }
+    }
+}
+
+impl std::error::Error for ResponseError {
+    fn description(&self) -> &'static str {
+        use self::ResponseErrorKind::*;
+        match self.kind() {
+            Unsupported(_) => "encountered unsupported entity (theory, command, etc..)",
+            UnexpectedCommand { .. } => {
+                "encountered unexpected command in the current execution mode"
+            }
+        }
+    }
+
+    fn cause(&self) -> Option<&std::error::Error> {
+        None
+    }
+}
+
 /// Convenience type alias for `ResponseError`.
-/// 
+///
 /// This enables the SMT solver to communicate error or success back
 /// to the SMTLib2 parser.
 pub type ResponseResult = std::result::Result<(), ResponseError>;
