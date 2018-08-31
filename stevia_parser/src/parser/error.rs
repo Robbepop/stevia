@@ -1,5 +1,5 @@
 use lexer::{TokenKind, LexerError};
-use commands::{ResponseError};
+use solver::{ResponseError};
 
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 

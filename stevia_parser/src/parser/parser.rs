@@ -1,23 +1,21 @@
-use commands::{
-    CategoryKind,
-    DecimalLit,
-    DecimalLitBase,
-    LiteralBase,
-    NumeralLit,
-    NumeralLitBase,
-    OptionAndValueBase,
-    OptionKind,
-    OptionKindBase,
-    OutputChannelBase,
-    ResponseResult,
+use solver::{
     SMTLib2Solver,
-    SetInfoKind,
-    SetInfoKindBase,
-    StatusKind,
+    ResponseError,
+    ResponseErrorKind,
+    ResponseResult,
+    Command,
+    OptionKind,
+    Literal,
+    NumeralLit,
+    DecimalLit,
+    OutputChannel,
+    OptionAndValue,
+    ProblemCategory,
+    ProblemStatus,
+    InfoAndValue
 };
-use solver::{Command};
 use lexer::{smtlib2_tokens, Span, Token, TokenIter, TokenKind};
-use parser::error::{ParseError, ParseResult};
+use parser::{ParseError, ParseResult};
 
 pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
 where
@@ -398,35 +396,35 @@ where
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        use self::OptionKindBase::*;
+        use self::OptionKind::*;
         match opt {
             GlobalDeclarations => self
                 .solver
-                .set_option(OptionAndValueBase::GlobalDeclarations(flag)),
+                .set_option(OptionAndValue::GlobalDeclarations(flag)),
             InteractiveMode => self
                 .solver
-                .set_option(OptionAndValueBase::InteractiveMode(flag)),
+                .set_option(OptionAndValue::InteractiveMode(flag)),
             PrintSuccess => self
                 .solver
-                .set_option(OptionAndValueBase::PrintSuccess(flag)),
+                .set_option(OptionAndValue::PrintSuccess(flag)),
             ProduceAssertions => self
                 .solver
-                .set_option(OptionAndValueBase::ProduceAssertions(flag)),
+                .set_option(OptionAndValue::ProduceAssertions(flag)),
             ProduceAssignments => self
                 .solver
-                .set_option(OptionAndValueBase::ProduceAssignments(flag)),
+                .set_option(OptionAndValue::ProduceAssignments(flag)),
             ProduceModels => self
                 .solver
-                .set_option(OptionAndValueBase::ProduceModels(flag)),
+                .set_option(OptionAndValue::ProduceModels(flag)),
             ProduceProofs => self
                 .solver
-                .set_option(OptionAndValueBase::ProduceProofs(flag)),
+                .set_option(OptionAndValue::ProduceProofs(flag)),
             ProduceUnsatAssumptions => self
                 .solver
-                .set_option(OptionAndValueBase::ProduceUnsatAssumptions(flag)),
+                .set_option(OptionAndValue::ProduceUnsatAssumptions(flag)),
             ProduceUnsatCores => self
                 .solver
-                .set_option(OptionAndValueBase::ProduceUnsatCores(flag)),
+                .set_option(OptionAndValue::ProduceUnsatCores(flag)),
             _ => unreachable!(),
         }?;
         Ok(())
@@ -443,19 +441,19 @@ where
 
         use std;
         let outch_ch = match outch_str {
-            "stderr" => OutputChannelBase::Stderr,
-            "stdout" => OutputChannelBase::Stdout,
-            file => OutputChannelBase::File(std::path::Path::new(file)),
+            "stderr" => OutputChannel::Stderr,
+            "stdout" => OutputChannel::Stdout,
+            file => OutputChannel::File(std::path::Path::new(file)),
         };
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         match opt {
-            OptionKindBase::DiagnosticOutputChannel => self
+            OptionKind::DiagnosticOutputChannel => self
                 .solver
-                .set_option(OptionAndValueBase::DiagnosticOutputChannel(outch_ch)),
-            OptionKindBase::RegularOutputChannel => self
+                .set_option(OptionAndValue::DiagnosticOutputChannel(outch_ch)),
+            OptionKind::RegularOutputChannel => self
                 .solver
-                .set_option(OptionAndValueBase::RegularOutputChannel(outch_ch)),
+                .set_option(OptionAndValue::RegularOutputChannel(outch_ch)),
             _ => unreachable!(),
         }?;
 
@@ -470,20 +468,20 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(numeral_tok.span());
-        let numeral_lit = NumeralLit { repr: numeral_str };
+        let numeral_lit = NumeralLit::from_str(numeral_str);
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        use self::OptionKindBase::*;
+        use self::OptionKind::*;
         match opt {
             RandomSeed => self
                 .solver
-                .set_option(OptionAndValueBase::RandomSeed(numeral_lit)),
+                .set_option(OptionAndValue::RandomSeed(numeral_lit)),
             ReproducibleResourceLimit => self
                 .solver
-                .set_option(OptionAndValueBase::ReproducibleResourceLimit(numeral_lit)),
+                .set_option(OptionAndValue::ReproducibleResourceLimit(numeral_lit)),
             Verbosity => self
                 .solver
-                .set_option(OptionAndValueBase::Verbosity(numeral_lit)),
+                .set_option(OptionAndValue::Verbosity(numeral_lit)),
             _ => unreachable!(),
         }?;
 
@@ -504,14 +502,14 @@ where
 
         let value = match peek_tok.kind() {
             TokenKind::CloseParen => None,
-            TokenKind::StringLiteral => Some(LiteralBase::String(peek_str)),
-            TokenKind::Keyword => Some(LiteralBase::Keyword(peek_str)),
-            TokenKind::Numeral => Some(LiteralBase::Numeral(NumeralLitBase { repr: peek_str })),
-            TokenKind::Decimal => Some(LiteralBase::Decimal(DecimalLitBase { repr: peek_str })),
+            TokenKind::StringLiteral => Some(Literal::String(peek_str)),
+            TokenKind::Keyword => Some(Literal::Keyword(peek_str)),
+            TokenKind::Numeral => Some(Literal::Numeral(NumeralLit::from_str(peek_str))),
+            TokenKind::Decimal => Some(Literal::Decimal(unsafe{ DecimalLit::new_unchecked(peek_str) })), // { repr: peek_str })),
             TokenKind::Symbol => match peek_str {
-                "true" => Some(LiteralBase::Bool(true)),
-                "false" => Some(LiteralBase::Bool(false)),
-                _ => Some(LiteralBase::Symbol(peek_str)),
+                "true" => Some(Literal::Bool(true)),
+                "false" => Some(Literal::Bool(false)),
+                _ => Some(Literal::Symbol(peek_str)),
             },
             _ => return Err(unimplemented!()), // unexpected token
         };
@@ -521,7 +519,7 @@ where
             self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         }
 
-        self.solver.set_option(OptionAndValueBase::SimpleCustom {
+        self.solver.set_option(OptionAndValue::SimpleCustom {
             key: key_str,
             value,
         })?;
@@ -538,7 +536,7 @@ where
             .input_str
             .span_to_str_unchecked(option_tok.span());
 
-        use self::OptionKindBase::*;
+        use self::OptionKind::*;
         match option_str.into() {
             opt if opt.has_bool_param() => self.parse_set_option_bool_command(opt),
             opt if opt.has_output_channel_param() => {
@@ -558,11 +556,11 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(version_tok.span());
-        let version_lit = DecimalLit { repr: version_str };
+        let version_lit = unsafe{ DecimalLit::new_unchecked(version_str) }; // { repr: version_str };
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         self.solver
-            .set_info(SetInfoKindBase::SMTLibVersion(version_lit))?;
+            .set_info(InfoAndValue::SMTLibVersion(version_lit))?;
 
         Ok(())
     }
@@ -581,7 +579,7 @@ where
         self.parser.consume();
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver.set_info(SetInfoKindBase::Source(peek_str))?;
+        self.solver.set_info(InfoAndValue::Source(peek_str))?;
 
         Ok(())
     }
@@ -593,14 +591,14 @@ where
         let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
 
         let category = match text_str {
-            "crafted" => CategoryKind::Crafted,
-            "random" => CategoryKind::Random,
-            "industrial" => CategoryKind::Industrial,
+            "crafted" => ProblemCategory::Crafted,
+            "random" => ProblemCategory::Random,
+            "industrial" => ProblemCategory::Industrial,
             _ => return Err(unimplemented!()), // error: unknown category kind
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        self.solver.set_info(SetInfoKindBase::Category(category))?;
+        self.solver.set_info(InfoAndValue::Category(category))?;
 
         Ok(())
     }
@@ -612,7 +610,7 @@ where
         let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        self.solver.set_info(SetInfoKindBase::License(text_str))?;
+        self.solver.set_info(InfoAndValue::License(text_str))?;
 
         Ok(())
     }
@@ -623,14 +621,14 @@ where
         let sym_str = self.parser.expect_symbol_tok()?;
 
         let status = match sym_str {
-            "sat" => StatusKind::Sat,
-            "unsat" => StatusKind::Unsat,
-            "unknown" => StatusKind::Unknown,
+            "sat" => ProblemStatus::Sat,
+            "unsat" => ProblemStatus::Unsat,
+            "unknown" => ProblemStatus::Unknown,
             _ => return Err(unimplemented!()), // error: unknown status kind
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        self.solver.set_info(SetInfoKindBase::Status(status))?;
+        self.solver.set_info(InfoAndValue::Status(status))?;
 
         Ok(())
     }
@@ -651,14 +649,14 @@ where
 
         let value = match peek_tok.kind() {
             TokenKind::CloseParen => None,
-            TokenKind::StringLiteral => Some(LiteralBase::String(peek_str)),
-            TokenKind::Keyword => Some(LiteralBase::Keyword(peek_str)),
-            TokenKind::Numeral => Some(LiteralBase::Numeral(NumeralLitBase { repr: peek_str })),
-            TokenKind::Decimal => Some(LiteralBase::Decimal(DecimalLitBase { repr: peek_str })),
+            TokenKind::StringLiteral => Some(Literal::String(peek_str)),
+            TokenKind::Keyword => Some(Literal::Keyword(peek_str)),
+            TokenKind::Numeral => Some(Literal::Numeral(NumeralLit::from_str(peek_str))),
+            TokenKind::Decimal => Some(Literal::Decimal(unsafe{ DecimalLit::new_unchecked(peek_str) })), //{ repr: peek_str })),
             TokenKind::Symbol => match peek_str {
-                "true" => Some(LiteralBase::Bool(true)),
-                "false" => Some(LiteralBase::Bool(false)),
-                _ => Some(LiteralBase::Symbol(peek_str)),
+                "true" => Some(Literal::Bool(true)),
+                "false" => Some(Literal::Bool(false)),
+                _ => Some(Literal::Symbol(peek_str)),
             },
             _ => return Err(unimplemented!()), // unexpected token
         };
@@ -669,7 +667,7 @@ where
         }
 
         self.solver
-            .set_info(SetInfoKindBase::SimpleCustom { key, value })?;
+            .set_info(InfoAndValue::SimpleCustom { key, value })?;
 
         Ok(())
     }
@@ -731,930 +729,5 @@ where
             self.parse_command()?
         }
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use commands::ResponseResult;
-
-    #[derive(Debug, Clone, PartialEq, Eq)]
-    enum DummyPropLit {
-        Pos(String),
-        Neg(String),
-    }
-
-    impl DummyPropLit {
-        pub fn pos<S>(id: S) -> Self
-        where
-            S: Into<String>,
-        {
-            DummyPropLit::Pos(id.into())
-        }
-
-        pub fn neg<S>(id: S) -> Self
-        where
-            S: Into<String>,
-        {
-            DummyPropLit::Neg(id.into())
-        }
-    }
-
-    use commands::{
-        DecimalLit,
-        DecimalLitBase,
-        Literal,
-        LiteralBase,
-        NumeralLit,
-        NumeralLitBase,
-        OptionAndValue,
-        OptionAndValueBase,
-        OutputChannel,
-        OutputChannelBase,
-    };
-    use std;
-
-    pub type DummyOptionKind = OptionKindBase<String>;
-    pub type DummyLiteral = LiteralBase<String>;
-    pub type DummyNumeralLit = NumeralLitBase<String>;
-    pub type DummyDecimalLit = DecimalLitBase<String>;
-    pub type DummyOutputChannel = OutputChannelBase<std::path::PathBuf>;
-    pub type DummyOptionAndValue = OptionAndValueBase<String, std::path::PathBuf>;
-    pub type DummySetInfoKind = SetInfoKindBase<String>;
-
-    impl<'c> From<NumeralLit<'c>> for DummyNumeralLit {
-        fn from(lit: NumeralLit<'c>) -> Self {
-            Self {
-                repr: lit.into_repr().to_owned(),
-            }
-        }
-    }
-
-    impl<'c> From<DecimalLit<'c>> for DummyDecimalLit {
-        fn from(lit: DecimalLit<'c>) -> Self {
-            Self {
-                repr: lit.into_repr().to_owned(),
-            }
-        }
-    }
-
-    impl<'c> From<OutputChannel<'c>> for DummyOutputChannel {
-        fn from(och: OutputChannel<'c>) -> Self {
-            use self::OutputChannelBase::*;
-            match och {
-                Stdout => Stdout,
-                Stderr => Stderr,
-                File(p) => File(p.to_owned()),
-            }
-        }
-    }
-
-    impl<'c> From<Literal<'c>> for DummyLiteral {
-        fn from(lit: Literal<'c>) -> Self {
-            use self::LiteralBase::*;
-            match lit {
-                Bool(repr) => Bool(repr),
-                String(repr) => String(repr.to_owned()),
-                Symbol(repr) => Symbol(repr.into()),
-                Numeral(repr) => Numeral(repr.into()),
-                Keyword(repr) => Keyword(repr.to_owned()),
-                Decimal(repr) => Decimal(repr.into()),
-            }
-        }
-    }
-
-    impl<'c> From<OptionKind<'c>> for DummyOptionKind {
-        fn from(kind: OptionKind<'c>) -> Self {
-            use self::OptionKindBase::*;
-            match kind {
-                DiagnosticOutputChannel => DiagnosticOutputChannel,
-                GlobalDeclarations => GlobalDeclarations,
-                InteractiveMode => InteractiveMode,
-                PrintSuccess => PrintSuccess,
-                ProduceAssertions => ProduceAssertions,
-                ProduceAssignments => ProduceAssignments,
-                ProduceModels => ProduceModels,
-                ProduceProofs => ProduceProofs,
-                ProduceUnsatAssumptions => ProduceUnsatAssumptions,
-                ProduceUnsatCores => ProduceUnsatCores,
-                RandomSeed => RandomSeed,
-                RegularOutputChannel => RegularOutputChannel,
-                ReproducibleResourceLimit => ReproducibleResourceLimit,
-                Verbosity => Verbosity,
-                Custom(s) => Custom(s.to_owned()),
-            }
-        }
-    }
-
-    impl<'c> From<OptionAndValue<'c>> for DummyOptionAndValue {
-        fn from(kind: OptionAndValue<'c>) -> Self {
-            use self::OptionAndValueBase::*;
-            match kind {
-                DiagnosticOutputChannel(ch) => DiagnosticOutputChannel(ch.into()),
-                GlobalDeclarations(f) => GlobalDeclarations(f),
-                InteractiveMode(f) => InteractiveMode(f),
-                PrintSuccess(f) => PrintSuccess(f),
-                ProduceAssertions(f) => ProduceAssertions(f),
-                ProduceAssignments(f) => ProduceAssignments(f),
-                ProduceModels(f) => ProduceModels(f),
-                ProduceProofs(f) => ProduceProofs(f),
-                ProduceUnsatAssumptions(f) => ProduceUnsatAssumptions(f),
-                ProduceUnsatCores(f) => ProduceUnsatCores(f),
-                RandomSeed(r) => RandomSeed(r.into()),
-                RegularOutputChannel(ch) => RegularOutputChannel(ch.into()),
-                ReproducibleResourceLimit(n) => ReproducibleResourceLimit(n.into()),
-                Verbosity(n) => Verbosity(n.into()),
-                SimpleCustom { key, value } => SimpleCustom {
-                    key: key.into(),
-                    value: value.map(Into::into),
-                },
-                ComplexCustom { key } => ComplexCustom {
-                    key: key.to_owned(),
-                },
-            }
-        }
-    }
-
-    impl<'c> From<SetInfoKind<'c>> for DummySetInfoKind {
-        fn from(kind: SetInfoKind<'c>) -> Self {
-            use self::SetInfoKindBase::*;
-            match kind {
-                SMTLibVersion(dec) => SMTLibVersion(dec.into()),
-                Source(s) => Source(s.into()),
-                Category(cat) => Category(cat.into()),
-                License(text) => License(text.into()),
-                Status(kind) => Status(kind.into()),
-                SimpleCustom { key, value } => SimpleCustom {
-                    key: key.into(),
-                    value: value.map(|v| v.into()),
-                },
-                ComplexCustom { key } => ComplexCustom { key: key.into() },
-            }
-        }
-    }
-
-    #[derive(Debug, Clone, PartialEq, Eq)]
-    enum ParseEvent {
-        CheckSat,
-        CheckSatAssuming {
-            prop_lits: Vec<DummyPropLit>,
-        },
-        DeclareSort {
-            symbol: String,
-            arity: usize,
-        },
-        Echo {
-            content: String,
-        },
-        Exit,
-        GetAssertions,
-        GetAssignment,
-        GetInfo {
-            info: String,
-        },
-        GetModel,
-        GetOption {
-            option: DummyOptionKind,
-        },
-        GetProof,
-        GetUnsatAssumptions,
-        GetUnsatCore,
-        Pop {
-            levels: usize,
-        },
-        Push {
-            levels: usize,
-        },
-        Reset,
-        ResetAssertions,
-        SetLogic {
-            id: String,
-        },
-        SetOption {
-            option_and_value: DummyOptionAndValue,
-        },
-        SetInfo {
-            info_and_value: DummySetInfoKind,
-        },
-    }
-
-    #[derive(Debug, Default, Clone)]
-    struct DummySolver {
-        events: Vec<ParseEvent>,
-    }
-
-    impl IntoIterator for DummySolver {
-        type Item = ParseEvent;
-        type IntoIter = <Vec<ParseEvent> as IntoIterator>::IntoIter;
-
-        fn into_iter(self) -> Self::IntoIter {
-            self.events.into_iter()
-        }
-    }
-
-    impl SMTLib2Solver for DummySolver {
-        fn check_sat(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::CheckSat);
-            Ok(())
-        }
-
-        fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ResponseResult {
-            self.events.push(ParseEvent::CheckSatAssuming {
-                prop_lits: prop_lits
-                    .map(|lit| match lit.sign() {
-                        Sign::Pos => DummyPropLit::pos(lit.name()),
-                        Sign::Neg => DummyPropLit::neg(lit.name()),
-                    })
-                    .collect(),
-            });
-            Ok(())
-        }
-
-        fn declare_sort(&mut self, symbol: &str, arity: usize) -> ResponseResult {
-            self.events.push(ParseEvent::DeclareSort {
-                symbol: symbol.to_owned(),
-                arity,
-            });
-            Ok(())
-        }
-
-        fn echo(&mut self, content: &str) -> ResponseResult {
-            self.events.push(ParseEvent::Echo {
-                content: content.to_owned(),
-            });
-            Ok(())
-        }
-
-        fn exit(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::Exit);
-            Ok(())
-        }
-
-        fn get_assertions(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::GetAssertions);
-            Ok(())
-        }
-
-        fn get_assignment(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::GetAssignment);
-            Ok(())
-        }
-
-        fn get_info(&mut self, info: &str) -> ResponseResult {
-            self.events.push(ParseEvent::GetInfo {
-                info: info.to_owned(),
-            });
-            Ok(())
-        }
-
-        fn get_model(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::GetModel);
-            Ok(())
-        }
-
-        fn get_option(&mut self, option: OptionKind) -> ResponseResult {
-            self.events.push(ParseEvent::GetOption {
-                option: option.into(),
-            });
-            Ok(())
-        }
-
-        fn get_proof(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::GetProof);
-            Ok(())
-        }
-
-        fn get_unsat_assumptions(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::GetUnsatAssumptions);
-            Ok(())
-        }
-
-        fn get_unsat_core(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::GetUnsatCore);
-            Ok(())
-        }
-
-        fn pop(&mut self, levels: usize) -> ResponseResult {
-            self.events.push(ParseEvent::Pop { levels });
-            Ok(())
-        }
-
-        fn push(&mut self, levels: usize) -> ResponseResult {
-            self.events.push(ParseEvent::Push { levels });
-            Ok(())
-        }
-
-        fn reset(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::Reset);
-            Ok(())
-        }
-
-        fn reset_assertions(&mut self) -> ResponseResult {
-            self.events.push(ParseEvent::ResetAssertions);
-            Ok(())
-        }
-
-        fn set_logic(&mut self, id: &str) -> ResponseResult {
-            self.events.push(ParseEvent::SetLogic { id: id.to_owned() });
-            Ok(())
-        }
-
-        fn set_option(&mut self, option_and_value: OptionAndValue) -> ResponseResult {
-            self.events.push(ParseEvent::SetOption {
-                option_and_value: option_and_value.into(),
-            });
-            Ok(())
-        }
-
-        fn set_info(&mut self, info_and_value: SetInfoKind) -> ResponseResult {
-            self.events.push(ParseEvent::SetInfo {
-                info_and_value: info_and_value.into(),
-            });
-            Ok(())
-        }
-    }
-
-    fn assert_parse_valid_smtlib2(input: &str, expected_events: Vec<ParseEvent>) {
-        let mut dummy_solver = DummySolver::default();
-        parse_smtlib2(input, &mut dummy_solver).unwrap();
-        let actual_events = dummy_solver.into_iter().collect::<Vec<_>>();
-        assert_eq!(actual_events.len(), expected_events.len());
-        for (actual, expected) in actual_events.into_iter().zip(expected_events.into_iter()) {
-            assert_eq!(actual, expected)
-        }
-    }
-
-    mod commands {
-        use super::*;
-
-        #[test]
-        fn simple() {
-            assert_parse_valid_smtlib2("(check-sat)", vec![ParseEvent::CheckSat]);
-            assert_parse_valid_smtlib2("(exit)", vec![ParseEvent::Exit]);
-            assert_parse_valid_smtlib2("(get-assertions)", vec![ParseEvent::GetAssertions]);
-            assert_parse_valid_smtlib2("(get-assignment)", vec![ParseEvent::GetAssignment]);
-            assert_parse_valid_smtlib2("(get-model)", vec![ParseEvent::GetModel]);
-            assert_parse_valid_smtlib2("(get-proof)", vec![ParseEvent::GetProof]);
-            assert_parse_valid_smtlib2(
-                "(get-unsat-assumptions)",
-                vec![ParseEvent::GetUnsatAssumptions],
-            );
-            assert_parse_valid_smtlib2("(get-unsat-core)", vec![ParseEvent::GetUnsatCore]);
-            assert_parse_valid_smtlib2("(reset)", vec![ParseEvent::Reset]);
-            assert_parse_valid_smtlib2("(reset-assertions)", vec![ParseEvent::ResetAssertions]);
-        }
-
-        #[test]
-        fn simple_chain() {
-            assert_parse_valid_smtlib2(
-                indoc!(
-                    "(check-sat)
-                     (exit)
-                     (get-assertions)
-                     (get-assignment)
-                     (get-model)
-                     (get-proof)
-                     (get-unsat-assumptions)
-                     (get-unsat-core)
-                     (reset)
-                     (reset-assertions)"
-                ),
-                vec![
-                    ParseEvent::CheckSat,
-                    ParseEvent::Exit,
-                    ParseEvent::GetAssertions,
-                    ParseEvent::GetAssignment,
-                    ParseEvent::GetModel,
-                    ParseEvent::GetProof,
-                    ParseEvent::GetUnsatAssumptions,
-                    ParseEvent::GetUnsatCore,
-                    ParseEvent::Reset,
-                    ParseEvent::ResetAssertions,
-                ],
-            );
-        }
-
-        #[test]
-        fn fixed_size() {
-            assert_parse_valid_smtlib2(
-                "(declare-sort FooTypeName 42)",
-                vec![ParseEvent::DeclareSort {
-                    symbol: String::from("FooTypeName"),
-                    arity: 42,
-                }],
-            );
-            assert_parse_valid_smtlib2(
-                "(echo \"Hello, World!\")",
-                vec![ParseEvent::Echo {
-                    content: String::from("Hello, World!"),
-                }],
-            );
-            assert_parse_valid_smtlib2("(push 42)", vec![ParseEvent::Push { levels: 42 }]);
-            assert_parse_valid_smtlib2("(pop 5)", vec![ParseEvent::Pop { levels: 5 }]);
-            assert_parse_valid_smtlib2(
-                "(get-option :my-option)",
-                vec![ParseEvent::GetOption {
-                    option: OptionKindBase::Custom(":my-option".to_owned()),
-                }],
-            );
-            assert_parse_valid_smtlib2(
-                "(set-logic QF_ABV)",
-                vec![ParseEvent::SetLogic {
-                    id: "QF_ABV".to_owned(),
-                }],
-            );
-        }
-
-        #[test]
-        fn get_info_command() {
-            fn assert_get_info_for(info: &str) {
-                assert_parse_valid_smtlib2(
-                    &format!("(get-info {})", info),
-                    vec![ParseEvent::GetInfo {
-                        info: info.to_owned(),
-                    }],
-                );
-            }
-            assert_get_info_for(":all-statistics");
-            assert_get_info_for(":assert-non-stack-levels");
-            assert_get_info_for(":authors");
-            assert_get_info_for(":error-behaviour");
-            assert_get_info_for(":name");
-            assert_get_info_for(":reason-unknown");
-            assert_get_info_for(":version");
-            assert_get_info_for(":my-custom-info-flag");
-        }
-
-        mod check_sat_assuming {
-            use super::*;
-
-            #[test]
-            fn empty_prop_lits() {
-                assert_parse_valid_smtlib2(
-                    "(check-sat-assuming ())",
-                    vec![ParseEvent::CheckSatAssuming { prop_lits: vec![] }],
-                );
-            }
-
-            #[test]
-            fn only_pos() {
-                assert_parse_valid_smtlib2(
-                    "(check-sat-assuming (fst snd trd))",
-                    vec![ParseEvent::CheckSatAssuming {
-                        prop_lits: vec![
-                            DummyPropLit::pos("fst"),
-                            DummyPropLit::pos("snd"),
-                            DummyPropLit::pos("trd"),
-                        ],
-                    }],
-                );
-            }
-
-            #[test]
-            fn only_neg() {
-                assert_parse_valid_smtlib2(
-                    "(check-sat-assuming ((not fst) (not snd) (not trd)))",
-                    vec![ParseEvent::CheckSatAssuming {
-                        prop_lits: vec![
-                            DummyPropLit::neg("fst"),
-                            DummyPropLit::neg("snd"),
-                            DummyPropLit::neg("trd"),
-                        ],
-                    }],
-                );
-            }
-
-            #[test]
-            fn mixed() {
-                assert_parse_valid_smtlib2(
-                    "(check-sat-assuming (fst (not snd) trd))",
-                    vec![ParseEvent::CheckSatAssuming {
-                        prop_lits: vec![
-                            DummyPropLit::pos("fst"),
-                            DummyPropLit::neg("snd"),
-                            DummyPropLit::pos("trd"),
-                        ],
-                    }],
-                );
-            }
-        }
-
-        mod set_option {
-            use super::*;
-
-            #[test]
-            fn simple_bool() {
-                use self::OptionAndValueBase::*;
-                fn assert_simple_bool(
-                    opt_str: &str,
-                    true_case: DummyOptionAndValue,
-                    false_case: DummyOptionAndValue,
-                ) {
-                    assert_parse_valid_smtlib2(
-                        &format!("(set-option {} true)", opt_str),
-                        vec![ParseEvent::SetOption {
-                            option_and_value: true_case,
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        &format!("(set-option {} false)", opt_str),
-                        vec![ParseEvent::SetOption {
-                            option_and_value: false_case,
-                        }],
-                    );
-                }
-                assert_simple_bool(
-                    ":global-declarations",
-                    GlobalDeclarations(true),
-                    GlobalDeclarations(false),
-                );
-                assert_simple_bool(
-                    ":interactive-mode",
-                    InteractiveMode(true),
-                    InteractiveMode(false),
-                );
-                assert_simple_bool(":print-success", PrintSuccess(true), PrintSuccess(false));
-                assert_simple_bool(
-                    ":produce-assertions",
-                    ProduceAssertions(true),
-                    ProduceAssertions(false),
-                );
-                assert_simple_bool(
-                    ":produce-assignments",
-                    ProduceAssignments(true),
-                    ProduceAssignments(false),
-                );
-                assert_simple_bool(":produce-models", ProduceModels(true), ProduceModels(false));
-                assert_simple_bool(":produce-proofs", ProduceProofs(true), ProduceProofs(false));
-                assert_simple_bool(
-                    ":produce-unsat-assumptions",
-                    ProduceUnsatAssumptions(true),
-                    ProduceUnsatAssumptions(false),
-                );
-                assert_simple_bool(
-                    ":produce-unsat-cores",
-                    ProduceUnsatCores(true),
-                    ProduceUnsatCores(false),
-                );
-            }
-
-            #[test]
-            fn simple_numeral() {
-                use self::OptionAndValueBase::*;
-                assert_parse_valid_smtlib2(
-                    "(set-option :random-seed 5)",
-                    vec![ParseEvent::SetOption {
-                        option_and_value: RandomSeed(DummyNumeralLit {
-                            repr: String::from("5"),
-                        }),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-option :reproducible-resource-limit 42)",
-                    vec![ParseEvent::SetOption {
-                        option_and_value: ReproducibleResourceLimit(DummyNumeralLit {
-                            repr: String::from("42"),
-                        }),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-option :verbosity 1337)",
-                    vec![ParseEvent::SetOption {
-                        option_and_value: Verbosity(DummyNumeralLit {
-                            repr: String::from("1337"),
-                        }),
-                    }],
-                );
-            }
-
-            #[test]
-            fn simple_output_channel() {
-                use self::OptionAndValueBase::*;
-                {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :diagnostic-output-channel \"stderr\")",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: DiagnosticOutputChannel(OutputChannelBase::Stderr),
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        "(set-option :diagnostic-output-channel \"stdout\")",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: DiagnosticOutputChannel(OutputChannelBase::Stdout),
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        "(set-option :diagnostic-output-channel \"my_file\")",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: DiagnosticOutputChannel(OutputChannelBase::File(
-                                std::path::PathBuf::from("my_file"),
-                            )),
-                        }],
-                    );
-                }
-                {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :regular-output-channel \"stderr\")",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: RegularOutputChannel(OutputChannelBase::Stderr),
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        "(set-option :regular-output-channel \"stdout\")",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: RegularOutputChannel(OutputChannelBase::Stdout),
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        "(set-option :regular-output-channel \"my_file\")",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: RegularOutputChannel(OutputChannelBase::File(
-                                std::path::PathBuf::from("my_file"),
-                            )),
-                        }],
-                    );
-                }
-            }
-
-            mod simple_custom {
-                use self::OptionAndValueBase::*;
-                use super::*;
-
-                #[test]
-                fn empty_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: None,
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn bool_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd true)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: Some(LiteralBase::Bool(true)),
-                            },
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd false)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: Some(LiteralBase::Bool(false)),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn symbol_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd Foo)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: Some(LiteralBase::Symbol(String::from("Foo"))),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn numeral_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd 42)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: Some(LiteralBase::Numeral(NumeralLitBase {
-                                    repr: String::from("42"),
-                                })),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn decimal_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd 7.7)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: Some(LiteralBase::Decimal(DecimalLitBase {
-                                    repr: String::from("7.7"),
-                                })),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn keyword_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-option :my-custom-cmd :my-keyword)",
-                        vec![ParseEvent::SetOption {
-                            option_and_value: SimpleCustom {
-                                key: String::from(":my-custom-cmd"),
-                                value: Some(LiteralBase::Keyword(String::from(":my-keyword"))),
-                            },
-                        }],
-                    );
-                }
-            }
-        }
-
-        mod set_info {
-            use self::SetInfoKindBase::*;
-            use super::*;
-
-            #[test]
-            fn smt_lib_version() {
-                assert_parse_valid_smtlib2(
-                    "(set-info :smt-lib-version 2.6)",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: SMTLibVersion(DecimalLitBase {
-                            repr: String::from("2.6"),
-                        }),
-                    }],
-                );
-            }
-
-            #[test]
-            fn source() {
-                assert_parse_valid_smtlib2(
-                    "(set-info :source \"Hello, World!\")",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Source(String::from("Hello, World!")),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-info :source |Hello, World!|)",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Source(String::from("Hello, World!")),
-                    }],
-                );
-            }
-
-            #[test]
-            fn category() {
-                assert_parse_valid_smtlib2(
-                    "(set-info :category \"crafted\")",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Category(CategoryKind::Crafted),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-info :category \"random\")",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Category(CategoryKind::Random),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-info :category \"industrial\")",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Category(CategoryKind::Industrial),
-                    }],
-                );
-            }
-
-            #[test]
-            fn status() {
-                assert_parse_valid_smtlib2(
-                    "(set-info :status sat)",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Status(StatusKind::Sat),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-info :status unsat)",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Status(StatusKind::Unsat),
-                    }],
-                );
-                assert_parse_valid_smtlib2(
-                    "(set-info :status unknown)",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: Status(StatusKind::Unknown),
-                    }],
-                );
-            }
-
-            #[test]
-            fn license() {
-                assert_parse_valid_smtlib2(
-                    "(set-info :license \"This is my license.\")",
-                    vec![ParseEvent::SetInfo {
-                        info_and_value: License(String::from("This is my license.")),
-                    }],
-                );
-            }
-
-            mod simple_custom {
-                use self::SetInfoKindBase::*;
-                use super::*;
-
-                #[test]
-                fn empty_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: None,
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn bool_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info true)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: Some(LiteralBase::Bool(true)),
-                            },
-                        }],
-                    );
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info false)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: Some(LiteralBase::Bool(false)),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn symbol_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info Foo)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: Some(LiteralBase::Symbol(String::from("Foo"))),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn numeral_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info 42)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: Some(LiteralBase::Numeral(NumeralLitBase {
-                                    repr: String::from("42"),
-                                })),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn decimal_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info 7.7)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: Some(LiteralBase::Decimal(DecimalLitBase {
-                                    repr: String::from("7.7"),
-                                })),
-                            },
-                        }],
-                    );
-                }
-
-                #[test]
-                fn keyword_value() {
-                    assert_parse_valid_smtlib2(
-                        "(set-info :my-custom-info :my-keyword)",
-                        vec![ParseEvent::SetInfo {
-                            info_and_value: SimpleCustom {
-                                key: String::from(":my-custom-info"),
-                                value: Some(LiteralBase::Keyword(String::from(":my-keyword"))),
-                            },
-                        }],
-                    );
-                }
-            }
-        }
     }
 }

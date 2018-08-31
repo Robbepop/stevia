@@ -1,4 +1,5 @@
 use std;
+use either::Either;
 
 /// Commands available in SMTLib2 conforming solvers.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -287,7 +288,7 @@ impl<'c> Literal<'c> {
     /// This given string slice is not checked to match the properties
     /// of a valid SMTLib2 numeral literal.
     pub fn numeral(repr: &'c str) -> Self {
-        Literal::Numeral(unsafe { NumeralLit::new_unchecked(repr) })
+        Literal::Numeral(unsafe { NumeralLit::from_str(repr) })
     }
 
     /// Creates a new decimal literal for the given string slice.
@@ -301,6 +302,49 @@ impl<'c> Literal<'c> {
     }
 }
 
+/// Represents a radix that describes in which number system an associated
+/// string represents a numeral value.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Radix {
+    /// Binary number system.
+    /// 
+    /// # Note
+    /// 
+    /// In SMTLib2 binary decoded numerals always start with `#b` in
+    /// their string representation.
+    Binary,
+    /// Hexa-decimal number system.
+    /// 
+    /// # Note
+    /// 
+    /// In SMTLib2 hexa-decimal decoded numerals always start with `#x`
+    /// in their string representation.
+    Hexdec,
+    /// Decimal number system.
+    /// 
+    /// # Note
+    /// 
+    /// In SMTLib2 all numerals that have no special prefix are encoded
+    /// in the decimal number system.
+    Decimal
+}
+
+impl Radix {
+    /// Converts the radix into a `u32` value.
+    /// 
+    /// # Note
+    /// 
+    /// This is useful since most standard library features that
+    /// interact with radices are in fact operating on raw `u32` values.
+    pub fn to_u32(&self) -> u32 {
+        match self {
+            Radix::Binary => 2,
+            Radix::Hexdec => 16,
+            Radix::Decimal => 10
+        }
+    }
+}
+
 /// Represents a numeral literal.
 ///
 /// # Note
@@ -310,41 +354,57 @@ impl<'c> Literal<'c> {
 /// numeral literal.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct NumeralLit<'c> {
+    /// The number representation as string.
     repr: &'c str,
+    /// The radix at which the digits within `repr` are interpreted.
+    radix: Radix
 }
 
 impl<'c> NumeralLit<'c> {
-    /// Creates a new numeral literal for the given string slice.
-    ///
-    /// # Safety
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 numeral literal.
-    pub unsafe fn new_unchecked(repr: &'c str) -> Self {
-        Self { repr }
+    fn new(radix: Radix, repr: &'c str) -> Self {
+        NumeralLit{radix, repr}
     }
 
-    /// Returns the string representation of this numeral literal.
-    pub fn str_repr(self) -> &'c str {
-        self.repr
+    pub(crate) fn from_str(repr: &'c str) -> Self {
+        if repr.is_empty() {
+            panic!("empty representations are invalid numeral literals") // TODO: replace with proper error
+        }
+        let radix = if repr.starts_with("#") {
+            if repr.len() < 3 {
+                panic!("invalid length of numeral literal with radix annotation (e.g. #b1") // TODO: replace with proper error
+            }
+            if repr.starts_with("#b") {
+                Radix::Binary
+            } else if repr.starts_with("#x") {
+                Radix::Hexdec
+            } else {
+                panic!("unknown radix identifier: {}", &repr[0..1]) // TODO: replace with proper error
+            }
+        } else {
+            Radix::Decimal
+        };
+        let offset = match radix {
+            Radix::Binary => "#b".len(),
+            Radix::Hexdec => "#x".len(),
+            Radix::Decimal => 0,
+        };
+        let raw_repr = &repr[offset..];
+        if raw_repr.chars().any(|c| !c.is_digit(radix.to_u32())) {
+            panic!("not all characters are valid digits for the given radix") // TODO: replace with proper error
+        }
+        NumeralLit::new(radix, raw_repr)
     }
 
-    /// Returns a `u32` representation of this numeral literal
-    /// if possible. Otherwise returns `None`.
-    pub fn to_u32(self) -> Option<u32> {
-        self.repr.parse().ok()
-    }
-
-    /// Returns a `u64` representation of this numeral literal
-    /// if possible. Otherwise returns `None`.
-    pub fn to_u64(self) -> Option<u64> {
-        self.repr.parse().ok()
-    }
-
-    /// Returns a `u128` representation of this numeral literal
-    /// if possible. Otherwise returns `None`.
-    pub fn to_u128(self) -> Option<u128> {
-        self.repr.parse().ok()
+    /// Returns either a `u128` representing the value of the numeral
+    /// literal or returns a pair of raw string representation and associated
+    /// radix for its encoding if the value cannot be represented
+    /// by a single `u128`.
+    pub fn value(&self) -> Either<u128, (&str, Radix)> {
+        use std::u128;
+        match u128::from_str_radix(self.repr, self.radix.to_u32()) {
+            Ok(val) => Either::Left(val),
+            Err(_) => Either::Right((self.repr, self.radix))
+        }
     }
 }
 

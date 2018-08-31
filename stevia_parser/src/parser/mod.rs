@@ -1,11 +1,16 @@
 mod parser;
 mod error;
 
+#[cfg(test)]
+mod tests;
+
 pub use self::{
     parser::{
         parse_smtlib2,
         Parser,
-        PropLitsIter
+        PropLitsIter,
+        Sign,
+        PropLit
     },
     error::{
         ParseResult,

@@ -4,9 +4,11 @@ extern crate indoc;
 #[macro_use]
 extern crate lazy_static;
 
+extern crate either;
+
 mod lexer;
 mod parser;
-mod commands;
+// mod commands;
 pub mod solver;
 
 pub use self::{
@@ -26,23 +28,18 @@ pub use self::{
         ParseErrorKind,
         ParseError
     },
-    commands::{
+    solver::{
         ResponseError,
         ResponseResult,
-        OptionKindBase,
         OptionKind,
-        LiteralBase,
         Literal,
-        NumeralLitBase,
-        DecimalLitBase,
-        OutputChannelBase,
+        NumeralLit,
+        DecimalLit,
         OutputChannel,
-        OptionAndValueBase,
         OptionAndValue,
-        SetInfoKindBase,
-        SetInfoKind,
+        InfoAndValue,
         SMTLib2Solver,
-        CategoryKind,
-        StatusKind,
+        ProblemCategory,
+        ProblemStatus
     }
 };
