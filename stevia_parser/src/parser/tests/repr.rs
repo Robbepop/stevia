@@ -1,10 +1,18 @@
-use parser::{self, Sign};
-use solver::{self, Radix, ProblemStatus, ProblemCategory};
+use parser::{
+    self,
+    Sign,
+};
+use solver::{
+    self,
+    ProblemCategory,
+    ProblemStatus,
+    Radix,
+};
 
 use std;
 
 /// Testable dummy propositional literal.
-/// 
+///
 /// This simply owns its data instead of borrowing
 /// which makes it easier to test.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,9 +25,9 @@ pub struct PropLit {
 
 impl<'c> From<parser::PropLit<'c>> for PropLit {
     fn from(prop_lit: parser::PropLit) -> Self {
-        Self{
+        Self {
             name: prop_lit.name().to_owned(),
-            sign: prop_lit.sign()
+            sign: prop_lit.sign(),
         }
     }
 }
@@ -55,17 +63,15 @@ pub enum OptionKind {
     /// Corresponds to the `:verbosity` option.
     Verbosity,
     /// Represents all non-predefined or unknown options.
-    Custom {
-        id: String
-    },
+    Custom { id: String },
 }
 
 impl OptionKind {
     pub fn custom<S>(id: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
-        OptionKind::Custom{ id: id.into() }
+        OptionKind::Custom { id: id.into() }
     }
 }
 
@@ -88,7 +94,7 @@ impl<'c> From<solver::OptionKind<'c>> for OptionKind {
             OptKind::RegularOutputChannel => RegularOutputChannel,
             OptKind::ReproducibleResourceLimit => ReproducibleResourceLimit,
             OptKind::Verbosity => Verbosity,
-            OptKind::Custom(id) => OptionKind::custom(id)
+            OptKind::Custom(id) => OptionKind::custom(id),
         }
     }
 }
@@ -123,35 +129,35 @@ pub enum Literal {
 impl Literal {
     pub fn numeral<N>(val: N) -> Self
     where
-        N: Into<NumeralLit>
+        N: Into<NumeralLit>,
     {
         Literal::Numeral(val.into())
     }
 
     pub fn decimal<D>(val: D) -> Self
     where
-        D: Into<DecimalLit>
+        D: Into<DecimalLit>,
     {
         Literal::Decimal(val.into())
     }
 
     pub fn string<S>(val: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
         Literal::String(val.into())
     }
 
     pub fn symbol<S>(val: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
         Literal::Symbol(val.into())
     }
 
     pub fn keyword<S>(keyword: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
         let keyword = keyword.into();
         assert!(keyword.starts_with(":"));
@@ -168,7 +174,7 @@ impl<'c> From<solver::Literal<'c>> for Literal {
             Symbol(name) => Literal::symbol(name),
             Keyword(id) => Literal::keyword(id),
             Numeral(lit) => Literal::numeral(lit),
-            Decimal(lit) => Literal::decimal(lit)
+            Decimal(lit) => Literal::decimal(lit),
         }
     }
 }
@@ -178,10 +184,7 @@ pub enum NumeralLit {
     /// For numerals that fit within an `u128`.
     Small(u128),
     /// For numerals that do not fit within an `u128`.
-    Large{
-        radix: Radix,
-        repr: String
-    }
+    Large { radix: Radix, repr: String },
 }
 
 impl From<u8> for NumeralLit {
@@ -221,11 +224,11 @@ impl NumeralLit {
 
     fn large<S>(radix: Radix, repr: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
-        NumeralLit::Large{
+        NumeralLit::Large {
             radix,
-            repr: repr.into()
+            repr: repr.into(),
         }
     }
 }
@@ -235,7 +238,7 @@ impl<'c> From<solver::NumeralLit<'c>> for NumeralLit {
         use either::Either;
         match lit.value() {
             Either::Left(val) => Self::small(val),
-            Either::Right((repr, radix)) => Self::large(radix, repr)
+            Either::Right((repr, radix)) => Self::large(radix, repr),
         }
     }
 }
@@ -273,7 +276,7 @@ enum OutputChannelKind {
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct OutputChannel {
-    kind: OutputChannelKind
+    kind: OutputChannelKind,
 }
 
 impl<'c> From<solver::OutputChannel<'c>> for OutputChannel {
@@ -282,25 +285,31 @@ impl<'c> From<solver::OutputChannel<'c>> for OutputChannel {
         match ch {
             Stderr => OutputChannel::stderr(),
             Stdout => OutputChannel::stdout(),
-            File(path) => OutputChannel::file(path)
+            File(path) => OutputChannel::file(path),
         }
     }
 }
 
 impl OutputChannel {
     pub fn stderr() -> Self {
-        OutputChannel{ kind: OutputChannelKind::Stderr }
+        OutputChannel {
+            kind: OutputChannelKind::Stderr,
+        }
     }
 
     pub fn stdout() -> Self {
-        OutputChannel{ kind: OutputChannelKind::Stdout }
+        OutputChannel {
+            kind: OutputChannelKind::Stdout,
+        }
     }
 
     pub fn file<P>(path_buf: P) -> Self
     where
-        P: Into<::std::path::PathBuf>
+        P: Into<::std::path::PathBuf>,
     {
-        OutputChannel{ kind: OutputChannelKind::File(path_buf.into()) }
+        OutputChannel {
+            kind: OutputChannelKind::File(path_buf.into()),
+        }
     }
 }
 
@@ -352,11 +361,11 @@ impl OptionAndValue {
     pub fn custom<S, V>(key: S, value: V) -> Self
     where
         S: Into<String>,
-        V: Into<Option<Literal>>
+        V: Into<Option<Literal>>,
     {
-        OptionAndValue::SimpleCustom{
+        OptionAndValue::SimpleCustom {
             key: key.into(),
-            value: value.into()
+            value: value.into(),
         }
     }
 }
@@ -450,11 +459,11 @@ impl InfoAndValue {
     pub fn custom<S, V>(key: S, value: V) -> Self
     where
         S: Into<String>,
-        V: Into<Option<Literal>>
+        V: Into<Option<Literal>>,
     {
-        InfoAndValue::SimpleCustom{
+        InfoAndValue::SimpleCustom {
             key: key.into(),
-            value: value.into()
+            value: value.into(),
         }
     }
 }
@@ -463,37 +472,31 @@ impl<'c> From<solver::InfoAndValue<'c>> for InfoAndValue {
     fn from(info_and_val: solver::InfoAndValue<'c>) -> Self {
         use solver::InfoAndValue::*;
         match info_and_val {
-            SMTLibVersion(ch) => {
-                InfoAndValue::SMTLibVersion(ch.into())
-            },
+            SMTLibVersion(ch) => InfoAndValue::SMTLibVersion(ch.into()),
             Source(content) => InfoAndValue::Source(content.to_owned()),
             License(content) => InfoAndValue::License(content.to_owned()),
             Category(category) => InfoAndValue::Category(category.into()),
             Status(status) => InfoAndValue::Status(status.into()),
-            SimpleCustom{key, value} => {
-                InfoAndValue::SimpleCustom{
-                    key: key.to_owned(),
-                    value: value.map(Literal::from)
-                }
+            SimpleCustom { key, value } => InfoAndValue::SimpleCustom {
+                key: key.to_owned(),
+                value: value.map(Literal::from),
             },
-            ComplexCustom{key} => {
-                InfoAndValue::ComplexCustom{
-                    key: key.to_owned()
-                }
-            }
+            ComplexCustom { key } => InfoAndValue::ComplexCustom {
+                key: key.to_owned(),
+            },
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CheckSatAssumingEvent {
-    prop_lits: Vec<PropLit>
+    prop_lits: Vec<PropLit>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeclareSortEvent {
     symbol_name: String,
-    arity: usize
+    arity: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -501,103 +504,87 @@ pub enum ParseEvent {
     CheckSat,
     CheckSatAssuming(CheckSatAssumingEvent),
     DeclareSort(DeclareSortEvent),
-    Echo {
-        content: String,
-    },
+    Echo { content: String },
     Exit,
     GetAssertions,
     GetAssignment,
-    GetInfo {
-        info: String,
-    },
+    GetInfo { info: String },
     GetModel,
-    GetOption {
-        option: OptionKind,
-    },
+    GetOption { option: OptionKind },
     GetProof,
     GetUnsatAssumptions,
     GetUnsatCore,
-    Pop {
-        levels: usize,
-    },
-    Push {
-        levels: usize,
-    },
+    Pop { levels: usize },
+    Push { levels: usize },
     Reset,
     ResetAssertions,
-    SetLogic {
-        id: String,
-    },
-    SetOption {
-        option_and_value: OptionAndValue,
-    },
-    SetInfo {
-        info_and_value: InfoAndValue,
-    },
+    SetLogic { id: String },
+    SetOption { option_and_value: OptionAndValue },
+    SetInfo { info_and_value: InfoAndValue },
 }
 
 impl ParseEvent {
     pub fn check_sat_assuming<L, P>(prop_lits: L) -> Self
     where
-        L: IntoIterator<Item=P>,
-        PropLit: From<P>
+        L: IntoIterator<Item = P>,
+        PropLit: From<P>,
     {
-        CheckSatAssumingEvent{
-            prop_lits: prop_lits.into_iter().map(PropLit::from).collect()
+        CheckSatAssumingEvent {
+            prop_lits: prop_lits.into_iter().map(PropLit::from).collect(),
         }.into()
     }
 
     pub fn declare_sort<S>(symbol_name: S, arity: usize) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
-        ParseEvent::DeclareSort(
-            DeclareSortEvent{
-                symbol_name: symbol_name.into(),
-                arity: arity
-            }
-        )
+        ParseEvent::DeclareSort(DeclareSortEvent {
+            symbol_name: symbol_name.into(),
+            arity,
+        })
     }
 
     pub fn echo<S>(content: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
-        ParseEvent::Echo{ content: content.into() }
+        ParseEvent::Echo {
+            content: content.into(),
+        }
     }
 
     pub fn get_info<S>(info: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
-        ParseEvent::GetInfo{ info: info.into() }
+        ParseEvent::GetInfo { info: info.into() }
     }
 
     pub fn get_option(kind: OptionKind) -> Self {
-        ParseEvent::GetOption{ option: kind }
+        ParseEvent::GetOption { option: kind }
     }
 
     pub fn set_option(option_and_value: OptionAndValue) -> Self {
-        ParseEvent::SetOption{ option_and_value }
+        ParseEvent::SetOption { option_and_value }
     }
 
     pub fn set_info(info_and_value: InfoAndValue) -> Self {
-        ParseEvent::SetInfo{ info_and_value }
+        ParseEvent::SetInfo { info_and_value }
     }
 
     pub fn push(levels: usize) -> Self {
-        ParseEvent::Push{ levels: levels }
+        ParseEvent::Push { levels }
     }
 
     pub fn pop(levels: usize) -> Self {
-        ParseEvent::Pop{ levels: levels }
+        ParseEvent::Pop { levels }
     }
 
     pub fn set_logic<S>(id: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
-        ParseEvent::SetLogic{ id: id.into() }
+        ParseEvent::SetLogic { id: id.into() }
     }
 }
 
@@ -615,7 +602,7 @@ impl From<DeclareSortEvent> for ParseEvent {
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct DummySolver {
-    events: Vec<ParseEvent>
+    events: Vec<ParseEvent>,
 }
 
 impl<'c> IntoIterator for DummySolver {
@@ -627,12 +614,10 @@ impl<'c> IntoIterator for DummySolver {
     }
 }
 
+use parser::PropLitsIter;
 use solver::{
+    ResponseResult,
     SMTLib2Solver,
-    ResponseResult
-};
-use parser::{
-    PropLitsIter
 };
 
 impl SMTLib2Solver for DummySolver {
@@ -643,11 +628,9 @@ impl SMTLib2Solver for DummySolver {
 
     fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ResponseResult {
         self.events.push(
-            CheckSatAssumingEvent{
-                prop_lits: prop_lits
-                    .map(PropLit::from)
-                    .collect()
-            }.into()
+            CheckSatAssumingEvent {
+                prop_lits: prop_lits.map(PropLit::from).collect(),
+            }.into(),
         );
         Ok(())
     }
@@ -657,7 +640,7 @@ impl SMTLib2Solver for DummySolver {
             DeclareSortEvent {
                 symbol_name: symbol.to_owned(),
                 arity,
-            }.into()
+            }.into(),
         );
         Ok(())
     }

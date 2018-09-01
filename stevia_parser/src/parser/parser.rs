@@ -1,21 +1,30 @@
+use lexer::{
+    scan_smtlib2,
+    Span,
+    Token,
+    TokenIter,
+    TokenKind,
+};
+use parser::{
+    ParseError,
+    ParseResult,
+};
 use solver::{
-    SMTLib2Solver,
+    Command,
+    DecimalLit,
+    InfoAndValue,
+    Literal,
+    NumeralLit,
+    OptionAndValue,
+    OptionKind,
+    OutputChannel,
+    ProblemCategory,
+    ProblemStatus,
     // ResponseError,
     // ResponseErrorKind,
     ResponseResult,
-    Command,
-    OptionKind,
-    Literal,
-    NumeralLit,
-    DecimalLit,
-    OutputChannel,
-    OptionAndValue,
-    ProblemCategory,
-    ProblemStatus,
-    InfoAndValue
+    SMTLib2Solver,
 };
-use lexer::{scan_smtlib2, Span, Token, TokenIter, TokenKind};
-use parser::{ParseError, ParseResult};
 
 pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
 where
@@ -75,7 +84,7 @@ impl<'c> ParseContent<'c> {
         debug_assert!(span.end.to_usize() < self.content.as_bytes().len());
         unsafe {
             self.content
-                .get_unchecked(span.begin.to_usize() .. span.end.to_usize() + 1)
+                .get_unchecked(span.begin.to_usize()..span.end.to_usize() + 1)
         }
     }
 }
@@ -160,7 +169,8 @@ impl<'c> Parser<'c> {
     {
         let symbol_str = self.expect_symbol_tok()?;
         if !pred(symbol_str) {
-            /* return */ unimplemented!();
+            /* return */
+            unimplemented!();
         }
         Ok(symbol_str)
     }
@@ -404,21 +414,15 @@ where
             InteractiveMode => self
                 .solver
                 .set_option(OptionAndValue::InteractiveMode(flag)),
-            PrintSuccess => self
-                .solver
-                .set_option(OptionAndValue::PrintSuccess(flag)),
+            PrintSuccess => self.solver.set_option(OptionAndValue::PrintSuccess(flag)),
             ProduceAssertions => self
                 .solver
                 .set_option(OptionAndValue::ProduceAssertions(flag)),
             ProduceAssignments => self
                 .solver
                 .set_option(OptionAndValue::ProduceAssignments(flag)),
-            ProduceModels => self
-                .solver
-                .set_option(OptionAndValue::ProduceModels(flag)),
-            ProduceProofs => self
-                .solver
-                .set_option(OptionAndValue::ProduceProofs(flag)),
+            ProduceModels => self.solver.set_option(OptionAndValue::ProduceModels(flag)),
+            ProduceProofs => self.solver.set_option(OptionAndValue::ProduceProofs(flag)),
             ProduceUnsatAssumptions => self
                 .solver
                 .set_option(OptionAndValue::ProduceUnsatAssumptions(flag)),
@@ -505,7 +509,9 @@ where
             TokenKind::StringLiteral => Some(Literal::String(peek_str)),
             TokenKind::Keyword => Some(Literal::Keyword(peek_str)),
             TokenKind::Numeral => Some(Literal::Numeral(NumeralLit::from_str(peek_str))),
-            TokenKind::Decimal => Some(Literal::Decimal(unsafe{ DecimalLit::new_unchecked(peek_str) })), // { repr: peek_str })),
+            TokenKind::Decimal => Some(Literal::Decimal(unsafe {
+                DecimalLit::new_unchecked(peek_str)
+            })), // { repr: peek_str })),
             TokenKind::Symbol => match peek_str {
                 "true" => Some(Literal::Bool(true)),
                 "false" => Some(Literal::Bool(false)),
@@ -556,7 +562,7 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(version_tok.span());
-        let version_lit = unsafe{ DecimalLit::new_unchecked(version_str) }; // { repr: version_str };
+        let version_lit = unsafe { DecimalLit::new_unchecked(version_str) }; // { repr: version_str };
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         self.solver
@@ -652,7 +658,9 @@ where
             TokenKind::StringLiteral => Some(Literal::String(peek_str)),
             TokenKind::Keyword => Some(Literal::Keyword(peek_str)),
             TokenKind::Numeral => Some(Literal::Numeral(NumeralLit::from_str(peek_str))),
-            TokenKind::Decimal => Some(Literal::Decimal(unsafe{ DecimalLit::new_unchecked(peek_str) })), //{ repr: peek_str })),
+            TokenKind::Decimal => Some(Literal::Decimal(unsafe {
+                DecimalLit::new_unchecked(peek_str)
+            })), //{ repr: peek_str })),
             TokenKind::Symbol => match peek_str {
                 "true" => Some(Literal::Bool(true)),
                 "false" => Some(Literal::Bool(false)),

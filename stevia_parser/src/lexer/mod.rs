@@ -76,29 +76,29 @@
 
 mod error;
 mod raw_lexer;
-mod simple_lexer;
 mod repr;
+mod simple_lexer;
 
 pub use self::{
     error::{
         LexerError,
         LexerErrorKind,
-        LexerResult
+        LexerResult,
     },
     raw_lexer::{
         raw_smtlib2_tokens,
-        RawTokenIter
-    },
-    simple_lexer::{
-        scan_smtlib2,
-        TokenIter
+        RawTokenIter,
     },
     repr::{
         Loc,
-        Span,
-        RawTokenKind,
         RawToken,
-        TokenKind,
+        RawTokenKind,
+        Span,
         Token,
-    }
+        TokenKind,
+    },
+    simple_lexer::{
+        scan_smtlib2,
+        TokenIter,
+    },
 };

@@ -1,4 +1,11 @@
-use lexer::{LexerError, LexerResult, Loc, Span, RawToken, RawTokenKind};
+use lexer::{
+    LexerError,
+    LexerResult,
+    Loc,
+    RawToken,
+    RawTokenKind,
+    Span,
+};
 
 pub fn raw_smtlib2_tokens(input: &str) -> RawTokenIter {
     RawTokenIter::new(input)
@@ -23,9 +30,9 @@ pub struct RawTokenIter<'c> {
     /// The input iterator over characters and their byte offsets.
     input: CharIndices<'c>,
     /// The input string slice.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// `CharIndices::as_str` cannot be used since it returns the remaining
     /// string slice instead of the full which is required.
     input_str: &'c str,
@@ -34,9 +41,9 @@ pub struct RawTokenIter<'c> {
     /// The currently peeked token and its byte position.
     peek: Option<CharAndLoc>,
     /// If an error has already occured.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This is important to only return errors after the first error has happened.
     error_occured: bool,
 }
@@ -90,7 +97,8 @@ impl<'c> RawTokenIter<'c> {
         debug_assert!(span.begin.to_usize() < self.input_str.as_bytes().len());
         debug_assert!(span.end.to_usize() < self.input_str.as_bytes().len());
         unsafe {
-            self.input_str.get_unchecked(span.begin.to_usize() .. span.end.to_usize() + 1)
+            self.input_str
+                .get_unchecked(span.begin.to_usize()..span.end.to_usize() + 1)
         }
     }
 
@@ -384,8 +392,8 @@ impl<'c> RawTokenIter<'c> {
 
 fn is_symbol_punctuation(ch: char) -> bool {
     match ch {
-        | '~' | '!' | '@' | '$' | '%' | '^' | '&' | '*' | '_' | '-' | '+' | '=' | '<' | '>'
-        | '.' | '?' | '/' => true,
+        '~' | '!' | '@' | '$' | '%' | '^' | '&' | '*' | '_' | '-' | '+' | '=' | '<' | '>' | '.'
+        | '?' | '/' => true,
         _ => false,
     }
 }
@@ -405,7 +413,7 @@ impl<'c> Iterator for RawTokenIter<'c> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lexer::{LexerErrorKind};
+    use lexer::LexerErrorKind;
 
     fn assert_input<I>(input: &str, expected_toks: I)
     where
@@ -415,8 +423,7 @@ mod tests {
             .into_iter()
             .map(|(kind, (begin, end))| {
                 RawToken::new(kind, Span::new(Loc::from(begin), Loc::from(end)))
-            })
-            .collect::<Vec<_>>();
+            }).collect::<Vec<_>>();
         let actual_toks = raw_smtlib2_tokens(input).collect::<Vec<_>>();
         assert_eq!(actual_toks.len(), expected_toks.len());
         for (actual, expected) in actual_toks.into_iter().zip(expected_toks.into_iter()) {
@@ -461,7 +468,10 @@ mod tests {
 
         #[test]
         fn single_line() {
-            assert_input("; this is a comment", vec![(RawTokenKind::Comment, (0, 18))]);
+            assert_input(
+                "; this is a comment",
+                vec![(RawTokenKind::Comment, (0, 18))],
+            );
         }
 
         #[test]
@@ -662,7 +672,10 @@ mod tests {
 
         #[test]
         fn long() {
-            assert_input("#b01101101010111001", vec![(RawTokenKind::Numeral, (0, 18))])
+            assert_input(
+                "#b01101101010111001",
+                vec![(RawTokenKind::Numeral, (0, 18))],
+            )
         }
 
         #[test]
@@ -895,7 +908,7 @@ mod tests {
             // Note: '´' requires two bytes.
             assert_input(
                 r##"|af klj ^*0 asfe2 (&*)&(#^$>> >?" ´]]984|"##,
-                vec![(RawTokenKind::QuotedSymbol, (0, 41))]
+                vec![(RawTokenKind::QuotedSymbol, (0, 41))],
             );
             assert_input(
                 r##"|Löwe 老虎 Léopard|"##,

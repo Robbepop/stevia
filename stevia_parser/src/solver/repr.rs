@@ -1,5 +1,5 @@
-use std;
 use either::Either;
+use std;
 
 /// Commands available in SMTLib2 conforming solvers.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -164,7 +164,7 @@ impl<'c> OptionKind<'c> {
     pub fn has_output_channel_param(self) -> bool {
         use self::OptionKind::*;
         match self {
-            | DiagnosticOutputChannel | RegularOutputChannel => true,
+            DiagnosticOutputChannel | RegularOutputChannel => true,
             _ => false,
         }
     }
@@ -174,7 +174,7 @@ impl<'c> OptionKind<'c> {
     pub fn has_numeral_param(self) -> bool {
         use self::OptionKind::*;
         match self {
-            | RandomSeed | ReproducibleResourceLimit | Verbosity => true,
+            RandomSeed | ReproducibleResourceLimit | Verbosity => true,
             _ => false,
         }
     }
@@ -307,40 +307,40 @@ impl<'c> Literal<'c> {
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Radix {
     /// Binary number system.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// In SMTLib2 binary decoded numerals always start with `#b` in
     /// their string representation.
     Binary,
     /// Hexa-decimal number system.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// In SMTLib2 hexa-decimal decoded numerals always start with `#x`
     /// in their string representation.
     Hexdec,
     /// Decimal number system.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// In SMTLib2 all numerals that have no special prefix are encoded
     /// in the decimal number system.
-    Decimal
+    Decimal,
 }
 
 impl Radix {
     /// Converts the radix into a `u32` value.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This is useful since most standard library features that
     /// interact with radices are in fact operating on raw `u32` values.
     pub fn to_u32(&self) -> u32 {
         match self {
             Radix::Binary => 2,
             Radix::Hexdec => 16,
-            Radix::Decimal => 10
+            Radix::Decimal => 10,
         }
     }
 }
@@ -357,12 +357,12 @@ pub struct NumeralLit<'c> {
     /// The number representation as string.
     repr: &'c str,
     /// The radix at which the digits within `repr` are interpreted.
-    radix: Radix
+    radix: Radix,
 }
 
 impl<'c> NumeralLit<'c> {
     fn new(radix: Radix, repr: &'c str) -> Self {
-        NumeralLit{radix, repr}
+        NumeralLit { radix, repr }
     }
 
     pub(crate) fn from_str(repr: &'c str) -> Self {
@@ -403,7 +403,7 @@ impl<'c> NumeralLit<'c> {
         use std::u128;
         match u128::from_str_radix(self.repr, self.radix.to_u32()) {
             Ok(val) => Either::Left(val),
-            Err(_) => Either::Right((self.repr, self.radix))
+            Err(_) => Either::Right((self.repr, self.radix)),
         }
     }
 }

@@ -60,7 +60,7 @@ pub enum RawTokenKind {
 
     SimpleSymbol,
     QuotedSymbol,
-    Keyword
+    Keyword,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -112,15 +112,14 @@ pub enum TokenKind {
     Par,
 
     MetaSpec(MetaSpec),
-    Command(Command)
+    Command(Command),
 }
 
 impl TokenKind {
     pub fn has_semantic_meaning(self) -> bool {
         match self {
-            TokenKind::Comment    |
-            TokenKind::Whitespace => false,
-            _ => true
+            TokenKind::Comment | TokenKind::Whitespace => false,
+            _ => true,
         }
     }
 }
@@ -131,7 +130,7 @@ pub enum MetaSpec {
     Hexadecimal,
     Decimal,
     Numeral,
-    String
+    String,
 }
 
 impl MetaSpec {
@@ -142,7 +141,7 @@ impl MetaSpec {
             Hexadecimal => "HEXADECIMAL",
             Decimal => "DECIMAL",
             Numeral => "NUMERAL",
-            String => "STRING"
+            String => "STRING",
         }
     }
 }

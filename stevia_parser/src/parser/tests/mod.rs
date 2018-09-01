@@ -1,11 +1,11 @@
-mod repr;
 mod parser;
+mod repr;
 
 pub use self::repr::{
-    OptionAndValue,
+    DecimalLit,
     InfoAndValue,
     Literal,
     NumeralLit,
-    DecimalLit,
-    OutputChannel
+    OptionAndValue,
+    OutputChannel,
 };

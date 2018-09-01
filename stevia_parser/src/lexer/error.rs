@@ -1,6 +1,10 @@
-use lexer::{Span};
+use lexer::Span;
 
-use std::{fmt, error, result};
+use std::{
+    error,
+    fmt,
+    result,
+};
 
 pub type LexerResult<T> = result::Result<T, LexerError>;
 
@@ -52,7 +56,7 @@ impl LexerError {
     pub fn context(&self) -> &str {
         match &self.context {
             None => "",
-            Some(s) => s
+            Some(s) => s,
         }
     }
 
@@ -94,7 +98,7 @@ impl fmt::Display for LexerError {
                 self.span.begin.to_u32(),
                 self.span.end.to_u32(),
                 self.context
-            )
+            ),
         }
     }
 }
@@ -105,7 +109,7 @@ impl error::Error for LexerError {
         match self.kind() {
             UnexpectedEndOfFile => "unexpected end of file",
             UnexpectedCharacter(_) => "unexpected character",
-            PreviousErrorOccured => "previous error occured"
+            PreviousErrorOccured => "previous error occured",
         }
     }
 }

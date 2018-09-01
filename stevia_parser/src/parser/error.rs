@@ -1,5 +1,8 @@
-use lexer::{TokenKind, LexerError};
-use solver::{ResponseError};
+use lexer::{
+    LexerError,
+    TokenKind,
+};
+use solver::ResponseError;
 
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 
@@ -7,10 +10,10 @@ pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 pub enum ParseErrorKind {
     LexerError(LexerError),
     ResponseError(ResponseError),
-    UnexpectedTokenKind{
+    UnexpectedTokenKind {
         found: TokenKind,
-        expected: Option<TokenKind>
-    }
+        expected: Option<TokenKind>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -33,12 +36,15 @@ impl From<ResponseError> for ParseError {
 
 impl ParseError {
     pub(self) fn new(kind: ParseErrorKind) -> Self {
-        Self{ kind, context: None }
+        Self {
+            kind,
+            context: None,
+        }
     }
 
     pub fn context_msg<S>(self, msg: S) -> Self
     where
-        S: Into<String>
+        S: Into<String>,
     {
         let mut this = self;
         this.context = Some(msg.into());
@@ -47,11 +53,11 @@ impl ParseError {
 
     pub fn unexpected_token_kind<T>(found_kind: TokenKind, expected_kind: T) -> Self
     where
-        T: Into<Option<TokenKind>>
+        T: Into<Option<TokenKind>>,
     {
-        Self::new(ParseErrorKind::UnexpectedTokenKind{
+        Self::new(ParseErrorKind::UnexpectedTokenKind {
             found: found_kind,
-            expected: expected_kind.into()
+            expected: expected_kind.into(),
         })
     }
 }

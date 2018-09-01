@@ -1,20 +1,28 @@
-use solver::{Command, ResponseError, ResponseResult};
-use parser::{PropLitsIter};
-use solver::repr::{OptionKind, OptionAndValue, InfoAndValue};
+use parser::PropLitsIter;
+use solver::repr::{
+    InfoAndValue,
+    OptionAndValue,
+    OptionKind,
+};
+use solver::{
+    Command,
+    ResponseError,
+    ResponseResult,
+};
 
 /// This is the SMT solver interface with which the parser will
 /// interactively communicate upon parsing the input stream.
-/// 
+///
 /// SMTLib2 conformant SMT solver simply have to implement a viable
 /// sub set of this trait and be done. Nothing else is required in order
 /// to support the SMTLib2 format using this library for the SMT solver.
-/// 
+///
 /// All commands have default implementations to indicate that they are
 /// unsupported by the SMT solver. So SMT solver implementors should only
 /// implement the trait methods they actually support.
 pub trait SMTLib2Solver {
     // Variable-size commands:
-    // 
+    //
     // We still need a proper design for those commands.
     //
     // (assert <term>)
@@ -59,7 +67,9 @@ pub trait SMTLib2Solver {
 
     /// Corresponds to the `check-sat-assuming` command.
     fn check_sat_assuming(&mut self, _prop_lits: PropLitsIter) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::CheckSatAssuming))
+        Err(ResponseError::unsupported_command(
+            Command::CheckSatAssuming,
+        ))
     }
 
     /// Corresponds to the `declare-sort` command.
@@ -109,7 +119,9 @@ pub trait SMTLib2Solver {
 
     /// Corresponds to the `get-unsat-assumptions` command.
     fn get_unsat_assumptions(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetUnsatAssumptions))
+        Err(ResponseError::unsupported_command(
+            Command::GetUnsatAssumptions,
+        ))
     }
 
     /// Corresponds to the `get-unsat-core` command.

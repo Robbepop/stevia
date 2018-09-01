@@ -12,32 +12,32 @@ mod solver;
 
 pub use self::{
     lexer::{
+        scan_smtlib2,
         LexerError,
         LexerErrorKind,
-        scan_smtlib2,
-        TokenIter,
         Loc,
-        Span
+        Span,
+        TokenIter,
     },
     parser::{
         parse_smtlib2,
-        PropLitsIter,
-        ParseResult,
+        ParseError,
         ParseErrorKind,
-        ParseError
+        ParseResult,
+        PropLitsIter,
     },
     solver::{
-        ResponseError,
-        ResponseResult,
-        OptionKind,
+        DecimalLit,
+        InfoAndValue,
         Literal,
         NumeralLit,
-        DecimalLit,
-        OutputChannel,
         OptionAndValue,
-        InfoAndValue,
-        SMTLib2Solver,
+        OptionKind,
+        OutputChannel,
         ProblemCategory,
-        ProblemStatus
-    }
+        ProblemStatus,
+        ResponseError,
+        ResponseResult,
+        SMTLib2Solver,
+    },
 };

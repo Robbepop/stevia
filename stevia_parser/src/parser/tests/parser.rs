@@ -1,6 +1,10 @@
 use parser::{
     parse_smtlib2,
-    tests::repr::{DummySolver, OptionKind, ParseEvent},
+    tests::repr::{
+        DummySolver,
+        OptionKind,
+        ParseEvent,
+    },
     ParseError,
 };
 
@@ -168,13 +172,11 @@ mod check_sat_assuming {
     fn mixed() {
         assert_parse_valid_smtlib2(
             "(check-sat-assuming (fst (not snd) trd))",
-            vec![ParseEvent::check_sat_assuming(
-                vec![
-                    PropLit::pos("fst"),
-                    PropLit::neg("snd"),
-                    PropLit::pos("trd"),
-                ],
-            )],
+            vec![ParseEvent::check_sat_assuming(vec![
+                PropLit::pos("fst"),
+                PropLit::neg("snd"),
+                PropLit::pos("trd"),
+            ])],
         );
     }
 }
@@ -239,15 +241,21 @@ mod set_option {
     fn simple_numeral() {
         assert_parse_valid_smtlib2(
             "(set-option :random-seed 5)",
-            vec![ParseEvent::set_option(RandomSeed(tests::NumeralLit::from(5_u32)))]
+            vec![ParseEvent::set_option(RandomSeed(tests::NumeralLit::from(
+                5_u32,
+            )))],
         );
         assert_parse_valid_smtlib2(
             "(set-option :reproducible-resource-limit 42)",
-            vec![ParseEvent::set_option(ReproducibleResourceLimit(tests::NumeralLit::from(42_u32)))]
+            vec![ParseEvent::set_option(ReproducibleResourceLimit(
+                tests::NumeralLit::from(42_u32),
+            ))],
         );
         assert_parse_valid_smtlib2(
             "(set-option :verbosity 1337)",
-            vec![ParseEvent::set_option(Verbosity(tests::NumeralLit::from(1337_u32)))]
+            vec![ParseEvent::set_option(Verbosity(tests::NumeralLit::from(
+                1337_u32,
+            )))],
         );
     }
 
@@ -257,29 +265,41 @@ mod set_option {
         {
             assert_parse_valid_smtlib2(
                 "(set-option :diagnostic-output-channel \"stderr\")",
-                vec![ParseEvent::set_option(DiagnosticOutputChannel(OutputChannel::stderr()))]
+                vec![ParseEvent::set_option(DiagnosticOutputChannel(
+                    OutputChannel::stderr(),
+                ))],
             );
             assert_parse_valid_smtlib2(
                 "(set-option :diagnostic-output-channel \"stdout\")",
-                vec![ParseEvent::set_option(DiagnosticOutputChannel(OutputChannel::stdout()))]
+                vec![ParseEvent::set_option(DiagnosticOutputChannel(
+                    OutputChannel::stdout(),
+                ))],
             );
             assert_parse_valid_smtlib2(
                 "(set-option :diagnostic-output-channel \"my_file\")",
-                vec![ParseEvent::set_option(DiagnosticOutputChannel(OutputChannel::file("my_file")))]
+                vec![ParseEvent::set_option(DiagnosticOutputChannel(
+                    OutputChannel::file("my_file"),
+                ))],
             );
         }
         {
             assert_parse_valid_smtlib2(
                 "(set-option :regular-output-channel \"stderr\")",
-                vec![ParseEvent::set_option(RegularOutputChannel(OutputChannel::stderr()))],
+                vec![ParseEvent::set_option(RegularOutputChannel(
+                    OutputChannel::stderr(),
+                ))],
             );
             assert_parse_valid_smtlib2(
                 "(set-option :regular-output-channel \"stdout\")",
-                vec![ParseEvent::set_option(RegularOutputChannel(OutputChannel::stdout()))],
+                vec![ParseEvent::set_option(RegularOutputChannel(
+                    OutputChannel::stdout(),
+                ))],
             );
             assert_parse_valid_smtlib2(
                 "(set-option :regular-output-channel \"my_file\")",
-                vec![ParseEvent::set_option(RegularOutputChannel(OutputChannel::file("my_file")))],
+                vec![ParseEvent::set_option(RegularOutputChannel(
+                    OutputChannel::file("my_file"),
+                ))],
             );
         }
     }
@@ -291,9 +311,10 @@ mod set_option {
         fn empty_value() {
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", None)
-                )],
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    None,
+                ))],
             );
         }
 
@@ -301,15 +322,17 @@ mod set_option {
         fn bool_value() {
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd true)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", tests::Literal::Bool(true))
-                )]
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    tests::Literal::Bool(true),
+                ))],
             );
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd false)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", tests::Literal::Bool(false))
-                )]
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    tests::Literal::Bool(false),
+                ))],
             );
         }
 
@@ -317,9 +340,10 @@ mod set_option {
         fn symbol_value() {
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd Foo)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", tests::Literal::symbol("Foo"))
-                )]
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    tests::Literal::symbol("Foo"),
+                ))],
             );
         }
 
@@ -327,9 +351,10 @@ mod set_option {
         fn numeral_value() {
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd 42)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", tests::Literal::numeral(42_u32))
-                )]
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    tests::Literal::numeral(42_u32),
+                ))],
             );
         }
 
@@ -337,9 +362,10 @@ mod set_option {
         fn decimal_value() {
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd 7.7)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", tests::Literal::decimal(7.7))
-                )],
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    tests::Literal::decimal(7.7),
+                ))],
             );
         }
 
@@ -347,17 +373,14 @@ mod set_option {
         fn keyword_value() {
             assert_parse_valid_smtlib2(
                 "(set-option :my-custom-cmd :my-keyword)",
-                vec![ParseEvent::set_option(
-                    tests::OptionAndValue::custom(":my-custom-cmd", tests::Literal::keyword(":my-keyword"))
-                )],
+                vec![ParseEvent::set_option(tests::OptionAndValue::custom(
+                    ":my-custom-cmd",
+                    tests::Literal::keyword(":my-keyword"),
+                ))],
             );
         }
     }
 }
-
-
-
-
 
 mod set_info {
     use super::*;
@@ -368,9 +391,9 @@ mod set_info {
     fn smt_lib_version() {
         assert_parse_valid_smtlib2(
             "(set-info :smt-lib-version 2.6)",
-            vec![ParseEvent::set_info(
-                SMTLibVersion(tests::DecimalLit::from(2.6)),
-            )],
+            vec![ParseEvent::set_info(SMTLibVersion(
+                tests::DecimalLit::from(2.6),
+            ))],
         );
     }
 
@@ -378,15 +401,11 @@ mod set_info {
     fn source() {
         assert_parse_valid_smtlib2(
             "(set-info :source \"Hello, World!\")",
-            vec![ParseEvent::set_info(
-                Source(String::from("Hello, World!")),
-            )],
+            vec![ParseEvent::set_info(Source(String::from("Hello, World!")))],
         );
         assert_parse_valid_smtlib2(
             "(set-info :source |Hello, World!|)",
-            vec![ParseEvent::set_info(
-                Source(String::from("Hello, World!")),
-            )],
+            vec![ParseEvent::set_info(Source(String::from("Hello, World!")))],
         );
     }
 
@@ -395,21 +414,15 @@ mod set_info {
         use solver::ProblemCategory;
         assert_parse_valid_smtlib2(
             "(set-info :category \"crafted\")",
-            vec![ParseEvent::set_info(
-                Category(ProblemCategory::Crafted),
-            )],
+            vec![ParseEvent::set_info(Category(ProblemCategory::Crafted))],
         );
         assert_parse_valid_smtlib2(
             "(set-info :category \"random\")",
-            vec![ParseEvent::set_info(
-                Category(ProblemCategory::Random),
-            )],
+            vec![ParseEvent::set_info(Category(ProblemCategory::Random))],
         );
         assert_parse_valid_smtlib2(
             "(set-info :category \"industrial\")",
-            vec![ParseEvent::set_info(
-                Category(ProblemCategory::Industrial),
-            )],
+            vec![ParseEvent::set_info(Category(ProblemCategory::Industrial))],
         );
     }
 
@@ -418,21 +431,15 @@ mod set_info {
         use solver::ProblemStatus;
         assert_parse_valid_smtlib2(
             "(set-info :status sat)",
-            vec![ParseEvent::set_info(
-                Status(ProblemStatus::Sat),
-            )],
+            vec![ParseEvent::set_info(Status(ProblemStatus::Sat))],
         );
         assert_parse_valid_smtlib2(
             "(set-info :status unsat)",
-            vec![ParseEvent::set_info(
-                Status(ProblemStatus::Unsat),
-            )],
+            vec![ParseEvent::set_info(Status(ProblemStatus::Unsat))],
         );
         assert_parse_valid_smtlib2(
             "(set-info :status unknown)",
-            vec![ParseEvent::set_info(
-                Status(ProblemStatus::Unknown),
-            )],
+            vec![ParseEvent::set_info(Status(ProblemStatus::Unknown))],
         );
     }
 
@@ -440,9 +447,9 @@ mod set_info {
     fn license() {
         assert_parse_valid_smtlib2(
             "(set-info :license \"This is my license.\")",
-            vec![ParseEvent::set_info(
-                License(String::from("This is my license.")),
-            )],
+            vec![ParseEvent::set_info(License(String::from(
+                "This is my license.",
+            )))],
         );
     }
 
@@ -454,9 +461,10 @@ mod set_info {
         fn empty_value() {
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", None)
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    None,
+                ))],
             );
         }
 
@@ -464,15 +472,17 @@ mod set_info {
         fn bool_value() {
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info true)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", tests::Literal::Bool(true))
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    tests::Literal::Bool(true),
+                ))],
             );
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info false)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", tests::Literal::Bool(false))
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    tests::Literal::Bool(false),
+                ))],
             );
         }
 
@@ -480,9 +490,10 @@ mod set_info {
         fn symbol_value() {
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info Foo)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", tests::Literal::symbol("Foo"))
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    tests::Literal::symbol("Foo"),
+                ))],
             );
         }
 
@@ -490,9 +501,10 @@ mod set_info {
         fn numeral_value() {
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info 42)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", tests::Literal::numeral(42_u32))
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    tests::Literal::numeral(42_u32),
+                ))],
             );
         }
 
@@ -500,9 +512,10 @@ mod set_info {
         fn decimal_value() {
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info 7.7)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", tests::Literal::decimal(7.7))
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    tests::Literal::decimal(7.7),
+                ))],
             );
         }
 
@@ -510,9 +523,10 @@ mod set_info {
         fn keyword_value() {
             assert_parse_valid_smtlib2(
                 "(set-info :my-custom-info :my-keyword)",
-                vec![ParseEvent::set_info(
-                    tests::InfoAndValue::custom(":my-custom-info", tests::Literal::keyword(":my-keyword"))
-                )],
+                vec![ParseEvent::set_info(tests::InfoAndValue::custom(
+                    ":my-custom-info",
+                    tests::Literal::keyword(":my-keyword"),
+                ))],
             );
         }
     }

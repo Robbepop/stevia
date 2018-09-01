@@ -1,28 +1,25 @@
-
 mod commands;
 mod error;
 mod repr;
 
 pub use self::{
-    commands::{
-        SMTLib2Solver
-    },
+    commands::SMTLib2Solver,
     error::{
         ResponseError,
         ResponseErrorKind,
-        ResponseResult
+        ResponseResult,
     },
     repr::{
         Command,
-        OptionKind,
+        DecimalLit,
+        InfoAndValue,
         Literal,
         NumeralLit,
-        DecimalLit,
-        OutputChannel,
         OptionAndValue,
+        OptionKind,
+        OutputChannel,
         ProblemCategory,
         ProblemStatus,
-        InfoAndValue,
-        Radix
-    }
+        Radix,
+    },
 };
