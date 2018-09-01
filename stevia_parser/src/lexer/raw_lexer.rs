@@ -1,4 +1,4 @@
-use lexer::{LexerError, LexerErrorKind, LexerResult, Loc, Span, RawToken, RawTokenKind};
+use lexer::{LexerError, LexerResult, Loc, Span, RawToken, RawTokenKind};
 
 pub fn raw_smtlib2_tokens(input: &str) -> RawTokenIter {
     RawTokenIter::new(input)
@@ -90,7 +90,7 @@ impl<'c> RawTokenIter<'c> {
         debug_assert!(span.begin.to_usize() < self.input_str.as_bytes().len());
         debug_assert!(span.end.to_usize() < self.input_str.as_bytes().len());
         unsafe {
-            self.input_str.slice_unchecked(span.begin.to_usize(), span.end.to_usize() + 1)
+            self.input_str.get_unchecked(span.begin.to_usize() .. span.end.to_usize() + 1)
         }
     }
 
@@ -405,6 +405,7 @@ impl<'c> Iterator for RawTokenIter<'c> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use lexer::{LexerErrorKind};
 
     fn assert_input<I>(input: &str, expected_toks: I)
     where

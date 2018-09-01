@@ -24,22 +24,6 @@ impl<'c> From<parser::PropLit<'c>> for PropLit {
     }
 }
 
-impl PropLit {
-    pub(self) fn pos(name: &str) -> Self {
-        PropLit{
-            name: name.to_owned(),
-            sign: Sign::Pos
-        }
-    }
-
-    pub(self) fn neg(name: &str) -> Self {
-        PropLit{
-            name: name.to_owned(),
-            sign: Sign::Neg
-        }
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum OptionKind {
     /// Corresponds to the `:diagnostic-output-channel` option.
@@ -180,11 +164,11 @@ impl<'c> From<solver::Literal<'c>> for Literal {
         use solver::Literal::*;
         match lit {
             Bool(flag) => Literal::Bool(flag),
-            String(content) => Literal::String(content.to_owned()),
-            Symbol(name) => Literal::Symbol(name.to_owned()),
-            Keyword(id) => Literal::Keyword(id.to_owned()),
-            Numeral(lit) => Literal::Numeral(lit.into()),
-            Decimal(lit) => Literal::Decimal(lit.into())
+            String(content) => Literal::string(content),
+            Symbol(name) => Literal::symbol(name),
+            Keyword(id) => Literal::keyword(id),
+            Numeral(lit) => Literal::numeral(lit),
+            Decimal(lit) => Literal::decimal(lit)
         }
     }
 }

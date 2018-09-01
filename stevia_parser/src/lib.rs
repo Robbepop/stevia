@@ -8,21 +8,19 @@ extern crate either;
 
 mod lexer;
 mod parser;
-// mod commands;
-pub mod solver;
+mod solver;
 
 pub use self::{
     lexer::{
         LexerError,
         LexerErrorKind,
-        smtlib2_tokens,
+        scan_smtlib2,
         TokenIter,
         Loc,
         Span
     },
     parser::{
         parse_smtlib2,
-        Parser,
         PropLitsIter,
         ParseResult,
         ParseErrorKind,

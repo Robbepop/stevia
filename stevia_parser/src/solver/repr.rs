@@ -288,7 +288,7 @@ impl<'c> Literal<'c> {
     /// This given string slice is not checked to match the properties
     /// of a valid SMTLib2 numeral literal.
     pub fn numeral(repr: &'c str) -> Self {
-        Literal::Numeral(unsafe { NumeralLit::from_str(repr) })
+        Literal::Numeral(NumeralLit::from_str(repr))
     }
 
     /// Creates a new decimal literal for the given string slice.

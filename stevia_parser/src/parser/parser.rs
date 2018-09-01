@@ -1,7 +1,7 @@
 use solver::{
     SMTLib2Solver,
-    ResponseError,
-    ResponseErrorKind,
+    // ResponseError,
+    // ResponseErrorKind,
     ResponseResult,
     Command,
     OptionKind,
@@ -14,7 +14,7 @@ use solver::{
     ProblemStatus,
     InfoAndValue
 };
-use lexer::{smtlib2_tokens, Span, Token, TokenIter, TokenKind};
+use lexer::{scan_smtlib2, Span, Token, TokenIter, TokenKind};
 use parser::{ParseError, ParseResult};
 
 pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
@@ -75,7 +75,7 @@ impl<'c> ParseContent<'c> {
         debug_assert!(span.end.to_usize() < self.content.as_bytes().len());
         unsafe {
             self.content
-                .slice_unchecked(span.begin.to_usize(), span.end.to_usize() + 1)
+                .get_unchecked(span.begin.to_usize() .. span.end.to_usize() + 1)
         }
     }
 }
@@ -83,7 +83,7 @@ impl<'c> ParseContent<'c> {
 impl<'c> Parser<'c> {
     pub(self) fn new(input: &'c str) -> Self {
         Self {
-            token_iter: smtlib2_tokens(input),
+            token_iter: scan_smtlib2(input),
             input_str: ParseContent::from(input),
             peek: None,
         }
@@ -132,7 +132,7 @@ impl<'c> Parser<'c> {
                 self.consume();
                 Ok(command)
             }
-            _ => Err(unimplemented!()), // error: unexpected non-command token
+            _ => unimplemented!(), // error: unexpected non-command token
         }
     }
 
@@ -160,7 +160,7 @@ impl<'c> Parser<'c> {
     {
         let symbol_str = self.expect_symbol_tok()?;
         if !pred(symbol_str) {
-            return Err(unimplemented!());
+            /* return */ unimplemented!();
         }
         Ok(symbol_str)
     }
@@ -511,7 +511,7 @@ where
                 "false" => Some(Literal::Bool(false)),
                 _ => Some(Literal::Symbol(peek_str)),
             },
-            _ => return Err(unimplemented!()), // unexpected token
+            _ => unimplemented!(), // unexpected token
         };
 
         self.parser.consume();
@@ -573,7 +573,7 @@ where
             TokenKind::StringLiteral | TokenKind::Symbol => {
                 self.parser.input_str.span_to_str_unchecked(peek_tok.span())
             }
-            _ => return Err(unimplemented!()), // unexpected token
+            _ => unimplemented!(), // unexpected token
         };
 
         self.parser.consume();
@@ -594,7 +594,7 @@ where
             "crafted" => ProblemCategory::Crafted,
             "random" => ProblemCategory::Random,
             "industrial" => ProblemCategory::Industrial,
-            _ => return Err(unimplemented!()), // error: unknown category kind
+            _ => unimplemented!(), // error: unknown category kind
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
@@ -624,7 +624,7 @@ where
             "sat" => ProblemStatus::Sat,
             "unsat" => ProblemStatus::Unsat,
             "unknown" => ProblemStatus::Unknown,
-            _ => return Err(unimplemented!()), // error: unknown status kind
+            _ => unimplemented!(), // error: unknown status kind
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
@@ -658,7 +658,7 @@ where
                 "false" => Some(Literal::Bool(false)),
                 _ => Some(Literal::Symbol(peek_str)),
             },
-            _ => return Err(unimplemented!()), // unexpected token
+            _ => unimplemented!(), // unexpected token
         };
 
         self.parser.consume();
