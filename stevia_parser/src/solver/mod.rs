@@ -5,6 +5,8 @@ mod repr;
 pub use self::{
     commands::SMTLib2Solver,
     error::{
+        CommandResponseError,
+        CommandResponseResult,
         ResponseError,
         ResponseErrorKind,
         ResponseResult,

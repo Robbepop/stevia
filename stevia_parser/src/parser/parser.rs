@@ -11,13 +11,14 @@ use parser::{
 };
 use solver::{
     Command,
+    CommandResponseResult,
     DecimalLit,
+    GetInfoKind,
     InfoAndValue,
     Literal,
     NumeralLit,
     OptionAndValue,
     OptionKind,
-    GetInfoKind,
     OutputChannel,
     ProblemCategory,
     ProblemStatus,
@@ -184,14 +185,14 @@ impl<'c, 's, S> ParserDriver<'c, 's, S>
 where
     S: SMTLib2Solver + 's,
 {
-    fn parse_simple_command<C>(&mut self, _kind: Command, command: C) -> ParseResult<()>
+    fn parse_simple_command<C>(&mut self, kind: Command, command: C) -> ParseResult<()>
     where
         C: Fn(&mut S) -> ResponseResult,
     {
         debug_assert!(self.parser.peek().is_ok());
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        command(self.solver)?;
+        command(self.solver).map_err(|err| err.invoked_by(kind))?;
         Ok(())
     }
 
@@ -204,7 +205,7 @@ where
 
         let symbol_str = self.parser.input_str.span_to_str_unchecked(symbol.span());
 
-        self.solver.declare_sort(symbol_str, arity)?;
+        self.solver.declare_sort(symbol_str, arity).map_err(|err| err.invoked_by(Command::DeclareSort))?;
         Ok(())
     }
 
@@ -216,7 +217,7 @@ where
 
         let text_str = self.parser.input_str.span_to_str_unchecked(text.span());
 
-        self.solver.echo(text_str)?;
+        self.solver.echo(text_str).map_err(|err| err.invoked_by(Command::Echo))?;
         Ok(())
     }
 
@@ -226,7 +227,7 @@ where
         let levels = self.parser.expect_usize_numeral()?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver.pop(levels)?;
+        self.solver.pop(levels).map_err(|err| err.invoked_by(Command::Pop))?;
         Ok(())
     }
 
@@ -236,7 +237,7 @@ where
         let levels = self.parser.expect_usize_numeral()?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver.push(levels)?;
+        self.solver.push(levels).map_err(|err| err.invoked_by(Command::Push))?;
         Ok(())
     }
 
@@ -248,7 +249,7 @@ where
 
         let info_str = self.parser.input_str.span_to_str_unchecked(info_tok.span());
 
-        self.solver.get_info(GetInfoKind::from_str(info_str))?;
+        self.solver.get_info(GetInfoKind::from_str(info_str)).map_err(|err| err.invoked_by(Command::GetInfo))?;
         Ok(())
     }
 
@@ -263,7 +264,7 @@ where
             .input_str
             .span_to_str_unchecked(option_tok.span());
 
-        self.solver.get_option(option_str.into())?;
+        self.solver.get_option(option_str.into()).map_err(|err| err.invoked_by(Command::GetOption))?;
         Ok(())
     }
 
@@ -278,7 +279,7 @@ where
             .input_str
             .span_to_str_unchecked(logic_tok.span());
 
-        self.solver.set_logic(logic_str)?;
+        self.solver.set_logic(logic_str).map_err(|err| err.invoked_by(Command::SetLogic))?;
         Ok(())
     }
 }
@@ -359,6 +360,24 @@ impl<'c> Iterator for PropLitsIter<'c> {
     }
 }
 
+fn invoke_set_option<S>(solver: &mut S, option_data: OptionAndValue) -> CommandResponseResult
+where
+    S: SMTLib2Solver
+{
+    solver
+        .set_option(option_data)
+        .map_err(|err| err.invoked_by(Command::SetOption))
+}
+
+fn invoke_set_info<S>(solver: &mut S, info_data: InfoAndValue) -> CommandResponseResult
+where
+    S: SMTLib2Solver
+{
+    solver
+        .set_info(info_data)
+        .map_err(|err| err.invoked_by(Command::SetInfo))
+}
+
 impl<'c, 's, S> ParserDriver<'c, 's, S>
 where
     S: SMTLib2Solver + 's,
@@ -407,29 +426,18 @@ where
 
         use self::OptionKind::*;
         match opt {
-            GlobalDeclarations => self
-                .solver
-                .set_option(OptionAndValue::GlobalDeclarations(flag)),
-            InteractiveMode => self
-                .solver
-                .set_option(OptionAndValue::InteractiveMode(flag)),
-            PrintSuccess => self.solver.set_option(OptionAndValue::PrintSuccess(flag)),
-            ProduceAssertions => self
-                .solver
-                .set_option(OptionAndValue::ProduceAssertions(flag)),
-            ProduceAssignments => self
-                .solver
-                .set_option(OptionAndValue::ProduceAssignments(flag)),
-            ProduceModels => self.solver.set_option(OptionAndValue::ProduceModels(flag)),
-            ProduceProofs => self.solver.set_option(OptionAndValue::ProduceProofs(flag)),
-            ProduceUnsatAssumptions => self
-                .solver
-                .set_option(OptionAndValue::ProduceUnsatAssumptions(flag)),
-            ProduceUnsatCores => self
-                .solver
-                .set_option(OptionAndValue::ProduceUnsatCores(flag)),
+            GlobalDeclarations => invoke_set_option(self.solver, OptionAndValue::GlobalDeclarations(flag)),
+            InteractiveMode => invoke_set_option(self.solver, OptionAndValue::InteractiveMode(flag)),
+            PrintSuccess => invoke_set_option(self.solver, OptionAndValue::PrintSuccess(flag)),
+            ProduceAssertions => invoke_set_option(self.solver, OptionAndValue::ProduceAssertions(flag)),
+            ProduceAssignments => invoke_set_option(self.solver, OptionAndValue::ProduceAssignments(flag)),
+            ProduceProofs => invoke_set_option(self.solver, OptionAndValue::ProduceProofs(flag)),
+            ProduceModels => invoke_set_option(self.solver, OptionAndValue::ProduceModels(flag)),
+            ProduceUnsatAssumptions => invoke_set_option(self.solver, OptionAndValue::ProduceUnsatAssumptions(flag)),
+            ProduceUnsatCores => invoke_set_option(self.solver, OptionAndValue::ProduceUnsatCores(flag)),
             _ => unreachable!(),
         }?;
+
         Ok(())
     }
 
@@ -451,12 +459,8 @@ where
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         match opt {
-            OptionKind::DiagnosticOutputChannel => self
-                .solver
-                .set_option(OptionAndValue::DiagnosticOutputChannel(outch_ch)),
-            OptionKind::RegularOutputChannel => self
-                .solver
-                .set_option(OptionAndValue::RegularOutputChannel(outch_ch)),
+            OptionKind::DiagnosticOutputChannel => invoke_set_option(self.solver, OptionAndValue::DiagnosticOutputChannel(outch_ch)),
+            OptionKind::RegularOutputChannel => invoke_set_option(self.solver, OptionAndValue::RegularOutputChannel(outch_ch)),
             _ => unreachable!(),
         }?;
 
@@ -476,15 +480,9 @@ where
 
         use self::OptionKind::*;
         match opt {
-            RandomSeed => self
-                .solver
-                .set_option(OptionAndValue::RandomSeed(numeral_lit)),
-            ReproducibleResourceLimit => self
-                .solver
-                .set_option(OptionAndValue::ReproducibleResourceLimit(numeral_lit)),
-            Verbosity => self
-                .solver
-                .set_option(OptionAndValue::Verbosity(numeral_lit)),
+            RandomSeed => invoke_set_option(self.solver, OptionAndValue::RandomSeed(numeral_lit)),
+            ReproducibleResourceLimit => invoke_set_option(self.solver, OptionAndValue::ReproducibleResourceLimit(numeral_lit)),
+            Verbosity => invoke_set_option(self.solver, OptionAndValue::Verbosity(numeral_lit)),
             _ => unreachable!(),
         }?;
 
@@ -524,9 +522,9 @@ where
             self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         }
 
-        self.solver.set_option(OptionAndValue::SimpleCustom {
+        invoke_set_option(self.solver, OptionAndValue::SimpleCustom{
             key: key_str,
-            value,
+            value
         })?;
 
         Ok(())
@@ -564,8 +562,7 @@ where
         let version_lit = unsafe { DecimalLit::new_unchecked(version_str) }; // { repr: version_str };
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver
-            .set_info(InfoAndValue::SMTLibVersion(version_lit))?;
+        invoke_set_info(self.solver, InfoAndValue::SMTLibVersion(version_lit))?;
 
         Ok(())
     }
@@ -584,7 +581,7 @@ where
         self.parser.consume();
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        self.solver.set_info(InfoAndValue::Source(peek_str))?;
+        invoke_set_info(self.solver, InfoAndValue::Source(peek_str))?;
 
         Ok(())
     }
@@ -603,7 +600,7 @@ where
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        self.solver.set_info(InfoAndValue::Category(category))?;
+        invoke_set_info(self.solver, InfoAndValue::Category(category))?;
 
         Ok(())
     }
@@ -615,7 +612,7 @@ where
         let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        self.solver.set_info(InfoAndValue::License(text_str))?;
+        invoke_set_info(self.solver, InfoAndValue::License(text_str))?;
 
         Ok(())
     }
@@ -633,7 +630,7 @@ where
         };
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        self.solver.set_info(InfoAndValue::Status(status))?;
+        invoke_set_info(self.solver, InfoAndValue::Status(status))?;
 
         Ok(())
     }
@@ -673,8 +670,7 @@ where
             self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         }
 
-        self.solver
-            .set_info(InfoAndValue::SimpleCustom { key, value })?;
+        invoke_set_info(self.solver, InfoAndValue::SimpleCustom { key, value })?;
 
         Ok(())
     }

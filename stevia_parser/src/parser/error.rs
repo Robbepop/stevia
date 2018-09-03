@@ -2,14 +2,18 @@ use lexer::{
     LexerError,
     TokenKind,
 };
-use solver::ResponseError;
+use solver::{
+    Command,
+    ResponseError,
+    CommandResponseError
+};
 
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum ParseErrorKind {
     LexerError(LexerError),
-    ResponseError(ResponseError),
+    ResponseError(CommandResponseError),
     UnexpectedTokenKind {
         found: TokenKind,
         expected: Option<TokenKind>,
@@ -28,8 +32,8 @@ impl From<LexerError> for ParseError {
     }
 }
 
-impl From<ResponseError> for ParseError {
-    fn from(response_error: ResponseError) -> Self {
+impl From<CommandResponseError> for ParseError {
+    fn from(response_error: CommandResponseError) -> Self {
         Self::new(ParseErrorKind::ResponseError(response_error))
     }
 }
@@ -59,5 +63,9 @@ impl ParseError {
             found: found_kind,
             expected: expected_kind.into(),
         })
+    }
+
+    pub fn bad_response(response: ResponseError, invoked_cmd: Command) -> Self {
+        Self::from(CommandResponseError::new(response, invoked_cmd))
     }
 }

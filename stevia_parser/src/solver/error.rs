@@ -60,6 +60,21 @@ pub struct ResponseError {
     kind: ResponseErrorKind,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct CommandResponseError {
+    response: ResponseError,
+    invoked_cmd: Command
+}
+
+impl CommandResponseError {
+    pub fn new(response: ResponseError, invoked_cmd: Command) -> Self {
+        Self{
+            response: response,
+            invoked_cmd: invoked_cmd
+        }
+    }
+}
+
 impl ResponseError {
     /// Returns the kind of `self`.
     pub fn kind(&self) -> &ResponseErrorKind {
@@ -74,6 +89,10 @@ impl ResponseError {
     /// Creates a new response error given the error kind.
     pub(self) fn new(kind: ResponseErrorKind) -> Self {
         Self { kind }
+    }
+
+    pub(crate) fn invoked_by(self, invoked_cmd: Command) -> CommandResponseError {
+        CommandResponseError::new(self, invoked_cmd)
     }
 
     /// Creates a new response error indicated that something is unsupported.
@@ -152,3 +171,5 @@ impl std::error::Error for ResponseError {
 /// This enables the SMT solver to communicate error or success back
 /// to the SMTLib2 parser.
 pub type ResponseResult = std::result::Result<(), ResponseError>;
+
+pub type CommandResponseResult = std::result::Result<(), CommandResponseError>;
