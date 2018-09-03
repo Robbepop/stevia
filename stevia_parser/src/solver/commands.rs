@@ -3,6 +3,7 @@ use solver::repr::{
     InfoAndValue,
     OptionAndValue,
     OptionKind,
+    GetInfoKind,
 };
 use solver::{
     Command,
@@ -98,7 +99,7 @@ pub trait SMTLib2Solver {
     }
 
     /// Corresponds to the `get-info` command.
-    fn get_info(&mut self, _info: &str) -> ResponseResult {
+    fn get_info(&mut self, _info: GetInfoKind) -> ResponseResult {
         Err(ResponseError::unsupported_command(Command::GetInfo))
     }
 

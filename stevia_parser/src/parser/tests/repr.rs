@@ -99,6 +99,52 @@ impl<'c> From<solver::OptionKind<'c>> for OptionKind {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum GetInfoKind {
+    /// Corresponds to the predefined `:all-statistics` info flag.
+    AllStatistics,
+    /// Corresponds to the predefined `:assertion-stack-levels` info flag.
+    AssertionStackLevels,
+    /// Corresponds to the predefined `:authors` info flag.
+    Authors,
+    /// Corresponds to the predefined `:error-behaviour` info flag.
+    ErrorBehaviour,
+    /// Corresponds to the predefined `:name` info flag.
+    Name,
+    /// Corresponds to the predefined `:reason-unknown` info flag.
+    ReasonUnknown,
+    /// Corresponds to the predefined `:version` info flag.
+    Version,
+    /// Corresponds to any non predefined info flag.
+    Other(String)
+}
+
+impl GetInfoKind {
+    pub fn other<S>(flag: S) -> Self
+    where
+        S: Into<String>,
+    {
+        GetInfoKind::Other(flag.into())
+    }
+}
+
+impl<'c> From<solver::GetInfoKind<'c>> for GetInfoKind {
+    fn from(kind: solver::GetInfoKind<'c>) -> Self {
+        use self::GetInfoKind::*;
+        use solver::GetInfoKind as Flag;
+        match kind {
+            Flag::AllStatistics => AllStatistics,
+            Flag::AssertionStackLevels => AssertionStackLevels,
+            Flag::Authors => Authors,
+            Flag::ErrorBehaviour => ErrorBehaviour,
+            Flag::Name => Name,
+            Flag::ReasonUnknown => ReasonUnknown,
+            Flag::Version => Version,
+            Flag::Other(id) => GetInfoKind::other(id),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Literal {
     /// A boolean literal.
@@ -508,7 +554,7 @@ pub enum ParseEvent {
     Exit,
     GetAssertions,
     GetAssignment,
-    GetInfo { info: String },
+    GetInfo { info: GetInfoKind },
     GetModel,
     GetOption { option: OptionKind },
     GetProof,
@@ -553,11 +599,8 @@ impl ParseEvent {
         }
     }
 
-    pub fn get_info<S>(info: S) -> Self
-    where
-        S: Into<String>,
-    {
-        ParseEvent::GetInfo { info: info.into() }
+    pub fn get_info(flag: GetInfoKind) -> Self {
+        ParseEvent::GetInfo { info: flag }
     }
 
     pub fn get_option(kind: OptionKind) -> Self {
@@ -667,9 +710,9 @@ impl SMTLib2Solver for DummySolver {
         Ok(())
     }
 
-    fn get_info(&mut self, info: &str) -> ResponseResult {
+    fn get_info(&mut self, flag: solver::GetInfoKind) -> ResponseResult {
         self.events.push(ParseEvent::GetInfo {
-            info: info.to_owned(),
+            info: flag.into()
         });
         Ok(())
     }

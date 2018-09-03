@@ -17,6 +17,7 @@ pub use self::{
         NumeralLit,
         OptionAndValue,
         OptionKind,
+        GetInfoKind,
         OutputChannel,
         ProblemCategory,
         ProblemStatus,

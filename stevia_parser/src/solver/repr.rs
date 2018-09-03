@@ -203,6 +203,42 @@ impl<'c> From<&'c str> for OptionKind<'c> {
     }
 }
 
+/// Info flags of the SMTLib2 `get-info` command.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum GetInfoKind<'s> {
+    /// Corresponds to the predefined `:all-statistics` info flag.
+    AllStatistics,
+    /// Corresponds to the predefined `:assertion-stack-levels` info flag.
+    AssertionStackLevels,
+    /// Corresponds to the predefined `:authors` info flag.
+    Authors,
+    /// Corresponds to the predefined `:error-behaviour` info flag.
+    ErrorBehaviour,
+    /// Corresponds to the predefined `:name` info flag.
+    Name,
+    /// Corresponds to the predefined `:reason-unknown` info flag.
+    ReasonUnknown,
+    /// Corresponds to the predefined `:version` info flag.
+    Version,
+    /// Corresponds to any non predefined info flag.
+    Other(&'s str)
+}
+
+impl<'s> GetInfoKind<'s> {
+    pub fn from_str(flag: &'s str) -> Self {
+        match flag {
+            ":all-statistics" => GetInfoKind::AllStatistics,
+            ":assertion-stack-levels" => GetInfoKind::AssertionStackLevels,
+            ":authors" => GetInfoKind::Authors,
+            ":error-behaviour" => GetInfoKind::ErrorBehaviour,
+            ":name" => GetInfoKind::Name,
+            ":reason-unknown" => GetInfoKind::ReasonUnknown,
+            ":version" => GetInfoKind::Version,
+            s => GetInfoKind::Other(s)
+        }
+    }
+}
+
 /// View to a literal or constant specified in the SMTLib2 input language.
 ///
 /// # Note

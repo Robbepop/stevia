@@ -8,4 +8,5 @@ pub use self::repr::{
     NumeralLit,
     OptionAndValue,
     OutputChannel,
+    GetInfoKind,
 };

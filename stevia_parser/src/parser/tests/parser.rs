@@ -96,6 +96,7 @@ fn fixed_size() {
 mod get_info {
     use super::*;
     use lexer::TokenKind;
+    use parser::tests;
 
     #[test]
     fn no_params() {
@@ -114,20 +115,30 @@ mod get_info {
     }
 
     #[test]
-    fn known_params() {
+    fn known_flags() {
+        fn assert_get_info_for(info: &str, flag: tests::GetInfoKind) {
+            assert_parse_valid_smtlib2(
+                &format!("(get-info {})", info),
+                vec![ParseEvent::get_info(flag)],
+            );
+        }
+        assert_get_info_for(":all-statistics", tests::GetInfoKind::AllStatistics);
+        assert_get_info_for(":assertion-stack-levels", tests::GetInfoKind::AssertionStackLevels);
+        assert_get_info_for(":authors", tests::GetInfoKind::Authors);
+        assert_get_info_for(":error-behaviour", tests::GetInfoKind::ErrorBehaviour);
+        assert_get_info_for(":name", tests::GetInfoKind::Name);
+        assert_get_info_for(":reason-unknown", tests::GetInfoKind::ReasonUnknown);
+        assert_get_info_for(":version", tests::GetInfoKind::Version);
+    }
+
+    #[test]
+    fn custom_flag() {
         fn assert_get_info_for(info: &str) {
             assert_parse_valid_smtlib2(
                 &format!("(get-info {})", info),
-                vec![ParseEvent::get_info(info)],
+                vec![ParseEvent::get_info(tests::GetInfoKind::other(":my-custom-info-flag"))],
             );
         }
-        assert_get_info_for(":all-statistics");
-        assert_get_info_for(":assert-non-stack-levels");
-        assert_get_info_for(":authors");
-        assert_get_info_for(":error-behaviour");
-        assert_get_info_for(":name");
-        assert_get_info_for(":reason-unknown");
-        assert_get_info_for(":version");
         assert_get_info_for(":my-custom-info-flag");
     }
 }

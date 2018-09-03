@@ -17,11 +17,10 @@ use solver::{
     NumeralLit,
     OptionAndValue,
     OptionKind,
+    GetInfoKind,
     OutputChannel,
     ProblemCategory,
     ProblemStatus,
-    // ResponseError,
-    // ResponseErrorKind,
     ResponseResult,
     SMTLib2Solver,
 };
@@ -249,7 +248,7 @@ where
 
         let info_str = self.parser.input_str.span_to_str_unchecked(info_tok.span());
 
-        self.solver.get_info(info_str)?;
+        self.solver.get_info(GetInfoKind::from_str(info_str))?;
         Ok(())
     }
 
