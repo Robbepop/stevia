@@ -63,14 +63,14 @@ pub struct ResponseError {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct CommandResponseError {
     response: ResponseError,
-    invoked_cmd: Command
+    invoked_cmd: Command,
 }
 
 impl CommandResponseError {
     pub fn new(response: ResponseError, invoked_cmd: Command) -> Self {
-        Self{
-            response: response,
-            invoked_cmd: invoked_cmd
+        Self {
+            response,
+            invoked_cmd,
         }
     }
 }

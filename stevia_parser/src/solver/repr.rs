@@ -146,7 +146,7 @@ impl<'c> OptionKind<'c> {
     pub fn has_bool_param(self) -> bool {
         use self::OptionKind::*;
         match self {
-            | GlobalDeclarations
+            GlobalDeclarations
             | InteractiveMode
             | PrintSuccess
             | ProduceAssertions
@@ -221,7 +221,7 @@ pub enum GetInfoKind<'s> {
     /// Corresponds to the predefined `:version` info flag.
     Version,
     /// Corresponds to any non predefined info flag.
-    Other(&'s str)
+    Other(&'s str),
 }
 
 impl<'s> GetInfoKind<'s> {
@@ -234,7 +234,7 @@ impl<'s> GetInfoKind<'s> {
             ":name" => GetInfoKind::Name,
             ":reason-unknown" => GetInfoKind::ReasonUnknown,
             ":version" => GetInfoKind::Version,
-            s => GetInfoKind::Other(s)
+            s => GetInfoKind::Other(s),
         }
     }
 }

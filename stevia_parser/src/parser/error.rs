@@ -4,8 +4,8 @@ use lexer::{
 };
 use solver::{
     Command,
+    CommandResponseError,
     ResponseError,
-    CommandResponseError
 };
 
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;

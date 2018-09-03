@@ -1,9 +1,9 @@
 use parser::PropLitsIter;
 use solver::repr::{
+    GetInfoKind,
     InfoAndValue,
     OptionAndValue,
     OptionKind,
-    GetInfoKind,
 };
 use solver::{
     Command,
