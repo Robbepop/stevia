@@ -37,8 +37,8 @@ pub enum ExecutionMode {
 /// Represents the unsupported entity.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum UnsupportedEntity {
-    /// The command is unsupported.
-    Command(Command),
+    /// The invoked command is unsupported.
+    Command,
     /// The theory is unsupported.
     Theory(String),
     /// Something that is not further specified is unsupported.
@@ -51,7 +51,7 @@ pub enum ResponseErrorKind {
     /// Some entity is unsupported.
     Unsupported(UnsupportedEntity),
     /// A supported command was unexpected given the current execution mode of the solver.
-    UnexpectedCommand { cmd: Command, mode: ExecutionMode },
+    UnexpectedCommand { mode: ExecutionMode },
 }
 
 /// An error response from the SMT solver back to the parser.
@@ -106,9 +106,7 @@ impl ResponseError {
 
     /// Creates a new response error indicating that the given command is unsupported.
     pub fn unsupported_command(cmd: Command) -> Self {
-        Self::new(ResponseErrorKind::Unsupported(UnsupportedEntity::Command(
-            cmd,
-        )))
+        Self::new(ResponseErrorKind::Unsupported(UnsupportedEntity::Command))
     }
 
     /// Creates a new response error indicating that the given theory is unsupported.
@@ -124,8 +122,8 @@ impl ResponseError {
     /// Creates a new response error indicating that the given command was unexpected
     /// given the current execution mode of the solver. However, the given command is
     /// supported in general.
-    pub fn unexpected_command(cmd: Command, mode: ExecutionMode) -> Self {
-        Self::new(ResponseErrorKind::UnexpectedCommand { cmd, mode })
+    pub fn unexpected_command(mode: ExecutionMode) -> Self {
+        Self::new(ResponseErrorKind::UnexpectedCommand { mode })
     }
 }
 
@@ -137,14 +135,14 @@ impl std::fmt::Display for ResponseError {
                 use self::UnsupportedEntity::*;
                 match entity {
                     Theory(theory) => write!(f, "encountered unsupported theory: {:?}", theory),
-                    Command(command) => write!(f, "encountered unsupported command: {:?}", command),
+                    Command => write!(f, "invoked unsupported command"),
                     Other => write!(f, "encountered unsupported entity"),
                 }
             }
-            UnexpectedCommand { cmd, mode } => write!(
+            UnexpectedCommand { mode } => write!(
                 f,
-                "encountered unexpected command (= {:?}) in the current execution mode (= {:?})",
-                cmd, mode
+                "invoked command was unexpected in the current execution mode (= {:?})",
+                mode
             ),
         }
     }
