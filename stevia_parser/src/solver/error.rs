@@ -105,7 +105,7 @@ impl ResponseError {
     }
 
     /// Creates a new response error indicating that the given command is unsupported.
-    pub fn unsupported_command(cmd: Command) -> Self {
+    pub fn unsupported_command() -> Self {
         Self::new(ResponseErrorKind::Unsupported(UnsupportedEntity::Command))
     }
 

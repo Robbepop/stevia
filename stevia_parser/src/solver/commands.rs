@@ -63,105 +63,101 @@ pub trait SMTLib2Solver {
 
     /// Corresponds to the `check-sat` command.
     fn check_sat(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::CheckSat))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `check-sat-assuming` command.
     fn check_sat_assuming(&mut self, _prop_lits: PropLitsIter) -> ResponseResult {
-        Err(ResponseError::unsupported_command(
-            Command::CheckSatAssuming,
-        ))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `declare-sort` command.
     fn declare_sort(&mut self, _symbol: &str, _arity: usize) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::DeclareSort))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `echo` command.
     fn echo(&mut self, _content: &str) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::Echo))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `exit` command.
     fn exit(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::Exit))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-assertions` command.
     fn get_assertions(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetAssertions))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-assignment` command.
     fn get_assignment(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetAssignment))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-info` command.
     fn get_info(&mut self, _info: GetInfoKind) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetInfo))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-model` command.
     fn get_model(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetModel))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-option` command.
     fn get_option(&mut self, _option: OptionKind) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetOption))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-proof` command.
     fn get_proof(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetProof))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-unsat-assumptions` command.
     fn get_unsat_assumptions(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(
-            Command::GetUnsatAssumptions,
-        ))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `get-unsat-core` command.
     fn get_unsat_core(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::GetUnsatCore))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `pop` command.
     fn pop(&mut self, _levels: usize) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::Pop))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `push` command.
     fn push(&mut self, _levels: usize) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::Push))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `reset` command.
     fn reset(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::Reset))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `reset-assertions` command.
     fn reset_assertions(&mut self) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::ResetAssertions))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `set-logic` command.
     fn set_logic(&mut self, _symbol: &str) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::SetLogic))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `set-option` command.
     fn set_option(&mut self, _option: OptionAndValue) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::SetOption))
+        Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `set-info` command.
     fn set_info(&mut self, _info: InfoAndValue) -> ResponseResult {
-        Err(ResponseError::unsupported_command(Command::SetInfo))
+        Err(ResponseError::unsupported_command())
     }
 }
