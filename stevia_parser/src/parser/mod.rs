@@ -1,19 +1,19 @@
-mod error;
 mod core;
+mod error;
 
 #[cfg(test)]
 mod tests;
 
 pub use self::{
-    error::{
-        ParseError,
-        ParseErrorKind,
-        ParseResult,
-    },
     core::{
         parse_smtlib2,
         PropLit,
         PropLitsIter,
         Sign,
+    },
+    error::{
+        ParseError,
+        ParseErrorKind,
+        ParseResult,
     },
 };

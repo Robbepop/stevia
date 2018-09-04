@@ -116,7 +116,7 @@ pub enum GetInfoKind {
     /// Corresponds to the predefined `:version` info flag.
     Version,
     /// Corresponds to any non predefined info flag.
-    Other(String)
+    Other(String),
 }
 
 impl GetInfoKind {
@@ -571,12 +571,12 @@ enum ParseEventKind {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseEvent {
-    kind: ParseEventKind
+    kind: ParseEventKind,
 }
 
 impl ParseEvent {
     fn new(kind: ParseEventKind) -> Self {
-        ParseEvent{ kind }
+        ParseEvent { kind }
     }
 
     pub fn check_sat() -> Self {
@@ -650,30 +650,36 @@ impl ParseEvent {
 
     pub fn get_info<V>(flag: V) -> Self
     where
-        V: Into<GetInfoKind>
+        V: Into<GetInfoKind>,
     {
         ParseEvent::new(ParseEventKind::GetInfo { info: flag.into() })
     }
 
     pub fn get_option<V>(kind: V) -> Self
     where
-        V: Into<OptionKind>
+        V: Into<OptionKind>,
     {
-        ParseEvent::new(ParseEventKind::GetOption { option: kind.into() })
+        ParseEvent::new(ParseEventKind::GetOption {
+            option: kind.into(),
+        })
     }
 
     pub fn set_option<V>(option_and_value: V) -> Self
     where
-        V: Into<OptionAndValue>
+        V: Into<OptionAndValue>,
     {
-        ParseEvent::new(ParseEventKind::SetOption { option_and_value: option_and_value.into() })
+        ParseEvent::new(ParseEventKind::SetOption {
+            option_and_value: option_and_value.into(),
+        })
     }
 
     pub fn set_info<V>(info_and_value: V) -> Self
     where
-        V: Into<InfoAndValue>
+        V: Into<InfoAndValue>,
     {
-        ParseEvent::new(ParseEventKind::SetInfo { info_and_value: info_and_value.into() })
+        ParseEvent::new(ParseEventKind::SetInfo {
+            info_and_value: info_and_value.into(),
+        })
     }
 
     pub fn push(levels: usize) -> Self {

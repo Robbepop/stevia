@@ -123,7 +123,10 @@ mod get_info {
             );
         }
         assert_get_info_for(":all-statistics", tests::GetInfoKind::AllStatistics);
-        assert_get_info_for(":assertion-stack-levels", tests::GetInfoKind::AssertionStackLevels);
+        assert_get_info_for(
+            ":assertion-stack-levels",
+            tests::GetInfoKind::AssertionStackLevels,
+        );
         assert_get_info_for(":authors", tests::GetInfoKind::Authors);
         assert_get_info_for(":error-behaviour", tests::GetInfoKind::ErrorBehaviour);
         assert_get_info_for(":name", tests::GetInfoKind::Name);
@@ -136,7 +139,9 @@ mod get_info {
         fn assert_get_info_for(info: &str) {
             assert_parse_valid_smtlib2(
                 &format!("(get-info {})", info),
-                vec![ParseEvent::get_info(tests::GetInfoKind::other(":my-custom-info-flag"))],
+                vec![ParseEvent::get_info(tests::GetInfoKind::other(
+                    ":my-custom-info-flag",
+                ))],
             );
         }
         assert_get_info_for(":my-custom-info-flag");

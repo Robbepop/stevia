@@ -14,12 +14,12 @@ pub use self::{
     repr::{
         Command,
         DecimalLit,
+        GetInfoKind,
         InfoAndValue,
         Literal,
         NumeralLit,
         OptionAndValue,
         OptionKind,
-        GetInfoKind,
         OutputChannel,
         ProblemCategory,
         ProblemStatus,
