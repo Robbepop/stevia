@@ -16,7 +16,7 @@ use solver::Command;
 use std::collections::HashMap;
 
 pub fn scan_smtlib2(input: &str) -> TokenIter {
-    debug_assert!(input.len() >= 1); // TODO: convert to error.
+    debug_assert!(!input.is_empty()); // TODO: convert to error.
     TokenIter::new(raw_smtlib2_tokens(input))
 }
 

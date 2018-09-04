@@ -93,7 +93,7 @@ impl<'c> RawTokenIter<'c> {
         // println!("input_str.as_bytes().len() = {}", self.input_str.as_bytes().len());
         // println!("span.begin.to_usize() = {}", span.begin.to_usize());
         // println!("span.end.to_usize() = {}", span.end.to_usize());
-        debug_assert!(self.input_str.as_bytes().len() >= 1);
+        debug_assert!(!self.input_str.as_bytes().is_empty());
         debug_assert!(span.begin.to_usize() < self.input_str.as_bytes().len());
         debug_assert!(span.end.to_usize() < self.input_str.as_bytes().len());
         unsafe {
@@ -180,7 +180,7 @@ impl<'c> RawTokenIter<'c> {
 
         self.consume();
         match self.peek() {
-            None => return Err(self.unexpected_end_of_file("while scanning for a decimal number")),
+            None => Err(self.unexpected_end_of_file("while scanning for a decimal number")),
             Some(peek) => match peek {
                 c if c.is_digit(10) => {
                     while let Some(peek) = self.peek() {
@@ -189,7 +189,7 @@ impl<'c> RawTokenIter<'c> {
                         }
                         self.consume();
                     }
-                    return Ok(self.tok(RawTokenKind::Decimal));
+                    Ok(self.tok(RawTokenKind::Decimal))
                 }
                 c => Err(self.unexpected_char(c, "while scanning for a decimal number")),
             },
@@ -207,8 +207,7 @@ impl<'c> RawTokenIter<'c> {
                     '.' => self.scan_decimal(),
                     c if c.is_digit(10) => self.scan_numeral(),
                     c => {
-                        return Err(self
-                            .unexpected_char(c, "while scanning for numeral or decimal literal"))
+                        Err(self.unexpected_char(c, "while scanning for numeral or decimal literal"))
                     }
                 },
             },
@@ -222,7 +221,7 @@ impl<'c> RawTokenIter<'c> {
 
         self.consume();
         match self.peek() {
-            None => return Err(self.unexpected_end_of_file("while scanning for hexdec numeral")),
+            None => Err(self.unexpected_end_of_file("while scanning for hexdec numeral")),
             Some(peek) => match peek {
                 c if c.is_digit(16) => {
                     'inner: while let Some(peek) = self.peek() {
@@ -233,11 +232,11 @@ impl<'c> RawTokenIter<'c> {
                         if peek == '(' || peek == ')' || peek.is_whitespace() {
                             return Ok(self.tok(RawTokenKind::Numeral));
                         }
-                        return Err(self.unexpected_char(peek, "while scanning for hexdec numeral"));
+                        return Err(self.unexpected_char(peek, "while scanning for hexdec numeral"))
                     }
                     Ok(self.tok(RawTokenKind::Numeral))
                 }
-                c => return Err(self.unexpected_char(c, "while scanning for hexdec numeral")),
+                c => Err(self.unexpected_char(c, "while scanning for hexdec numeral")),
             },
         }
     }
@@ -248,7 +247,7 @@ impl<'c> RawTokenIter<'c> {
 
         self.consume();
         match self.peek() {
-            None => return Err(self.unexpected_end_of_file("while scanning for binary numeral")),
+            None => Err(self.unexpected_end_of_file("while scanning for binary numeral")),
             Some(peek) => match peek {
                 c if c.is_digit(2) => {
                     'inner: while let Some(peek) = self.peek() {
@@ -263,7 +262,7 @@ impl<'c> RawTokenIter<'c> {
                     }
                     Ok(self.tok(RawTokenKind::Numeral))
                 }
-                c => return Err(self.unexpected_char(c, "while scanning for binary numeral")),
+                c => Err(self.unexpected_char(c, "while scanning for binary numeral")),
             },
         }
     }
@@ -275,7 +274,7 @@ impl<'c> RawTokenIter<'c> {
         self.consume();
         match self.peek() {
             None => {
-                return Err(
+                Err(
                     self.unexpected_end_of_file("while scanning for binary or hexdec numeral")
                 )
             }
@@ -363,7 +362,7 @@ impl<'c> RawTokenIter<'c> {
                 return Ok(self.tok(RawTokenKind::QuotedSymbol));
             }
         }
-        return Err(self.unexpected_end_of_file("while scanning for quoted symbol"));
+        Err(self.unexpected_end_of_file("while scanning for quoted symbol"))
     }
 
     pub fn next_token(&mut self) -> LexerResult<RawToken> {

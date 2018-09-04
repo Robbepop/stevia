@@ -64,7 +64,7 @@ impl<'c> From<&'c str> for ParseContent<'c> {
 
 impl<'c> ParseContent<'c> {
     pub fn span_to_str(&self, span: Span) -> Option<&'c str> {
-        debug_assert!(self.content.as_bytes().len() >= 1);
+        debug_assert!(!self.content.as_bytes().is_empty());
 
         let content_bytes = self.content.as_bytes();
         let begin_offset = span.begin.to_usize();
@@ -79,7 +79,7 @@ impl<'c> ParseContent<'c> {
     }
 
     pub fn span_to_str_unchecked(&self, span: Span) -> &'c str {
-        debug_assert!(self.content.as_bytes().len() >= 1);
+        debug_assert!(!self.content.as_bytes().is_empty());
         debug_assert!(span.begin.to_usize() < self.content.as_bytes().len());
         debug_assert!(span.end.to_usize() < self.content.as_bytes().len());
         unsafe {

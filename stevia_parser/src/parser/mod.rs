@@ -1,5 +1,5 @@
 mod error;
-mod parser;
+mod core;
 
 #[cfg(test)]
 mod tests;
@@ -10,7 +10,7 @@ pub use self::{
         ParseErrorKind,
         ParseResult,
     },
-    parser::{
+    core::{
         parse_smtlib2,
         PropLit,
         PropLitsIter,

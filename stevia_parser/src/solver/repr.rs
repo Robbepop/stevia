@@ -372,7 +372,7 @@ impl Radix {
     ///
     /// This is useful since most standard library features that
     /// interact with radices are in fact operating on raw `u32` values.
-    pub fn to_u32(&self) -> u32 {
+    pub fn to_u32(self) -> u32 {
         match self {
             Radix::Binary => 2,
             Radix::Hexdec => 16,
@@ -405,7 +405,7 @@ impl<'c> NumeralLit<'c> {
         if repr.is_empty() {
             panic!("empty representations are invalid numeral literals") // TODO: replace with proper error
         }
-        let radix = if repr.starts_with("#") {
+        let radix = if repr.starts_with('#') {
             if repr.len() < 3 {
                 panic!("invalid length of numeral literal with radix annotation (e.g. #b1") // TODO: replace with proper error
             }

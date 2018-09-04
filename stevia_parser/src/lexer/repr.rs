@@ -44,6 +44,10 @@ impl Span {
     pub fn len(self) -> usize {
         ((self.end.to_usize() as isize) - (self.begin.to_usize() as isize) + 1) as usize
     }
+
+    pub fn is_empty(self) -> bool {
+        self.len() == 0
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
