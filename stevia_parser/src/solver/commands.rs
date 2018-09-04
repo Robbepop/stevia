@@ -6,7 +6,6 @@ use solver::repr::{
     OptionKind,
 };
 use solver::{
-    Command,
     ResponseError,
     ResponseResult,
 };

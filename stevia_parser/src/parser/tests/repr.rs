@@ -546,7 +546,7 @@ pub struct DeclareSortEvent {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ParseEvent {
+enum ParseEventKind {
     CheckSat,
     CheckSatAssuming(CheckSatAssumingEvent),
     DeclareSort(DeclareSortEvent),
@@ -569,7 +569,56 @@ pub enum ParseEvent {
     SetInfo { info_and_value: InfoAndValue },
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ParseEvent {
+    kind: ParseEventKind
+}
+
 impl ParseEvent {
+    fn new(kind: ParseEventKind) -> Self {
+        ParseEvent{ kind }
+    }
+
+    pub fn check_sat() -> Self {
+        ParseEvent::new(ParseEventKind::CheckSat)
+    }
+
+    pub fn exit() -> Self {
+        ParseEvent::new(ParseEventKind::Exit)
+    }
+
+    pub fn get_assertions() -> Self {
+        ParseEvent::new(ParseEventKind::GetAssertions)
+    }
+
+    pub fn get_assignment() -> Self {
+        ParseEvent::new(ParseEventKind::GetAssignment)
+    }
+
+    pub fn get_model() -> Self {
+        ParseEvent::new(ParseEventKind::GetModel)
+    }
+
+    pub fn get_proof() -> Self {
+        ParseEvent::new(ParseEventKind::GetProof)
+    }
+
+    pub fn get_unsat_assumptions() -> Self {
+        ParseEvent::new(ParseEventKind::GetUnsatAssumptions)
+    }
+
+    pub fn get_unsat_core() -> Self {
+        ParseEvent::new(ParseEventKind::GetUnsatCore)
+    }
+
+    pub fn reset() -> Self {
+        ParseEvent::new(ParseEventKind::Reset)
+    }
+
+    pub fn reset_assertions() -> Self {
+        ParseEvent::new(ParseEventKind::ResetAssertions)
+    }
+
     pub fn check_sat_assuming<L, P>(prop_lits: L) -> Self
     where
         L: IntoIterator<Item = P>,
@@ -584,62 +633,74 @@ impl ParseEvent {
     where
         S: Into<String>,
     {
-        ParseEvent::DeclareSort(DeclareSortEvent {
+        ParseEvent::new(ParseEventKind::DeclareSort(DeclareSortEvent {
             symbol_name: symbol_name.into(),
             arity,
-        })
+        }))
     }
 
     pub fn echo<S>(content: S) -> Self
     where
         S: Into<String>,
     {
-        ParseEvent::Echo {
+        ParseEvent::new(ParseEventKind::Echo {
             content: content.into(),
-        }
+        })
     }
 
-    pub fn get_info(flag: GetInfoKind) -> Self {
-        ParseEvent::GetInfo { info: flag }
+    pub fn get_info<V>(flag: V) -> Self
+    where
+        V: Into<GetInfoKind>
+    {
+        ParseEvent::new(ParseEventKind::GetInfo { info: flag.into() })
     }
 
-    pub fn get_option(kind: OptionKind) -> Self {
-        ParseEvent::GetOption { option: kind }
+    pub fn get_option<V>(kind: V) -> Self
+    where
+        V: Into<OptionKind>
+    {
+        ParseEvent::new(ParseEventKind::GetOption { option: kind.into() })
     }
 
-    pub fn set_option(option_and_value: OptionAndValue) -> Self {
-        ParseEvent::SetOption { option_and_value }
+    pub fn set_option<V>(option_and_value: V) -> Self
+    where
+        V: Into<OptionAndValue>
+    {
+        ParseEvent::new(ParseEventKind::SetOption { option_and_value: option_and_value.into() })
     }
 
-    pub fn set_info(info_and_value: InfoAndValue) -> Self {
-        ParseEvent::SetInfo { info_and_value }
+    pub fn set_info<V>(info_and_value: V) -> Self
+    where
+        V: Into<InfoAndValue>
+    {
+        ParseEvent::new(ParseEventKind::SetInfo { info_and_value: info_and_value.into() })
     }
 
     pub fn push(levels: usize) -> Self {
-        ParseEvent::Push { levels }
+        ParseEvent::new(ParseEventKind::Push { levels })
     }
 
     pub fn pop(levels: usize) -> Self {
-        ParseEvent::Pop { levels }
+        ParseEvent::new(ParseEventKind::Pop { levels })
     }
 
     pub fn set_logic<S>(id: S) -> Self
     where
         S: Into<String>,
     {
-        ParseEvent::SetLogic { id: id.into() }
+        ParseEvent::new(ParseEventKind::SetLogic { id: id.into() })
     }
 }
 
 impl From<CheckSatAssumingEvent> for ParseEvent {
     fn from(concrete: CheckSatAssumingEvent) -> Self {
-        ParseEvent::CheckSatAssuming(concrete)
+        ParseEvent::new(ParseEventKind::CheckSatAssuming(concrete))
     }
 }
 
 impl From<DeclareSortEvent> for ParseEvent {
     fn from(concrete: DeclareSortEvent) -> Self {
-        ParseEvent::DeclareSort(concrete)
+        ParseEvent::new(ParseEventKind::DeclareSort(concrete))
     }
 }
 
@@ -665,121 +726,102 @@ use solver::{
 
 impl SMTLib2Solver for DummySolver {
     fn check_sat(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::CheckSat);
+        self.events.push(ParseEvent::check_sat());
         Ok(())
     }
 
     fn check_sat_assuming(&mut self, prop_lits: PropLitsIter) -> ResponseResult {
-        self.events.push(
-            CheckSatAssumingEvent {
-                prop_lits: prop_lits.map(PropLit::from).collect(),
-            }.into(),
-        );
+        self.events.push(ParseEvent::check_sat_assuming(prop_lits));
         Ok(())
     }
 
     fn declare_sort(&mut self, symbol: &str, arity: usize) -> ResponseResult {
-        self.events.push(
-            DeclareSortEvent {
-                symbol_name: symbol.to_owned(),
-                arity,
-            }.into(),
-        );
+        self.events.push(ParseEvent::declare_sort(symbol, arity));
         Ok(())
     }
 
     fn echo(&mut self, content: &str) -> ResponseResult {
-        self.events.push(ParseEvent::Echo {
-            content: content.to_owned(),
-        });
+        self.events.push(ParseEvent::echo(content));
         Ok(())
     }
 
     fn exit(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::Exit);
+        self.events.push(ParseEvent::exit());
         Ok(())
     }
 
     fn get_assertions(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::GetAssertions);
+        self.events.push(ParseEvent::get_assertions());
         Ok(())
     }
 
     fn get_assignment(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::GetAssignment);
+        self.events.push(ParseEvent::get_assignment());
         Ok(())
     }
 
     fn get_info(&mut self, flag: solver::GetInfoKind) -> ResponseResult {
-        self.events.push(ParseEvent::GetInfo {
-            info: flag.into()
-        });
+        self.events.push(ParseEvent::get_info(flag));
         Ok(())
     }
 
     fn get_model(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::GetModel);
+        self.events.push(ParseEvent::get_model());
         Ok(())
     }
 
     fn get_option(&mut self, option: solver::OptionKind) -> ResponseResult {
-        self.events.push(ParseEvent::GetOption {
-            option: option.into(),
-        });
+        self.events.push(ParseEvent::get_option(option));
         Ok(())
     }
 
     fn get_proof(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::GetProof);
+        self.events.push(ParseEvent::get_proof());
         Ok(())
     }
 
     fn get_unsat_assumptions(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::GetUnsatAssumptions);
+        self.events.push(ParseEvent::get_unsat_assumptions());
         Ok(())
     }
 
     fn get_unsat_core(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::GetUnsatCore);
+        self.events.push(ParseEvent::get_unsat_core());
         Ok(())
     }
 
     fn pop(&mut self, levels: usize) -> ResponseResult {
-        self.events.push(ParseEvent::Pop { levels });
+        self.events.push(ParseEvent::pop(levels));
         Ok(())
     }
 
     fn push(&mut self, levels: usize) -> ResponseResult {
-        self.events.push(ParseEvent::Push { levels });
+        self.events.push(ParseEvent::push(levels));
         Ok(())
     }
 
     fn reset(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::Reset);
+        self.events.push(ParseEvent::reset());
         Ok(())
     }
 
     fn reset_assertions(&mut self) -> ResponseResult {
-        self.events.push(ParseEvent::ResetAssertions);
+        self.events.push(ParseEvent::reset_assertions());
         Ok(())
     }
 
     fn set_logic(&mut self, id: &str) -> ResponseResult {
-        self.events.push(ParseEvent::SetLogic { id: id.to_owned() });
+        self.events.push(ParseEvent::set_logic(id));
         Ok(())
     }
 
     fn set_option(&mut self, option_and_value: solver::OptionAndValue) -> ResponseResult {
-        self.events.push(ParseEvent::SetOption {
-            option_and_value: option_and_value.into(),
-        });
+        self.events.push(ParseEvent::set_option(option_and_value));
         Ok(())
     }
 
     fn set_info(&mut self, info_and_value: solver::InfoAndValue) -> ResponseResult {
-        self.events.push(ParseEvent::SetInfo {
-            info_and_value: info_and_value.into(),
-        });
+        self.events.push(ParseEvent::set_info(info_and_value));
         Ok(())
     }
 }

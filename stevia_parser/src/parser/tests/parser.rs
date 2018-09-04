@@ -28,19 +28,19 @@ mod paramless {
 
     #[test]
     fn all() {
-        assert_parse_valid_smtlib2("(check-sat)", vec![ParseEvent::CheckSat]);
-        assert_parse_valid_smtlib2("(exit)", vec![ParseEvent::Exit]);
-        assert_parse_valid_smtlib2("(get-assertions)", vec![ParseEvent::GetAssertions]);
-        assert_parse_valid_smtlib2("(get-assignment)", vec![ParseEvent::GetAssignment]);
-        assert_parse_valid_smtlib2("(get-model)", vec![ParseEvent::GetModel]);
-        assert_parse_valid_smtlib2("(get-proof)", vec![ParseEvent::GetProof]);
+        assert_parse_valid_smtlib2("(check-sat)", vec![ParseEvent::check_sat()]);
+        assert_parse_valid_smtlib2("(exit)", vec![ParseEvent::exit()]);
+        assert_parse_valid_smtlib2("(get-assertions)", vec![ParseEvent::get_assertions()]);
+        assert_parse_valid_smtlib2("(get-assignment)", vec![ParseEvent::get_assignment()]);
+        assert_parse_valid_smtlib2("(get-model)", vec![ParseEvent::get_model()]);
+        assert_parse_valid_smtlib2("(get-proof)", vec![ParseEvent::get_proof()]);
         assert_parse_valid_smtlib2(
             "(get-unsat-assumptions)",
-            vec![ParseEvent::GetUnsatAssumptions],
+            vec![ParseEvent::get_unsat_assumptions()],
         );
-        assert_parse_valid_smtlib2("(get-unsat-core)", vec![ParseEvent::GetUnsatCore]);
-        assert_parse_valid_smtlib2("(reset)", vec![ParseEvent::Reset]);
-        assert_parse_valid_smtlib2("(reset-assertions)", vec![ParseEvent::ResetAssertions]);
+        assert_parse_valid_smtlib2("(get-unsat-core)", vec![ParseEvent::get_unsat_core()]);
+        assert_parse_valid_smtlib2("(reset)", vec![ParseEvent::reset()]);
+        assert_parse_valid_smtlib2("(reset-assertions)", vec![ParseEvent::reset_assertions()]);
     }
 
     #[test]
@@ -59,16 +59,16 @@ mod paramless {
                 (reset-assertions)"
             ),
             vec![
-                ParseEvent::CheckSat,
-                ParseEvent::Exit,
-                ParseEvent::GetAssertions,
-                ParseEvent::GetAssignment,
-                ParseEvent::GetModel,
-                ParseEvent::GetProof,
-                ParseEvent::GetUnsatAssumptions,
-                ParseEvent::GetUnsatCore,
-                ParseEvent::Reset,
-                ParseEvent::ResetAssertions,
+                ParseEvent::check_sat(),
+                ParseEvent::exit(),
+                ParseEvent::get_assertions(),
+                ParseEvent::get_assignment(),
+                ParseEvent::get_model(),
+                ParseEvent::get_proof(),
+                ParseEvent::get_unsat_assumptions(),
+                ParseEvent::get_unsat_core(),
+                ParseEvent::reset(),
+                ParseEvent::reset_assertions(),
             ],
         );
     }
