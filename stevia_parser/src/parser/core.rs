@@ -369,7 +369,6 @@ where
 
     fn parse_expr(&mut self, builder: &mut B) -> ParseResult<()> {
         let peek_tok = self.parser.peek()?;
-        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
         match peek_tok.kind() {
             TokenKind::StringLiteral => self.parse_string_expr(builder),
             TokenKind::Numeral => self.parse_numeral_expr(builder),
@@ -616,13 +615,9 @@ where
     }
 
     fn parse_set_custom_option_command(&mut self, key: &'c str) -> ParseResult<()> {
-        let peek_tok = self.parser.peek()?;
-        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
         let value = self.build_expr().ok();
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-
-        let expr = self.build_expr()?;
 
         invoke_set_option(self.solver, OptionAndValue::Other{ key, value })?;
 
@@ -736,8 +731,6 @@ where
     fn parse_set_info_custom_command(&mut self, key: &'c str) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
-        let peek_tok = self.parser.peek()?;
-        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
         let value = self.build_expr().ok();
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 

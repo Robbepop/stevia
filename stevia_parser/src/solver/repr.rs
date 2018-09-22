@@ -1,8 +1,6 @@
 use either::Either;
 use std;
 
-use parser::Expr;
-
 /// Commands available in SMTLib2 conforming solvers.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Command {
