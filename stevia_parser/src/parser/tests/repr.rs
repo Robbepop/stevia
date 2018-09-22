@@ -416,8 +416,8 @@ impl OptionAndValue {
     }
 }
 
-impl<'c> From<solver::OptionAndValue<'c>> for OptionAndValue {
-    fn from(opt_and_val: solver::OptionAndValue<'c>) -> Self {
+impl<'c> From<solver::OptionAndValue<'c, Expr<'c>>> for OptionAndValue {
+    fn from(opt_and_val: solver::OptionAndValue<'c, Expr<'c>>) -> Self {
         use solver::OptionAndValue::*;
         match opt_and_val {
             DiagnosticOutputChannel(ch) => {
@@ -462,14 +462,11 @@ impl<'c> From<solver::OptionAndValue<'c>> for OptionAndValue {
             Verbosity(num_lit) => {
                 OptionAndValue::Verbosity(num_lit.into())
             },
-            SimpleCustom{key, value} => {
+            Other{key, value} => {
                 OptionAndValue::SimpleCustom{
                     key: key.to_owned(),
-                    value: value.map(Literal::from)
+                    value: unimplemented!() // value.map(Literal::from)
                 }
-            },
-            ComplexCustom{.. /*key*/} => {
-                unimplemented!()
             }
         }
     }
@@ -499,6 +496,10 @@ pub enum InfoAndValue {
         /// The key of the custom info flag.
         key: String,
     },
+    // Other {
+    //     key: String,
+    //     value: Option<Expr>
+    // }
 }
 
 impl InfoAndValue {
@@ -514,8 +515,8 @@ impl InfoAndValue {
     }
 }
 
-impl<'c> From<solver::InfoAndValue<'c>> for InfoAndValue {
-    fn from(info_and_val: solver::InfoAndValue<'c>) -> Self {
+impl<'c> From<solver::InfoAndValue<'c, Expr<'c>>> for InfoAndValue {
+    fn from(info_and_val: solver::InfoAndValue<'c, Expr>) -> Self {
         use solver::InfoAndValue::*;
         match info_and_val {
             SMTLibVersion(ch) => InfoAndValue::SMTLibVersion(ch.into()),
@@ -523,13 +524,10 @@ impl<'c> From<solver::InfoAndValue<'c>> for InfoAndValue {
             License(content) => InfoAndValue::License(content.to_owned()),
             Category(category) => InfoAndValue::Category(category.into()),
             Status(status) => InfoAndValue::Status(status.into()),
-            SimpleCustom { key, value } => InfoAndValue::SimpleCustom {
+            Other { key, value } => InfoAndValue::SimpleCustom {
                 key: key.to_owned(),
-                value: value.map(Literal::from),
-            },
-            ComplexCustom { key } => InfoAndValue::ComplexCustom {
-                key: key.to_owned(),
-            },
+                value: unimplemented!() // value.map(Literal::from),
+            }
         }
     }
 }
@@ -724,13 +722,18 @@ impl<'c> IntoIterator for DummySolver {
     }
 }
 
-use parser::PropLitsIter;
+use parser::{
+    PropLitsIter,
+    Expr
+};
 use solver::{
     ResponseResult,
     SMTLib2Solver,
 };
 
 impl SMTLib2Solver for DummySolver {
+    type Expr = Expr<'c>;
+
     fn check_sat(&mut self) -> ResponseResult {
         self.events.push(ParseEvent::check_sat());
         Ok(())
@@ -821,12 +824,12 @@ impl SMTLib2Solver for DummySolver {
         Ok(())
     }
 
-    fn set_option(&mut self, option_and_value: solver::OptionAndValue) -> ResponseResult {
+    fn set_option(&mut self, option_and_value: solver::OptionAndValue<Expr>) -> ResponseResult {
         self.events.push(ParseEvent::set_option(option_and_value));
         Ok(())
     }
 
-    fn set_info(&mut self, info_and_value: solver::InfoAndValue) -> ResponseResult {
+    fn set_info(&mut self, info_and_value: solver::InfoAndValue<Expr>) -> ResponseResult {
         self.events.push(ParseEvent::set_info(info_and_value));
         Ok(())
     }

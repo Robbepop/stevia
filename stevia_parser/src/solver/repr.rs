@@ -1,6 +1,8 @@
 use either::Either;
 use std;
 
+use parser::Expr;
+
 /// Commands available in SMTLib2 conforming solvers.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum Command {
@@ -239,6 +241,85 @@ impl<'s> GetInfoKind<'s> {
     }
 }
 
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Atom<'c> {
+    /// A literal.
+    /// 
+    /// # Note
+    /// 
+    /// For example a boolean, string or number literal.
+    Literal(Literal<'c>),
+    /// A symbol.
+    ///
+    /// # Note
+    ///
+    /// At this level of abstraction there is no distinction made
+    /// between simple and quoted symbols of the SMTLib2 format.
+    Symbol(Symbol<'c>),
+    /// A predefined symbol with special meaning starting with ':' (a.k.a. keyword).
+    Keyword(Keyword<'c>)
+}
+
+impl<'c> From<Symbol<'c>> for Atom<'c> {
+    fn from(symbol: Symbol<'c>) -> Self {
+        Atom::Symbol(symbol)
+    }
+}
+impl<'c> From<Literal<'c>> for Atom<'c> {
+    fn from(literal: Literal<'c>) -> Self {
+        Atom::Literal(literal)
+    }
+}
+impl<'c> From<Keyword<'c>> for Atom<'c> {
+    fn from(keyword: Keyword<'c>) -> Self {
+        Atom::Keyword(keyword)
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Symbol<'c> {
+    /// The identifier or name of this symbol.
+    content: &'c str
+}
+
+impl<'c> Symbol<'c> {
+    /// Constructs a new symbol from the given content `str`.
+    /// 
+    /// # Safety
+    /// 
+    /// This does not check integrity of the input `str`.
+    pub unsafe fn new_unchecked<S>(content: &'c str) -> Self {
+        Symbol{ content }
+    }
+
+    /// Returns the identifier or name of the associated symbol.
+    pub fn as_str(&self) -> &str {
+        self.content
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct Keyword<'c> {
+    /// The identifier or name of this keyword.
+    content: &'c str
+}
+
+impl<'c> Keyword<'c> {
+    /// Constructs a new keyword from the given content `str`.
+    /// 
+    /// # Safety
+    /// 
+    /// This does not check integrity of the input `str`.
+    pub unsafe fn new<S>(content: &'c str) -> Self {
+        Keyword{ content }
+    }
+
+    /// Returns the identifier or name of the associated keyword.
+    pub fn as_str(&self) -> &str {
+        self.content
+    }
+}
+
 /// View to a literal or constant specified in the SMTLib2 input language.
 ///
 /// # Note
@@ -260,15 +341,6 @@ pub enum Literal<'c> {
     Bool(bool),
     /// A string literal.
     String(&'c str),
-    /// A simple or quoted symbol.
-    ///
-    /// # Note
-    ///
-    /// At this level of abstraction there is no distinction made
-    /// between simply and quoted symbols of the SMTLib2 format.
-    Symbol(&'c str),
-    /// A keyword.
-    Keyword(&'c str),
     /// A numeral literal.
     ///
     /// # Note
@@ -295,26 +367,6 @@ impl<'c> Literal<'c> {
     /// of a valid SMTLib2 string literal.
     pub fn string(content: &'c str) -> Self {
         Literal::String(content)
-    }
-
-    /// Creates a new symbol for the given string slice.
-    ///
-    /// # Note
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 symbol.
-    pub fn symbol(name: &'c str) -> Self {
-        Literal::Symbol(name)
-    }
-
-    /// Creates a new keyword for the given string slice.
-    ///
-    /// # Note
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 keyword.
-    pub fn keyword(name: &'c str) -> Self {
-        Literal::Keyword(name)
     }
 
     /// Creates a new numeral literal for the given string slice.
@@ -507,8 +559,8 @@ pub enum OutputChannel<'c> {
 ///
 /// This covers all predefined options and their value types
 /// as well as custom commands with their parameters.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum OptionAndValue<'c> {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum OptionAndValue<'c, E> {
     /// Corresponds to the `:diagnostic-output-channel` and its given output channel.
     DiagnosticOutputChannel(OutputChannel<'c>),
     /// Corresponds to the `:global-declarations` and its boolean parameter.
@@ -537,17 +589,12 @@ pub enum OptionAndValue<'c> {
     ReproducibleResourceLimit(NumeralLit<'c>),
     /// Corresponds to the `:verbosity` and its numeral parameter.
     Verbosity(NumeralLit<'c>),
-    /// Corresponds to non predefined option that has exactly one single value.
-    SimpleCustom {
+    /// Corresponds to non predefined option that might have a value.
+    Other {
         /// The key of the simple custom command.
         key: &'c str,
         /// The optional value of the simple custom command.
-        value: Option<Literal<'c>>,
-    },
-    /// Corresponds to non predefined option that has a recursively defined value.
-    ComplexCustom {
-        /// The key of the complex custom command.
-        key: &'c str,
+        value: Option<E>,
     },
 }
 
@@ -584,8 +631,8 @@ pub enum ProblemStatus {
 ///
 /// There are some predefined info kinds and their associated value type
 /// as well as custom info kinds and their generic values.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum InfoAndValue<'c> {
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub enum InfoAndValue<'c, E> {
     /// Corresponds to the `:smt-lib-version` info flag and its decimal parameter.
     SMTLibVersion(DecimalLit<'c>),
     /// Corresponds to the `:source` info flag and its string or quoted symbol parameter.
@@ -596,16 +643,11 @@ pub enum InfoAndValue<'c> {
     Category(ProblemCategory),
     /// Corresponds to the `:status` info flag and its associated value.
     Status(ProblemStatus),
-    /// Corresponds to any non predefined info flag that has exactly one value.
-    SimpleCustom {
+    /// Corresponds to any non predefined info flag that might have a value.
+    Other {
         /// The key of the custom info flag.
         key: &'c str,
         /// The optional value of the custom info flag.
-        value: Option<Literal<'c>>,
-    },
-    /// Corresponds to any non predefined info flag that has a potentially complex value.
-    ComplexCustom {
-        /// The key of the custom info flag.
-        key: &'c str,
+        value: Option<E>,
     },
 }

@@ -21,6 +21,7 @@ use solver::{
 /// unsupported by the SMT solver. So SMT solver implementors should only
 /// implement the trait methods they actually support.
 pub trait SMTLib2Solver {
+    type Expr;
     // Variable-size commands:
     //
     // We still need a proper design for those commands.
@@ -151,12 +152,12 @@ pub trait SMTLib2Solver {
     }
 
     /// Corresponds to the `set-option` command.
-    fn set_option(&mut self, _option: OptionAndValue) -> ResponseResult {
+    fn set_option(&mut self, _option: OptionAndValue<Self::Expr>) -> ResponseResult {
         Err(ResponseError::unsupported_command())
     }
 
     /// Corresponds to the `set-info` command.
-    fn set_info(&mut self, _info: InfoAndValue) -> ResponseResult {
+    fn set_info(&mut self, _info: InfoAndValue<Self::Expr>) -> ResponseResult {
         Err(ResponseError::unsupported_command())
     }
 }

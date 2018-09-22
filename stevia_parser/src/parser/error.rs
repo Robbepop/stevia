@@ -7,6 +7,11 @@ use solver::{
     CommandResponseError,
     ResponseError,
 };
+use parser::{
+    NumeralError,
+    DecimalError,
+    BuildError,
+};
 
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 
@@ -18,6 +23,9 @@ pub enum ParseErrorKind {
         found: TokenKind,
         expected: Option<TokenKind>,
     },
+    NumeralError(NumeralError),
+    DecimalError(DecimalError),
+    BuildError(BuildError),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -29,6 +37,24 @@ pub struct ParseError {
 impl From<LexerError> for ParseError {
     fn from(lexer_error: LexerError) -> Self {
         Self::new(ParseErrorKind::LexerError(lexer_error))
+    }
+}
+
+impl From<NumeralError> for ParseError {
+    fn from(numeral_error: NumeralError) -> Self {
+        Self::new(ParseErrorKind::NumeralError(numeral_error))
+    }
+}
+
+impl From<DecimalError> for ParseError {
+    fn from(decimal_error: DecimalError) -> Self {
+        Self::new(ParseErrorKind::DecimalError(decimal_error))
+    }
+}
+
+impl From<BuildError> for ParseError {
+    fn from(build_error: BuildError) -> Self {
+        Self::new(ParseErrorKind::BuildError(build_error))
     }
 }
 

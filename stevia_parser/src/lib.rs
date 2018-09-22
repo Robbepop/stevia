@@ -20,7 +20,7 @@ pub use self::{
         TokenIter,
     },
     parser::{
-        parse_smtlib2,
+        parse_smtlib2_with_default_builder,
         ParseError,
         ParseErrorKind,
         ParseResult,

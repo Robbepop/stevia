@@ -8,6 +8,15 @@ use lexer::{
 use parser::{
     ParseError,
     ParseResult,
+    Numeral,
+    Decimal,
+    Literal,
+    Symbol,
+    Keyword,
+    Atom,
+    Expr,
+    ExprBuilder,
+    DefaultExprBuilder,
 };
 use solver::{
     Command,
@@ -15,7 +24,6 @@ use solver::{
     DecimalLit,
     GetInfoKind,
     InfoAndValue,
-    Literal,
     NumeralLit,
     OptionAndValue,
     OptionKind,
@@ -26,13 +34,16 @@ use solver::{
     SMTLib2Solver,
 };
 
-pub fn parse_smtlib2<S>(input: &str, solver: &mut S) -> ParseResult<()>
+use std::marker::PhantomData;
+
+pub fn parse_smtlib2_with_default_builder<'c, 's, S>(input: &'c str, solver: &'s mut S) -> ParseResult<()>
 where
-    S: SMTLib2Solver,
+    S: SMTLib2Solver<Expr = Expr<'c>>,
 {
-    ParserDriver {
+    ParserDriver::<'c, 's, S, DefaultExprBuilder> {
         parser: Parser::new(input),
         solver,
+        marker: PhantomData
     }.parse_script()
 }
 
@@ -43,12 +54,13 @@ pub struct Parser<'c> {
     peek: Option<Token>,
 }
 
-pub struct ParserDriver<'c, 's, S>
+pub struct ParserDriver<'c, 's, S, B>
 where
-    S: 's,
+    S: 's
 {
     parser: Parser<'c>,
     solver: &'s mut S,
+    marker: PhantomData<B>
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -181,7 +193,7 @@ impl<'c> Parser<'c> {
     }
 }
 
-impl<'c, 's, S> ParserDriver<'c, 's, S>
+impl<'c, 's, S, B> ParserDriver<'c, 's, S, B>
 where
     S: SMTLib2Solver + 's,
 {
@@ -298,6 +310,84 @@ where
     }
 }
 
+impl<'c, 's, S, B> ParserDriver<'c, 's, S, B>
+where
+    B: ExprBuilder<'c> + Default
+{
+    fn new_expr_builder() -> B {
+        B::default()
+    }
+
+    fn parse_string_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        let peek_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        self.parser.consume();
+        builder.atom(Atom::from(Literal::string(peek_str)))?;
+        Ok(())
+    }
+
+    fn parse_numeral_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        let peek_tok = self.parser.expect_tok_kind(TokenKind::Numeral)?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        self.parser.consume();
+        builder.atom(Atom::from(Literal::from(Numeral::from_str(peek_str).unwrap())))?;
+        Ok(())
+    }
+
+    fn parse_decimal_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        let peek_tok = self.parser.expect_tok_kind(TokenKind::Decimal)?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        self.parser.consume();
+        builder.atom(Atom::from(Literal::from(unsafe{ Decimal::from_str_unchecked(peek_str) })))?;
+        Ok(())
+    }
+
+    fn parse_symbol_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        let peek_tok = self.parser.expect_tok_kind(TokenKind::Symbol)?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        self.parser.consume();
+        builder.atom(Atom::from(unsafe{ Symbol::new_unchecked(peek_str) }))?;
+        Ok(())
+    }
+
+    fn parse_keyword_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        let peek_tok = self.parser.expect_tok_kind(TokenKind::Keyword)?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        self.parser.consume();
+        builder.atom(Atom::from(unsafe{ Keyword::new_unchecked(peek_str) }))?;
+        Ok(())
+    }
+
+    fn parse_s_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        self.parser.expect_tok_kind(TokenKind::OpenParen)?;
+        builder.open_sexpr()?;
+        while let Ok(_) = self.parse_expr(builder) {}
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
+        builder.close_sexpr()?;
+        Ok(())
+    }
+
+    fn parse_expr(&mut self, builder: &mut B) -> ParseResult<()> {
+        let peek_tok = self.parser.peek()?;
+        let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        match peek_tok.kind() {
+            TokenKind::StringLiteral => self.parse_string_expr(builder),
+            TokenKind::Numeral => self.parse_numeral_expr(builder),
+            TokenKind::Decimal => self.parse_decimal_expr(builder),
+            TokenKind::Symbol => self.parse_symbol_expr(builder),
+            TokenKind::Keyword => self.parse_keyword_expr(builder),
+            TokenKind::OpenParen => self.parse_s_expr(builder),
+            found_kind => Err(self.parser.unexpected_token_kind(found_kind, None))
+        }
+    }
+
+    fn build_expr(&mut self) -> ParseResult<B::Expr> {
+        let mut builder = Self::new_expr_builder();
+        self.parse_expr(&mut builder)?;
+        Ok(builder.finalize()?)
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum Sign {
     Pos,
@@ -374,7 +464,7 @@ impl<'c> Iterator for PropLitsIter<'c> {
     }
 }
 
-fn invoke_set_option<S>(solver: &mut S, option_data: OptionAndValue) -> CommandResponseResult
+fn invoke_set_option<S>(solver: &mut S, option_data: OptionAndValue<S::Expr>) -> CommandResponseResult
 where
     S: SMTLib2Solver,
 {
@@ -383,7 +473,7 @@ where
         .map_err(|err| err.invoked_by(Command::SetOption))
 }
 
-fn invoke_set_info<S>(solver: &mut S, info_data: InfoAndValue) -> CommandResponseResult
+fn invoke_set_info<S>(solver: &mut S, info_data: InfoAndValue<S::Expr>) -> CommandResponseResult
 where
     S: SMTLib2Solver,
 {
@@ -392,9 +482,11 @@ where
         .map_err(|err| err.invoked_by(Command::SetInfo))
 }
 
-impl<'c, 's, S> ParserDriver<'c, 's, S>
+impl<'c, 's, S, B> ParserDriver<'c, 's, S, B>
 where
     S: SMTLib2Solver + 's,
+    S::Expr: 'c,
+    B: ExprBuilder<'c, Expr = S::Expr> + Default,
 {
     fn parse_check_sat_assuming_command(&mut self) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
@@ -523,46 +615,16 @@ where
         Ok(())
     }
 
-    fn parse_set_complex_custom_option_command(&mut self, _key_str: &'c str) -> ParseResult<()> {
-        unimplemented!()
-    }
-
-    fn parse_set_custom_option_command(&mut self, key_str: &'c str) -> ParseResult<()> {
+    fn parse_set_custom_option_command(&mut self, key: &'c str) -> ParseResult<()> {
         let peek_tok = self.parser.peek()?;
         let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        let value = self.build_expr().ok();
 
-        if peek_tok.kind() == TokenKind::OpenParen {
-            return self.parse_set_complex_custom_option_command(key_str);
-        }
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        let value = match peek_tok.kind() {
-            TokenKind::CloseParen => None,
-            TokenKind::StringLiteral => Some(Literal::String(peek_str)),
-            TokenKind::Keyword => Some(Literal::Keyword(peek_str)),
-            TokenKind::Numeral => Some(Literal::Numeral(NumeralLit::from_str(peek_str))),
-            TokenKind::Decimal => Some(Literal::Decimal(unsafe {
-                DecimalLit::new_unchecked(peek_str)
-            })), // { repr: peek_str })),
-            TokenKind::Symbol => match peek_str {
-                "true" => Some(Literal::Bool(true)),
-                "false" => Some(Literal::Bool(false)),
-                _ => Some(Literal::Symbol(peek_str)),
-            },
-            _ => unimplemented!(), // unexpected token
-        };
+        let expr = self.build_expr()?;
 
-        self.parser.consume();
-        if value.is_some() {
-            self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        }
-
-        invoke_set_option(
-            self.solver,
-            OptionAndValue::SimpleCustom {
-                key: key_str,
-                value,
-            },
-        )?;
+        invoke_set_option(self.solver, OptionAndValue::Other{ key, value })?;
 
         Ok(())
     }
@@ -576,14 +638,13 @@ where
             .input_str
             .span_to_str_unchecked(option_tok.span());
 
-        use self::OptionKind::*;
         match option_str.into() {
             opt if opt.has_bool_param() => self.parse_set_option_bool_command(opt),
             opt if opt.has_output_channel_param() => {
                 self.parse_set_option_output_channel_command(opt)
             }
             opt if opt.has_numeral_param() => self.parse_set_option_numeral_command(opt),
-            Custom(key_str) => self.parse_set_custom_option_command(key_str),
+            OptionKind::Custom(key_str) => self.parse_set_custom_option_command(key_str),
             _ => unreachable!(),
         }
     }
@@ -672,42 +733,15 @@ where
         Ok(())
     }
 
-    fn parse_set_info_complex_custom_command(&mut self, _key: &'c str) -> ParseResult<()> {
-        unimplemented!()
-    }
-
     fn parse_set_info_custom_command(&mut self, key: &'c str) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
         let peek_tok = self.parser.peek()?;
         let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
+        let value = self.build_expr().ok();
+        self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
-        if let TokenKind::OpenParen = peek_tok.kind() {
-            return self.parse_set_info_complex_custom_command(key);
-        }
-
-        let value = match peek_tok.kind() {
-            TokenKind::CloseParen => None,
-            TokenKind::StringLiteral => Some(Literal::String(peek_str)),
-            TokenKind::Keyword => Some(Literal::Keyword(peek_str)),
-            TokenKind::Numeral => Some(Literal::Numeral(NumeralLit::from_str(peek_str))),
-            TokenKind::Decimal => Some(Literal::Decimal(unsafe {
-                DecimalLit::new_unchecked(peek_str)
-            })), //{ repr: peek_str })),
-            TokenKind::Symbol => match peek_str {
-                "true" => Some(Literal::Bool(true)),
-                "false" => Some(Literal::Bool(false)),
-                _ => Some(Literal::Symbol(peek_str)),
-            },
-            _ => unimplemented!(), // unexpected token
-        };
-
-        self.parser.consume();
-        if value.is_some() {
-            self.parser.expect_tok_kind(TokenKind::CloseParen)?;
-        }
-
-        invoke_set_info(self.solver, InfoAndValue::SimpleCustom { key, value })?;
+        invoke_set_info(self.solver, InfoAndValue::Other { key, value })?;
 
         Ok(())
     }
