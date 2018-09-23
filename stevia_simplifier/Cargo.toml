@@ -20,9 +20,9 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-
 name = "stevia_simplifier"
 
 [dependencies]
-apint = "0.1"
+apint = "0.2"
 itertools = "0.7"
-either = "1.4"
+either = "1.5"
 log = "0.4"
 stevia_ast = { version = "0.1.0", path = "../stevia_ast" }
 

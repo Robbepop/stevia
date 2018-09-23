@@ -22,7 +22,6 @@ name = "stevia_parser"
 [dependencies]
 indoc = "0.2"
 lazy_static = "1.0"
-string-interner = "0.6"
 either = "1.5"
 
 [badges]

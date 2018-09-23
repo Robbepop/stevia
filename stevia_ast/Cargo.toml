@@ -20,9 +20,9 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-
 name = "stevia_ast"
 
 [dependencies]
-apint = "0.1"
+apint = "0.2"
 smallvec = "0.6"
-string-interner = "0.6"
+string-interner = "0.7"
 vec_map = "0.8"
 log = "0.4"
 indoc = "0.2"

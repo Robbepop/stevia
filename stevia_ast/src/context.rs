@@ -182,6 +182,16 @@ pub struct SymbolInterner {
     access: Mutex<StringInterner<NamedSymbolId>>,
 }
 
+impl string_interner::Symbol for NamedSymbolId {
+    fn from_usize(val: usize) -> Self {
+        NamedSymbolId::from(val)
+    }
+
+    fn to_usize(self) -> usize {
+        usize::from(self)
+    }
+}
+
 unsafe impl Sync for SymbolInterner {}
 
 impl Default for SymbolInterner {
