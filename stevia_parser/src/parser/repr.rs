@@ -599,15 +599,30 @@ impl<'s> ExprBuilder<'s> for SExprBuilder<'s> {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum DefaultExprBuilder<'s> {
+enum DefaultExprBuilderState<'s> {
     Uninitialized,
     Atom(Atom<'s>),
     SExpr(SExprBuilder<'s>)
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+pub struct DefaultExprBuilder<'s> {
+    state: DefaultExprBuilderState<'s>
+}
+
+impl<'s> DefaultExprBuilder<'s> {
+    fn state_mut(&mut self) -> &mut DefaultExprBuilderState<'s> {
+        &mut self.state
+    }
+
+    fn into_state(self) -> DefaultExprBuilderState<'s> {
+        self.state
+    }
+}
+
 impl<'s> Default for DefaultExprBuilder<'s> {
     fn default() -> Self {
-        DefaultExprBuilder::Uninitialized
+        DefaultExprBuilder{ state: DefaultExprBuilderState::Uninitialized }
     }
 }
 
@@ -615,56 +630,58 @@ impl<'s> ExprBuilder<'s> for DefaultExprBuilder<'s> {
     type Expr = Expr<'s>;
 
     fn atom(&mut self, new_atom: Atom<'s>) -> BuildResult<()> {
-        match self {
-            DefaultExprBuilder::Uninitialized => {
-                *self = DefaultExprBuilder::Atom(new_atom);
+        let state = self.state_mut();
+        match state {
+            DefaultExprBuilderState::Uninitialized => {
+                *state = DefaultExprBuilderState::Atom(new_atom);
                 Ok(())
             }
-            DefaultExprBuilder::Atom(_) => {
+            DefaultExprBuilderState::Atom(_) => {
                 Err(BuildError::UnexpectedAtom)
             }
-            DefaultExprBuilder::SExpr(builder) => {
+            DefaultExprBuilderState::SExpr(builder) => {
                 builder.atom(new_atom)
             }
         }
     }
 
     fn open_sexpr(&mut self) -> BuildResult<()> {
-        match self {
-            DefaultExprBuilder::Uninitialized => {
-                *self = DefaultExprBuilder::SExpr(SExprBuilder::default());
+        let state = self.state_mut();
+        match state {
+            DefaultExprBuilderState::Uninitialized => {
+                *state = DefaultExprBuilderState::SExpr(SExprBuilder::default());
                 Ok(())
             }
-            DefaultExprBuilder::Atom(_) => {
+            DefaultExprBuilderState::Atom(_) => {
                 Err(BuildError::UnexpectedOpenSExpr)
             }
-            DefaultExprBuilder::SExpr(builder) => {
+            DefaultExprBuilderState::SExpr(builder) => {
                 builder.open_sexpr()
             }
         }
     }
 
     fn close_sexpr(&mut self) -> BuildResult<()> {
-        match self {
-            DefaultExprBuilder::Uninitialized |
-            DefaultExprBuilder::Atom(_) => {
+        match self.state_mut() {
+            DefaultExprBuilderState::Uninitialized |
+            DefaultExprBuilderState::Atom(_) => {
                 Err(BuildError::UnexpectedCloseSExpr)
             }
-            DefaultExprBuilder::SExpr(builder) => {
+            DefaultExprBuilderState::SExpr(builder) => {
                 builder.close_sexpr()
             }
         }
     }
 
     fn finalize(self) -> BuildResult<Self::Expr> {
-        match self {
-            DefaultExprBuilder::Uninitialized => {
+        match self.into_state() {
+            DefaultExprBuilderState::Uninitialized => {
                 Err(BuildError::UnexpectedFinalize)
             }
-            DefaultExprBuilder::Atom(atom) => {
+            DefaultExprBuilderState::Atom(atom) => {
                 Ok(Expr::Atom(atom))
             }
-            DefaultExprBuilder::SExpr(builder) => {
+            DefaultExprBuilderState::SExpr(builder) => {
                 builder.finalize().map(|s_expr| Expr::SExpr(s_expr))
             }
         }
