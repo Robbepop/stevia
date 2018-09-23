@@ -13,16 +13,12 @@ pub use self::{
     },
     repr::{
         Command,
-        DecimalLit,
         GetInfoKind,
         InfoAndValue,
-        Literal,
-        NumeralLit,
         OptionAndValue,
         OptionKind,
         OutputChannel,
         ProblemCategory,
         ProblemStatus,
-        Radix,
     },
 };

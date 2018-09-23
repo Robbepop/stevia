@@ -21,10 +21,10 @@ use parser::{
 use solver::{
     Command,
     CommandResponseResult,
-    DecimalLit,
+    // DecimalLit,
     GetInfoKind,
     InfoAndValue,
-    NumeralLit,
+    // NumeralLit,
     OptionAndValue,
     OptionKind,
     OutputChannel,
@@ -566,13 +566,8 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(outch_tok.span());
+        let outch_ch = OutputChannel::from_str(outch_str);
 
-        use std;
-        let outch_ch = match outch_str {
-            "stderr" => OutputChannel::Stderr,
-            "stdout" => OutputChannel::Stdout,
-            file => OutputChannel::File(std::path::Path::new(file)),
-        };
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         match opt {
@@ -597,7 +592,7 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(numeral_tok.span());
-        let numeral_lit = NumeralLit::from_str(numeral_str);
+        let numeral_lit = Numeral::from_str(numeral_str)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         use self::OptionKind::*;
@@ -652,7 +647,7 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(version_tok.span());
-        let version_lit = unsafe { DecimalLit::new_unchecked(version_str) }; // { repr: version_str };
+        let version_lit = unsafe { Decimal::from_str_unchecked(version_str) };
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         invoke_set_info(self.solver, InfoAndValue::SMTLibVersion(version_lit))?;
@@ -684,13 +679,7 @@ where
 
         let text_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
         let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
-
-        let category = match text_str {
-            "crafted" => ProblemCategory::Crafted,
-            "random" => ProblemCategory::Random,
-            "industrial" => ProblemCategory::Industrial,
-            _ => unimplemented!(), // error: unknown category kind
-        };
+        let category = ProblemCategory::from_str(text_str).unwrap(); // TODO: proper error handling
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         invoke_set_info(self.solver, InfoAndValue::Category(category))?;
@@ -714,13 +703,7 @@ where
         debug_assert!(self.parser.peek().is_ok());
 
         let sym_str = self.parser.expect_symbol_tok()?;
-
-        let status = match sym_str {
-            "sat" => ProblemStatus::Sat,
-            "unsat" => ProblemStatus::Unsat,
-            "unknown" => ProblemStatus::Unknown,
-            _ => unimplemented!(), // error: unknown status kind
-        };
+        let status = ProblemStatus::from_str(sym_str).unwrap(); // TODO: proper error handling
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
         invoke_set_info(self.solver, InfoAndValue::Status(status))?;

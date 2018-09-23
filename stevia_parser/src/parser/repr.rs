@@ -329,19 +329,18 @@ pub enum NumeralError {
 }
 
 impl std::fmt::Display for NumeralError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
         unimplemented!()
     }
 }
 
 impl std::error::Error for NumeralError {
     fn description(&self) -> &str {
-        use self::NumeralError::*;
         match self {
-            EmptyRepresentation => "encountered empty string representation for a numeral literal",
-            InvalidLength => "encountered invalid length of numeral literal with radix annotation",
-            UnknownRadixIdentifier => "encountered unknown radix identifier",
-            Invalid => "encountered invalid digit for the given radix",
+            NumeralError::EmptyRepresentation => "encountered empty string representation for a numeral literal",
+            NumeralError::InvalidLength => "encountered invalid length of numeral literal with radix annotation",
+            NumeralError::UnknownRadixIdentifier => "encountered unknown radix identifier",
+            NumeralError::InvalidDigit => "encountered invalid digit for the given radix",
         }
     }
 }
@@ -426,7 +425,7 @@ pub enum DecimalError {
 }
 
 impl std::fmt::Display for DecimalError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn fmt(&self, _f: &mut std::fmt::Formatter) -> std::fmt::Result {
         unimplemented!()
     }
 }
@@ -541,7 +540,7 @@ pub enum BuildError {
 pub type BuildResult<T> = ::std::result::Result<T, BuildError>;
 
 pub trait ExprBuilder<'s> {
-    type Expr: 's;
+    type Expr;
 
     /// Introduces the given atom for the current scope.
     fn atom(&mut self, atom: Atom<'s>) -> BuildResult<()>;

@@ -1,5 +1,9 @@
-use either::Either;
 use std;
+
+use parser::{
+    Numeral,
+    Decimal
+};
 
 /// Commands available in SMTLib2 conforming solvers.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -239,308 +243,6 @@ impl<'s> GetInfoKind<'s> {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Atom<'c> {
-    /// A literal.
-    /// 
-    /// # Note
-    /// 
-    /// For example a boolean, string or number literal.
-    Literal(Literal<'c>),
-    /// A symbol.
-    ///
-    /// # Note
-    ///
-    /// At this level of abstraction there is no distinction made
-    /// between simple and quoted symbols of the SMTLib2 format.
-    Symbol(Symbol<'c>),
-    /// A predefined symbol with special meaning starting with ':' (a.k.a. keyword).
-    Keyword(Keyword<'c>)
-}
-
-impl<'c> From<Symbol<'c>> for Atom<'c> {
-    fn from(symbol: Symbol<'c>) -> Self {
-        Atom::Symbol(symbol)
-    }
-}
-impl<'c> From<Literal<'c>> for Atom<'c> {
-    fn from(literal: Literal<'c>) -> Self {
-        Atom::Literal(literal)
-    }
-}
-impl<'c> From<Keyword<'c>> for Atom<'c> {
-    fn from(keyword: Keyword<'c>) -> Self {
-        Atom::Keyword(keyword)
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Symbol<'c> {
-    /// The identifier or name of this symbol.
-    content: &'c str
-}
-
-impl<'c> Symbol<'c> {
-    /// Constructs a new symbol from the given content `str`.
-    /// 
-    /// # Safety
-    /// 
-    /// This does not check integrity of the input `str`.
-    pub unsafe fn new_unchecked<S>(content: &'c str) -> Self {
-        Symbol{ content }
-    }
-
-    /// Returns the identifier or name of the associated symbol.
-    pub fn as_str(&self) -> &str {
-        self.content
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct Keyword<'c> {
-    /// The identifier or name of this keyword.
-    content: &'c str
-}
-
-impl<'c> Keyword<'c> {
-    /// Constructs a new keyword from the given content `str`.
-    /// 
-    /// # Safety
-    /// 
-    /// This does not check integrity of the input `str`.
-    pub unsafe fn new<S>(content: &'c str) -> Self {
-        Keyword{ content }
-    }
-
-    /// Returns the identifier or name of the associated keyword.
-    pub fn as_str(&self) -> &str {
-        self.content
-    }
-}
-
-/// View to a literal or constant specified in the SMTLib2 input language.
-///
-/// # Note
-///
-/// This is most often just a simple string sub slice into the given input
-/// that was previously parsed and found to be a literal match.
-///
-/// This could either represent
-///
-/// - a boolean: `true` or `false`
-/// - a string: `"Hello, World!"`
-/// - a symbol: `foo`
-/// - a keyword: `:bar`
-/// - a numeral: `42`
-/// - a decimal: `7.4`
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Literal<'c> {
-    /// A boolean literal.
-    Bool(bool),
-    /// A string literal.
-    String(&'c str),
-    /// A numeral literal.
-    ///
-    /// # Note
-    ///
-    /// The possible encodings for this are decimal, binary or hexadecimal.
-    /// Binary starts with `#b`, hexadecimal starts with `#x` and decimal
-    /// starts with any digit.
-    Numeral(NumeralLit<'c>),
-    /// A decimal literal.
-    Decimal(DecimalLit<'c>),
-}
-
-impl<'c> Literal<'c> {
-    /// Creates a new boolean literal from the given boolean value.
-    pub fn bool(val: bool) -> Self {
-        Literal::Bool(val)
-    }
-
-    /// Creates a new string literal for the given string slice.
-    ///
-    /// # Note
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 string literal.
-    pub fn string(content: &'c str) -> Self {
-        Literal::String(content)
-    }
-
-    /// Creates a new numeral literal for the given string slice.
-    ///
-    /// # Note
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 numeral literal.
-    pub fn numeral(repr: &'c str) -> Self {
-        Literal::Numeral(NumeralLit::from_str(repr))
-    }
-
-    /// Creates a new decimal literal for the given string slice.
-    ///
-    /// # Note
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 decimal literal.
-    pub fn decimal(repr: &'c str) -> Self {
-        Literal::Decimal(unsafe { DecimalLit::new_unchecked(repr) })
-    }
-}
-
-/// Represents a radix that describes in which number system an associated
-/// string represents a numeral value.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub enum Radix {
-    /// Binary number system.
-    ///
-    /// # Note
-    ///
-    /// In SMTLib2 binary decoded numerals always start with `#b` in
-    /// their string representation.
-    Binary,
-    /// Hexa-decimal number system.
-    ///
-    /// # Note
-    ///
-    /// In SMTLib2 hexa-decimal decoded numerals always start with `#x`
-    /// in their string representation.
-    Hexdec,
-    /// Decimal number system.
-    ///
-    /// # Note
-    ///
-    /// In SMTLib2 all numerals that have no special prefix are encoded
-    /// in the decimal number system.
-    Decimal,
-}
-
-impl Radix {
-    /// Converts the radix into a `u32` value.
-    ///
-    /// # Note
-    ///
-    /// This is useful since most standard library features that
-    /// interact with radices are in fact operating on raw `u32` values.
-    pub fn to_u32(self) -> u32 {
-        match self {
-            Radix::Binary => 2,
-            Radix::Hexdec => 16,
-            Radix::Decimal => 10,
-        }
-    }
-}
-
-/// Represents a numeral literal.
-///
-/// # Note
-///
-/// This is just a simple string sub slice into a part
-/// of the input string that has been found to be a valid
-/// numeral literal.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct NumeralLit<'c> {
-    /// The number representation as string.
-    repr: &'c str,
-    /// The radix at which the digits within `repr` are interpreted.
-    radix: Radix,
-}
-
-impl<'c> NumeralLit<'c> {
-    fn new(radix: Radix, repr: &'c str) -> Self {
-        NumeralLit { radix, repr }
-    }
-
-    pub(crate) fn from_str(repr: &'c str) -> Self {
-        if repr.is_empty() {
-            panic!("empty representations are invalid numeral literals") // TODO: replace with proper error
-        }
-        let radix = if repr.starts_with('#') {
-            if repr.len() < 3 {
-                panic!("invalid length of numeral literal with radix annotation (e.g. #b1") // TODO: replace with proper error
-            }
-            if repr.starts_with("#b") {
-                Radix::Binary
-            } else if repr.starts_with("#x") {
-                Radix::Hexdec
-            } else {
-                panic!("unknown radix identifier: {}", &repr[0..1]) // TODO: replace with proper error
-            }
-        } else {
-            Radix::Decimal
-        };
-        let offset = match radix {
-            Radix::Binary => "#b".len(),
-            Radix::Hexdec => "#x".len(),
-            Radix::Decimal => 0,
-        };
-        let raw_repr = &repr[offset..];
-        if raw_repr.chars().any(|c| !c.is_digit(radix.to_u32())) {
-            panic!("not all characters are valid digits for the given radix") // TODO: replace with proper error
-        }
-        NumeralLit::new(radix, raw_repr)
-    }
-
-    /// Returns either a `u128` representing the value of the numeral
-    /// literal or returns a pair of raw string representation and associated
-    /// radix for its encoding if the value cannot be represented
-    /// by a single `u128`.
-    pub fn value(&self) -> Either<u128, (&str, Radix)> {
-        use std::u128;
-        match u128::from_str_radix(self.repr, self.radix.to_u32()) {
-            Ok(val) => Either::Left(val),
-            Err(_) => Either::Right((self.repr, self.radix)),
-        }
-    }
-}
-
-/// Represents a decimal literal.
-///
-/// # Note
-///
-/// This is just a simple string sub slice into a part
-/// of the input string that has been found to be a valid
-/// decimal literal.
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
-pub struct DecimalLit<'c> {
-    repr: &'c str,
-}
-
-impl<'c> DecimalLit<'c> {
-    /// Creates a new decimal literal for the given string slice.
-    ///
-    /// # Safety
-    ///
-    /// This given string slice is not checked to match the properties
-    /// of a valid SMTLib2 decimal literal.
-    pub unsafe fn new_unchecked(repr: &'c str) -> Self {
-        Self { repr }
-    }
-
-    /// Returns the string representation of this decimal literal.
-    pub fn str_repr(self) -> &'c str {
-        self.repr
-    }
-
-    /// Returns a `f32` representation of this decimal literal.
-    ///
-    /// # Note
-    ///
-    /// This could lead to information loss during convertion.
-    pub fn to_f32(self) -> f32 {
-        self.repr.parse().unwrap()
-    }
-
-    /// Returns a `f32` representation of this decimal literal.
-    ///
-    /// # Note
-    ///
-    /// This could lead to information loss during convertion.
-    pub fn to_f64(self) -> f64 {
-        self.repr.parse().unwrap()
-    }
-}
-
 /// The output channel that is a parameter to the SMTLib2
 /// commands `:diagnostic-output-channel` and `:regular-output-channel`.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -551,6 +253,22 @@ pub enum OutputChannel<'c> {
     Stdout,
     /// Stream into the file at the given path.
     File(&'c std::path::Path),
+}
+
+impl<'c> OutputChannel<'c> {
+    /// Creates a new output channel from the given string identifier.
+    /// 
+    /// # Note
+    /// 
+    /// This fallbacks into a file output channel.
+    pub fn from_str(s: &str) -> OutputChannel {
+        use std::path::Path;
+        match s {
+            "stderr" => OutputChannel::Stderr,
+            "stdout" => OutputChannel::Stdout,
+            file => OutputChannel::File(Path::new(file))
+        }
+    }
 }
 
 /// An option key and its associated value.
@@ -580,13 +298,13 @@ pub enum OptionAndValue<'c, E> {
     /// Corresponds to the `:produce-unsat-cores` and its boolean parameter.
     ProduceUnsatCores(bool),
     /// Corresponds to the `:random-seed` and its numeral parameter.
-    RandomSeed(NumeralLit<'c>),
+    RandomSeed(Numeral<'c>),
     /// Corresponds to the `:regular-output-channel` and its given output channel.
     RegularOutputChannel(OutputChannel<'c>),
     /// Corresponds to the `:reproducible-resource-limit` and its numeral parameter.
-    ReproducibleResourceLimit(NumeralLit<'c>),
+    ReproducibleResourceLimit(Numeral<'c>),
     /// Corresponds to the `:verbosity` and its numeral parameter.
-    Verbosity(NumeralLit<'c>),
+    Verbosity(Numeral<'c>),
     /// Corresponds to non predefined option that might have a value.
     Other {
         /// The key of the simple custom command.
@@ -613,6 +331,22 @@ pub enum ProblemCategory {
     Industrial,
 }
 
+impl ProblemCategory {
+    /// Creates a new problem category from the given string identifier.
+    /// 
+    /// # Errors
+    /// 
+    /// Results in an error upon an unknown input.
+    pub fn from_str(s: &str) -> Option<ProblemCategory> {
+        match s {
+            "crafted" => Some(ProblemCategory::Crafted),
+            "random" => Some(ProblemCategory::Random),
+            "industrial" => Some(ProblemCategory::Industrial),
+            _ => None
+        }
+    }
+}
+
 /// Represents the satisfiability of a corresponding SMTLib2 problem instance.
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum ProblemStatus {
@@ -624,6 +358,22 @@ pub enum ProblemStatus {
     Unknown,
 }
 
+impl ProblemStatus {
+    /// Creates a new problem status from the given string identifier.
+    /// 
+    /// # Errors
+    /// 
+    /// Results in an error upon an unknown input.
+    pub fn from_str(s: &str) -> Option<ProblemStatus> {
+        match s {
+            "sat" => Some(ProblemStatus::Sat),
+            "unsat" => Some(ProblemStatus::Unsat),
+            "unknown" => Some(ProblemStatus::Unknown),
+            _ => None
+        }
+    }
+}
+
 /// Represents an info and its respective value when invoking the `set-info`
 /// SMTLib2 command.
 ///
@@ -632,7 +382,7 @@ pub enum ProblemStatus {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub enum InfoAndValue<'c, E> {
     /// Corresponds to the `:smt-lib-version` info flag and its decimal parameter.
-    SMTLibVersion(DecimalLit<'c>),
+    SMTLibVersion(Decimal<'c>),
     /// Corresponds to the `:source` info flag and its string or quoted symbol parameter.
     Source(&'c str),
     /// Corresponds to the `:license` info flag and its string parameter.
