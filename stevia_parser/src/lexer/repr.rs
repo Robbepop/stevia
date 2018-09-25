@@ -97,7 +97,7 @@ pub enum TokenKind {
 
     Numeral,
     Decimal,
-    StringLiteral,
+    String,
 
     OpenParen,
     CloseParen,

@@ -226,7 +226,7 @@ where
     fn parse_echo_command(&mut self) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
-        let text = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let text = self.parser.expect_tok_kind(TokenKind::String)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         let text_str = self.parser.input_str.span_to_str_unchecked(text.span());
@@ -319,7 +319,7 @@ where
     }
 
     fn parse_string_expr(&mut self, builder: &mut B) -> ParseResult<()> {
-        let peek_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let peek_tok = self.parser.expect_tok_kind(TokenKind::String)?;
         let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
         self.parser.consume();
         builder.atom(Atom::from(Literal::string(peek_str)))?;
@@ -370,7 +370,7 @@ where
     fn parse_expr(&mut self, builder: &mut B) -> ParseResult<()> {
         let peek_tok = self.parser.peek()?;
         match peek_tok.kind() {
-            TokenKind::StringLiteral => self.parse_string_expr(builder),
+            TokenKind::String => self.parse_string_expr(builder),
             TokenKind::Numeral => self.parse_numeral_expr(builder),
             TokenKind::Decimal => self.parse_decimal_expr(builder),
             TokenKind::Symbol => self.parse_symbol_expr(builder),
@@ -561,7 +561,7 @@ where
     fn parse_set_option_output_channel_command(&mut self, opt: OptionKind) -> ParseResult<()> {
         debug_assert!(opt.has_output_channel_param());
 
-        let outch_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let outch_tok = self.parser.expect_tok_kind(TokenKind::String)?;
         let outch_str = self
             .parser
             .input_str
@@ -660,7 +660,7 @@ where
 
         let peek_tok = self.parser.peek()?;
         let peek_str = match peek_tok.kind() {
-            TokenKind::StringLiteral | TokenKind::Symbol => {
+            TokenKind::String | TokenKind::Symbol => {
                 self.parser.input_str.span_to_str_unchecked(peek_tok.span())
             }
             _ => unimplemented!(), // unexpected token
@@ -677,7 +677,7 @@ where
     fn parse_set_info_category_command(&mut self) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
-        let text_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let text_tok = self.parser.expect_tok_kind(TokenKind::String)?;
         let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
         let category = ProblemCategory::from_str(text_str).unwrap(); // TODO: proper error handling
 
@@ -690,7 +690,7 @@ where
     fn parse_set_info_license_command(&mut self) -> ParseResult<()> {
         debug_assert!(self.parser.peek().is_ok());
 
-        let text_tok = self.parser.expect_tok_kind(TokenKind::StringLiteral)?;
+        let text_tok = self.parser.expect_tok_kind(TokenKind::String)?;
         let text_str = self.parser.input_str.span_to_str_unchecked(text_tok.span());
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
