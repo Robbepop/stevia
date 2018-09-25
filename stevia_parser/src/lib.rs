@@ -25,7 +25,6 @@ pub use self::{
         ParseErrorKind,
         ParseResult,
         PropLitsIter,
-
         Expr,
         SExpr,
         Atom,
@@ -42,7 +41,6 @@ pub use self::{
         DecimalResult,
         ExprBuilder,
         DefaultExprBuilder,
-        SExprBuilder,
         BuildError,
     },
     solver::{

@@ -21,10 +21,8 @@ use parser::{
 use solver::{
     Command,
     CommandResponseResult,
-    // DecimalLit,
     GetInfoKind,
     InfoAndValue,
-    // NumeralLit,
     OptionAndValue,
     OptionKind,
     OutputChannel,
