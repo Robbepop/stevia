@@ -56,8 +56,6 @@ These features need to be stabilized before this crate can be used on the stable
 
 **Current State:** Rust version 1.26
 
-- [`#![feature(crate_in_paths)]`][unstable_crate_in_paths]
-
 - **Simplifier**
 
     - [`#![feature(box_patterns)]`][unstable_box_patterns]
@@ -118,6 +116,5 @@ additional terms or conditions.
 
 [unstable_box_patterns]: https://github.com/rust-lang/rust/issues/29641
 [unstable_nll]: https://github.com/rust-lang/rust/issues/43234
-[unstable_crate_in_paths]: https://github.com/rust-lang/rust/issues/44660
 [unstable_fn_traits]: https://github.com/rust-lang/rust/issues/29625
 [unstable_unboxed_closures]: https://github.com/rust-lang/rust/issues/29625
