@@ -104,9 +104,10 @@ where
     ///
     /// - If the given iterator has less than two elements.
     /// - If not all expressions yielded by the given iteration are of boolean type.
-    pub fn nary<I>(children: I) -> ExprResult<Self>
+    pub fn nary<I, E>(children: I) -> ExprResult<Self>
     where
-        I: IntoIterator<Item = AnyExpr>
+        I: IntoIterator<Item = E>,
+		E: Into<AnyExpr> + HasType
     {
         let children = children.into_iter().collect::<Vec<_>>();
         if children.len() < 2 {
@@ -139,11 +140,15 @@ where
     /// 
     /// This does not check the type integrity of the given child expressions
     /// and thus should be used with care.
-    pub unsafe fn nary_unchecked<I>(children: I) -> Self
+    pub unsafe fn nary_unchecked<I, E>(children: I) -> Self
     where
-        I: IntoIterator<Item = AnyExpr>
+        I: IntoIterator<Item = E>,
+		E: Into<AnyExpr> + HasType
     {
-        let children = children.into_iter().collect::<Vec<_>>();
+        let children = children
+			.into_iter()
+			.map(|e| e.into())
+			.collect::<Vec<_>>();
         debug_assert!(children.len() >= 2);
         debug_assert!(children.iter().all(|e| expect_type(Type::Bool, e).is_ok()));
         Self::from_raw_parts(children)
