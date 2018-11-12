@@ -70,6 +70,56 @@ pub enum Command {
     SetOption,
 }
 
+use std::str::FromStr;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct UnknownCommand;
+
+impl FromStr for Command {
+    type Err = UnknownCommand;
+
+    /// Returns the associated command for the given identifier string.
+    /// 
+    /// # Note
+    /// 
+    /// Returns an error if there is no such command.
+    fn from_str(input: &str) -> Result<Self, Self::Err> {
+        match input {
+            "assert" => Ok(Command::Assert),
+            "check-sat" => Ok(Command::CheckSat),
+            "check-sat-assuming" => Ok(Command::CheckSatAssuming),
+            "declare-const" => Ok(Command::DeclareConst),
+            "declare-datatype" => Ok(Command::DeclareDatatype),
+            "declare-datatypes" => Ok(Command::DeclareDatatypes),
+            "declare-fun" => Ok(Command::DeclareFun),
+            "declare-sort" => Ok(Command::DeclareSort),
+            "define-fun" => Ok(Command::DefineFun),
+            "define-fun-rec" => Ok(Command::DefineFunRec),
+            "define-funs-rec" => Ok(Command::DefineFunsRec),
+            "define-sort" => Ok(Command::DefineSort),
+            "echo" => Ok(Command::Echo),
+            "exit" => Ok(Command::Exit),
+            "get-assertions" => Ok(Command::GetAssertions),
+            "get-assignment" => Ok(Command::GetAssignment),
+            "get-info" => Ok(Command::GetInfo),
+            "get-model" => Ok(Command::GetModel),
+            "get-option" => Ok(Command::GetOption),
+            "get-proof" => Ok(Command::GetProof),
+            "get-unsat-assumptions" => Ok(Command::GetUnsatAssumptions),
+            "get-unsat-core" => Ok(Command::GetUnsatCore),
+            "get-value" => Ok(Command::GetValue),
+            "pop" => Ok(Command::Pop),
+            "push" => Ok(Command::Push),
+            "reset" => Ok(Command::Reset),
+            "reset-assertions" => Ok(Command::ResetAssertions),
+            "set-info" => Ok(Command::SetInfo),
+            "set-logic" => Ok(Command::SetLogic),
+            "set-option" => Ok(Command::SetOption),
+            _ => Err(UnknownCommand),
+        }
+    }
+}
+
 impl Command {
     /// Returns the associated SMTLib2 string representation of `self`.
     pub fn to_str(self) -> &'static str {
