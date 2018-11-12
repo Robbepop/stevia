@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "stevia_ast",
+	"stevia_ast/benches",
     "stevia_simplifier",
     "stevia_bitblaster",
     "stevia_parser"

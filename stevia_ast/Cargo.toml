@@ -13,6 +13,7 @@ repository = "https://github.com/robbepop/stevia"
 
 keywords   = ["smt", "solver", "formal methods"]
 categories = ["science"]
+exclude    = [ "benches/*" ]
 
 include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
 
