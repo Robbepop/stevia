@@ -2,7 +2,6 @@
 
 #![doc(html_root_url = "https://docs.rs/stevia_simplifier/0.1.0")]
 
-#![feature(crate_in_paths)]
 #![feature(box_patterns)]
 #![feature(nll)]
 
