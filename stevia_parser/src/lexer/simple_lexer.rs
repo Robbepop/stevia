@@ -155,7 +155,7 @@ impl<'c> TokenIter<'c> {
             RawTokenKind::CloseParen => TokenKind::CloseParen,
             RawTokenKind::Keyword => TokenKind::Keyword,
             RawTokenKind::SimpleSymbol => self.resolve_simple_symbol(raw_tok.span()),
-            RawTokenKind::StringLiteral => {
+            RawTokenKind::String => {
                 let simple_span = Span::new(
                     Loc::from(raw_tok.span().begin.to_u32() + 1),
                     Loc::from(raw_tok.span().end.to_u32() - 1),

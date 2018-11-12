@@ -289,13 +289,13 @@ impl<'c> RawTokenIter<'c> {
             self.consume();
             if peek == '"' {
                 match self.peek() {
-                    None => return Ok(self.tok(RawTokenKind::StringLiteral)),
+                    None => return Ok(self.tok(RawTokenKind::String)),
                     Some(peek) => match peek {
                         '"' => {
                             self.consume();
                             continue 'outer;
                         }
-                        _ => return Ok(self.tok(RawTokenKind::StringLiteral)),
+                        _ => return Ok(self.tok(RawTokenKind::String)),
                     },
                 }
             }
@@ -693,17 +693,17 @@ mod tests {
 
         #[test]
         fn empty() {
-            assert_input(r#""""#, vec![(RawTokenKind::StringLiteral, (0, 1))])
+            assert_input(r#""""#, vec![(RawTokenKind::String, (0, 1))])
         }
 
         #[test]
         fn single_char() {
-            assert_input(r#""a""#, vec![(RawTokenKind::StringLiteral, (0, 2))])
+            assert_input(r#""a""#, vec![(RawTokenKind::String, (0, 2))])
         }
 
         #[test]
         fn escaped_quote() {
-            assert_input(r#""""""#, vec![(RawTokenKind::StringLiteral, (0, 3))])
+            assert_input(r#""""""#, vec![(RawTokenKind::String, (0, 3))])
         }
 
         #[test]
@@ -713,7 +713,7 @@ mod tests {
                     "\"first
                  second\""
                 ),
-                vec![(RawTokenKind::StringLiteral, (0, 13))],
+                vec![(RawTokenKind::String, (0, 13))],
             )
         }
 
@@ -721,13 +721,13 @@ mod tests {
         fn seperating_whitespace() {
             assert_input(
                 "\"this is a string literal\"",
-                vec![(RawTokenKind::StringLiteral, (0, 25))],
+                vec![(RawTokenKind::String, (0, 25))],
             )
         }
 
         #[test]
         fn ignore_default_escapes() {
-            assert_input(r#""\n\r\t\\""#, vec![(RawTokenKind::StringLiteral, (0, 9))])
+            assert_input(r#""\n\r\t\\""#, vec![(RawTokenKind::String, (0, 9))])
         }
 
         #[test]

@@ -57,7 +57,7 @@ pub enum RawTokenKind {
 
     Numeral,
     Decimal,
-    StringLiteral,
+    String,
 
     OpenParen,
     CloseParen,
