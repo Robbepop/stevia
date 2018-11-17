@@ -7,6 +7,7 @@ use crate::prelude::*;
 /// All binary expressions should strive to use this utility to store their
 /// child expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
 pub struct BinExprChildren {
     pub lhs: AnyExpr,
     pub rhs: AnyExpr
@@ -37,13 +38,24 @@ impl BinExprChildren {
     pub fn into_children_pair(self) -> (AnyExpr, AnyExpr) {
         (self.lhs, self.rhs)
     }
+
+	pub fn as_children_slice(&self) -> &[AnyExpr] {
+		self.as_children_array()
+	}
+
+	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
+		unsafe {
+			std::mem::transmute::<&Self, &[AnyExpr; 2]>(self)
+		}
+	}
 }
 
 impl Children for BinExprChildren {
     /// Returns an immutable iterator over the two child expressions.
     #[inline]
     fn children(&self) -> ChildrenIter {
-        ChildrenIter::binary(&self.lhs, &self.rhs)
+        // ChildrenIter::binary(&self.lhs, &self.rhs)
+		ChildrenIter::nary(self.as_children_slice())
     }
 }
 
