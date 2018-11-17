@@ -214,7 +214,7 @@ impl SymbolInterner {
     }
 
     /// Returns the associated string representation for the given symbol name.
-    #[cfg_attr(feature = "cargo-clippy", allow(needless_lifetimes))]
+    #[cfg_attr(feature = "cargo-clippy", allow(clippy::needless_lifetimes))]
     pub fn resolve_symbol<'a>(&'a self, name: NamedSymbolId) -> Option<&'a str> {
         self.access
             .lock()
