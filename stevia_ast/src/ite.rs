@@ -26,6 +26,7 @@ pub struct IfThenElse{
 /// This also has the positive effect of storing all child
 /// expressions densely in the memory.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
 pub struct IfThenElseChildren {
     /// The condition of the parent `IfThenElse` expression.
     /// 
@@ -60,6 +61,16 @@ impl IfThenElseChildren {
     pub fn swap_then_else(&mut self) {
         ::std::mem::swap(&mut self.then_case, &mut self.else_case)
     }
+
+	pub fn as_children_slice(&self) -> &[AnyExpr] {
+		self.as_children_array()
+	}
+
+	pub fn as_children_array(&self) -> &[AnyExpr; 3] {
+		unsafe {
+			std::mem::transmute::<&Self, &[AnyExpr; 3]>(self)
+		}
+	}
 }
 
 impl IfThenElse {
@@ -126,7 +137,7 @@ impl IfThenElse {
 
 impl Children for IfThenElseChildren {
     fn children(&self) -> ChildrenIter {
-        ChildrenIter::ternary(&self.cond, &self.then_case, &self.else_case)
+		ChildrenIter::nary(self.as_children_slice())
     }
 }
 

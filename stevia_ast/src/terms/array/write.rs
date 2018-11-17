@@ -17,6 +17,7 @@ pub struct ArrayWrite {
 
 /// The child expressions of a `Read` expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
 pub struct ArrayWriteChildren {
     /// The array expression.
     ///
@@ -54,6 +55,16 @@ impl ArrayWriteChildren {
     pub fn new_boxed(array: AnyExpr, index: AnyExpr, value: AnyExpr) -> P<ArrayWriteChildren> {
         P::new(ArrayWriteChildren::new(array, index, value))
     }
+
+	pub fn as_children_slice(&self) -> &[AnyExpr] {
+		self.as_children_array()
+	}
+
+	pub fn as_children_array(&self) -> &[AnyExpr; 3] {
+		unsafe {
+			std::mem::transmute::<&Self, &[AnyExpr; 3]>(self)
+		}
+	}
 }
 
 impl ArrayWrite {
@@ -111,7 +122,7 @@ impl ArrayWrite {
 
 impl Children for ArrayWriteChildren {
     fn children(&self) -> ChildrenIter {
-        ChildrenIter::ternary(&self.array, &self.index, &self.value)
+		ChildrenIter::nary(self.as_children_slice())
     }
 }
 

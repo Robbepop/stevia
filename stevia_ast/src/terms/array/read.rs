@@ -19,6 +19,7 @@ pub struct ArrayRead {
 
 /// The child expressions of a `Read` expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[repr(C)]
 pub struct ArrayReadChildren {
     /// The array expression.
     ///
@@ -45,6 +46,16 @@ impl ArrayReadChildren {
     pub fn new_boxed(array: AnyExpr, index: AnyExpr) -> P<ArrayReadChildren> {
         P::new(ArrayReadChildren::new(array, index))
     }
+
+	pub fn as_children_slice(&self) -> &[AnyExpr] {
+		self.as_children_array()
+	}
+
+	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
+		unsafe {
+			std::mem::transmute::<&Self, &[AnyExpr; 2]>(self)
+		}
+	}
 }
 
 impl ArrayRead {
@@ -89,7 +100,8 @@ impl ArrayRead {
 
 impl Children for ArrayReadChildren {
     fn children(&self) -> ChildrenIter {
-        ChildrenIter::binary(&self.array, &self.index)
+        // ChildrenIter::binary(&self.array, &self.index)
+		ChildrenIter::nary(self.as_children_slice())
     }
 }
 
