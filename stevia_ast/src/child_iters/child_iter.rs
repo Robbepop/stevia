@@ -11,7 +11,8 @@ pub struct ChildrenIter<'p> {
 }
 
 impl<'p> ChildrenIter<'p> {
-	fn from_slice(children: &'p [AnyExpr]) -> Self {
+	/// Creates a children iterator for the given slice.
+	pub fn from_slice(children: &'p [AnyExpr]) -> Self {
 		ChildrenIter {
 			children: children.into_iter(),
 		}
@@ -27,11 +28,6 @@ impl<'p> ChildrenIter<'p> {
 		Self::from_slice(unsafe {
 			std::slice::from_raw_parts(fst as *const AnyExpr, 1)
 		})
-	}
-
-	/// Create an iterator that yields all children within the given slice.
-	pub fn nary(children: &'p [AnyExpr]) -> Self {
-		Self::from_slice(children)
 	}
 }
 

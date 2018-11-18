@@ -100,8 +100,7 @@ impl ArrayRead {
 
 impl Children for ArrayReadChildren {
     fn children(&self) -> ChildrenIter {
-        // ChildrenIter::binary(&self.array, &self.index)
-		ChildrenIter::nary(self.as_children_slice())
+		ChildrenIter::from_slice(self.as_children_slice())
     }
 }
 
