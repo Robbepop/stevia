@@ -137,7 +137,7 @@ impl IfThenElse {
 
 impl Children for IfThenElseChildren {
     fn children(&self) -> ChildrenIter {
-		ChildrenIter::nary(self.as_children_slice())
+		ChildrenIter::from_slice(self.as_children_slice())
     }
 }
 

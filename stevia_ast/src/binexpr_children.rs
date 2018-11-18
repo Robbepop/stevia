@@ -54,8 +54,7 @@ impl Children for BinExprChildren {
     /// Returns an immutable iterator over the two child expressions.
     #[inline]
     fn children(&self) -> ChildrenIter {
-        // ChildrenIter::binary(&self.lhs, &self.rhs)
-		ChildrenIter::nary(self.as_children_slice())
+		ChildrenIter::from_slice(self.as_children_slice())
     }
 }
 

@@ -122,7 +122,7 @@ impl ArrayWrite {
 
 impl Children for ArrayWriteChildren {
     fn children(&self) -> ChildrenIter {
-		ChildrenIter::nary(self.as_children_slice())
+		ChildrenIter::from_slice(self.as_children_slice())
     }
 }
 

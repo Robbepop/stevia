@@ -163,7 +163,7 @@ where
 
 impl<M> Children for NaryBoolExpr<M> {
     fn children(&self) -> ChildrenIter {
-        ChildrenIter::nary(&self.children)
+        ChildrenIter::from_slice(&self.children)
     }
 }
 
