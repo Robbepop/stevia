@@ -115,7 +115,7 @@ impl<M> Children for NaryTermExpr<M> {
 
 impl<M> ChildrenMut for NaryTermExpr<M> {
     fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::nary(&mut self.children)
+        ChildrenIterMut::from_slice(&mut self.children)
     }
 }
 

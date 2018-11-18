@@ -66,9 +66,19 @@ impl IfThenElseChildren {
 		self.as_children_array()
 	}
 
+	pub fn as_children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		self.as_children_array_mut()
+	}
+
 	pub fn as_children_array(&self) -> &[AnyExpr; 3] {
 		unsafe {
 			std::mem::transmute::<&Self, &[AnyExpr; 3]>(self)
+		}
+	}
+
+	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 3] {
+		unsafe {
+			std::mem::transmute::<&mut Self, &mut [AnyExpr; 3]>(self)
 		}
 	}
 }
@@ -143,7 +153,7 @@ impl Children for IfThenElseChildren {
 
 impl ChildrenMut for IfThenElseChildren {
     fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::ternary(&mut self.cond, &mut self.then_case, &mut self.else_case)
+		ChildrenIterMut::from_slice(self.as_children_slice_mut())
     }
 }
 

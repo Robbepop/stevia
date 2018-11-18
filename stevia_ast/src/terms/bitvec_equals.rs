@@ -121,7 +121,7 @@ impl Children for BitvecEquals {
 
 impl ChildrenMut for BitvecEquals {
     fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::nary(&mut self.children)
+        ChildrenIterMut::from_slice(&mut self.children)
     }
 }
 
