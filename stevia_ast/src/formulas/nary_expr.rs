@@ -169,7 +169,7 @@ impl<M> Children for NaryBoolExpr<M> {
 
 impl<M> ChildrenMut for NaryBoolExpr<M> {
     fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::nary(&mut self.children)
+        ChildrenIterMut::from_slice(&mut self.children)
     }
 }
 
