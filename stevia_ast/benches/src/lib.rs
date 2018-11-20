@@ -60,7 +60,7 @@ mod children {
 		let not_expr = stevia::expr::Not::new(stevia::expr::BoolConst::t()).unwrap();
 		bencher.iter(|| {
 			black_box(
-				for child in not_expr.children() {
+				for child in black_box(not_expr.children()) {
 					black_box(child);
 				}
 			)
@@ -174,7 +174,7 @@ mod into_children {
 		let not_expr = stevia::expr::Not::new(stevia::expr::BoolConst::t()).unwrap();
 		bencher.iter(|| {
 			black_box(
-				for child in not_expr.clone().into_children() {
+				for child in black_box(not_expr.clone().into_children()) {
 					black_box(child);
 				}
 			)
