@@ -55,17 +55,32 @@ impl Children for Not {
     fn children(&self) -> ChildrenIter {
         ChildrenIter::unary(&self.child)
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		unsafe {
+			std::slice::from_raw_parts(&*self.child as *const AnyExpr, 1)
+		}
+	}
 }
 
 impl ChildrenMut for Not {
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::unary(&mut self.child)
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		unsafe {
+			std::slice::from_raw_parts_mut(&mut *self.child as *mut AnyExpr, 1)
+		}
+	}
 }
 
 impl IntoChildren for Not {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::unary(*self.child)
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		let ptr = Box::leak(self.child) as *mut AnyExpr;
+		unsafe {
+			Vec::from_raw_parts(ptr, 1, 1)
+		}
     }
 }
 

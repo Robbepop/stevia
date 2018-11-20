@@ -165,17 +165,28 @@ impl<M> Children for NaryBoolExpr<M> {
     fn children(&self) -> ChildrenIter {
         ChildrenIter::from_slice(&self.children)
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		&self.children
+	}
 }
 
 impl<M> ChildrenMut for NaryBoolExpr<M> {
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::from_slice(&mut self.children)
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		&mut self.children
+	}
 }
 
-impl<M> IntoChildren for NaryBoolExpr<M> {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::nary(self.children)
+impl<M> IntoChildren for NaryBoolExpr<M>
+where
+	Self: Into<AnyExpr>
+{
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		self.children
     }
 }
 

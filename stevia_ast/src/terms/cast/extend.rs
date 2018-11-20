@@ -132,17 +132,35 @@ impl<M> Children for ExtendExpr<M> {
     fn children(&self) -> ChildrenIter {
         ChildrenIter::unary(&self.src)
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		unsafe {
+			std::slice::from_raw_parts(&*self.src as *const AnyExpr, 1)
+		}
+	}
 }
 
 impl<M> ChildrenMut for ExtendExpr<M> {
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::unary(&mut self.src)
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		unsafe {
+			std::slice::from_raw_parts_mut(&mut *self.src as *mut AnyExpr, 1)
+		}
+	}
 }
 
-impl<M> IntoChildren for ExtendExpr<M> {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::unary(*self.src)
+impl<M> IntoChildren for ExtendExpr<M>
+where
+	Self: Into<AnyExpr>
+{
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		let ptr = Box::leak(self.src) as *mut AnyExpr;
+		unsafe {
+			Vec::from_raw_parts(ptr, 1, 1)
+		}
     }
 }
 

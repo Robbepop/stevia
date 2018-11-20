@@ -43,17 +43,25 @@ impl Children for BoolConst {
     fn children(&self) -> ChildrenIter {
         ChildrenIter::none()
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		&[]
+	}
 }
 
 impl ChildrenMut for BoolConst {
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::none()
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		&mut []
+	}
 }
 
 impl IntoChildren for BoolConst {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::none()
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+        Vec::new()
     }
 }
 

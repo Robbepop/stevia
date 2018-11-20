@@ -66,6 +66,11 @@ impl Children for BinExprChildren {
     fn children(&self) -> ChildrenIter {
 		ChildrenIter::from_slice(self.as_children_slice())
     }
+
+	#[inline]
+	fn children_slice(&self) -> &[AnyExpr] {
+		self.as_children_slice()
+	}
 }
 
 impl ChildrenMut for BinExprChildren {
@@ -74,16 +79,11 @@ impl ChildrenMut for BinExprChildren {
     fn children_mut(&mut self) -> ChildrenIterMut {
 		ChildrenIterMut::from_slice(self.as_children_slice_mut())
     }
-}
 
-impl IntoChildren for BinExprChildren {
-    /// Consumes this `BinExprChildren` and returns an iterator over its two child expressions.
-    /// 
-    /// This may be used to transfer ownership of its child expressions.
-    #[inline]
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::binary(self.lhs, self.rhs)
-    }
+	#[inline]
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		self.as_children_slice_mut()
+	}
 }
 
 impl HasArity for BinExprChildren {

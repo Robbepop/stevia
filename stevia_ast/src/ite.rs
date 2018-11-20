@@ -149,18 +149,20 @@ impl Children for IfThenElseChildren {
     fn children(&self) -> ChildrenIter {
 		ChildrenIter::from_slice(self.as_children_slice())
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		self.as_children_slice()
+	}
 }
 
 impl ChildrenMut for IfThenElseChildren {
     fn children_mut(&mut self) -> ChildrenIterMut {
 		ChildrenIterMut::from_slice(self.as_children_slice_mut())
     }
-}
 
-impl IntoChildren for IfThenElseChildren {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::ternary(self.cond, self.then_case, self.else_case)
-    }
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		self.as_children_slice_mut()
+	}
 }
 
 impl HasType for IfThenElse {
@@ -191,16 +193,27 @@ impl Children for IfThenElse {
     fn children(&self) -> ChildrenIter {
         self.children.children()
     }
+
+    fn children_slice(&self) -> &[AnyExpr] {
+        self.children.children_slice()
+    }
 }
 
 impl ChildrenMut for IfThenElse {
     fn children_mut(&mut self) -> ChildrenIterMut {
         self.children.children_mut()
     }
+
+    fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+        self.children.children_slice_mut()
+    }
 }
 
 impl IntoChildren for IfThenElse {
-    fn into_children(self) -> IntoChildrenIter {
-        self.children.into_children()
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		let ptr = Box::leak(self.children) as *mut IfThenElseChildren as *mut AnyExpr;
+		unsafe {
+			Vec::from_raw_parts(ptr, 3, 3)
+		}
     }
 }

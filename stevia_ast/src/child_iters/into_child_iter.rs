@@ -1,66 +1,18 @@
-use crate::prelude::*;
+use crate::{AnyExpr, IntoChildren};
 
-use smallvec;
-
-use std::iter::FromIterator;
-
-/// Consuming iterator over child expressions.
-///
-/// Can transform ownership.
 pub struct IntoChildrenIter {
-	children: smallvec::IntoIter<[AnyExpr; 3]>,
+	iter: std::vec::IntoIter<AnyExpr>
 }
 
-impl FromIterator<AnyExpr> for IntoChildrenIter {
-	fn from_iter<T>(iter: T) -> IntoChildrenIter
+impl IntoChildrenIter {
+	#[inline]
+	pub fn from_expr<E>(expr: E) -> Self
 	where
-		T: IntoIterator<Item = AnyExpr>,
+		E: IntoChildren
 	{
-		IntoChildrenIter {
-			children: smallvec::SmallVec::from_iter(iter).into_iter(),
+		IntoChildrenIter{
+			iter: expr.into_children_vec().into_iter()
 		}
-	}
-}
-
-impl<'parent> IntoChildrenIter {
-	/// Create an empty iterator.
-	pub fn none() -> IntoChildrenIter {
-		IntoChildrenIter::from_iter(vec![])
-	}
-
-	/// Create an iterator that yields only `fst`.
-	pub fn unary(fst: AnyExpr) -> IntoChildrenIter {
-		let mut vec = smallvec::SmallVec::new();
-		vec.push(fst);
-		IntoChildrenIter {
-			children: vec.into_iter(),
-		}
-	}
-
-	/// Create an iterator that yields `fst` and `snd`.
-	pub fn binary(fst: AnyExpr, snd: AnyExpr) -> IntoChildrenIter {
-		let mut vec = smallvec::SmallVec::new();
-		vec.push(fst);
-		vec.push(snd);
-		IntoChildrenIter {
-			children: vec.into_iter(),
-		}
-	}
-
-	/// Create an iterator that yields `fst`, `snd` and `trd`.
-	pub fn ternary(fst: AnyExpr, snd: AnyExpr, trd: AnyExpr) -> IntoChildrenIter {
-		let mut vec = smallvec::SmallVec::new();
-		vec.push(fst);
-		vec.push(snd);
-		vec.push(trd);
-		IntoChildrenIter {
-			children: vec.into_iter(),
-		}
-	}
-
-	/// Create an iterator that yields all children within the given vector.
-	pub fn nary(children: Vec<AnyExpr>) -> IntoChildrenIter {
-		IntoChildrenIter::from_iter(children)
 	}
 }
 
@@ -68,23 +20,27 @@ impl Iterator for IntoChildrenIter {
 	type Item = AnyExpr;
 
 	fn next(&mut self) -> Option<Self::Item> {
-		self.children.next()
+		self.iter.next()
 	}
 
+	#[inline]
 	fn size_hint(&self) -> (usize, Option<usize>) {
-		self.children.size_hint()
+		self.iter.size_hint()
 	}
 }
 
 impl DoubleEndedIterator for IntoChildrenIter {
 	fn next_back(&mut self) -> Option<Self::Item> {
-		self.children.next_back()
+		self.iter.next_back()
 	}
 }
+
+impl ExactSizeIterator for IntoChildrenIter {}
 
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::{expr, IntoChildren, PlainExprTreeBuilder, BitvecTy};
 
 	#[test]
 	fn none() {

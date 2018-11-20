@@ -49,6 +49,8 @@ impl<'p> DoubleEndedIterator for ChildrenIter<'p> {
 	}
 }
 
+impl<'p> ExactSizeIterator for ChildrenIter<'p> {}
+
 #[cfg(test)]
 mod tests {
 	use super::*;

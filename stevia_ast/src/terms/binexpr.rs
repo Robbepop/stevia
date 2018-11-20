@@ -67,17 +67,31 @@ impl<M> Children for BinTermExpr<M> {
     fn children(&self) -> ChildrenIter {
         self.children.children()
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		self.children.children_slice()
+	}
 }
 
 impl<M> ChildrenMut for BinTermExpr<M> {
     fn children_mut(&mut self) -> ChildrenIterMut {
         self.children.children_mut()
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		self.children.children_slice_mut()
+	}
 }
 
-impl<M> IntoChildren for BinTermExpr<M> {
-    fn into_children(self) -> IntoChildrenIter {
-        self.children.into_children()
+impl<M> IntoChildren for BinTermExpr<M>
+where
+	Self: Into<AnyExpr>
+{
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		let ptr = Box::leak(self.children) as *mut BinExprChildren as *mut AnyExpr;
+		unsafe {
+			Vec::from_raw_parts(ptr, 2, 2)
+		}
     }
 }
 
