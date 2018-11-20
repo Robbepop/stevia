@@ -17,18 +17,6 @@ impl<'p> ChildrenIterMut<'p> {
 			children: children.into_iter(),
 		}
 	}
-
-	/// Create an empty iterator.
-	pub fn none() -> Self {
-		Self::from_slice(&mut [])
-	}
-
-	/// Create an iterator that yields only `fst`.
-	pub fn unary(fst: &'p mut AnyExpr) -> Self {
-		Self::from_slice(unsafe {
-			std::slice::from_raw_parts_mut(fst as *mut AnyExpr, 1)
-		})
-	}
 }
 
 impl<'p> Iterator for ChildrenIterMut<'p> {

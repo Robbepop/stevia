@@ -52,10 +52,6 @@ impl Extract {
 }
 
 impl Children for Extract {
-    fn children(&self) -> ChildrenIter {
-        ChildrenIter::unary(&self.src)
-    }
-
 	fn children_slice(&self) -> &[AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts(&*self.src as *const AnyExpr, 1)
@@ -64,10 +60,6 @@ impl Children for Extract {
 }
 
 impl ChildrenMut for Extract {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::unary(&mut self.src)
-    }
-
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts_mut(&mut *self.src as *mut AnyExpr, 1)

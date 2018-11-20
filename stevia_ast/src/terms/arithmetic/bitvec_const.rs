@@ -38,20 +38,12 @@ where
 }
 
 impl Children for BitvecConst {
-    fn children(&self) -> ChildrenIter {
-        ChildrenIter::none()
-    }
-
 	fn children_slice(&self) -> &[AnyExpr] {
 		&[]
 	}
 }
 
 impl ChildrenMut for BitvecConst {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::none()
-    }
-
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut []
 	}
