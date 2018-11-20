@@ -4,7 +4,10 @@ use crate::child_iters::{ChildrenIter, ChildrenIterMut, IntoChildrenIter};
 /// Types that implement this trait allow to traverse their children immutably.
 pub trait Children {
     /// Iterates over the child expressions of `self` immutably.
-    fn children(&self) -> ChildrenIter;
+	#[inline]
+    fn children(&self) -> ChildrenIter {
+		ChildrenIter::from_slice(self.children_slice())
+	}
 
 	fn children_slice(&self) -> &[AnyExpr];
 }
@@ -12,7 +15,10 @@ pub trait Children {
 /// Types that implement this trait allow to traverse their children mutably.
 pub trait ChildrenMut {
     /// Iterates over the child expressions of `self` mutably.
-    fn children_mut(&mut self) -> ChildrenIterMut;
+	#[inline]
+    fn children_mut(&mut self) -> ChildrenIterMut {
+		ChildrenIterMut::from_slice(self.children_slice_mut())
+	}
 
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr];
 }

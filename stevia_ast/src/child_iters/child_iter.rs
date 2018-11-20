@@ -17,18 +17,6 @@ impl<'p> ChildrenIter<'p> {
 			children: children.into_iter(),
 		}
 	}
-
-	/// Create an empty iterator.
-	pub fn none() -> Self {
-		Self::from_slice(&[])
-	}
-
-	/// Create an iterator that yields only `fst`.
-	pub fn unary(fst: &'p AnyExpr) -> Self {
-		Self::from_slice(unsafe {
-			std::slice::from_raw_parts(fst as *const AnyExpr, 1)
-		})
-	}
 }
 
 impl<'p> Iterator for ChildrenIter<'p> {
