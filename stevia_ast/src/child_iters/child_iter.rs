@@ -1,4 +1,4 @@
-use crate::prelude::*;
+use crate::AnyExpr;
 
 use std::slice;
 
@@ -42,6 +42,7 @@ impl<'p> ExactSizeIterator for ChildrenIter<'p> {}
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use crate::{expr, BitvecTy, PlainExprTreeBuilder, Children};
 
 	#[test]
 	fn none() {
