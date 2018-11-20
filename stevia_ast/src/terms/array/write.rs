@@ -134,18 +134,20 @@ impl Children for ArrayWriteChildren {
     fn children(&self) -> ChildrenIter {
 		ChildrenIter::from_slice(self.as_children_slice())
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		self.as_children_slice()
+	}
 }
 
 impl ChildrenMut for ArrayWriteChildren {
     fn children_mut(&mut self) -> ChildrenIterMut {
 		ChildrenIterMut::from_slice(self.as_children_slice_mut())
     }
-}
 
-impl IntoChildren for ArrayWriteChildren {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::ternary(self.array, self.index, self.value)
-    }
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		self.as_children_slice_mut()
+	}
 }
 
 impl HasType for ArrayWrite {
@@ -176,16 +178,27 @@ impl Children for ArrayWrite {
     fn children(&self) -> ChildrenIter {
         self.children.children()
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		self.children.children_slice()
+	}
 }
 
 impl ChildrenMut for ArrayWrite {
     fn children_mut(&mut self) -> ChildrenIterMut {
         self.children.children_mut()
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		self.children.children_slice_mut()
+	}
 }
 
 impl IntoChildren for ArrayWrite {
-    fn into_children(self) -> IntoChildrenIter {
-        self.children.into_children()
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		let ptr = Box::leak(self.children) as *mut ArrayWriteChildren as *mut AnyExpr;
+		unsafe {
+			Vec::from_raw_parts(ptr, 3, 3)
+		}
     }
 }

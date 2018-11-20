@@ -247,16 +247,24 @@ impl Children for Symbol {
     fn children(&self) -> ChildrenIter {
         ChildrenIter::none()
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		&[]
+	}
 }
 
 impl ChildrenMut for Symbol {
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::none()
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		&mut []
+	}
 }
 
 impl IntoChildren for Symbol {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::none()
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+		Vec::new()
     }
 }

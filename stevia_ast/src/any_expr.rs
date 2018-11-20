@@ -124,63 +124,68 @@ macro_rules! impl_expr_kinds {
 
         impl HasType for AnyExpr {
             fn ty(&self) -> Type {
-				use self::AnyExpr::*;
-				match *self {
-					$($names(ref expr) => expr.ty()),*
+				match self {
+					$(AnyExpr::$names(expr) => expr.ty()),*
                 }
             }
         }
 
         impl HasArity for AnyExpr {
             fn arity(&self) -> usize {
-				use self::AnyExpr::*;
-				match *self {
-					$($names(ref expr) => expr.arity()),*
+				match self {
+					$(AnyExpr::$names(expr) => expr.arity()),*
                 }
             }
         }
 
         impl HasKind for AnyExpr {
             fn kind(&self) -> ExprKind {
-				use self::AnyExpr::*;
-				match *self {
-					$($names(ref expr) => expr.kind()),*
+				match self {
+					$(AnyExpr::$names(expr) => expr.kind()),*
                 }
             }
         }
 
         impl Children for AnyExpr {
             fn children(&self) -> ChildrenIter {
-				use self::AnyExpr::*;
-				match *self {
-					$($names(ref expr) => expr.children()),*
+				match self {
+					$(AnyExpr::$names(expr) => expr.children()),*
                 }
             }
+
+			fn children_slice(&self) -> &[AnyExpr] {
+				match self {
+					$(AnyExpr::$names(expr) => expr.children_slice()),*
+				}
+			}
         }
 
         impl ChildrenMut for AnyExpr {
             fn children_mut(&mut self) -> ChildrenIterMut {
-				use self::AnyExpr::*;
-				match *self {
-					$($names(ref mut expr) => expr.children_mut()),*
+				match self {
+					$(AnyExpr::$names(expr) => expr.children_mut()),*
                 }
             }
+
+			fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+				match self {
+					$(AnyExpr::$names(expr) => expr.children_slice_mut()),*
+				}
+			}
         }
 
         impl IntoChildren for AnyExpr {
-            fn into_children(self) -> IntoChildrenIter {
-				use self::AnyExpr::*;
+            fn into_children_vec(self) -> Vec<AnyExpr> {
 				match self {
-					$($names(expr) => expr.into_children()),*
+					$(AnyExpr::$names(expr) => expr.into_children_vec()),*
                 }
             }
         }
 
         impl AssertConsistency for AnyExpr {
             fn assert_consistency(&self, ctx: &Context) -> ExprResult<()> {
-                use self::AnyExpr::*;
                 match self {
-                    $($names(expr) => expr.assert_consistency(ctx)),*
+                    $(AnyExpr::$names(expr) => expr.assert_consistency(ctx)),*
                 }
             }
         }

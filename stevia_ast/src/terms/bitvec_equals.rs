@@ -117,17 +117,25 @@ impl Children for BitvecEquals {
     fn children(&self) -> ChildrenIter {
         ChildrenIter::from_slice(&self.children)
     }
+
+	fn children_slice(&self) -> &[AnyExpr] {
+		&self.children
+	}
 }
 
 impl ChildrenMut for BitvecEquals {
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::from_slice(&mut self.children)
     }
+
+	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		&mut self.children
+	}
 }
 
 impl IntoChildren for BitvecEquals {
-    fn into_children(self) -> IntoChildrenIter {
-        IntoChildrenIter::nary(self.children)
+    fn into_children_vec(self) -> Vec<AnyExpr> {
+        self.children
     }
 }
 
