@@ -19,6 +19,7 @@ impl IntoChildrenIter {
 impl Iterator for IntoChildrenIter {
 	type Item = AnyExpr;
 
+	#[inline]
 	fn next(&mut self) -> Option<Self::Item> {
 		self.iter.next()
 	}
@@ -30,6 +31,7 @@ impl Iterator for IntoChildrenIter {
 }
 
 impl DoubleEndedIterator for IntoChildrenIter {
+	#[inline]
 	fn next_back(&mut self) -> Option<Self::Item> {
 		self.iter.next_back()
 	}

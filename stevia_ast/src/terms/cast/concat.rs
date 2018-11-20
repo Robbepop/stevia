@@ -52,20 +52,14 @@ impl Concat {
 }
 
 impl Children for Concat {
-    fn children(&self) -> ChildrenIter {
-        self.children.children()
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.children.children_slice()
 	}
 }
 
 impl ChildrenMut for Concat {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        self.children.children_mut()
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.children.children_slice_mut()
 	}
@@ -87,12 +81,14 @@ impl HasType for Concat {
 }
 
 impl HasKind for Concat {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::Concat
     }
 }
 
 impl HasArity for Concat {
+	#[inline]
     fn arity(&self) -> usize {
         2
     }

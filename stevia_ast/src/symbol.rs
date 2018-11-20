@@ -226,12 +226,14 @@ impl HasType for Symbol {
 }
 
 impl HasKind for Symbol {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::Symbol
     }
 }
 
 impl HasArity for Symbol {
+	#[inline]
     fn arity(&self) -> usize {
         0
     }
@@ -244,12 +246,14 @@ impl From<Symbol> for AnyExpr {
 }
 
 impl Children for Symbol {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		&[]
 	}
 }
 
 impl ChildrenMut for Symbol {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut []
 	}

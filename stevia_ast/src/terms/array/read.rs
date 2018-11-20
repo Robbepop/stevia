@@ -109,20 +109,14 @@ impl ArrayRead {
 }
 
 impl Children for ArrayReadChildren {
-    fn children(&self) -> ChildrenIter {
-		ChildrenIter::from_slice(self.as_children_slice())
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.as_children_slice()
 	}
 }
 
 impl ChildrenMut for ArrayReadChildren {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-		ChildrenIterMut::from_slice(self.as_children_slice_mut())
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_slice_mut()
 	}
@@ -135,12 +129,14 @@ impl HasType for ArrayRead {
 }
 
 impl HasKind for ArrayRead {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::ArrayRead
     }
 }
 
 impl HasArity for ArrayRead {
+	#[inline]
     fn arity(&self) -> usize {
         2
     }
@@ -153,20 +149,14 @@ impl From<ArrayRead> for AnyExpr {
 }
 
 impl Children for ArrayRead {
-    fn children(&self) -> ChildrenIter {
-        self.children.children()
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.children.children_slice()
 	}
 }
 
 impl ChildrenMut for ArrayRead {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        self.children.children_mut()
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.children.children_slice_mut()
 	}

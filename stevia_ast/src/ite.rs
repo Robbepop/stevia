@@ -146,20 +146,14 @@ impl IfThenElse {
 }
 
 impl Children for IfThenElseChildren {
-    fn children(&self) -> ChildrenIter {
-		ChildrenIter::from_slice(self.as_children_slice())
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.as_children_slice()
 	}
 }
 
 impl ChildrenMut for IfThenElseChildren {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-		ChildrenIterMut::from_slice(self.as_children_slice_mut())
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_slice_mut()
 	}
@@ -172,12 +166,14 @@ impl HasType for IfThenElse {
 }
 
 impl HasKind for IfThenElse {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::IfThenElse
     }
 }
 
 impl HasArity for IfThenElse {
+	#[inline]
     fn arity(&self) -> usize {
         3
     }
@@ -190,20 +186,14 @@ impl From<IfThenElse> for AnyExpr {
 }
 
 impl Children for IfThenElse {
-    fn children(&self) -> ChildrenIter {
-        self.children.children()
-    }
-
+	#[inline]
     fn children_slice(&self) -> &[AnyExpr] {
         self.children.children_slice()
     }
 }
 
 impl ChildrenMut for IfThenElse {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        self.children.children_mut()
-    }
-
+	#[inline]
     fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
         self.children.children_slice_mut()
     }

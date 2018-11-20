@@ -52,6 +52,7 @@ impl Not {
 impl BoolExpr for Not {}
 
 impl Children for Not {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts(&*self.child as *const AnyExpr, 1)
@@ -60,6 +61,7 @@ impl Children for Not {
 }
 
 impl ChildrenMut for Not {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts_mut(&mut *self.child as *mut AnyExpr, 1)

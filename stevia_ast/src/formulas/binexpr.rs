@@ -83,20 +83,24 @@ where
 }
 
 impl<M> Children for BinBoolExpr<M> {
+	#[inline]
     fn children(&self) -> ChildrenIter {
         self.children.children()
 	}
 
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.children.children_slice()
 	}
 }
 
 impl<M> ChildrenMut for BinBoolExpr<M> {
+	#[inline]
     fn children_mut(&mut self) -> ChildrenIterMut {
         self.children.children_mut()
     }
 
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.children.children_slice_mut()
 	}

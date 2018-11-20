@@ -52,6 +52,7 @@ impl Extract {
 }
 
 impl Children for Extract {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts(&*self.src as *const AnyExpr, 1)
@@ -60,6 +61,7 @@ impl Children for Extract {
 }
 
 impl ChildrenMut for Extract {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts_mut(&mut *self.src as *mut AnyExpr, 1)
@@ -83,12 +85,14 @@ impl HasType for Extract {
 }
 
 impl HasKind for Extract {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::Extract
     }
 }
 
 impl HasArity for Extract {
+	#[inline]
     fn arity(&self) -> usize {
         1
     }

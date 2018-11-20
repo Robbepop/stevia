@@ -27,6 +27,7 @@ impl BinExprChildren {
     }
 
     /// Swaps its left-hand side child with the right-hand side child.
+	#[inline]
     pub fn swap_children(&mut self) {
         use std::mem;
         mem::swap(&mut self.lhs, &mut self.rhs)
@@ -35,24 +36,29 @@ impl BinExprChildren {
     /// Returns a pair of both child expressions.
     /// 
     /// Note: Consumes `self`.
+	#[inline]
     pub fn into_children_pair(self) -> (AnyExpr, AnyExpr) {
         (self.lhs, self.rhs)
     }
 
+	#[inline]
 	pub fn as_children_slice(&self) -> &[AnyExpr] {
 		self.as_children_array()
 	}
 
+	#[inline]
 	pub fn as_children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_array_mut()
 	}
 
+	#[inline]
 	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
 		unsafe {
 			std::mem::transmute::<&Self, &[AnyExpr; 2]>(self)
 		}
 	}
 
+	#[inline]
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 2] {
 		unsafe {
 			std::mem::transmute::<&mut Self, &mut [AnyExpr; 2]>(self)
@@ -61,12 +67,6 @@ impl BinExprChildren {
 }
 
 impl Children for BinExprChildren {
-    /// Returns an immutable iterator over the two child expressions.
-    #[inline]
-    fn children(&self) -> ChildrenIter {
-		ChildrenIter::from_slice(self.as_children_slice())
-    }
-
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.as_children_slice()
@@ -74,12 +74,6 @@ impl Children for BinExprChildren {
 }
 
 impl ChildrenMut for BinExprChildren {
-    /// Returns an mutable iterator over the two child expressions.
-    #[inline]
-    fn children_mut(&mut self) -> ChildrenIterMut {
-		ChildrenIterMut::from_slice(self.as_children_slice_mut())
-    }
-
 	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_slice_mut()

@@ -129,6 +129,7 @@ impl SignExtend {
 }
 
 impl<M> Children for ExtendExpr<M> {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts(&*self.src as *const AnyExpr, 1)
@@ -137,6 +138,7 @@ impl<M> Children for ExtendExpr<M> {
 }
 
 impl<M> ChildrenMut for ExtendExpr<M> {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts_mut(&mut *self.src as *mut AnyExpr, 1)
@@ -166,12 +168,14 @@ impl<M> HasKind for ExtendExpr<M>
 where
     M: ExprMarker,
 {
+	#[inline]
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND
     }
 }
 
 impl<M> HasArity for ExtendExpr<M> {
+	#[inline]
     fn arity(&self) -> usize {
         1
     }

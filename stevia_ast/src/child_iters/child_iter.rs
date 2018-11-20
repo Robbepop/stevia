@@ -12,6 +12,7 @@ pub struct ChildrenIter<'p> {
 
 impl<'p> ChildrenIter<'p> {
 	/// Creates a children iterator for the given slice.
+	#[inline]
 	pub fn from_slice(children: &'p [AnyExpr]) -> Self {
 		ChildrenIter {
 			children: children.into_iter(),
@@ -22,16 +23,19 @@ impl<'p> ChildrenIter<'p> {
 impl<'p> Iterator for ChildrenIter<'p> {
 	type Item = &'p AnyExpr;
 
+	#[inline]
 	fn next(&mut self) -> Option<Self::Item> {
 		self.children.next()
 	}
 
+	#[inline]
 	fn size_hint(&self) -> (usize, Option<usize>) {
 		self.children.size_hint()
 	}
 }
 
 impl<'p> DoubleEndedIterator for ChildrenIter<'p> {
+	#[inline]
 	fn next_back(&mut self) -> Option<Self::Item> {
 		self.children.next_back()
 	}

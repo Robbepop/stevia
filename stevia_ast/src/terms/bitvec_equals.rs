@@ -90,6 +90,7 @@ impl BitvecEquals {
 }
 
 impl HasType for BitvecEquals {
+	#[inline]
     fn ty(&self) -> Type {
         Type::Bool
     }
@@ -114,20 +115,14 @@ impl From<BitvecEquals> for AnyExpr {
 }
 
 impl Children for BitvecEquals {
-    fn children(&self) -> ChildrenIter {
-        ChildrenIter::from_slice(&self.children)
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		&self.children
 	}
 }
 
 impl ChildrenMut for BitvecEquals {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::from_slice(&mut self.children)
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut self.children
 	}

@@ -27,6 +27,7 @@ pub trait ChildrenMut {
 /// into a consuming children iter.
 pub trait IntoChildren {
     /// Transforms `self` into a consuming children iter.
+	#[inline]
     fn into_children(self) -> IntoChildrenIter
 	where
 		Self: Sized
