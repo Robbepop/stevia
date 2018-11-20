@@ -42,6 +42,7 @@ impl Neg {
 }
 
 impl Children for Neg {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts(&*self.child as *const AnyExpr, 1)
@@ -50,6 +51,7 @@ impl Children for Neg {
 }
 
 impl ChildrenMut for Neg {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts_mut(&mut *self.child as *mut AnyExpr, 1)
@@ -73,12 +75,14 @@ impl HasType for Neg {
 }
 
 impl HasKind for Neg {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::Neg
     }
 }
 
 impl HasArity for Neg {
+	#[inline]
     fn arity(&self) -> usize {
         1
     }

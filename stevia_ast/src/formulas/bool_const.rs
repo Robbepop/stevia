@@ -40,12 +40,14 @@ impl BoolConst {
 impl BoolExpr for BoolConst {}
 
 impl Children for BoolConst {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		&[]
 	}
 }
 
 impl ChildrenMut for BoolConst {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut []
 	}
@@ -58,18 +60,21 @@ impl IntoChildren for BoolConst {
 }
 
 impl HasType for BoolConst {
+	#[inline]
     fn ty(&self) -> Type {
         Type::Bool
     }
 }
 
 impl HasKind for BoolConst {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::BoolConst
     }
 }
 
 impl HasArity for BoolConst {
+	#[inline]
     fn arity(&self) -> usize {
         0
     }

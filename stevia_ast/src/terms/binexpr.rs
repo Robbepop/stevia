@@ -64,20 +64,14 @@ where
 }
 
 impl<M> Children for BinTermExpr<M> {
-    fn children(&self) -> ChildrenIter {
-        self.children.children()
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.children.children_slice()
 	}
 }
 
 impl<M> ChildrenMut for BinTermExpr<M> {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        self.children.children_mut()
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.children.children_slice_mut()
 	}
@@ -105,12 +99,14 @@ impl<M> HasKind for BinTermExpr<M>
 where
     M: ExprMarker,
 {
+	#[inline]
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND
     }
 }
 
 impl<M> HasArity for BinTermExpr<M> {
+	#[inline]
     fn arity(&self) -> usize {
         2
     }

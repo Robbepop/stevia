@@ -38,12 +38,14 @@ where
 }
 
 impl Children for BitvecConst {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		&[]
 	}
 }
 
 impl ChildrenMut for BitvecConst {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut []
 	}
@@ -62,12 +64,14 @@ impl HasType for BitvecConst {
 }
 
 impl HasKind for BitvecConst {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::BitvecConst
     }
 }
 
 impl HasArity for BitvecConst {
+	#[inline]
     fn arity(&self) -> usize {
         0
     }

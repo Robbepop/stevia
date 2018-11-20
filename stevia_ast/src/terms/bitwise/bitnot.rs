@@ -41,6 +41,7 @@ impl BitNot {
 }
 
 impl Children for BitNot {
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts(&*self.child as *const AnyExpr, 1)
@@ -49,6 +50,7 @@ impl Children for BitNot {
 }
 
 impl ChildrenMut for BitNot {
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		unsafe {
 			std::slice::from_raw_parts_mut(&mut *self.child as *mut AnyExpr, 1)
@@ -72,12 +74,14 @@ impl HasType for BitNot {
 }
 
 impl HasKind for BitNot {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::BitNot
     }
 }
 
 impl HasArity for BitNot {
+	#[inline]
     fn arity(&self) -> usize {
         1
     }

@@ -131,20 +131,14 @@ impl ArrayWrite {
 }
 
 impl Children for ArrayWriteChildren {
-    fn children(&self) -> ChildrenIter {
-		ChildrenIter::from_slice(self.as_children_slice())
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.as_children_slice()
 	}
 }
 
 impl ChildrenMut for ArrayWriteChildren {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-		ChildrenIterMut::from_slice(self.as_children_slice_mut())
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_slice_mut()
 	}
@@ -157,12 +151,14 @@ impl HasType for ArrayWrite {
 }
 
 impl HasKind for ArrayWrite {
+	#[inline]
     fn kind(&self) -> ExprKind {
         ExprKind::ArrayWrite
     }
 }
 
 impl HasArity for ArrayWrite {
+	#[inline]
     fn arity(&self) -> usize {
         3
     }
@@ -175,20 +171,14 @@ impl From<ArrayWrite> for AnyExpr {
 }
 
 impl Children for ArrayWrite {
-    fn children(&self) -> ChildrenIter {
-        self.children.children()
-    }
-
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		self.children.children_slice()
 	}
 }
 
 impl ChildrenMut for ArrayWrite {
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        self.children.children_mut()
-    }
-
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.children.children_slice_mut()
 	}

@@ -162,20 +162,24 @@ where
 }
 
 impl<M> Children for NaryBoolExpr<M> {
+	#[inline]
     fn children(&self) -> ChildrenIter {
         ChildrenIter::from_slice(&self.children)
     }
 
+	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		&self.children
 	}
 }
 
 impl<M> ChildrenMut for NaryBoolExpr<M> {
+	#[inline]
     fn children_mut(&mut self) -> ChildrenIterMut {
         ChildrenIterMut::from_slice(&mut self.children)
     }
 
+	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut self.children
 	}
@@ -191,6 +195,7 @@ where
 }
 
 impl<M> HasType for NaryBoolExpr<M> {
+	#[inline]
     fn ty(&self) -> Type {
         Type::Bool
     }
@@ -200,12 +205,14 @@ impl<M> HasKind for NaryBoolExpr<M>
 where
     M: ExprMarker,
 {
+	#[inline]
     fn kind(&self) -> ExprKind {
         M::EXPR_KIND
     }
 }
 
 impl<M> HasArity for NaryBoolExpr<M> {
+	#[inline]
     fn arity(&self) -> usize {
         self.children.len()
     }
