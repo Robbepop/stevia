@@ -54,7 +54,38 @@ pub enum YieldEvent {
 /// Iterates over all expressions of an AST recursively.
 #[derive(Debug, Clone)]
 pub struct RecursiveChildrenIter<'it> {
-    path: Vec<AnyExprAndEvent<'it>>,
+	frames: Vec<Frame<'it>>,
+	next: Option<&'it AnyExpr>
+}
+
+#[derive(Debug, Clone)]
+struct Frame<'it> {
+	guard: &'it AnyExpr,
+	incoming: ChildrenIter<'it>
+}
+
+impl<'it> Frame<'it> {
+	#[inline]
+	pub fn new(expr: &'it AnyExpr) -> Self {
+		Frame {
+			guard: expr,
+			incoming: expr.children()
+		}
+	}
+
+	#[inline]
+	pub fn guard(self) -> &'it AnyExpr {
+		self.guard
+	}
+}
+
+impl<'it> Iterator for Frame<'it> {
+	type Item = &'it AnyExpr;
+
+	#[inline]
+	fn next(&mut self) -> Option<Self::Item> {
+		self.incoming.next()
+	}
 }
 
 /// Holds an `AnyExpr` and a `YieldEvent`.
@@ -70,6 +101,7 @@ pub struct AnyExprAndEvent<'it> {
 
 impl<'it> AnyExprAndEvent<'it> {
     /// Returns an `AnyExprAndEvent` for the given `AnyExpr` and an entering event.
+	#[inline]
     pub fn entering(expr: &AnyExpr) -> AnyExprAndEvent {
         AnyExprAndEvent {
             event: YieldEvent::Entering,
@@ -78,6 +110,7 @@ impl<'it> AnyExprAndEvent<'it> {
     }
 
     /// Returns an `AnyExprAndEvent` for the given `AnyExpr` and a leaving event.
+	#[inline]
     pub fn leaving(expr: &AnyExpr) -> AnyExprAndEvent {
         AnyExprAndEvent {
             event: YieldEvent::Leaving,
@@ -94,7 +127,8 @@ impl<'it> RecursiveChildrenIter<'it> {
     /// and once with a leaving event.
     pub fn new(expr: &AnyExpr) -> RecursiveChildrenIter {
         RecursiveChildrenIter {
-            path: vec![AnyExprAndEvent::entering(expr)],
+            frames: Vec::new(),
+			next: Some(expr)
         }
     }
 }
@@ -103,19 +137,20 @@ impl<'it> Iterator for RecursiveChildrenIter<'it> {
     type Item = AnyExprAndEvent<'it>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        match self.path.pop() {
-            None => None,
-            Some(item) => match item.event {
-                YieldEvent::Leaving => Some(item),
-                YieldEvent::Entering => {
-                    self.path.push(AnyExprAndEvent::leaving(item.expr));
-                    for child in item.expr.children().rev() {
-                        self.path.push(AnyExprAndEvent::entering(child));
-                    }
-                    Some(AnyExprAndEvent::entering(item.expr))
-                }
-            },
-        }
+		if let Some(next) = self.next {
+			let mut frame = Frame::new(next);
+			self.next = frame.next();
+			self.frames.push(frame);
+			return Some(AnyExprAndEvent::entering(next))
+		}
+		if let Some(frame) = self.frames.pop() {
+			let guard = frame.guard();
+			self.next = self.frames
+				.last_mut()
+				.and_then(|c| c.next());
+			return Some(AnyExprAndEvent::leaving(guard))
+		}
+		None
     }
 }
 
