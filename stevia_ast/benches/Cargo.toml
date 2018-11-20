@@ -19,5 +19,8 @@ include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-
 [lib]
 name = "stevia_ast_benches"
 
+[profile.bench]
+debug = true
+
 [dependencies]
 stevia_ast = { path = "../" }
