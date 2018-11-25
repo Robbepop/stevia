@@ -147,12 +147,6 @@ macro_rules! impl_expr_kinds {
         }
 
         impl Children for AnyExpr {
-            fn children(&self) -> ChildrenIter {
-				match self {
-					$(AnyExpr::$names(expr) => expr.children()),*
-                }
-            }
-
 			fn children_slice(&self) -> &[AnyExpr] {
 				match self {
 					$(AnyExpr::$names(expr) => expr.children_slice()),*
@@ -161,12 +155,6 @@ macro_rules! impl_expr_kinds {
         }
 
         impl ChildrenMut for AnyExpr {
-            fn children_mut(&mut self) -> ChildrenIterMut {
-				match self {
-					$(AnyExpr::$names(expr) => expr.children_mut()),*
-                }
-            }
-
 			fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 				match self {
 					$(AnyExpr::$names(expr) => expr.children_slice_mut()),*
