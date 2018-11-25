@@ -44,8 +44,9 @@ impl Neg {
 impl Children for Neg {
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
+		let ptr = &*self.child as *const AnyExpr;
 		unsafe {
-			std::slice::from_raw_parts(&*self.child as *const AnyExpr, 1)
+			std::slice::from_raw_parts(ptr, 1)
 		}
 	}
 }
@@ -53,15 +54,16 @@ impl Children for Neg {
 impl ChildrenMut for Neg {
 	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
+		let ptr = &mut *self.child as *mut AnyExpr;
 		unsafe {
-			std::slice::from_raw_parts_mut(&mut *self.child as *mut AnyExpr, 1)
+			std::slice::from_raw_parts_mut(ptr, 1)
 		}
 	}
 }
 
 impl IntoChildren for Neg {
     fn into_children_vec(self) -> Vec<AnyExpr> {
-		let ptr = Box::leak(self.child) as *mut AnyExpr;
+		let ptr = Box::into_raw(self.child) as *mut AnyExpr;
 		unsafe {
 			Vec::from_raw_parts(ptr, 1, 1)
 		}
