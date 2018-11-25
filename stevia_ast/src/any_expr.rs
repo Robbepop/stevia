@@ -119,8 +119,16 @@ macro_rules! impl_expr_kinds {
         /// represents any one of them.
 		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 		pub enum AnyExpr {
-			$($names(expr::$names)),*
+			$($names(crate::expr::$names)),*
 		}
+
+		$(
+			impl From<crate::expr::$names> for AnyExpr {
+				fn from(expr: crate::expr::$names) -> Self {
+					AnyExpr::$names(expr)
+				}
+			}
+		)*
 
         impl HasType for AnyExpr {
             fn ty(&self) -> Type {

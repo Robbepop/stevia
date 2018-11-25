@@ -108,12 +108,6 @@ impl HasArity for BitvecEquals {
     }
 }
 
-impl From<BitvecEquals> for AnyExpr {
-    fn from(bitvec_equals: BitvecEquals) -> AnyExpr {
-        AnyExpr::BitvecEquals(bitvec_equals)
-    }
-}
-
 impl Children for BitvecEquals {
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {

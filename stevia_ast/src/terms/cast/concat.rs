@@ -93,9 +93,3 @@ impl HasArity for Concat {
         2
     }
 }
-
-impl From<Concat> for AnyExpr {
-    fn from(expr: Concat) -> AnyExpr {
-        AnyExpr::Concat(expr)
-    }
-}

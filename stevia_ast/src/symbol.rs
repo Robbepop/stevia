@@ -239,12 +239,6 @@ impl HasArity for Symbol {
     }
 }
 
-impl From<Symbol> for AnyExpr {
-    fn from(symbol: Symbol) -> AnyExpr {
-        AnyExpr::Symbol(symbol)
-    }
-}
-
 impl Children for Symbol {
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {

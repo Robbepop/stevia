@@ -88,12 +88,6 @@ impl HasArity for Neg {
     }
 }
 
-impl From<Neg> for AnyExpr {
-    fn from(neg: Neg) -> AnyExpr {
-        AnyExpr::Neg(neg)
-    }
-}
-
 impl UnaryExpr for Neg {}
 
 impl SingleChild for Neg {

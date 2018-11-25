@@ -21,9 +21,3 @@ mod marker {
 ///
 /// Arithmetically sums up all child term expressions.
 pub type Add = NaryTermExpr<marker::AddMarker>;
-
-impl From<Add> for AnyExpr {
-    fn from(expr: Add) -> AnyExpr {
-        AnyExpr::Add(expr)
-    }
-}

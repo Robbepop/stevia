@@ -21,9 +21,3 @@ mod marker {
 ///
 /// Arithmetically multiplies all child term expressions.
 pub type Mul = NaryTermExpr<marker::MulMarker>;
-
-impl From<Mul> for AnyExpr {
-    fn from(expr: Mul) -> AnyExpr {
-        AnyExpr::Mul(expr)
-    }
-}

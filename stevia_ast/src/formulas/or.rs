@@ -22,9 +22,3 @@ mod marker {
 /// 
 /// Represents boolean disjunction for all boolean child expressions.
 pub type Or = NaryBoolExpr<marker::OrMarker>;
-
-impl From<Or> for AnyExpr {
-    fn from(expr: Or) -> AnyExpr {
-        AnyExpr::Or(expr)
-    }
-}

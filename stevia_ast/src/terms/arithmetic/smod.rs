@@ -31,9 +31,3 @@ mod marker {
 /// - On machine level signed and unsigned division are
 ///   two different operations and have to be treated differently.
 pub type SignedModulo = BinTermExpr<marker::SignedModuloMarker>;
-
-impl From<SignedModulo> for AnyExpr {
-    fn from(expr: SignedModulo) -> AnyExpr {
-        AnyExpr::SignedModulo(expr)
-    }
-}

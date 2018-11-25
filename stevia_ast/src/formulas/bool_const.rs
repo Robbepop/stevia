@@ -79,9 +79,3 @@ impl HasArity for BoolConst {
         0
     }
 }
-
-impl From<BoolConst> for AnyExpr {
-    fn from(bool_const: BoolConst) -> AnyExpr {
-        AnyExpr::BoolConst(bool_const)
-    }
-}

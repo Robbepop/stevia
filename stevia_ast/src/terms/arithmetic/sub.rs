@@ -22,9 +22,3 @@ mod marker {
 /// 
 /// Subtracts the right child from the left: left - right
 pub type Sub = BinTermExpr<marker::SubMarker>;
-
-impl From<Sub> for AnyExpr {
-    fn from(expr: Sub) -> AnyExpr {
-        AnyExpr::Sub(expr)
-    }
-}

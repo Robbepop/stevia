@@ -26,9 +26,3 @@ mod marker {
 /// - Shifting to left means shifting the bits of the term expression from
 ///   the most significant position to the least significant position.
 pub type ArithmeticShiftRight = BinTermExpr<marker::ArithmeticShiftRightMarker>;
-
-impl From<ArithmeticShiftRight> for AnyExpr {
-    fn from(expr: ArithmeticShiftRight) -> AnyExpr {
-        AnyExpr::ArithmeticShiftRight(expr)
-    }
-}
