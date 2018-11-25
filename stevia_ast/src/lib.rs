@@ -90,6 +90,9 @@ pub use self::{
         RecursiveTraverseVisitor,
         Visitor
     },
+	unit_child::{
+		UnaryChild
+	},
     bin_children::{
         BinaryChildren
     },
