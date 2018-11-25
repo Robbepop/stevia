@@ -114,7 +114,7 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
 fn simplify_sub(sub: expr::Sub) -> TransformOutcome {
     // If both child expressions are const bitvectors we can simplify this to
     // the result of their subtraction.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = sub.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = sub.children {
         let result_udiv = lhs.val.sub(&rhs.val).unwrap();
         return TransformOutcome::transformed(expr::BitvecConst::from(result_udiv))
     }
@@ -186,7 +186,7 @@ macro_rules! transform_div_impl {
     ($varname:ident, $into_checked:ident) => {{
         // If both child expressions are constant bitvectors we can evaluate the division
         // and replace this division expression by the result.
-        if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.children {
+        if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.children {
             let result = lhs.val.$into_checked(&rhs.val).unwrap();
             return TransformOutcome::transformed(expr::BitvecConst::from(result))
         }
@@ -225,7 +225,7 @@ macro_rules! transform_rem_impl {
     ($varname:ident, $into_checked:ident) => {{
         // If both child expressions are constant bitvectors we can evaluate the remainder
         // and replace this remainder expression by the result.
-        if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.children {
+        if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = $varname.children {
             let result = lhs.val.$into_checked(&rhs.val).unwrap();
             return TransformOutcome::transformed(expr::BitvecConst::from(result))
         }
@@ -354,7 +354,7 @@ fn simplify_bitor(bitor: expr::BitOr) -> TransformOutcome {
 
 fn simplify_bitxor(bitxor: expr::BitXor) -> TransformOutcome {
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = bitxor.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = bitxor.children {
         return TransformOutcome::transformed(expr::BitvecConst::from(
             lhs.val.bitxor(&rhs.val).unwrap()
         ))
@@ -419,7 +419,7 @@ fn simplify_shl(shl: expr::ShiftLeft) -> TransformOutcome {
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = shl.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = shl.children {
         return TransformOutcome::transformed(
             expr::BitvecConst::from(
                 lhs.val.shl(
@@ -463,7 +463,7 @@ fn simplify_lshr(lshr: expr::LogicalShiftRight) -> TransformOutcome {
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = lshr.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = lshr.children {
         return TransformOutcome::transformed(
             expr::BitvecConst::from(
                 lhs.val.lshr(
@@ -510,7 +510,7 @@ fn simplify_ashr(ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ashr.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ashr.children {
         return TransformOutcome::transformed(
             expr::BitvecConst::from(
                 lhs.val.ashr(
@@ -524,7 +524,7 @@ fn simplify_ashr(ashr: expr::ArithmeticShiftRight) -> TransformOutcome {
 
 fn simplify_slt(slt: expr::SignedLessThan) -> TransformOutcome {
     // If both child expressions are constant we can compute the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = slt.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = slt.children {
         return TransformOutcome::transformed(expr::BoolConst::from(
             lhs.val.slt(&rhs.val).unwrap()
         ))
@@ -534,7 +534,7 @@ fn simplify_slt(slt: expr::SignedLessThan) -> TransformOutcome {
 
 fn simplify_ult(ult: expr::UnsignedLessThan) -> TransformOutcome {
     // If both child expressions are constant we can compute the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ult.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = ult.children {
         return TransformOutcome::transformed(expr::BoolConst::from(
             lhs.val.ult(&rhs.val).unwrap()
         ))
@@ -582,7 +582,7 @@ fn simplify_concat(concat: expr::Concat) -> TransformOutcome {
         }
     }
     // If both child expressions are constant bitvectors we can simply evaluate the result.
-    if let box BinExprChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = concat.children {
+    if let box BinaryChildren{ lhs: AnyExpr::BitvecConst(lhs), rhs: AnyExpr::BitvecConst(rhs) } = concat.children {
         return TransformOutcome::transformed(
             expr::BitvecConst::from(lhs.val.concat(&rhs.val)))
     }

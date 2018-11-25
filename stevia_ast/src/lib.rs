@@ -18,7 +18,7 @@ extern crate indoc;
 
 mod any_expr;
 mod arity;
-mod binexpr_children;
+mod bin_children;
 mod traits;
 mod child_iters;
 mod context;
@@ -89,8 +89,8 @@ pub use self::{
         RecursiveTraverseVisitor,
         Visitor
     },
-    binexpr_children::{
-        BinExprChildren
+    bin_children::{
+        BinaryChildren
     },
     ite::{
         IfThenElseChildren

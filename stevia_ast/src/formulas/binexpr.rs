@@ -13,7 +13,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinBoolExpr<M> {
     /// The two child expressions.
-    pub children: P<BinExprChildren>,
+    pub children: P<BinaryChildren>,
     /// Marker to differentiate bool expressions from each
     /// other using the type system.
     marker: PhantomData<M>,
@@ -70,7 +70,7 @@ where
         debug_assert!(expect_type(Type::Bool, &lhs).is_ok());
         debug_assert!(expect_type(Type::Bool, &rhs).is_ok());
         Self {
-            children: BinExprChildren::new_boxed(lhs, rhs),
+            children: BinaryChildren::new_boxed(lhs, rhs),
             marker: PhantomData,
         }
     }
@@ -111,7 +111,7 @@ where
 	Self: Into<AnyExpr>
 {
 	fn into_children_vec(self) -> Vec<AnyExpr> {
-		let ptr = Box::leak(self.children) as *mut BinExprChildren as *mut AnyExpr;
+		let ptr = Box::leak(self.children) as *mut BinaryChildren as *mut AnyExpr;
 		unsafe {
 			Vec::from_raw_parts(ptr, 2, 2)
 		}

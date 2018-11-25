@@ -14,7 +14,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BinTermExpr<M> {
     /// The two child term expressions.
-    pub children: P<BinExprChildren>,
+    pub children: P<BinaryChildren>,
     /// The bit width of this expression.
     ///
     /// All child expressions must respect this bit width.
@@ -57,7 +57,7 @@ where
             })?;
         Ok(Self {
             bitvec_ty: common_ty,
-            children: BinExprChildren::new_boxed(lhs, rhs),
+            children: BinaryChildren::new_boxed(lhs, rhs),
             marker: PhantomData,
         })
     }
@@ -82,7 +82,7 @@ where
 	Self: Into<AnyExpr>
 {
     fn into_children_vec(self) -> Vec<AnyExpr> {
-		let ptr = Box::leak(self.children) as *mut BinExprChildren as *mut AnyExpr;
+		let ptr = Box::leak(self.children) as *mut BinaryChildren as *mut AnyExpr;
 		unsafe {
 			Vec::from_raw_parts(ptr, 2, 2)
 		}

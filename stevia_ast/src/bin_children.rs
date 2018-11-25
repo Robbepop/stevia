@@ -8,29 +8,28 @@ use crate::prelude::*;
 /// child expressions.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 #[repr(C)]
-pub struct BinExprChildren {
+pub struct BinaryChildren {
     pub lhs: AnyExpr,
     pub rhs: AnyExpr
 }
 
-impl BinExprChildren {
-    /// Creates a new `BinExprChildren` for the given child expressions.
+impl BinaryChildren {
+    /// Creates a new `BinaryChildren` for the given child expressions.
     #[inline]
-    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> BinExprChildren {
-        BinExprChildren{lhs, rhs}
+    pub fn new(lhs: AnyExpr, rhs: AnyExpr) -> Self {
+        BinaryChildren{lhs, rhs}
     }
 
-    /// Creates a new boxed (on heap) `BinExprChildren` for the given child expressions.
+    /// Creates a new boxed (on heap) `BinaryChildren` for the given child expressions.
     #[inline]
-    pub fn new_boxed(lhs: AnyExpr, rhs: AnyExpr) -> P<BinExprChildren> {
-        P::new(BinExprChildren::new(lhs, rhs))
+    pub fn new_boxed(lhs: AnyExpr, rhs: AnyExpr) -> Box<Self> {
+        P::new(BinaryChildren::new(lhs, rhs))
     }
 
     /// Swaps its left-hand side child with the right-hand side child.
 	#[inline]
     pub fn swap_children(&mut self) {
-        use std::mem;
-        mem::swap(&mut self.lhs, &mut self.rhs)
+        std::mem::swap(&mut self.lhs, &mut self.rhs)
     }
 
     /// Returns a pair of both child expressions.
@@ -40,16 +39,6 @@ impl BinExprChildren {
     pub fn into_children_pair(self) -> (AnyExpr, AnyExpr) {
         (self.lhs, self.rhs)
     }
-
-	#[inline]
-	pub fn as_children_slice(&self) -> &[AnyExpr] {
-		self.as_children_array()
-	}
-
-	#[inline]
-	pub fn as_children_slice_mut(&mut self) -> &mut [AnyExpr] {
-		self.as_children_array_mut()
-	}
 
 	#[inline]
 	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
@@ -64,30 +53,45 @@ impl BinExprChildren {
 			std::mem::transmute::<&mut Self, &mut [AnyExpr; 2]>(self)
 		}
 	}
+
+	#[inline]
+	fn into_vec(self: Box<Self>) -> Vec<AnyExpr> {
+		let ptr = Box::into_raw(self) as *mut AnyExpr;
+		unsafe {
+			Vec::from_raw_parts(ptr, 2, 2)
+		}
+	}
 }
 
-impl Children for BinExprChildren {
+impl Children for BinaryChildren {
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
-		self.as_children_slice()
+		self.as_children_array()
 	}
 }
 
-impl ChildrenMut for BinExprChildren {
+impl ChildrenMut for BinaryChildren {
 	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
-		self.as_children_slice_mut()
+		self.as_children_array_mut()
 	}
 }
 
-impl HasArity for BinExprChildren {
+impl IntoChildren for Box<BinaryChildren> {
+	#[inline]
+	fn into_children_vec(self) -> Vec<AnyExpr> {
+		self.into_vec()
+	}
+}
+
+impl HasArity for BinaryChildren {
     #[inline]
     fn arity(&self) -> usize {
         2
     }
 }
 
-impl BinaryExpr for BinExprChildren {
+impl BinaryExpr for BinaryChildren {
     fn lhs_child(&self) -> &AnyExpr {
         &self.lhs
     }
