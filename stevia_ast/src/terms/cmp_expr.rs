@@ -25,7 +25,7 @@ pub mod prelude {
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ComparisonExpr<M> {
     /// The two child term expressions.
-    pub children: P<BinExprChildren>,
+    pub children: P<BinaryChildren>,
     /// The bit width of this expression.
     ///
     /// All child expressions must respect this bit width.
@@ -81,7 +81,7 @@ where
         let lhs = lhs.into();
         let rhs = rhs.into();
         debug_assert!(expect_common_bitvec_ty(&lhs, &rhs).is_ok());
-        Self::from_raw_parts(bvty, BinExprChildren::new_boxed(lhs, rhs))
+        Self::from_raw_parts(bvty, BinaryChildren::new_boxed(lhs, rhs))
     }
 
     /// Creates a new comparison expression from the given raw parts.
@@ -90,7 +90,7 @@ where
     /// 
     /// This does not check the type validity of the given raw parts and thus
     /// should be used with care.
-    pub unsafe fn from_raw_parts(bvty: BitvecTy, children: P<BinExprChildren>) -> Self {
+    pub unsafe fn from_raw_parts(bvty: BitvecTy, children: P<BinaryChildren>) -> Self {
         Self {
             children_bitvec_ty: bvty,
             children,
@@ -124,7 +124,7 @@ where
 	Self: Into<AnyExpr>
 {
     fn into_children_vec(self) -> Vec<AnyExpr> {
-		let ptr = Box::leak(self.children) as *mut BinExprChildren as *mut AnyExpr;
+		let ptr = Box::leak(self.children) as *mut BinaryChildren as *mut AnyExpr;
 		unsafe {
 			Vec::from_raw_parts(ptr, 2, 2)
 		}

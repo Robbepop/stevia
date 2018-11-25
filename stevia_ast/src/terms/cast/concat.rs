@@ -8,7 +8,7 @@ use crate::prelude::*;
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct Concat {
     /// The two child term expressions.
-    pub children: P<BinExprChildren>,
+    pub children: P<BinaryChildren>,
     /// The resulting bit width.
     ///
     /// The purpose of this is to cache the bitwidth so that
@@ -46,7 +46,7 @@ impl Concat {
         let concat_bvty = BitvecTy::from(lhs_bvty.width().len_bits() + rhs_bvty.width().len_bits());
         Ok(Concat {
             bitvec_ty: concat_bvty,
-            children: BinExprChildren::new_boxed(lhs, rhs),
+            children: BinaryChildren::new_boxed(lhs, rhs),
         })
     }
 }
@@ -67,7 +67,7 @@ impl ChildrenMut for Concat {
 
 impl IntoChildren for Concat {
     fn into_children_vec(self) -> Vec<AnyExpr> {
-		let ptr = Box::leak(self.children) as *mut BinExprChildren as *mut AnyExpr;
+		let ptr = Box::leak(self.children) as *mut BinaryChildren as *mut AnyExpr;
 		unsafe {
 			Vec::from_raw_parts(ptr, 2, 2)
 		}
