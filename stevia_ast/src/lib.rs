@@ -19,6 +19,7 @@ extern crate indoc;
 mod any_expr;
 mod arity;
 mod bin_children;
+mod unit_child;
 mod traits;
 mod child_iters;
 mod context;
