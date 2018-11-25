@@ -26,9 +26,3 @@ mod marker {
 ///   expressions evaluates to `true`.
 /// - This can be understood as the boolean not-equals.
 pub type Xor = BinBoolExpr<marker::XorMarker>;
-
-impl From<Xor> for AnyExpr {
-    fn from(expr: Xor) -> AnyExpr {
-        AnyExpr::Xor(expr)
-    }
-}

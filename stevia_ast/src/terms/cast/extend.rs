@@ -206,20 +206,8 @@ mod marker {
 /// This extend operation respects the sign of the term expression.
 pub type ZeroExtend = ExtendExpr<marker::ZeroExtendMarker>;
 
-impl From<ZeroExtend> for AnyExpr {
-    fn from(expr: ZeroExtend) -> AnyExpr {
-        AnyExpr::ZeroExtend(expr)
-    }
-}
-
 /// Sign-extend term expression.
 ///
 /// Extends the source child term expression to the given bit width.
 /// This extend operation respects the sign of the term expression.
 pub type SignExtend = ExtendExpr<marker::SignExtendMarker>;
-
-impl From<SignExtend> for AnyExpr {
-    fn from(expr: SignExtend) -> AnyExpr {
-        AnyExpr::SignExtend(expr)
-    }
-}

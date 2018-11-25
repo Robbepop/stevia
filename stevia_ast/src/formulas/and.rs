@@ -22,9 +22,3 @@ mod marker {
 /// 
 /// Represents boolean conjunction for all boolean child expressions.
 pub type And = NaryBoolExpr<marker::AndMarker>;
-
-impl From<And> for AnyExpr {
-    fn from(expr: And) -> AnyExpr {
-        AnyExpr::And(expr)
-    }
-}

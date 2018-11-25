@@ -26,9 +26,3 @@ mod marker {
 ///   expressions either evaluate to `true` or `false`.
 /// - This can be understood as the logical equality.
 pub type BoolEquals = NaryBoolExpr<marker::BoolEqualsMarker>;
-
-impl From<BoolEquals> for AnyExpr {
-    fn from(expr: BoolEquals) -> AnyExpr {
-        AnyExpr::BoolEquals(expr)
-    }
-}

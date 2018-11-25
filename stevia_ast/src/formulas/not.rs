@@ -96,12 +96,6 @@ impl HasArity for Not {
     }
 }
 
-impl From<Not> for AnyExpr {
-    fn from(not: Not) -> AnyExpr {
-        AnyExpr::Not(not)
-    }
-}
-
 impl UnaryExpr for Not {}
 
 impl SingleChild for Not {

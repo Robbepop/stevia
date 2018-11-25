@@ -87,12 +87,6 @@ impl HasArity for BitNot {
     }
 }
 
-impl From<BitNot> for AnyExpr {
-    fn from(bitnot: BitNot) -> AnyExpr {
-        AnyExpr::BitNot(bitnot)
-    }
-}
-
 impl UnaryExpr for BitNot {}
 
 impl SingleChild for BitNot {

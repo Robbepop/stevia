@@ -142,12 +142,6 @@ impl HasArity for ArrayRead {
     }
 }
 
-impl From<ArrayRead> for AnyExpr {
-    fn from(array_read: ArrayRead) -> AnyExpr {
-        AnyExpr::ArrayRead(array_read)
-    }
-}
-
 impl Children for ArrayRead {
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {

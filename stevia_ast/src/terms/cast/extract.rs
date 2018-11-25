@@ -97,9 +97,3 @@ impl HasArity for Extract {
         1
     }
 }
-
-impl From<Extract> for AnyExpr {
-    fn from(extract: Extract) -> AnyExpr {
-        AnyExpr::Extract(extract)
-    }
-}

@@ -22,9 +22,3 @@ mod marker {
 /// 
 /// This is equal to the implication of the boolean logic.
 pub type Implies = BinBoolExpr<marker::ImpliesMarker>;
-
-impl From<Implies> for AnyExpr {
-    fn from(expr: Implies) -> AnyExpr {
-        AnyExpr::Implies(expr)
-    }
-}

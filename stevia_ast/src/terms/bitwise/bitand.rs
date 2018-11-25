@@ -23,9 +23,3 @@ mod marker {
 /// 
 /// Bitwise-and for all child term expressions.
 pub type BitAnd = NaryTermExpr<marker::BitAndMarker>;
-
-impl From<BitAnd> for AnyExpr {
-    fn from(expr: BitAnd) -> AnyExpr {
-        AnyExpr::BitAnd(expr)
-    }
-}

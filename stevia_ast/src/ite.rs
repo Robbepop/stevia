@@ -179,12 +179,6 @@ impl HasArity for IfThenElse {
     }
 }
 
-impl From<IfThenElse> for AnyExpr {
-    fn from(ite: IfThenElse) -> AnyExpr {
-        AnyExpr::IfThenElse(ite)
-    }
-}
-
 impl Children for IfThenElse {
 	#[inline]
     fn children_slice(&self) -> &[AnyExpr] {

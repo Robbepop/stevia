@@ -240,22 +240,3 @@ pub type UnsignedLessEquals = ComparisonExpr<marker::UnsignedLessEqualsMarker>;
 ///
 /// Less equals comparison is different for signed and unsigned parameters.
 pub type UnsignedLessThan = ComparisonExpr<marker::UnsignedLessThanMarker>;
-
-macro_rules! gen_into_anyexpr_impl {
-    ($name:ident) => {
-        impl From<$name> for AnyExpr {
-            fn from(expr: $name) -> AnyExpr {
-                AnyExpr::$name(expr)
-            }
-        }
-    };
-}
-
-gen_into_anyexpr_impl!(SignedGreaterEquals);
-gen_into_anyexpr_impl!(SignedGreaterThan);
-gen_into_anyexpr_impl!(SignedLessEquals);
-gen_into_anyexpr_impl!(SignedLessThan);
-gen_into_anyexpr_impl!(UnsignedGreaterEquals);
-gen_into_anyexpr_impl!(UnsignedGreaterThan);
-gen_into_anyexpr_impl!(UnsignedLessEquals);
-gen_into_anyexpr_impl!(UnsignedLessThan);

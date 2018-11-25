@@ -164,12 +164,6 @@ impl HasArity for ArrayWrite {
     }
 }
 
-impl From<ArrayWrite> for AnyExpr {
-    fn from(array_write: ArrayWrite) -> AnyExpr {
-        AnyExpr::ArrayWrite(array_write)
-    }
-}
-
 impl Children for ArrayWrite {
 	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {

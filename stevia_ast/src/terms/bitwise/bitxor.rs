@@ -20,9 +20,3 @@ mod marker {
 
 /// Binary bitwise-xor term expression.
 pub type BitXor = BinTermExpr<marker::BitXorMarker>;
-
-impl From<BitXor> for AnyExpr {
-    fn from(expr: BitXor) -> AnyExpr {
-        AnyExpr::BitXor(expr)
-    }
-}

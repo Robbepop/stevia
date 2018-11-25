@@ -25,9 +25,3 @@ mod marker {
 /// - On machine level signed and unsigned division are
 ///   two different operations and have to be treated differently.
 pub type UnsignedRemainder = BinTermExpr<marker::UnsignedRemainderMarker>;
-
-impl From<UnsignedRemainder> for AnyExpr {
-    fn from(expr: UnsignedRemainder) -> AnyExpr {
-        AnyExpr::UnsignedRemainder(expr)
-    }
-}

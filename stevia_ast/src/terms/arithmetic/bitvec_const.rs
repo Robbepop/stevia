@@ -76,9 +76,3 @@ impl HasArity for BitvecConst {
         0
     }
 }
-
-impl From<BitvecConst> for AnyExpr {
-    fn from(bitvec_const: BitvecConst) -> AnyExpr {
-        AnyExpr::BitvecConst(bitvec_const)
-    }
-}
