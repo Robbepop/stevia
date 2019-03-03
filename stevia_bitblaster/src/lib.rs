@@ -10,6 +10,20 @@
 
 extern crate stevia_ast as ast;
 
-mod bitblaster;
-mod gate_encoder;
-mod repr;
+mod encoder;
+mod reprs;
+mod traits;
+
+pub(crate) use self::{
+	reprs::{
+		Sign,
+		Var,
+		Lit,
+		LitPack,
+		LitPackIter,
+	},
+	traits::{
+		GenLit,
+		ConsumeClause,
+	},
+};
