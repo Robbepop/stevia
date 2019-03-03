@@ -24,7 +24,6 @@ mod traits;
 mod child_iters;
 mod context;
 mod error;
-mod expr_kind;
 mod factory;
 mod formulas;
 mod ite;
@@ -143,12 +142,10 @@ pub use self::{
     },
     any_expr::{
         AnyExpr,
-        IntoBoxedAnyExpr
-    },
-    expr_kind::{
-        ExprKind,
-        HasKind,
-        HasPriority
+        IntoBoxedAnyExpr,
+		ExprKind,
+		HasKind,
+        HasPriority,
     },
     traits::{
         BoolExpr,

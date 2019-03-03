@@ -56,70 +56,233 @@ impl AnyExpr {
     }
 }
 
+use std::num::NonZeroU32;
+
+/// The priority of an expression kind.
+/// 
+/// This is used in order to improve normalization of symmetric
+/// expression by sorting their child expressions in a static ordering.
+/// 
+/// The priority of an expression kind decides this ordering.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]
+pub struct Priority(NonZeroU32);
+
+/// Expression kinds do need to implement this trait in order
+/// to improve expression normalization.
+pub trait HasPriority {
+    /// Returns the priority of `self`.
+    fn priority(&self) -> Priority;
+}
+
+mod priorities {
+	pub const FORMULA_BASE: u32    = 100;
+	pub const ARITHMETIC_BASE: u32 = 200;
+	pub const BITWISE_BASE: u32    = 300;
+	pub const COMPARISON_BASE: u32 = 400;
+	pub const SHIFT_BASE: u32      = 500;
+	pub const CAST_BASE: u32       = 600;
+	pub const ARRAY_BASE: u32      = 700;
+	pub const GENERIC_BASE: u32    = 800;
+}
+
 macro_rules! forall_expr_kinds {
 	( $mac:ident ) => {
 		$mac!{
-            IfThenElse,
-            Symbol,
+			/// The if-then-else expression kind
+			#.[priority(priorities::GENERIC_BASE + 0)]
+			IfThenElse,
+			/// The symbol expression kind
+			#.[priority(priorities::GENERIC_BASE + 1)]
+			Symbol,
 
-            BoolConst,
-            BoolEquals,
-            Not,
-            And,
-            Or,
-            Implies,
-            Xor,
+			/// The constant boolean expression kind
+			#.[priority(priorities::FORMULA_BASE + 0)]
+			BoolConst,
+			/// The boolean equality (also known as if-and-only-if) expression kind
+			#.[priority(priorities::FORMULA_BASE + 1)]
+			BoolEquals,
+			/// The not boolean expression kind
+			#.[priority(priorities::FORMULA_BASE + 2)]
+			Not,
+			/// The and boolean expression kind
+			#.[priority(priorities::FORMULA_BASE + 3)]
+			And,
+			/// The or boolean expression kind
+			#.[priority(priorities::FORMULA_BASE + 4)]
+			Or,
+			/// The implies boolean expression kind
+			#.[priority(priorities::FORMULA_BASE + 5)]
+			Implies,
+			/// The xor (either-or) expression kind
+			#.[priority(priorities::FORMULA_BASE + 6)]
+			Xor,
 
-            BitvecConst,
-            BitvecEquals,
-            Neg,
-            Add,
-            Mul,
-            Sub,
-            UnsignedDiv,
-            SignedDiv,
-            SignedModulo,
-            UnsignedRemainder,
-            SignedRemainder,
+			/// The constant bitvec term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 0)]
+			BitvecConst,
+			// /// The bitvec equality term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 1)]
+			BitvecEquals,
+			/// The bitvec negation term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 2)]
+			Neg,
+			/// The bitvec add term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 3)]
+			Add,
+			/// The bitvec mul term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 4)]
+			Mul,
+			/// The bitvec sub term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 5)]
+			Sub,
+			/// The bitvec udiv (unsigned division) term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 6)]
+			UnsignedDiv,
+			/// The bitvec sdiv (signed division) term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 7)]
+			SignedDiv,
+			/// The bitvec smod (signed remainder + sign match) term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 8)]
+			SignedModulo,
+			/// The bitvec urem (unsigned remainder) term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 9)]
+			UnsignedRemainder,
+			/// The bitvec srem (signed remainder) term expression kind
+			#.[priority(priorities::ARITHMETIC_BASE + 10)]
+			SignedRemainder,
 
-            BitNot,
-            BitAnd,
-            BitOr,
-            BitXor,
+			/// The bitwise-not term expression kind
+			#.[priority(priorities::BITWISE_BASE + 0)]
+			BitNot,
+			/// The bitwise-and term expression kind
+			#.[priority(priorities::BITWISE_BASE + 1)]
+			BitAnd,
+			/// The bitwise-or term expression kind
+			#.[priority(priorities::BITWISE_BASE + 2)]
+			BitOr,
+			/// The bitwise-xor term expression kind
+			#.[priority(priorities::BITWISE_BASE + 3)]
+			BitXor,
 
-            SignedGreaterEquals,
-            SignedGreaterThan,
-            SignedLessEquals,
-            SignedLessThan,
-            UnsignedGreaterEquals,
-            UnsignedGreaterThan,
-            UnsignedLessEquals,
-            UnsignedLessThan,
+			/// The signed greater-than-or-equals term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 0)]
+			SignedGreaterEquals,
+			/// The signed greater-than term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 1)]
+			SignedGreaterThan,
+			/// The signed less-than-or-equals term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 2)]
+			SignedLessEquals,
+			/// The signed less-than term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 3)]
+			SignedLessThan,
+			/// The unsigned greater-than-or-equals term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 4)]
+			UnsignedGreaterEquals,
+			/// The unsigned greater-than term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 5)]
+			UnsignedGreaterThan,
+			/// The unsigned less-than-or-equals term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 6)]
+			UnsignedLessEquals,
+			/// The unsigned less-than term expression kind
+			#.[priority(priorities::COMPARISON_BASE + 7)]
+			UnsignedLessThan,
 
-            ShiftLeft,
-            LogicalShiftRight,
-            ArithmeticShiftRight,
+			/// The shift-left term expression kind
+			#.[priority(priorities::SHIFT_BASE + 0)]
+			ShiftLeft,
+			/// The logical shift-right term expression kind
+			#.[priority(priorities::SHIFT_BASE + 1)]
+			LogicalShiftRight,
+			/// The arithmetic shift-right term expression kind
+			#.[priority(priorities::SHIFT_BASE + 2)]
+			ArithmeticShiftRight,
 
-            Concat,
-            Extract,
-            SignExtend,
-            ZeroExtend,
+			/// The bitvec concatenate term expression kind
+			#.[priority(priorities::CAST_BASE + 0)]
+			Concat,
+			/// The bitvec extraction term expression kind
+			#.[priority(priorities::CAST_BASE + 1)]
+			Extract,
+			/// The bitvec sign-extension term expression kind
+			#.[priority(priorities::CAST_BASE + 2)]
+			SignExtend,
+			/// The bitvec zero-extension term expression kind
+			#.[priority(priorities::CAST_BASE + 3)]
+			ZeroExtend,
 
-            ArrayRead,
-            ArrayWrite
+			/// The array-read expression kind
+			#.[priority(priorities::ARRAY_BASE + 0)]
+			ArrayRead,
+			/// The array-write expression kind
+			#.[priority(priorities::ARRAY_BASE + 1)]
+			ArrayWrite,
         }
     }
 }
 
+/// This trait should be implemented by all expressions and structures that
+/// represent an expression kind.
+/// 
+/// This is obviously true for `ExprKind` itself but also for all concrete expression types.
+pub trait HasKind {
+    /// Returns the kind of `self`.
+    fn kind(&self) -> ExprKind;
+}
+
 macro_rules! impl_expr_kinds {
-	( $($names:ident),* ) => {
+	( $( $(#[$attr:meta])* #.[priority($prio:expr)] $names:ident,)* ) => {
         /// Any expression.
         /// 
         /// There are different kinds of expressions and `AnyExpr`
         /// represents any one of them.
 		#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 		pub enum AnyExpr {
-			$($names(crate::expr::$names)),*
+			$(
+				$(#[$attr])*
+				$names(crate::expr::$names)
+			),*
+		}
+
+		/// The kind of an expression.
+		#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+		pub enum ExprKind {
+			$(
+				$(#[$attr])*
+				$names
+			),*
+		}
+
+		impl HasKind for ExprKind {
+			fn kind(&self) -> ExprKind {
+				*self
+			}
+		}
+
+		impl ExprKind {
+			/// Returns the camel-case name of the expression kind.
+			pub fn camel_name(self) -> &'static str {
+				match self {
+					$(
+						ExprKind::$names => stringify!($names)
+					),*
+				}
+			}
+		}
+
+		impl HasPriority for ExprKind {
+			fn priority(&self) -> Priority {
+				match *self {
+					$(
+						ExprKind::$names => Priority(
+							unsafe {
+								NonZeroU32::new_unchecked($prio)
+							}
+						)
+					),*
+				}
+			}
 		}
 
 		$(
