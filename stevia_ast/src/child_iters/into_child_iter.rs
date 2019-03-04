@@ -1,10 +1,17 @@
 use crate::{AnyExpr, IntoChildren};
 
+/// Iterator over the children of an expression.
+///
+/// # Note
+///
+/// This moves the children out of their parent expression.
 pub struct IntoChildrenIter {
+	/// The underlying iterator.
 	iter: std::vec::IntoIter<AnyExpr>
 }
 
 impl IntoChildrenIter {
+	/// Creates a consuming children iterator for the given expression.
 	#[inline]
 	pub fn from_expr<E>(expr: E) -> Self
 	where

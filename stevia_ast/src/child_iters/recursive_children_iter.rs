@@ -58,13 +58,26 @@ pub struct RecursiveChildrenIter<'it> {
 	next: Option<&'it AnyExpr>
 }
 
+/// An iteration frame.
+///
+/// # Note
+///
+/// While iterating over all expressions of a tree of expressions
+/// recursively the algorithm holds a stack of frames.
+/// For any given moment during iteration the stack height is exactly
+/// the number of parents of the currently yielded expression.
 #[derive(Debug, Clone)]
 struct Frame<'it> {
+	/// The frame guard.
+	///
+	/// Yielded back after yielding all of its recursive child expressions.
 	guard: &'it AnyExpr,
+	/// An iterator over all child expressions of the guard expression.
 	incoming: ChildrenIter<'it>
 }
 
 impl<'it> Frame<'it> {
+	/// Creates a new iteration frame for the given expression.
 	#[inline]
 	pub fn new(expr: &'it AnyExpr) -> Self {
 		Frame {
@@ -73,6 +86,7 @@ impl<'it> Frame<'it> {
 		}
 	}
 
+	/// Returns a reference to the guard of the iteration frame.
 	#[inline]
 	pub fn guard(self) -> &'it AnyExpr {
 		self.guard

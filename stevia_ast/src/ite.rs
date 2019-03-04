@@ -62,20 +62,56 @@ impl IfThenElseChildren {
         ::std::mem::swap(&mut self.then_case, &mut self.else_case)
     }
 
+	/// Returns the children as a slice to immutable references.
+	///
+	/// # Note
+	///
+	/// The following order is used:
+	///
+	/// 1. `condition`
+	/// 1. `then`
+	/// 1. `else`
 	pub fn as_children_slice(&self) -> &[AnyExpr] {
 		self.as_children_array()
 	}
 
+	/// Returns the children as a slice to mutable references.
+	///
+	/// # Note
+	///
+	/// The following order is used:
+	///
+	/// 1. `condition`
+	/// 1. `then`
+	/// 1. `else`
 	pub fn as_children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_array_mut()
 	}
 
+	/// Returns the children as an array of immutable references.
+	///
+	/// # Note
+	///
+	/// The following order is used:
+	///
+	/// 1. `condition`
+	/// 1. `then`
+	/// 1. `else`
 	pub fn as_children_array(&self) -> &[AnyExpr; 3] {
 		unsafe {
 			std::mem::transmute::<&Self, &[AnyExpr; 3]>(self)
 		}
 	}
 
+	/// Returns the children as an array of mutable references.
+	///
+	/// # Note
+	///
+	/// The following order is used:
+	///
+	/// 1. `condition`
+	/// 1. `then`
+	/// 1. `else`
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 3] {
 		unsafe {
 			std::mem::transmute::<&mut Self, &mut [AnyExpr; 3]>(self)

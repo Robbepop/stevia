@@ -47,20 +47,52 @@ impl ArrayReadChildren {
         P::new(ArrayReadChildren::new(array, index))
     }
 
+	/// Returns the children as slice to immutable references.
+	///
+	/// # Note
+	///
+	/// The order of the children is the following:
+	///
+	/// 1. `array`
+	/// 1. `array_index`
 	pub fn as_children_slice(&self) -> &[AnyExpr] {
 		self.as_children_array()
 	}
 
+	/// Returns the children as slice to mutable references.
+	///
+	/// # Note
+	///
+	/// The order of the children is the following:
+	///
+	/// 1. `array`
+	/// 1. `array_index`
 	pub fn as_children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		self.as_children_array_mut()
 	}
 
+	/// Returns the children as array to immutable references.
+	///
+	/// # Note
+	///
+	/// The order of the children is the following:
+	///
+	/// 1. `array`
+	/// 1. `array_index`
 	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
 		unsafe {
 			std::mem::transmute::<&Self, &[AnyExpr; 2]>(self)
 		}
 	}
 
+	/// Returns the children as array to mutable references.
+	///
+	/// # Note
+	///
+	/// The order of the children is the following:
+	///
+	/// 1. `array`
+	/// 1. `array_index`
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 2] {
 		unsafe {
 			std::mem::transmute::<&mut Self, &mut [AnyExpr; 2]>(self)
