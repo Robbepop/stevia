@@ -14,3 +14,6 @@ Cargo.lock
 
 # Remove RLS artifacts.
 /rls/
+
+# Ignore VS Code local history files.
+/.history/
