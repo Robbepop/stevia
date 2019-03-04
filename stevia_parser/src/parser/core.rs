@@ -1,11 +1,11 @@
-use lexer::{
+use crate::lexer::{
     scan_smtlib2,
     Span,
     Token,
     TokenIter,
     TokenKind,
 };
-use parser::{
+use crate::parser::{
     ParseError,
     ParseResult,
     Numeral,
@@ -18,7 +18,7 @@ use parser::{
     ExprBuilder,
     DefaultExprBuilder,
 };
-use solver::{
+use crate::solver::{
     Command,
     CommandResponseResult,
     GetInfoKind,

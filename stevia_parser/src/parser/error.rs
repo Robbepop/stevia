@@ -1,13 +1,13 @@
-use lexer::{
+use crate::lexer::{
     LexerError,
     TokenKind,
 };
-use solver::{
+use crate::solver::{
     Command,
     CommandResponseError,
     ResponseError,
 };
-use parser::{
+use crate::parser::{
     NumeralError,
     DecimalError,
     BuildError,

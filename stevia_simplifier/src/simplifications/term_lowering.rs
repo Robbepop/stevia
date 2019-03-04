@@ -1,4 +1,4 @@
-use ast::prelude::*;
+use crate::ast::prelude::*;
 
 /// This simplification procedure propagates constant values through term expressions.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]

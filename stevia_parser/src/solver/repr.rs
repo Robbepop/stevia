@@ -1,6 +1,6 @@
 use std;
 
-use parser::{
+use crate::parser::{
     Numeral,
     Decimal
 };

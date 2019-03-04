@@ -1,4 +1,4 @@
-use ast::prelude::*;
+use crate::ast::prelude::*;
 
 /// Resolves double negations into their equivalent forms without negation.
 /// 

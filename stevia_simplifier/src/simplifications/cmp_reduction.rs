@@ -1,4 +1,4 @@
-use ast::prelude::*;
+use crate::ast::prelude::*;
 
 /// Reduces this `SignedGreaterEquals` to using less-than as only comparison.
 fn reduce_sge_to_slt(sge: expr::SignedGreaterEquals) -> expr::Not {

@@ -1,4 +1,4 @@
-use solver::Command;
+use crate::solver::Command;
 
 use std;
 

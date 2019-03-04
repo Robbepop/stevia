@@ -8,7 +8,7 @@ use test::{black_box, Bencher};
 
 mod children {
 	use super::*;
-	use stevia::Children;
+	use crate::stevia::Children;
 
 	#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord)]
 	enum ExprClass {
@@ -167,7 +167,7 @@ mod children {
 
 mod into_children {
 	use super::*;
-	use stevia::IntoChildren;
+	use crate::stevia::IntoChildren;
 
 	#[bench]
 	fn unary(bencher: &mut Bencher) {
