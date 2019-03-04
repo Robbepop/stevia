@@ -1,4 +1,4 @@
-use lexer::Span;
+use crate::lexer::Span;
 
 use std::{
     error,

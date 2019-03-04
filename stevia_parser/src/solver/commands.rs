@@ -1,11 +1,11 @@
-use parser::PropLitsIter;
-use solver::repr::{
+use crate::parser::PropLitsIter;
+use crate::solver::repr::{
     GetInfoKind,
     InfoAndValue,
     OptionAndValue,
     OptionKind,
 };
-use solver::{
+use crate::solver::{
     ResponseError,
     ResponseResult,
 };

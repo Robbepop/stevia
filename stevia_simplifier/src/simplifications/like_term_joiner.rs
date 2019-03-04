@@ -1,4 +1,4 @@
-use ast::prelude::*;
+use crate::ast::prelude::*;
 
 use crate::simplifications::Normalizer;
 

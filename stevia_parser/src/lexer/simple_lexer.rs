@@ -1,4 +1,4 @@
-use lexer::{
+use crate::lexer::{
     error::LexerResult,
     raw_lexer::RawTokenIter,
     raw_smtlib2_tokens,
@@ -11,7 +11,7 @@ use lexer::{
         TokenKind,
     },
 };
-use solver::Command;
+use crate::solver::Command;
 
 use std::collections::HashMap;
 
@@ -185,7 +185,7 @@ impl<'c> Iterator for TokenIter<'c> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lexer::error::{
+    use crate::lexer::error::{
         LexerError,
         LexerErrorKind,
     };

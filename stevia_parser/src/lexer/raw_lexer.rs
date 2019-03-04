@@ -1,4 +1,4 @@
-use lexer::{
+use crate::lexer::{
     LexerError,
     LexerResult,
     Loc,
@@ -406,7 +406,7 @@ impl<'c> Iterator for RawTokenIter<'c> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use lexer::LexerErrorKind;
+    use crate::lexer::LexerErrorKind;
 
     fn assert_input<I>(input: &str, expected_toks: I)
     where

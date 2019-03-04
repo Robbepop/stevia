@@ -1,4 +1,4 @@
-use ast::prelude::*;
+use crate::ast::prelude::*;
 
 /// Lifts if-then-else expressions that are childs of array-reads and have
 /// an array-write child themself.
