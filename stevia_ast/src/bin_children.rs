@@ -40,6 +40,7 @@ impl BinaryChildren {
         (self.lhs, self.rhs)
     }
 
+	/// Returns both children as array to immutable references.
 	#[inline]
 	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
 		unsafe {
@@ -47,6 +48,7 @@ impl BinaryChildren {
 		}
 	}
 
+	/// Returns both children as array to mutable references.
 	#[inline]
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 2] {
 		unsafe {
@@ -54,6 +56,7 @@ impl BinaryChildren {
 		}
 	}
 
+	/// Returns both children as vector of expressions.
 	#[inline]
 	fn into_vec(self: Box<Self>) -> Vec<AnyExpr> {
 		let ptr = Box::into_raw(self) as *mut AnyExpr;
