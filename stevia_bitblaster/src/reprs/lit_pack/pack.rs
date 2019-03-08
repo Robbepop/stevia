@@ -458,6 +458,7 @@ mod tests {
 
 	#[test]
 	#[should_panic]
+	#[cfg(debug_assertions)]
 	fn get_unchecked_err() {
 		unsafe {LitPack::new(100, 42).unwrap().get_unchecked(42); }
 	}

@@ -228,12 +228,14 @@ mod tests {
 
         #[test]
         #[should_panic]
+		#[cfg(debug_assertions)]
         fn new_unchecked_err_0() {
             unsafe { Var::new_unchecked(0) };
         }
 
         #[test]
         #[should_panic]
+		#[cfg(debug_assertions)]
         fn new_unchecked_err_1() {
             unsafe { Var::new_unchecked(Var::MAX.to_u32() + 1) };
         }
