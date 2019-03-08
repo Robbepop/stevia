@@ -74,7 +74,7 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
     let mut add = add;
     // Remove all zeros from this add as their are the additive neutral element and have
     // no effect besides wasting memory.
-    if add.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+    if add.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_zero()).count() > 0 {
         add.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_zero()));
         match add.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::zero(add.bitvec_ty)),
@@ -138,14 +138,14 @@ fn simplify_sub(sub: expr::Sub) -> TransformOutcome {
 
 fn simplify_mul(mul: expr::Mul) -> TransformOutcome {
     // If there exist a const zero child expression the entire multiplication is zero.
-    if mul.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+    if mul.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_zero()).count() > 0 {
         return TransformOutcome::transformed(expr::BitvecConst::zero(mul.bitvec_ty))
     }
     // We need to mutate mul perhaps.
     let mut mul = mul;
     // Remove all ones from this mul as they are the multiplicative neutral element and have
     // no effect besides wasting memory.
-    if mul.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_one()).count() > 0 {
+    if mul.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_one()).count() > 0 {
         mul.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_one()));
         match mul.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::one(mul.bitvec_ty)),
@@ -262,14 +262,14 @@ fn simplify_srem(srem: expr::SignedRemainder) -> TransformOutcome {
 
 fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
     // If there exist a const zero child expression the entire bit-and is zero.
-    if bitand.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_zero()).count() > 0 {
+    if bitand.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_zero()).count() > 0 {
         return TransformOutcome::transformed(expr::BitvecConst::zero(bitand.bitvec_ty))
     }
     // We need to mutate bitand perhaps.
     let mut bitand = bitand;
     // Remove all const bitvector child expressions that have all their bits set from this bit-and
     // as they are the bit-and neutral element and have no effect besides wasting memory.
-    if bitand.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
+    if bitand.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_all_set()).count() > 0 {
         bitand.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_all_set()));
         match bitand.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::all_set(bitand.bitvec_ty)),
@@ -308,14 +308,14 @@ fn simplify_bitand(bitand: expr::BitAnd) -> TransformOutcome {
 
 fn simplify_bitor(bitor: expr::BitOr) -> TransformOutcome {
     // If there exist a const all-set child expression the entire bit-or is all-set.
-    if bitor.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_set()).count() > 0 {
+    if bitor.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_all_set()).count() > 0 {
         return TransformOutcome::transformed(expr::BitvecConst::all_set(bitor.bitvec_ty))
     }
     // We need to mutate bitor perhaps.
     let mut bitor = bitor;
     // Remove all const bitvector child expressions that have all their bits unset from this bit-or
     // as they are the bit-or neutral element and have no effect besides wasting memory.
-    if bitor.children().filter_map(|c| c.get_if_bitvec_const()).filter(|c| c.is_all_unset()).count() > 0 {
+    if bitor.children().filter_map(AnyExpr::get_if_bitvec_const).filter(|c| c.is_all_unset()).count() > 0 {
         bitor.retain_children(|c| c.get_if_bitvec_const().map_or(true, |c| !c.is_all_unset()));
         match bitor.arity() {
             0 => return TransformOutcome::transformed(expr::BitvecConst::all_set(bitor.bitvec_ty)),

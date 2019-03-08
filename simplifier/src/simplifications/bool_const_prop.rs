@@ -77,7 +77,7 @@ impl Transformer for BoolConstPropagator {
         let (mut n_true, mut n_false) = (0, 0);
         bool_equals
             .children()
-            .filter_map(|c| c.get_if_bool_const())
+            .filter_map(AnyExpr::get_if_bool_const)
             .for_each(|b| if b { n_true += 1 } else { n_false += 1 } );
         // Return constant true if either all children are constant true or false.
         if n_true == bool_equals.arity() || n_false == bool_equals.arity() {

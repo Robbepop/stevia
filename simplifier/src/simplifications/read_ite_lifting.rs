@@ -16,7 +16,7 @@ pub struct ArrayReadIteLifter<'ctx> {
 
 impl<'ctx> From<&'ctx Context> for ArrayReadIteLifter<'ctx> {
     fn from(ctx: &'ctx Context) -> Self {
-        Self{ ctx: ctx }
+        Self{ ctx }
     }
 }
 
