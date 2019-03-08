@@ -1,7 +1,7 @@
 [package]
 name = "stevia_simplifier"
 version = "0.1.0" # remember to update html_root_url
-authors = ["Robbepop <robbepop@web.de>"]
+authors = ["Robin Freyler <robin.freyler@gmail.com>"]
 edition = "2018"
 
 license = "MIT/Apache-2.0"
