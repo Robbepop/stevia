@@ -3,7 +3,6 @@
 #![doc(html_root_url = "https://docs.rs/stevia_simplifier/0.1.0")]
 
 #![feature(box_patterns)]
-#![feature(nll)]
 
 // #![allow(missing_docs)]
 // #![allow(dead_code)]
