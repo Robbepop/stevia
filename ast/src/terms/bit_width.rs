@@ -38,7 +38,7 @@ impl BitWidth {
 	}
 
     /// Returns the raw `ApInt` bitwidth of this bit width.
-    pub fn raw_width(&self) -> apint::BitWidth {
+    pub fn raw_width(self) -> apint::BitWidth {
         self.0
     }
 }

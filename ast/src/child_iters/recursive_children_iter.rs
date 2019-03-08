@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use std::iter::Iterator;
 
 /// Iterate recursively over the given `AnyExpr` and all of its child expressions
 /// with an indicator whether the node was entered or left.
@@ -161,7 +162,7 @@ impl<'it> Iterator for RecursiveChildrenIter<'it> {
 			let guard = frame.guard();
 			self.next = self.frames
 				.last_mut()
-				.and_then(|c| c.next());
+				.and_then(Iterator::next);
 			return Some(AnyExprAndEvent::leaving(guard))
 		}
 		None

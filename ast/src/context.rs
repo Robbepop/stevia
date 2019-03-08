@@ -251,7 +251,7 @@ pub struct SymbolProxy {
 impl SymbolProxy {
     /// Creates a new symbol proxy for the given expression.
     pub(in self) fn new(expr: AnyExpr) -> Self {
-        Self{ expr: expr }
+        Self{ expr }
     }
 }
 

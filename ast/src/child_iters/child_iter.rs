@@ -15,7 +15,7 @@ impl<'p> ChildrenIter<'p> {
 	#[inline]
 	pub fn from_slice(children: &'p [AnyExpr]) -> Self {
 		ChildrenIter {
-			children: children.into_iter(),
+			children: children.iter(),
 		}
 	}
 }

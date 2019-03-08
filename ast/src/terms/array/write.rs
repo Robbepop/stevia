@@ -93,7 +93,7 @@ impl ArrayWriteChildren {
 	/// 1. `value`
 	pub fn as_children_array(&self) -> &[AnyExpr; 3] {
 		unsafe {
-			std::mem::transmute::<&Self, &[AnyExpr; 3]>(self)
+			&*(self as *const ArrayWriteChildren as *const [AnyExpr; 3])
 		}
 	}
 
@@ -108,7 +108,7 @@ impl ArrayWriteChildren {
 	/// 1. `value`
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 3] {
 		unsafe {
-			std::mem::transmute::<&mut Self, &mut [AnyExpr; 3]>(self)
+			&mut *(self as *mut ArrayWriteChildren as *mut [AnyExpr; 3])
 		}
 	}
 }

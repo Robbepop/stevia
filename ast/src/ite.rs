@@ -99,7 +99,7 @@ impl IfThenElseChildren {
 	/// 1. `else`
 	pub fn as_children_array(&self) -> &[AnyExpr; 3] {
 		unsafe {
-			std::mem::transmute::<&Self, &[AnyExpr; 3]>(self)
+			&*(self as *const IfThenElseChildren as *const [AnyExpr; 3])
 		}
 	}
 
@@ -114,7 +114,7 @@ impl IfThenElseChildren {
 	/// 1. `else`
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 3] {
 		unsafe {
-			std::mem::transmute::<&mut Self, &mut [AnyExpr; 3]>(self)
+			&mut *(self as *mut IfThenElseChildren as *mut [AnyExpr; 3])
 		}
 	}
 }

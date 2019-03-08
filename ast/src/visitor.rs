@@ -82,7 +82,7 @@ pub trait Visitor {
         match expr {
             IfThenElse(expr) => self.visit_cond(expr, event),
             Symbol(expr) => self.visit_var(expr, event),
-            BoolConst(expr) => self.visit_bool_const(expr, event),
+            BoolConst(expr) => self.visit_bool_const(*expr, event),
             BoolEquals(expr) => self.visit_bool_equals(expr, event),
             Not(expr) => self.visit_not(expr, event),
             And(expr) => self.visit_and(expr, event),
@@ -151,7 +151,7 @@ pub trait Visitor {
 
     fn visit_var(&mut self, _bool_var: &expr::Symbol, _: VisitEvent) {}
 
-    fn visit_bool_const(&mut self, _bool_const: &expr::BoolConst, _: VisitEvent) {}
+    fn visit_bool_const(&mut self, _bool_const: expr::BoolConst, _: VisitEvent) {}
 
     fn visit_bool_equals(&mut self, _bool_equals: &expr::BoolEquals, _: VisitEvent) {}
 

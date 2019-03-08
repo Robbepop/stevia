@@ -147,7 +147,7 @@ where
     {
         let children = children
 			.into_iter()
-			.map(|e| e.into())
+			.map(Into::into)
 			.collect::<Vec<_>>();
         debug_assert!(children.len() >= 2);
         debug_assert!(children.iter().all(|e| expect_type(Type::Bool, e).is_ok()));

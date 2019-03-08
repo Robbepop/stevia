@@ -44,7 +44,7 @@ impl BinaryChildren {
 	#[inline]
 	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
 		unsafe {
-			std::mem::transmute::<&Self, &[AnyExpr; 2]>(self)
+			&*(self as *const BinaryChildren as *const [AnyExpr; 2])
 		}
 	}
 
@@ -52,13 +52,13 @@ impl BinaryChildren {
 	#[inline]
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 2] {
 		unsafe {
-			std::mem::transmute::<&mut Self, &mut [AnyExpr; 2]>(self)
+			&mut *(self as *mut BinaryChildren as *mut [AnyExpr; 2])
 		}
 	}
 
 	/// Returns both children as vector of expressions.
 	#[inline]
-	fn into_vec(self: Box<Self>) -> Vec<AnyExpr> {
+	fn boxed_into_vec(self: Box<Self>) -> Vec<AnyExpr> {
 		let ptr = Box::into_raw(self) as *mut AnyExpr;
 		unsafe {
 			Vec::from_raw_parts(ptr, 2, 2)
@@ -83,7 +83,7 @@ impl ChildrenMut for BinaryChildren {
 impl IntoChildren for Box<BinaryChildren> {
 	#[inline]
 	fn into_children_vec(self) -> Vec<AnyExpr> {
-		self.into_vec()
+		self.boxed_into_vec()
 	}
 }
 

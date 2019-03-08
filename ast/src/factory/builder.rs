@@ -220,7 +220,7 @@ impl<F> ExprTreeBuilder<F>
     {
         let children = children
             .into_iter()
-            .map(|c| c.into_any_expr_or_error())
+            .map(IntoAnyExprOrError::into_any_expr_or_error)
             .collect::<ExprResult<Vec<AnyExpr>>>()?;
         constructor(&self.factory(), children)
     }

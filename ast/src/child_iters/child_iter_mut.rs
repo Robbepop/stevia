@@ -15,7 +15,7 @@ impl<'p> ChildrenIterMut<'p> {
 	#[inline]
 	pub fn from_slice(children: &'p mut [AnyExpr]) -> Self {
 		ChildrenIterMut {
-			children: children.into_iter(),
+			children: children.iter_mut(),
 		}
 	}
 }

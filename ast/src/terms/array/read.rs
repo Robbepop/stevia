@@ -81,7 +81,7 @@ impl ArrayReadChildren {
 	/// 1. `array_index`
 	pub fn as_children_array(&self) -> &[AnyExpr; 2] {
 		unsafe {
-			std::mem::transmute::<&Self, &[AnyExpr; 2]>(self)
+			&*(self as *const ArrayReadChildren as *const [AnyExpr; 2])
 		}
 	}
 
@@ -95,7 +95,7 @@ impl ArrayReadChildren {
 	/// 1. `array_index`
 	pub fn as_children_array_mut(&mut self) -> &mut [AnyExpr; 2] {
 		unsafe {
-			std::mem::transmute::<&mut Self, &mut [AnyExpr; 2]>(self)
+			&mut *(self as *mut ArrayReadChildren as *mut [AnyExpr; 2])
 		}
 	}
 }
