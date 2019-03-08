@@ -3,7 +3,7 @@
 /target/
 
 # Ignore benchmark build and test files.
-/stevia_ast/benches/target/
+/ast/benches/target/
 
 # Ignore backup files creates by cargo fmt.
 **/*.rs.bk
