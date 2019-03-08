@@ -29,7 +29,7 @@ pub struct LitPack {
 impl Drop for LitPack {
 	fn drop(&mut self) {
 		let len = self.len();
-		unsafe { self.signs.unalloc(len) }
+		unsafe { self.signs.promote_mut(len).unalloc() }
 	}
 }
 
@@ -123,17 +123,6 @@ impl LitPack {
 		let len = self.len();
 		unsafe { self.signs.promote_mut(len) }
 	}
-
-	// /// Returns an immutable slice over the underlying sign chunks.
-	// fn sign_chunk_slice(&self) -> &[BitBlock] {
-	// 	unsafe { self.signs.as_chunk_slice(self.len()) }
-	// }
-
-	// /// Returns a mutable slice over the underlying sign chunks.
-	// fn sign_chunk_slice_mut(&mut self) -> &mut [SignChunk] {
-	// 	let len = self.len();
-	// 	unsafe { self.signs.as_chunk_slice_mut(len) }
-	// }
 
 	/// Returns the sign of the n-th literal.
 	///
@@ -428,7 +417,7 @@ mod tests {
 		let mut lp2 = LitPack::new(1, 5).unwrap();
 		lp1.flip_all();
 		for i in 0..5 {
-			lp2.flip_at(i).unwrap()
+			lp2.flip_at(i).unwrap();
 		}
 		assert_eq!(lp1, lp2);
 	}

@@ -37,7 +37,7 @@ impl BitBlock {
 	/// If `n` is out of bounds.
 	pub fn get(self, n: usize) -> bool {
 		assert!(n < Self::BITS);
-		self.bits & (0x1 << (Self::BITS - n)) != 0
+		self.bits & (0x1 << (Self::BITS - n - 1)) != 0
 	}
 
 	/// Sets the n-th bit to the given value.
@@ -48,9 +48,9 @@ impl BitBlock {
 	pub fn set(&mut self, n: usize, val: bool) {
 		assert!(n < Self::BITS);
 		if val {
-			self.bits |= 0x1 << (Self::BITS - n)
+			self.bits |= 0x1 << (Self::BITS - n - 1)
 		} else {
-			self.bits &= !(0x1 << (Self::BITS - n))
+			self.bits &= !(0x1 << (Self::BITS - n - 1))
 		}
 	}
 
@@ -70,12 +70,20 @@ impl BitBlock {
 	/// If `n` is out of bounds.
 	pub fn flip(&mut self, n: usize) {
 		assert!(n < Self::BITS);
-		self.bits ^= 0x1 << (Self::BITS - n);
+		self.bits ^= 0x1 << (Self::BITS - n - 1);
 	}
 
 	/// Flips all bits.
 	pub fn flip_all(&mut self) {
 		self.bits ^= core::u64::MAX;
+	}
+
+	/// Retains only the first n bits.
+	///
+	/// Non retained bits are set to 0.
+	pub fn retain_first_n(&mut self, n: usize) {
+		assert!(n < Self::BITS);
+		self.bits &= core::u64::MAX.wrapping_shl((Self::BITS - n) as u32);
 	}
 }
 
@@ -191,8 +199,8 @@ impl ExternalBitPack {
 		} else {
 			BitBlock::zeros()
 		};
-		if Self::fits_inline(len) {
-			Ok(Self { inl: block_mask })
+		let mut bitset = if Self::fits_inline(len) {
+			Self { inl: block_mask }
 		} else {
 			let buffer_ptr = {
 				let req_blocks = 1 + (len / BitBlock::BITS);
@@ -201,19 +209,23 @@ impl ExternalBitPack {
 				Box::leak(buffer);
 				ptr
 			};
-			Ok(Self { ext: unsafe { core::ptr::NonNull::new_unchecked(buffer_ptr) } })
+			Self {
+				ext: unsafe { core::ptr::NonNull::new_unchecked(buffer_ptr) }
+			}
+		};
+		if init_val {
+			unsafe {
+				bitset.promote_mut(len).clear_unused_bits()
+			}
 		}
+		Ok(bitset)
 	}
 
 	/// Returns the block offset and index within a bit block for a given bit index.
 	fn block_idx_local_idx(bit_idx: usize) -> (usize, usize) {
-		if bit_idx == 0 {
-			(0, 0)
-		} else {
-			let block_idx = (bit_idx - 1) / BitBlock::BITS;
-			let block_bit = (bit_idx - 1) % BitBlock::BITS;
-			(block_idx, block_bit)
-		}
+		let block_idx = bit_idx.saturating_sub(1) / BitBlock::BITS;
+		let local_idx = bit_idx % BitBlock::BITS;
+		(block_idx, local_idx)
 	}
 
 	/// Returns the underlying bit blocks as immutable slice.
@@ -267,25 +279,6 @@ impl ExternalBitPack {
 	pub unsafe fn promote_mut(&mut self, len: usize) -> PromotedBitPackMut {
 		PromotedBitPackMut::new(len, self.block_slice_mut(len))
 	}
-
-	/// Deallocates potential allocations of `self`.
-	///
-	/// # Panics
-	///
-	/// If `len` is zero.
-	///
-	/// # Safety
-	///
-	/// This relies on the given length to be the exact same as
-	/// when constructing the external bit pack.
-	pub unsafe fn unalloc(&mut self, len: usize) {
-		assert!(len > 0);
-		if !Self::fits_inline(len) {
-			core::mem::drop(
-				Vec::from_raw_parts(self.ext.as_ptr(), len, len)
-			)
-		}
-	}
 }
 
 /// A promoted immutable bit pack that has a length information.
@@ -327,7 +320,7 @@ impl<'a> PromotedBitPack<'a> {
 }
 
 /// A promoted mutable bit pack that has a length information.
-#[derive(Debug, PartialEq, Eq, Hash)]
+#[derive(Debug, Hash)]
 pub struct PromotedBitPackMut<'a> {
 	/// The length in bits of the bit pack.
 	len: usize,
@@ -365,11 +358,29 @@ impl<'a> PromotedBitPackMut<'a> {
 			})
 	}
 
+	/// Returns the last bit block in `self`.
+	pub fn last_block_mut(&mut self) -> &mut BitBlock {
+		self.blocks
+			.last_mut()
+			.expect(
+				"since bitsets can never be empty we are \
+				 guaranteed to have at least one bit block; \
+				 qed"
+			)
+	}
+
+	/// Clears unused bits to upkeep invariants.
+	pub fn clear_unused_bits(&mut self) {
+		let bits_in_last = self.len % BitBlock::BITS;
+		self.last_block_mut().retain_first_n(bits_in_last);
+	}
+
 	/// Sets all bits to the given value.
 	pub fn set_all(&mut self, val: bool) {
 		for block in self.blocks.iter_mut() {
 			block.set_all(val)
 		}
+		self.clear_unused_bits();
 	}
 
 	/// Flips all bits.
@@ -377,10 +388,34 @@ impl<'a> PromotedBitPackMut<'a> {
 		for block in self.blocks.iter_mut() {
 			block.flip_all()
 		}
+		self.clear_unused_bits();
 	}
 
 	/// Copies the bits from the other promoted bit pack.
+	///
+	/// # Panics
+	///
+	/// If the bit lengths of `self` and `other` do not match.
 	pub fn copy_from(&mut self, other: PromotedBitPack) {
+		assert_eq!(self.len, other.len);
 		self.blocks.copy_from_slice(other.blocks)
+	}
+
+	/// Deallocates potential allocations of `self`.
+	///
+	/// # Panics
+	///
+	/// If `len` is zero.
+	///
+	/// # Safety
+	///
+	/// This relies on the given length to be the exact same as
+	/// when constructing the external bit pack.
+	pub unsafe fn unalloc(&mut self) {
+		if !ExternalBitPack::fits_inline(self.len) {
+			core::mem::drop(
+				Vec::from_raw_parts(self.blocks.as_mut_ptr(), self.len, self.len)
+			)
+		}
 	}
 }
