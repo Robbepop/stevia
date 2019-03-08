@@ -7,7 +7,6 @@
 // #![allow(missing_docs)]
 // #![allow(dead_code)]
 
-#[macro_use]
 extern crate stevia_ast as ast;
 
 extern crate apint;

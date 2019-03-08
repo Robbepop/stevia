@@ -185,10 +185,6 @@ impl<'c> Iterator for TokenIter<'c> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::lexer::error::{
-        LexerError,
-        LexerErrorKind,
-    };
 
     fn assert_input<I>(input: &str, expected_toks: I)
     where
@@ -203,27 +199,6 @@ mod tests {
         assert_eq!(actual_toks.len(), expected_toks.len());
         for (actual, expected) in actual_toks.into_iter().zip(expected_toks.into_iter()) {
             assert_eq!(actual, expected);
-        }
-    }
-
-    type RawResult = ::std::result::Result<TokenKind, LexerErrorKind>;
-
-    fn assert_raw_input<I>(input: &str, expected_toks: I)
-    where
-        I: IntoIterator<Item = (RawResult, (u32, u32))>,
-    {
-        let expected_toks = expected_toks.into_iter().map(|(raw, (begin, end))| {
-            let loc = Span::new(Loc::from(begin), Loc::from(end));
-            raw.map(|tok| Token::new(tok, loc))
-                .map_err(|err| LexerError::new(err, loc))
-        });
-        let mut actual_toks = scan_smtlib2(input);
-        for expected in expected_toks {
-            let actual = actual_toks.next_token().map_err(|mut err| {
-                err.clear_context();
-                err
-            });
-            assert_eq!(actual, expected)
         }
     }
 
