@@ -31,8 +31,11 @@ use crate::solver::{
     ResponseResult,
     SMTLib2Solver,
 };
-
-use std::marker::PhantomData;
+use std::{
+	convert::TryFrom,
+	str::FromStr,
+	marker::PhantomData,
+};
 
 pub fn parse_smtlib2_with_default_builder<'c, 's, S>(input: &'c str, solver: &'s mut S) -> ParseResult<()>
 where
@@ -85,7 +88,7 @@ impl<'c> ParseContent<'c> {
         if end_offset >= content_bytes.len() {
             return None;
         }
-        Some(&self.content[span.begin.to_usize()..span.end.to_usize() + 1])
+        Some(&self.content[span.begin.to_usize()..=span.end.to_usize()])
     }
 
     pub fn span_to_str_unchecked(&self, span: Span) -> &'c str {
@@ -94,7 +97,7 @@ impl<'c> ParseContent<'c> {
         debug_assert!(span.end.to_usize() < self.content.as_bytes().len());
         unsafe {
             self.content
-                .get_unchecked(span.begin.to_usize()..span.end.to_usize() + 1)
+                .get_unchecked(span.begin.to_usize()..=span.end.to_usize())
         }
     }
 }
@@ -328,7 +331,7 @@ where
         let peek_tok = self.parser.expect_tok_kind(TokenKind::Numeral)?;
         let peek_str = self.parser.input_str.span_to_str_unchecked(peek_tok.span());
         self.parser.consume();
-        builder.atom(Atom::from(Literal::from(Numeral::from_str(peek_str).unwrap())))?;
+        builder.atom(Atom::from(Literal::from(Numeral::try_from(peek_str).unwrap())))?;
         Ok(())
     }
 
@@ -564,7 +567,7 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(outch_tok.span());
-        let outch_ch = OutputChannel::from_str(outch_str);
+        let outch_ch = OutputChannel::from(outch_str);
 
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
@@ -590,7 +593,7 @@ where
             .parser
             .input_str
             .span_to_str_unchecked(numeral_tok.span());
-        let numeral_lit = Numeral::from_str(numeral_str)?;
+        let numeral_lit = Numeral::try_from(numeral_str)?;
         self.parser.expect_tok_kind(TokenKind::CloseParen)?;
 
         use self::OptionKind::*;
@@ -738,11 +741,11 @@ where
         Ok(())
     }
 
+	#[rustfmt::skip]
     fn parse_command(&mut self) -> ParseResult<()> {
         self.parser.expect_tok_kind(TokenKind::OpenParen)?;
         let command = self.parser.expect_command_tok()?;
         use self::Command::*;
-        #[cfg_attr(rustfmt, rustfmt_skip)]
         match command {
             // Simple commands that have no parameters.
             CheckSat            => self.parse_simple_command(CheckSat, S::check_sat),

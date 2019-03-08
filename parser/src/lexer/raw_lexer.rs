@@ -95,7 +95,7 @@ impl<'c> RawTokenIter<'c> {
         debug_assert!(span.end.to_usize() < self.input_str.as_bytes().len());
         unsafe {
             self.input_str
-                .get_unchecked(span.begin.to_usize()..span.end.to_usize() + 1)
+                .get_unchecked(span.begin.to_usize()..=span.end.to_usize())
         }
     }
 

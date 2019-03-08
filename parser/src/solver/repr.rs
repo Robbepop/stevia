@@ -304,13 +304,13 @@ pub enum OutputChannel<'c> {
     File(&'c std::path::Path),
 }
 
-impl<'c> OutputChannel<'c> {
+impl<'c> From<&'c str> for OutputChannel<'c> {
     /// Creates a new output channel from the given string identifier.
     /// 
     /// # Note
     /// 
     /// This fallbacks into a file output channel.
-    pub fn from_str(s: &str) -> OutputChannel {
+    fn from(s: &str) -> OutputChannel {
         use std::path::Path;
         match s {
             "stderr" => OutputChannel::Stderr,
@@ -380,18 +380,24 @@ pub enum ProblemCategory {
     Industrial,
 }
 
-impl ProblemCategory {
+/// Encountered when trying to parse an invalid problem category string.
+#[derive(Debug)]
+pub struct UnknownProblemCategory;
+
+impl FromStr for ProblemCategory {
+	type Err = UnknownProblemCategory;
+
     /// Creates a new problem category from the given string identifier.
     /// 
     /// # Errors
     /// 
     /// Results in an error upon an unknown input.
-    pub fn from_str(s: &str) -> Option<ProblemCategory> {
+    fn from_str(s: &str) -> std::result::Result<ProblemCategory, Self::Err> {
         match s {
-            "crafted" => Some(ProblemCategory::Crafted),
-            "random" => Some(ProblemCategory::Random),
-            "industrial" => Some(ProblemCategory::Industrial),
-            _ => None
+            "crafted" => Ok(ProblemCategory::Crafted),
+            "random" => Ok(ProblemCategory::Random),
+            "industrial" => Ok(ProblemCategory::Industrial),
+            _ => Err(UnknownProblemCategory),
         }
     }
 }
@@ -407,18 +413,24 @@ pub enum ProblemStatus {
     Unknown,
 }
 
-impl ProblemStatus {
+/// Encountered when trying to parse an invalid problem status string.
+#[derive(Debug)]
+pub struct UnknownProblemStatus;
+
+impl FromStr for ProblemStatus {
+	type Err = UnknownProblemStatus;
+
     /// Creates a new problem status from the given string identifier.
     /// 
     /// # Errors
     /// 
     /// Results in an error upon an unknown input.
-    pub fn from_str(s: &str) -> Option<ProblemStatus> {
+    fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
         match s {
-            "sat" => Some(ProblemStatus::Sat),
-            "unsat" => Some(ProblemStatus::Unsat),
-            "unknown" => Some(ProblemStatus::Unknown),
-            _ => None
+            "sat" => Ok(ProblemStatus::Sat),
+            "unsat" => Ok(ProblemStatus::Unsat),
+            "unknown" => Ok(ProblemStatus::Unknown),
+            _ => Err(UnknownProblemStatus),
         }
     }
 }

@@ -1,7 +1,8 @@
 use either::Either;
-
-use std;
-use std::iter::FromIterator;
+use std::{
+	convert::TryFrom,
+	iter::FromIterator,
+};
 
 /// An expression.
 ///
@@ -32,7 +33,7 @@ impl<'c> Expr<'c> {
     }
 
     pub fn numeral(content: &'c str) -> NumeralResult<Self> {
-        Ok(Expr::from(Atom::from(Literal::from(Numeral::from_str(content)?))))
+        Ok(Expr::from(Atom::from(Literal::from(Numeral::try_from(content)?))))
     }
 
     pub fn decimal(content: &'c str) -> DecimalResult<Self> {
@@ -348,17 +349,15 @@ impl std::error::Error for NumeralError {
 /// Convenient wrapper around `NumeralError`.
 pub type NumeralResult<T> = std::result::Result<T, NumeralError>;
 
-impl<'c> Numeral<'c> {
-    fn new(radix: Radix, repr: &'c str) -> Self {
-        Numeral { radix, repr }
-    }
+impl<'c> std::convert::TryFrom<&'c str> for Numeral<'c> {
+	type Error = NumeralError;
 
     /// Creates a new numeral string slice.
     ///
     /// # Errors
     ///
     /// If the given input does not match the expected format.
-    pub(crate) fn from_str(repr: &'c str) -> NumeralResult<Self> {
+	fn try_from(repr: &'c str) -> std::result::Result<Self, Self::Error> {
         if repr.is_empty() {
             return Err(NumeralError::EmptyRepresentation);
         }
@@ -386,6 +385,12 @@ impl<'c> Numeral<'c> {
             return Err(NumeralError::InvalidDigit);
         }
         Ok(Numeral::new(radix, raw_repr))
+	}
+}
+
+impl<'c> Numeral<'c> {
+    fn new(radix: Radix, repr: &'c str) -> Self {
+        Numeral { radix, repr }
     }
 
     /// Returns the value of this numeral.
@@ -443,28 +448,15 @@ impl std::error::Error for DecimalError {
 
 pub type DecimalResult<T> = std::result::Result<T, DecimalError>;
 
-impl<'c> Decimal<'c> {
-    /// Creates a new decimal literal from the given string slice.
-    ///
-    /// # Safety
-    ///
-    /// This does not check integrity of the input.
-    pub unsafe fn from_str_unchecked(repr: &'c str) -> Self {
-        {
-            let mut split = repr.split('.');
-            debug_assert!(split.next().unwrap().chars().all(|c: char| c.is_digit(10)));
-            debug_assert!(split.next().unwrap().chars().all(|c: char| c.is_digit(10)));
-            debug_assert_eq!(split.next(), None);
-        }
-        Self { repr }
-    }
+impl<'c> std::convert::TryFrom<&'c str> for Decimal<'c> {
+	type Error = DecimalError;
 
     /// Creates a new decimal literal from the given string slice.
     ///
     /// # Errors
     ///
     /// If the given input does not match the expected format.
-    pub fn from_str(repr: &'c str) -> DecimalResult<Self> {
+    fn try_from(repr: &'c str) -> std::result::Result<Self, DecimalError> {
         if repr.len() < 3 {
             return Err(DecimalError::InvalidLength);
         }
@@ -482,11 +474,28 @@ impl<'c> Decimal<'c> {
                     return Err(DecimalError::InvalidDigit);
                 },
             }
-            if let Some(_) = split.next() {
+            if split.next().is_some() {
                 return Err(DecimalError::InvalidFormat);
             }
         }
         Ok(Self { repr })
+    }
+}
+
+impl<'c> Decimal<'c> {
+    /// Creates a new decimal literal from the given string slice.
+    ///
+    /// # Safety
+    ///
+    /// This does not check integrity of the input.
+    pub unsafe fn from_str_unchecked(repr: &'c str) -> Self {
+        {
+            let mut split = repr.split('.');
+            debug_assert!(split.next().unwrap().chars().all(|c: char| c.is_digit(10)));
+            debug_assert!(split.next().unwrap().chars().all(|c: char| c.is_digit(10)));
+            debug_assert_eq!(split.next(), None);
+        }
+        Self { repr }
     }
 
     /// Returns the string representation of this decimal literal.
@@ -682,7 +691,7 @@ impl<'s> ExprBuilder<'s> for DefaultExprBuilder<'s> {
                 Ok(Expr::Atom(atom))
             }
             DefaultExprBuilderState::SExpr(builder) => {
-                builder.finalize().map(|s_expr| Expr::SExpr(s_expr))
+                builder.finalize().map(Expr::SExpr)
             }
         }
     }
