@@ -1,8 +1,12 @@
 use crate::prelude::*;
-
-use std::error;
-use std::fmt;
-use std::result;
+use stevia_bitvec::{
+	BitvecError,
+};
+use std::{
+	error,
+	fmt,
+	result,
+};
 
 /// An error context providing metadata context error information.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

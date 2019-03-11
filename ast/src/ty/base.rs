@@ -1,5 +1,4 @@
-use crate::BitWidth;
-use apint;
+use stevia_bitvec::BitWidth;
 
 /// All types that have a `Type` or represent a `Type` should
 /// implement this trait.
@@ -161,13 +160,6 @@ impl From<BitWidth> for BitvecTy {
 	/// Converts the given `BitWidth` to a `BitvecTy`.
 	fn from(width: BitWidth) -> BitvecTy {
 		BitvecTy(width)
-	}
-}
-
-impl From<apint::BitWidth> for BitvecTy {
-	/// Converts the given `apint::BitWidth` to a `BitvecTy`.
-	fn from(width: apint::BitWidth) -> BitvecTy {
-		BitvecTy::from(width.to_usize())
 	}
 }
 

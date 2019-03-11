@@ -126,7 +126,6 @@ pub use self::{
         NaryBoolExpr
     },
     terms::{
-        BitWidth,
         BinTermExpr,
         NaryTermExpr,
         AnyExtendExpr,
@@ -136,9 +135,6 @@ pub use self::{
         CastError,
         CastErrorKind,
         CastResult,
-        Bitvec,
-        BitvecError,
-        BitvecResult
     },
     any_expr::{
         AnyExpr,

@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use stevia_bitvec::Bitvec;
 
 /// Utility trait to transform `AnyExpr` or `Box<AnyExpr>` into `Box<AnyExpr>` and
 /// without unboxing the input in the `Box<AnyExpr>` case.

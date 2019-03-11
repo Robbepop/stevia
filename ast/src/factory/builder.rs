@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use stevia_bitvec::BitWidth;
 
 /// Utility trait to be implemented by `AnyExpr` and `ExprResult<AnyExpr>`
 /// in order to allow for functions generically taking both types as input.

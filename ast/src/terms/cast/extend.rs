@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use crate::ExprMarker;
+use stevia_bitvec::BitWidth;
 
 use std::marker::PhantomData;
 

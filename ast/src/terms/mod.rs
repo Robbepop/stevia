@@ -1,6 +1,5 @@
 mod binexpr;
 mod nary_expr;
-mod bit_width;
 mod arithmetic;
 mod bitwise;
 mod cmp_expr;
@@ -9,14 +8,6 @@ mod shift;
 mod cast;
 mod array;
 mod bitvec;
-
-pub use self::{
-    bitvec::{
-        Bitvec,
-        BitvecError,
-        BitvecResult
-    }
-};
 
 pub mod prelude {
     pub use super::{
@@ -29,7 +20,6 @@ pub mod prelude {
         ArrayReadChildren,
         AnyExtendExpr,
 
-        BitWidth,
         BitvecConst,
         Neg,
         Add,
@@ -72,7 +62,6 @@ pub mod prelude {
 
 pub use self::binexpr::prelude::*;
 pub use self::nary_expr::prelude::*;
-pub use self::bit_width::prelude::*;
 pub use self::arithmetic::prelude::*;
 pub use self::bitwise::prelude::*;
 pub use self::cmp_expr::prelude::*;

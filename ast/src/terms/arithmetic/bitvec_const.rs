@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use stevia_bitvec::Bitvec;
 
 pub mod prelude {
     pub use super::BitvecConst;

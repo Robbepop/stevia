@@ -77,7 +77,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
     }
 
     /// Writes the given boolean constant expression into the buffer.
-    fn write_bool_const(&mut self, bool_const: &expr::BoolConst) {
+    fn write_bool_const(&mut self, bool_const: expr::BoolConst) {
         self.write(format!("{}", bool_const.val))
     }
 
@@ -108,15 +108,15 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
                 self.write(
                     format!("({} (_ Bitvec {}))",
                         self.ctx.assoc(var.id),
-                        bv_ty.width().raw_width().to_usize())
+                        bv_ty.width().len_bits())
                     )
             }
             Type::Array(array_ty) => {
                 self.write(
                     format!("({} (_ Bitvec {}) (_ Bitvec {}))",
                         self.ctx.assoc(var.id),
-                        array_ty.index_ty().width().raw_width().to_usize(),
-                        array_ty.value_ty().width().raw_width().to_usize()
+                        array_ty.index_ty().width().len_bits(),
+                        array_ty.value_ty().width().len_bits()
                     )
                 )
             }
@@ -130,7 +130,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
         use crate::AnyExpr::*;
         self.write(" ");
         match expr {
-            BoolConst(bool_const) => return self.write_bool_const(bool_const),
+            BoolConst(bool_const) => return self.write_bool_const(*bool_const),
             BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
             Symbol(symbol)        => return self.write_var(symbol),
             expr => {
@@ -153,7 +153,7 @@ impl<'ctx, 'out> SMTLibWriter<'ctx, 'out> {
         self.write_ident();
         use crate::AnyExpr::*;
         match expr {
-            BoolConst(bool_const) => return self.write_bool_const(bool_const),
+            BoolConst(bool_const) => return self.write_bool_const(*bool_const),
             BitvecConst(bv_const) => return self.write_bitvec_const(bv_const),
             Symbol(symbol)        => return self.write_var(symbol),
             expr => {

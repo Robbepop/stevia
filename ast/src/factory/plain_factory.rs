@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use stevia_bitvec::BitWidth;
 
 /// An expression tree builder for plain expression tree construction.
 pub type PlainExprTreeBuilder = ExprTreeBuilder<PlainExprTreeFactory>;
