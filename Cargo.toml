@@ -2,6 +2,7 @@
 members = [
     "ast",
     "ast/benches",
+    "bitvec",
     "simplifier",
     "bitblaster",
     "parser"
