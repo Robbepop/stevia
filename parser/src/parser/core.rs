@@ -76,6 +76,7 @@ impl<'c> From<&'c str> for ParseContent<'c> {
 }
 
 impl<'c> ParseContent<'c> {
+    #[allow(unused)]
     pub fn span_to_str(&self, span: Span) -> Option<&'c str> {
         debug_assert!(!self.content.as_bytes().is_empty());
 
