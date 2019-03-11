@@ -1,0 +1,34 @@
+[package]
+name = "stevia_bitvec"
+version = "0.1.0" # remember to update html_root_url
+authors = ["Robin Freyler <robin.freyler@gmail.com>"]
+edition = "2018"
+
+license = "MIT/Apache-2.0"
+readme = "README.md"
+description = "Bitvector data structure for the theories of fixed width bitvectors. (SMT-Lib 2.0)"
+
+repository = "https://github.com/robbepop/stevia"
+# documentation = "https://docs.rs/stevia"
+# homepage =
+
+keywords   = ["smt", "solver", "formal methods", "bitvector", "bv"]
+categories = ["science", "data structure"]
+# exclude    = [ "benches/*" ]
+
+include = ["Cargo.toml", "src/**/*.rs", "README.md", "LICENSE-APACHE", "LICENSE-MIT"]
+
+[lib]
+name = "stevia_bitvec"
+
+[dependencies]
+apint = "0.2"
+# smallvec = "0.6"
+# string-interner = "0.7"
+# vec_map = "0.8"
+# log = "0.4"
+# indoc = "0.2"
+
+[badges]
+travis-ci = { repository = "Robbepop/stevia" }
+appveyor = { repository = "Robbepop/stevia", branch = "master", service = "github" }
