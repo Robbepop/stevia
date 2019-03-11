@@ -5,16 +5,6 @@ use crate::{
 	BitWidth,
 };
 
-// TODO: API Changes
-//
-//  add:
-//    - is_even
-//    - is_odd
-//    - bvcomp
-//    - rotate_left
-//    - rotate_right
-//    - repeat
-
 /// Represents a bitvector in the sense of the SMT theory of bitvectors.
 ///
 /// These are used to represent constant bitvector values.
