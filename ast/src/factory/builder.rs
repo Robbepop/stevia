@@ -1,4 +1,10 @@
-use crate::prelude::*;
+use crate::{
+	expr,
+	AnyExpr,
+	ExprResult,
+	BitvecTy,
+	ArrayTy,
+};
 use stevia_bitvec::BitWidth;
 
 /// Utility trait to be implemented by `AnyExpr` and `ExprResult<AnyExpr>`

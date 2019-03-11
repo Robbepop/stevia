@@ -1,4 +1,17 @@
-use crate::prelude::*;
+use crate::{
+	expr,
+	AnyExpr,
+	ExprResult,
+	ExprTreeBuilder,
+	ExprTreeFactory,
+	Context,
+	ArcContext,
+	Type,
+	BitvecTy,
+	ArrayTy,
+	ExprError,
+	expect_type,
+};
 use stevia_bitvec::BitWidth;
 
 /// An expression tree builder for plain expression tree construction.
