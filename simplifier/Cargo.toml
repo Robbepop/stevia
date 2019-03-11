@@ -25,7 +25,8 @@ apint = "0.2"
 itertools = "0.7"
 either = "1.5"
 log = "0.4"
-stevia_ast = { version = "0.1.0", path = "../ast" }
+stevia_ast = { version = "0.1", path = "../ast" }
+stevia_bitvec = { version = "0.1", path = "../bitvec" }
 
 [badges]
 travis-ci = { repository = "Robbepop/stevia" }

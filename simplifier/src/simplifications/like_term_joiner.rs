@@ -1,9 +1,11 @@
-use crate::ast::prelude::*;
-
 use crate::simplifications::Normalizer;
-
-use std::collections::{HashSet, HashMap};
-use std::collections::hash_map::Entry;
+use ast::prelude::*;
+use stevia_bitvec::Bitvec;
+use std::collections::{
+	HashSet,
+	HashMap,
+	hash_map::Entry,
+};
 
 modular_ast_transformer! {
     /// This simplification identifies and joins like-terms in additive expressions.
@@ -136,7 +138,7 @@ fn collect_like_terms(add: expr::Add) -> HashMap<AnyExpr, Bitvec> {
         match like_terms.entry(expr) {
             Entry::Occupied(mut occupied) => {
                 occupied.get_mut()
-                        .add_mut(&occurence)
+                        .bvadd_mut(&occurence)
                         .unwrap();
             }
             Entry::Vacant(vacant) => {
@@ -176,7 +178,7 @@ fn simplify_add(add: expr::Add) -> TransformOutcome {
             if occurence.is_one() {
                 return expr
             }
-            if occurence.is_all_set() {
+            if occurence.is_minus_one() {
                 return expr::Neg::new(expr).unwrap().into()
             }
             expr::Mul::binary(
