@@ -1,3 +1,5 @@
+//! Types and utilities arround types.
+
 mod base;
 mod assert;
 mod error;

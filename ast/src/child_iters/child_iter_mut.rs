@@ -1,5 +1,6 @@
-use crate::AnyExpr;
-
+use crate::{
+    AnyExpr,
+};
 use std::slice;
 
 /// Iterator over mutable child expressions.
@@ -46,7 +47,7 @@ impl<'p> ExactSizeIterator for ChildrenIterMut<'p> {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{expr, BitvecTy, PlainExprTreeBuilder, ChildrenMut};
+	use crate::{expr, ty::BitvecTy, PlainExprTreeBuilder, ChildrenMut};
 
 	#[test]
 	fn none() {

@@ -1,4 +1,10 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        HasType as _,
+        Type,
+    },
+};
 
 use string_interner::{
     StringInterner,

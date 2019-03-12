@@ -1,5 +1,13 @@
-use crate::prelude::*;
-
+use crate::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+        expect_common_bitvec_ty,
+        expect_common_bitvec_ty_n,
+        HasType,
+        Type,
+    },
+};
 use std::cmp::Ordering;
 
 /// Re-exports all commonly used items of this module.

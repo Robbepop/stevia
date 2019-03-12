@@ -1,8 +1,12 @@
-use crate::ast::prelude::*;
-
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        HasType as _,
+        BitvecTy,
+    },
+};
 use apint::{ShiftAmount};
 use either::Either;
-
 use itertools::Itertools;
 
 /// This simplification procedure propagates constant values through boolean expressions.

@@ -1,4 +1,13 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        ArrayTy,
+        expect_array_ty,
+        expect_type,
+        HasType,
+        Type,
+    },
+};
 
 pub mod prelude {
     pub use super::ArrayWrite;

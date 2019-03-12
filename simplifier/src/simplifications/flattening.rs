@@ -1,5 +1,9 @@
-use crate::ast::prelude::*;
-
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+    },
+};
 use either::Either;
 use itertools::Itertools;
 

@@ -1,4 +1,9 @@
-use crate::ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+    },
+};
 
 /// Resolves double negations into their equivalent forms without negation.
 /// 

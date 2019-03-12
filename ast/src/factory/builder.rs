@@ -2,8 +2,10 @@ use crate::{
 	expr,
 	AnyExpr,
 	ExprResult,
-	BitvecTy,
-	ArrayTy,
+	ty::{
+        BitvecTy,
+	    ArrayTy,
+    },
 };
 use stevia_bitvec::BitWidth;
 

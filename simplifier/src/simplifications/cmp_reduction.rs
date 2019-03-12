@@ -1,4 +1,9 @@
-use crate::ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+    },
+};
 
 /// Reduces this `SignedGreaterEquals` to using less-than as only comparison.
 fn reduce_sge_to_slt(sge: expr::SignedGreaterEquals) -> expr::Not {

@@ -1,8 +1,16 @@
 use crate::prelude::*;
-use crate::ExprMarker;
-
-use std::marker::PhantomData;
-use std::cmp::Ordering;
+use crate::{
+    ExprMarker,
+    ty::{
+        expect_type,
+        Type,
+        HasType,
+    },
+};
+use std::{
+    marker::PhantomData,
+    cmp::Ordering,
+};
 
 pub mod prelude {
     pub use super::NaryBoolExpr;

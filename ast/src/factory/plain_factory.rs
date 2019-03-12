@@ -6,11 +6,13 @@ use crate::{
 	ExprTreeFactory,
 	Context,
 	ArcContext,
-	Type,
-	BitvecTy,
-	ArrayTy,
 	ExprError,
-	expect_type,
+    ty::{
+        Type,
+        BitvecTy,
+        ArrayTy,
+        expect_type,
+    },
 };
 use stevia_bitvec::BitWidth;
 

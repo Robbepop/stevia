@@ -1,4 +1,13 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        Type,
+        BitvecTy,
+        expect_array_ty,
+        expect_type,
+        HasType,
+    },
+};
 
 pub mod prelude {
     pub use super::{ArrayRead, ArrayReadChildren};

@@ -1,8 +1,18 @@
-use crate::prelude::*;
-use crate::ExprMarker;
-
-use std::marker::PhantomData;
-use std::cmp::Ordering;
+use crate::{
+    prelude::*,
+    ExprMarker,
+    ty::{
+        BitvecTy,
+        expect_common_bitvec_ty,
+        expect_common_bitvec_ty_n,
+        HasType,
+        Type,
+    },
+};
+use std::{
+    marker::PhantomData,
+    cmp::Ordering,
+};
 
 /// Re-exports all commonly used items of this module.
 pub mod prelude {

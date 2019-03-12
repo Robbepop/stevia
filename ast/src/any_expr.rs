@@ -1,4 +1,10 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        HasType,
+        Type,
+    },
+};
 use stevia_bitvec::Bitvec;
 
 /// Utility trait to transform `AnyExpr` or `Box<AnyExpr>` into `Box<AnyExpr>` and

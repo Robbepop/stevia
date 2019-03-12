@@ -1,4 +1,6 @@
-use crate::ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+};
 
 /// This simplification procedure propagates constant values through boolean expressions.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]

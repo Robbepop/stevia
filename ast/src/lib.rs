@@ -29,7 +29,7 @@ mod formulas;
 mod ite;
 mod symbol;
 mod terms;
-mod ty;
+pub mod ty;
 mod visitor;
 mod consistency_checker;
 mod writer;
@@ -65,25 +65,25 @@ pub use self::{
         ExprErrorKind,
         ExprResult
     },
-    ty::{
-        HasType,
-        ArrayTy,
-        BitvecTy,
-        Type,
-        TypeKind,
+    // ty::{
+    //     HasType,
+    //     ArrayTy,
+    //     BitvecTy,
+    //     Type,
+    //     TypeKind,
 
-        TypeError,
-        TypeErrorKind,
-        TypeResult,
+    //     TypeError,
+    //     TypeErrorKind,
+    //     TypeResult,
 
-        expect_common_ty,
-        expect_array_ty,
-        expect_bitvec_ty,
-        expect_type,
-        expect_common_bitvec_ty,
-        expect_common_bitvec_ty_n,
+    //     expect_common_ty,
+    //     expect_array_ty,
+    //     expect_bitvec_ty,
+    //     expect_type,
+    //     expect_common_bitvec_ty,
+    //     expect_common_bitvec_ty_n,
 
-    },
+    // },
     visitor::{
         VisitEvent,
         RecursiveTraverseVisitor,

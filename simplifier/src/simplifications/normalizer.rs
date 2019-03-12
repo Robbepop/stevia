@@ -1,7 +1,10 @@
-use crate::ast::prelude::*;
-
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+    },
+};
 use itertools::Itertools;
-
 use std::cmp::Ordering;
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]

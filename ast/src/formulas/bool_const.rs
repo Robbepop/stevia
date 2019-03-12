@@ -1,5 +1,10 @@
 use crate::prelude::*;
-
+use crate::{
+    ty::{
+        HasType,
+        Type,
+    },
+};
 pub mod prelude {
     pub use super::{
         BoolConst

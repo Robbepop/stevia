@@ -1,4 +1,7 @@
-use crate::ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+    ty::BitvecTy,
+};
 use crate::simplifications;
 
 pub mod prelude {

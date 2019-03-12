@@ -1,5 +1,6 @@
-use crate::ast::prelude::*;
-
+use stevia_ast::{
+    prelude::*,
+};
 use itertools::Itertools;
 
 /// This simplification procedure dissolves symbolic tautologies or contradictions

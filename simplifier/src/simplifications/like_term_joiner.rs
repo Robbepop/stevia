@@ -1,5 +1,10 @@
 use crate::simplifications::Normalizer;
-use ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+    },
+};
 use stevia_bitvec::Bitvec;
 use std::collections::{
 	HashSet,

@@ -1,4 +1,12 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        expect_bitvec_ty,
+        BitvecTy,
+        HasType,
+        Type,
+    },
+};
 
 /// Binary concatenate term expression.
 ///

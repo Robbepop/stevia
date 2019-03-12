@@ -1,4 +1,11 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        Type,
+        HasType,
+        BitvecTy,
+    },
+};
 use stevia_bitvec::Bitvec;
 
 pub mod prelude {

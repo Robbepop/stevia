@@ -7,8 +7,6 @@
 // #![allow(missing_docs)]
 // #![allow(dead_code)]
 
-extern crate stevia_ast as ast;
-
 extern crate apint;
 extern crate itertools;
 extern crate either;

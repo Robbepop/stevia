@@ -1,5 +1,10 @@
-use crate::prelude::*;
-
+use crate::{
+    prelude::*,
+    ty::{
+        Type,
+        HasType,
+    },
+};
 use std::fmt;
 
 /// Symbol ID (identificator).

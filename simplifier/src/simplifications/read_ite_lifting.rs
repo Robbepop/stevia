@@ -1,4 +1,10 @@
-use crate::ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        ArrayTy,
+        BitvecTy,
+    },
+};
 
 /// Lifts if-then-else expressions that are childs of array-reads and have
 /// an array-write child themself.

@@ -1,7 +1,14 @@
-use crate::prelude::*;
-use crate::ExprMarker;
+use crate::{
+    prelude::*,
+    ty::{
+        expect_bitvec_ty,
+        BitvecTy,
+        HasType,
+        Type,
+    },
+    ExprMarker,
+};
 use stevia_bitvec::BitWidth;
-
 use std::marker::PhantomData;
 
 /// Any extend expression.

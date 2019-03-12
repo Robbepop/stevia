@@ -1,4 +1,10 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        HasType as _,
+        TypeKind,
+    },
+};
 
 /// An event attached to visiting an expression.
 /// 

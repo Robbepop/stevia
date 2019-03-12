@@ -1,6 +1,13 @@
-use crate::prelude::*;
-use crate::ExprMarker;
-
+use crate::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+        expect_common_bitvec_ty,
+        HasType,
+        Type,
+    },
+    ExprMarker,
+};
 use std::marker::PhantomData;
 
 pub mod prelude {

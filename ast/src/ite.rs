@@ -1,4 +1,12 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        expect_type,
+        expect_common_ty,
+        HasType,
+        Type,
+    },
+};
 
 /// The If-Then-Else expression.
 /// 

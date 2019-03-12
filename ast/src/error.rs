@@ -1,4 +1,11 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        Type,
+        TypeError,
+        HasType,
+    },
+};
 use stevia_bitvec::{
 	BitvecError,
 };

@@ -1,4 +1,14 @@
-use crate::prelude::*;
+use crate::{
+    ty::{
+        TypeResult,
+        Type,
+        HasType,
+        TypeError,
+        ArrayTy,
+        TypeKind,
+        BitvecTy,
+    },
+};
 
 /// Checks if the given typed params share the same type.
 ///
@@ -14,9 +24,9 @@ where
     T1: HasType,
     T2: HasType
 {
-    use self::Type::*;
+    use self::Type::{Bitvec, Array};
     match (lhs.ty(), rhs.ty()) {
-        (Bool, Bool) => Ok(Bool),
+        (Type::Bool, Type::Bool) => Ok(Type::Bool),
         (Bitvec(b1), Bitvec(b2)) if b1 == b2 => Ok(Bitvec(b1)),
         (Array(a1), Array(a2)) if a1 == a2 => Ok(Array(a1)),
         _ => Err(TypeError::type_mismatch(lhs.ty(), rhs.ty()))

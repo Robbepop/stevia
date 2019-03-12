@@ -1,8 +1,15 @@
-use crate::prelude::*;
-
-use std::error;
-use std::fmt;
-use std::result;
+use crate::{
+    ty::{
+        TypeKind,
+        Type,
+        HasType,
+    },
+};
+use std::{
+    error,
+    fmt,
+    result,
+};
 
 /// A special `Result` type where the error part is always a type error.
 pub type TypeResult<T> = result::Result<T, TypeError>;

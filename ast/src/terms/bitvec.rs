@@ -1,5 +1,14 @@
-use crate::prelude::*;
-use stevia_bitvec::{Bitvec, BitWidth};
+use crate::{
+    ty::{
+        BitvecTy,
+        HasType,
+        Type,
+    },
+};
+use stevia_bitvec::{
+    Bitvec,
+    BitWidth,
+};
 
 impl HasType for BitWidth {
 	fn ty(&self) -> Type {

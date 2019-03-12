@@ -1,4 +1,15 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        expect_array_ty,
+        expect_type,
+        Type,
+        expect_bitvec_ty,
+        BitvecTy,
+        expect_common_ty,
+        HasType as _,
+    },
+};
 
 pub trait AssertConsistency {
     /// Asserts the consistency of `self`.
@@ -424,6 +435,7 @@ mod tests {
 
     mod symbol {
         use super::*;
+        use crate::ty::ArrayTy;
 
         #[test]
         fn ok() {

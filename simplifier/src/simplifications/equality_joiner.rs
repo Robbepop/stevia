@@ -1,7 +1,7 @@
-use crate::ast::prelude::*;
-
+use stevia_ast::{
+    prelude::*,
+};
 use std::collections::HashSet;
-
 use either::Either;
 use itertools::Itertools;
 
@@ -100,6 +100,7 @@ impl Transformer for EqualityJoiner {
 mod tests {
     use super::*;
     use crate::prelude::*;
+    use stevia_ast::ty::BitvecTy;
 
     type EqualityJoinerSimplifier = BaseSimplifier<EqualityJoiner>;
 

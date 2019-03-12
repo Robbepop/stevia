@@ -1,4 +1,12 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        BitvecTy,
+        expect_bitvec_ty,
+        HasType,
+        Type,
+    },
+};
 
 pub mod prelude {
     pub use super::{

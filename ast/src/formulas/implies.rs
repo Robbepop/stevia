@@ -1,5 +1,6 @@
-use crate::prelude::*;
-
+use crate::{
+    BinBoolExpr,
+};
 pub mod prelude {
     pub use super::{
         Implies

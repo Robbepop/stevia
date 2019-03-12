@@ -20,7 +20,9 @@ pub mod prelude {
     };
 }
 
-pub use self::binexpr::prelude::*;
+pub use self::binexpr::{
+    BinBoolExpr,
+};
 pub use self::nary_expr::prelude::*;
 pub use self::bool_const::prelude::*;
 pub use self::bool_equals::prelude::*;

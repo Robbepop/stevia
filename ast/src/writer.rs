@@ -1,4 +1,10 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        Type,
+        HasType as _,
+    },
+};
 
 use std::fmt;
 
@@ -238,6 +244,10 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ty::{
+        BitvecTy,
+        ArrayTy,
+    };
 
     fn new_context_and_builder() -> (ArcContext, PlainExprTreeBuilder) {
         let ctx = Context::arced();

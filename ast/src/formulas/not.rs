@@ -1,4 +1,11 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    ty::{
+        expect_type,
+        Type,
+        HasType,
+    },
+};
 
 pub mod prelude {
     pub use super::Not;

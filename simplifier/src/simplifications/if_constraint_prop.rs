@@ -1,5 +1,10 @@
-use crate::ast::prelude::*;
-
+use stevia_ast::{
+    prelude::*,
+    ty::{
+        Type,
+        HasType as _,
+    },
+};
 use std::collections::HashMap;
 
 /// The If-Constraint-Propagator memorizes condition expressions of If-Then-Else constructs

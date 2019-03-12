@@ -1,4 +1,7 @@
-use crate::ast::prelude::*;
+use stevia_ast::{
+    prelude::*,
+    ty::BitvecTy,
+};
 
 /// This simplification procedure propagates constant values through term expressions.
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, Hash)]
