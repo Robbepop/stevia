@@ -5,17 +5,6 @@
 // #![allow(missing_docs)]
 // #![allow(dead_code)]
 
-extern crate apint;
-extern crate smallvec;
-extern crate string_interner;
-extern crate vec_map;
-
-#[macro_use]
-extern crate log;
-
-#[macro_use]
-extern crate indoc;
-
 mod any_expr;
 mod arity;
 mod bin_children;
@@ -42,6 +31,8 @@ use std::fmt;
 /// An abstraction over an indirection to an entitiy `T`.
 pub type P<T> = Box<T>;
 
+/// A simple marker to mark expression types as such
+/// and provide them with an expression kind.
 pub trait ExprMarker: fmt::Debug + Copy + Clone + PartialEq + Eq {
     /// The static kind of the expression.
     const EXPR_KIND: ExprKind;
@@ -65,11 +56,6 @@ pub use self::{
         ExprErrorKind,
         ExprResult
     },
-    // visitor::{
-    //     VisitEvent,
-    //     RecursiveTraverseVisitor,
-    //     Visitor
-    // },
 	unit_child::{
 		UnaryChild
 	},
@@ -79,23 +65,6 @@ pub use self::{
     ite::{
         IfThenElseChildren
     },
-    // child_iters::{
-    //     ChildrenIter,
-    //     ChildrenIterMut,
-    //     IntoChildrenIter,
-
-    //     Children,
-    //     ChildrenMut,
-    //     IntoChildren,
-
-    //     YieldEvent,
-    //     AnyExprAndEvent,
-    //     RecursiveChildrenIter,
-
-    //     children_recursive_with_event,
-    //     children_recursive_entering,
-    //     children_recursive_leaving
-    // },
     factory::{
         IntoAnyExprOrError,
         ExprTreeFactory,

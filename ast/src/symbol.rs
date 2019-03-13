@@ -169,11 +169,12 @@ impl<'ctx> ContextAnd<'ctx, Symbol> {
         if let SymbolId::Named(named) = self.entity.id {
             return match self.ctx.interner.resolve_symbol(named) {
                 None => {
-                    error!(
+                    log::error!(
                         target: "symbol_resolve_name",
                         "Encountered missing name in context for named symbol: {:?}",
                         self.entity
                     );
+                    use indoc::{indoc, indoc_impl};
                     unreachable!(indoc!(
                         "\
                         Encountered missing name in context for a named symbol:
@@ -199,11 +200,12 @@ impl<'ctx> ContextAnd<'ctx, Symbol> {
         if let SymbolId::Named(named) = self.entity.id {
             return match self.ctx.symbol_types.get(named) {
                 None => {
-                    error!(
+                    log::error!(
                         target: "symbol_resolve_type",
                         "Encountered missing type in context for named symbol: {:?}",
                         self.entity
                     );
+                    use indoc::{indoc, indoc_impl};
                     unreachable!(indoc!(
                         "\
                         Encountered missing type in context for a named symbol:

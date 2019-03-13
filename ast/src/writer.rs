@@ -248,6 +248,7 @@ mod tests {
         BitvecTy,
         ArrayTy,
     };
+    use indoc::{indoc, indoc_impl};
 
     fn new_context_and_builder() -> (ArcContext, PlainExprTreeBuilder) {
         let ctx = Context::arced();
