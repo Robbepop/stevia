@@ -3,6 +3,9 @@ use stevia_ast::{
     ty::{
         BitvecTy,
     },
+    iter::{
+        IntoChildren,
+    },
 };
 
 /// Resolves double negations into their equivalent forms without negation.

@@ -3,6 +3,10 @@ use stevia_ast::{
     ty::{
         BitvecTy,
     },
+    iter::{
+        Children,
+        IntoChildren,
+    },
 };
 use itertools::Itertools;
 use std::cmp::Ordering;

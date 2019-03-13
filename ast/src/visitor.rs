@@ -4,6 +4,7 @@ use crate::{
         HasType as _,
         TypeKind,
     },
+    iter::Children,
 };
 
 /// An event attached to visiting an expression.

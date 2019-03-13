@@ -6,6 +6,11 @@ use crate::{
         HasType,
         Type,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 
 /// The If-Then-Else expression.

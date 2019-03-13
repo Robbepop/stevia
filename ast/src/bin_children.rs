@@ -1,4 +1,11 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
+};
 
 /// Utility struct to allow storing child expressions of binary expressions
 /// continuously in memory while having a name `lhs` and `rhs` to refer to them

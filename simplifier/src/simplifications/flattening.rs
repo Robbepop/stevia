@@ -3,6 +3,10 @@ use stevia_ast::{
     ty::{
         BitvecTy,
     },
+    iter::{
+        Children,
+        IntoChildren,
+    },
 };
 use either::Either;
 use itertools::Itertools;

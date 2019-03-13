@@ -5,6 +5,11 @@ use crate::{
         Type,
         HasType,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 
 pub mod prelude {

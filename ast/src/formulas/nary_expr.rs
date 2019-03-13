@@ -6,6 +6,11 @@ use crate::{
         Type,
         HasType,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 use std::{
     marker::PhantomData,
@@ -171,22 +176,12 @@ where
 
 impl<M> Children for NaryBoolExpr<M> {
 	#[inline]
-    fn children(&self) -> ChildrenIter {
-        ChildrenIter::from_slice(&self.children)
-    }
-
-	#[inline]
 	fn children_slice(&self) -> &[AnyExpr] {
 		&self.children
 	}
 }
 
 impl<M> ChildrenMut for NaryBoolExpr<M> {
-	#[inline]
-    fn children_mut(&mut self) -> ChildrenIterMut {
-        ChildrenIterMut::from_slice(&mut self.children)
-    }
-
 	#[inline]
 	fn children_slice_mut(&mut self) -> &mut [AnyExpr] {
 		&mut self.children

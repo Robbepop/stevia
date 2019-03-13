@@ -1,4 +1,10 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    iter::{
+        Children,
+        ChildrenIter,
+    },
+};
 use std::iter::Iterator;
 
 /// Iterate recursively over the given `AnyExpr` and all of its child expressions

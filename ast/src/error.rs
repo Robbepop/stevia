@@ -5,6 +5,7 @@ use crate::{
         TypeError,
         HasType,
     },
+    iter::Children,
 };
 use stevia_bitvec::{
 	BitvecError,

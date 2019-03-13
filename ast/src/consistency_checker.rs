@@ -9,6 +9,11 @@ use crate::{
         expect_common_ty,
         HasType as _,
     },
+    iter::{
+        RecursiveTraverseVisitor,
+        Visitor,
+        VisitEvent,
+    },
 };
 
 pub trait AssertConsistency {

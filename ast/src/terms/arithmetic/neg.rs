@@ -6,6 +6,11 @@ use crate::{
         Type,
         expect_bitvec_ty,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 
 pub mod prelude {

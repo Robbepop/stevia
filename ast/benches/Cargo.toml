@@ -2,6 +2,7 @@
 name = "stevia_ast_benches"
 version = "0.1.0" # remember to update html_root_url
 authors = ["Robin Freyler <robin.freyler@gmail.com>"]
+edition = "2018"
 
 license = "MIT/Apache-2.0"
 readme = "README.md"

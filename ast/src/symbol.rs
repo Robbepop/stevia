@@ -4,6 +4,11 @@ use crate::{
         Type,
         HasType,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 use std::fmt;
 

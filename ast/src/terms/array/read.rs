@@ -7,6 +7,11 @@ use crate::{
         expect_type,
         HasType,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 
 pub mod prelude {

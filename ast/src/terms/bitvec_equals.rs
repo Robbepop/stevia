@@ -7,6 +7,11 @@ use crate::{
         HasType,
         Type,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 use std::cmp::Ordering;
 

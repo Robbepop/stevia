@@ -4,6 +4,10 @@ use stevia_ast::{
         HasType as _,
         BitvecTy,
     },
+    iter::{
+        Children,
+        IntoChildren,
+    },
 };
 use apint::{ShiftAmount};
 use either::Either;

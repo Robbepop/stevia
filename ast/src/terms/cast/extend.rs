@@ -6,6 +6,11 @@ use crate::{
         HasType,
         Type,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
     ExprMarker,
 };
 use stevia_bitvec::BitWidth;

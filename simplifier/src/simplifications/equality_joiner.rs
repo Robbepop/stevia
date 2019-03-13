@@ -1,5 +1,9 @@
 use stevia_ast::{
     prelude::*,
+    iter::{
+        Children,
+        IntoChildren,
+    },
 };
 use std::collections::HashSet;
 use either::Either;

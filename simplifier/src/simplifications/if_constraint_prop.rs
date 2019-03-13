@@ -4,6 +4,7 @@ use stevia_ast::{
         Type,
         HasType as _,
     },
+    iter::ChildrenMut,
 };
 use std::collections::HashMap;
 

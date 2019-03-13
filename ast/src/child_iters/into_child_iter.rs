@@ -1,4 +1,4 @@
-use crate::{AnyExpr, IntoChildren};
+use crate::{AnyExpr, iter::IntoChildren};
 
 /// Iterator over the children of an expression.
 ///
@@ -49,7 +49,7 @@ impl ExactSizeIterator for IntoChildrenIter {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{expr, IntoChildren, PlainExprTreeBuilder, ty::BitvecTy};
+	use crate::{expr, iter::IntoChildren, PlainExprTreeBuilder, ty::BitvecTy};
 
 	#[test]
 	fn none() {

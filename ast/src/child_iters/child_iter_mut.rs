@@ -47,7 +47,7 @@ impl<'p> ExactSizeIterator for ChildrenIterMut<'p> {}
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{expr, ty::BitvecTy, PlainExprTreeBuilder, ChildrenMut};
+	use crate::{expr, ty::BitvecTy, PlainExprTreeBuilder, iter::ChildrenMut};
 
 	#[test]
 	fn none() {

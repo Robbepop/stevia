@@ -1,5 +1,9 @@
 use stevia_ast::{
     prelude::*,
+    iter::{
+        Children,
+        IntoChildren,
+    },
 };
 
 /// This simplification procedure propagates constant values through boolean expressions.

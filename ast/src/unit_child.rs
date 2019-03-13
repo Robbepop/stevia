@@ -1,9 +1,11 @@
 use crate::{
 	AnyExpr,
-	Children,
-	ChildrenMut,
-	IntoChildren,
 	HasArity,
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 
 /// Utility struct to allow storing child expressions of binary expressions

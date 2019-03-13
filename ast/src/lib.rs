@@ -65,30 +65,11 @@ pub use self::{
         ExprErrorKind,
         ExprResult
     },
-    // ty::{
-    //     HasType,
-    //     ArrayTy,
-    //     BitvecTy,
-    //     Type,
-    //     TypeKind,
-
-    //     TypeError,
-    //     TypeErrorKind,
-    //     TypeResult,
-
-    //     expect_common_ty,
-    //     expect_array_ty,
-    //     expect_bitvec_ty,
-    //     expect_type,
-    //     expect_common_bitvec_ty,
-    //     expect_common_bitvec_ty_n,
-
+    // visitor::{
+    //     VisitEvent,
+    //     RecursiveTraverseVisitor,
+    //     Visitor
     // },
-    visitor::{
-        VisitEvent,
-        RecursiveTraverseVisitor,
-        Visitor
-    },
 	unit_child::{
 		UnaryChild
 	},
@@ -98,23 +79,23 @@ pub use self::{
     ite::{
         IfThenElseChildren
     },
-    child_iters::{
-        ChildrenIter,
-        ChildrenIterMut,
-        IntoChildrenIter,
+    // child_iters::{
+    //     ChildrenIter,
+    //     ChildrenIterMut,
+    //     IntoChildrenIter,
 
-        Children,
-        ChildrenMut,
-        IntoChildren,
+    //     Children,
+    //     ChildrenMut,
+    //     IntoChildren,
 
-        YieldEvent,
-        AnyExprAndEvent,
-        RecursiveChildrenIter,
+    //     YieldEvent,
+    //     AnyExprAndEvent,
+    //     RecursiveChildrenIter,
 
-        children_recursive_with_event,
-        children_recursive_entering,
-        children_recursive_leaving
-    },
+    //     children_recursive_with_event,
+    //     children_recursive_entering,
+    //     children_recursive_leaving
+    // },
     factory::{
         IntoAnyExprOrError,
         ExprTreeFactory,
@@ -178,6 +159,34 @@ pub use self::{
         write_smtlib2
     }
 };
+
+/// Facilities to iterate over portions of stevia expressions.
+pub mod iter {
+    pub use super::{
+        visitor::{
+            VisitEvent,
+            RecursiveTraverseVisitor,
+            Visitor
+        },
+        child_iters::{
+            ChildrenIter,
+            ChildrenIterMut,
+            IntoChildrenIter,
+
+            Children,
+            ChildrenMut,
+            IntoChildren,
+
+            YieldEvent,
+            AnyExprAndEvent,
+            RecursiveChildrenIter,
+
+            children_recursive_with_event,
+            children_recursive_entering,
+            children_recursive_leaving
+        },
+    };
+}
 
 /// Re-exports all expression types.
 pub mod expr {

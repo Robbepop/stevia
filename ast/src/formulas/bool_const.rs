@@ -1,8 +1,13 @@
-use crate::prelude::*;
 use crate::{
+    prelude::*,
     ty::{
         HasType,
         Type,
+    },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
     },
 };
 pub mod prelude {

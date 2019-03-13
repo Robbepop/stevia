@@ -1,6 +1,4 @@
-use crate::{
-    prelude::*,
-};
+use crate::iter::Children;
 
 /// Types that implement this trait can be queried for their arity.
 /// 
@@ -62,7 +60,11 @@ pub fn exceeds_recursive_arity<T>(min_arity: usize, expr: &T) -> bool
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ty::BitvecTy;
+    use crate::{
+        AnyExpr,
+        PlainExprTreeBuilder,
+        ty::BitvecTy,
+    };
 
     fn dummy_expr_with_arity_1() -> AnyExpr {
         let b = PlainExprTreeBuilder::default();

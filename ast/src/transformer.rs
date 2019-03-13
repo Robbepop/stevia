@@ -1,4 +1,9 @@
-use crate::prelude::*;
+use crate::{
+    prelude::*,
+    iter::{
+        ChildrenMut,
+    },
+};
 
 use std::mem;
 use std::ops::BitOrAssign;

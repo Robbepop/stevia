@@ -4,6 +4,10 @@ use stevia_ast::{
     ty::{
         BitvecTy,
     },
+    iter::{
+        Children,
+        IntoChildren,
+    },
 };
 use stevia_bitvec::Bitvec;
 use std::collections::{

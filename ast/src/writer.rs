@@ -4,8 +4,8 @@ use crate::{
         Type,
         HasType as _,
     },
+    iter::Children,
 };
-
 use std::fmt;
 
 /// Writes the given expression tree into the given writer in the SMTLib2 syntax format.

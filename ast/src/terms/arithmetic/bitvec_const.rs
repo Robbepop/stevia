@@ -5,6 +5,11 @@ use crate::{
         HasType,
         BitvecTy,
     },
+    iter::{
+        Children,
+        ChildrenMut,
+        IntoChildren,
+    },
 };
 use stevia_bitvec::Bitvec;
 
