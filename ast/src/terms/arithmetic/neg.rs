@@ -99,9 +99,7 @@ impl HasArity for Neg {
     }
 }
 
-impl UnaryExpr for Neg {}
-
-impl SingleChild for Neg {
+impl UnaryExpr for Neg {
     fn single_child(&self) -> &AnyExpr {
         &*self.child
     }

@@ -94,9 +94,7 @@ impl HasArity for BitNot {
     }
 }
 
-impl UnaryExpr for BitNot {}
-
-impl SingleChild for BitNot {
+impl UnaryExpr for BitNot {
     fn single_child(&self) -> &AnyExpr {
         &*self.child
     }

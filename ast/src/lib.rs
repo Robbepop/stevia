@@ -78,7 +78,6 @@ pub use self::{
         BoolExpr,
         WrapWithNot,
         UnaryExpr,
-        SingleChild,
         NaryExpr,
         DedupChildren,
         SortChildren,

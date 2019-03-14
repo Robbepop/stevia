@@ -1,14 +1,17 @@
 //! Utilities to transform a stevia expression tree.
 
 use crate::{
-    prelude::*,
+    AnyExpr,
+    Context,
+    expr,
     iter::{
         ChildrenMut,
     },
 };
-
-use std::mem;
-use std::ops::BitOrAssign;
+use std::{
+    mem,
+    ops::BitOrAssign,
+};
 
 /// Describes whether the result of a transformation actually transformed
 /// the input or did nothing to it.

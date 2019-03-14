@@ -104,9 +104,7 @@ impl HasArity for Not {
     }
 }
 
-impl UnaryExpr for Not {}
-
-impl SingleChild for Not {
+impl UnaryExpr for Not {
     fn single_child(&self) -> &AnyExpr {
         &*self.child
     }

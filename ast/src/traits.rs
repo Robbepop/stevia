@@ -26,11 +26,8 @@ impl<T> WrapWithNot for T where T: BoolExpr + IntoBoxedAnyExpr {
     }
 }
 
-/// Marker trait to mark unary expressions.
-pub trait UnaryExpr: SingleChild {}
-
 /// Types implementing this trait allow to query or take their single child expression.
-pub trait SingleChild {
+pub trait UnaryExpr {
     /// Returns a shared reference to the only child expression.
     fn single_child(&self) -> &AnyExpr;
     /// Returns a mutable reference to the only child expression.
@@ -54,7 +51,8 @@ pub trait BinaryExpr {
 /// Marker trait to mark n-ary expressions.
 pub trait NaryExpr:
     DedupChildren +
-    SortChildren
+    SortChildren +
+    RetainChildren
 {}
 
 /// Types implementing this trait allow to deduplicate their child expressions.
