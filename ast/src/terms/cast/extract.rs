@@ -1,5 +1,13 @@
 use crate::{
-    prelude::*,
+    P,
+    AnyExpr,
+    ExprResult,
+    IntoBoxedAnyExpr,
+    ExprError,
+    CastError,
+    HasKind,
+    ExprKind,
+    HasArity,
     ty::{
         expect_bitvec_ty,
         BitvecTy,

@@ -1,5 +1,5 @@
 use crate::{
-    prelude::*,
+    AnyExpr,
     iter::{
         Children,
         ChildrenIter,
@@ -178,6 +178,7 @@ impl<'it> Iterator for RecursiveChildrenIter<'it> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::PlainExprTreeBuilder;
 
     #[test]
     fn simple() {

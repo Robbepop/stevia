@@ -1,5 +1,6 @@
 use crate::{
-    prelude::*,
+    expr,
+    HasKind as _,
     ty::BitvecTy,
     expr::utils::AnyExtendExpr,
 };

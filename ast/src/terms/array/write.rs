@@ -1,5 +1,11 @@
 use crate::{
-    prelude::*,
+    AnyExpr,
+    ExprResult,
+    HasKind,
+    ExprKind,
+    HasArity,
+    ExprError,
+    P,
     ty::{
         ArrayTy,
         expect_array_ty,

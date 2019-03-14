@@ -1,5 +1,11 @@
 use crate::{
-    prelude::*,
+    AnyExpr,
+    ExprResult,
+    ExprError,
+    HasKind,
+    ExprKind,
+    HasArity,
+    P,
     ty::{
         Type,
         BitvecTy,
