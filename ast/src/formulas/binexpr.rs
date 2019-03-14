@@ -1,6 +1,6 @@
 use crate::{
     AnyExpr,
-    BinaryChildren,
+    expr::utils::BinaryChildren,
     ExprMarker,
     ExprResult,
     ExprError,

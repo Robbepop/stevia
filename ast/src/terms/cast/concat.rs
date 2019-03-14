@@ -6,6 +6,7 @@ use crate::{
         HasType,
         Type,
     },
+    expr::utils::BinaryChildren,
     iter::{
         Children,
         ChildrenMut,

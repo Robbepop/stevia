@@ -1,10 +1,4 @@
-use crate::prelude::*;
-
-pub mod prelude {
-    pub use super::{
-        LogicalShiftRight
-    };
-}
+use crate::expr::utils::BinTermExpr;
 
 mod marker {
     use crate::prelude::*;

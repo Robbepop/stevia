@@ -13,10 +13,6 @@ use crate::{
 };
 use stevia_bitvec::Bitvec;
 
-pub mod prelude {
-    pub use super::BitvecConst;
-}
-
 /// A constant bitvec term expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct BitvecConst {

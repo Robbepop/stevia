@@ -1,11 +1,4 @@
-use crate::prelude::*;
-
-/// Re-exports all commonly used items of this module.
-pub mod prelude {
-    pub use super::{
-        BitAnd
-    };
-}
+use crate::expr::utils::NaryTermExpr;
 
 mod marker {
     use crate::prelude::*;

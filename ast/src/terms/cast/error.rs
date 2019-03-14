@@ -1,6 +1,7 @@
 use crate::{
     prelude::*,
     ty::BitvecTy,
+    expr::utils::AnyExtendExpr,
 };
 use std::{
     error,

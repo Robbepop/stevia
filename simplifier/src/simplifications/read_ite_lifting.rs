@@ -4,6 +4,7 @@ use stevia_ast::{
         ArrayTy,
         BitvecTy,
     },
+    expr::utils::ArrayReadChildren,
     transformer::{
         AutoImplAnyExprTransformer,
         TransformOutcome,

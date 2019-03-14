@@ -9,6 +9,15 @@ use crate::{
         expect_common_ty,
         HasType as _,
     },
+    expr::utils::{
+        ExtendExpr,
+        AnyExtendExpr,
+        BinBoolExpr,
+        BinTermExpr,
+        NaryBoolExpr,
+        NaryTermExpr,
+        ComparisonExpr,
+    },
     iter::{
         RecursiveTraverseVisitor,
         Visitor,

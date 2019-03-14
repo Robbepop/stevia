@@ -10,11 +10,6 @@ use crate::{
         IntoChildren,
     },
 };
-pub mod prelude {
-    pub use super::{
-        BoolConst
-    };
-}
 
 /// A constant boolean expression.
 /// 

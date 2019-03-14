@@ -1,6 +1,5 @@
-use crate::{
-    BinBoolExpr,
-};
+use crate::expr::utils::BinBoolExpr;
+
 pub mod prelude {
     pub use super::{
         Xor

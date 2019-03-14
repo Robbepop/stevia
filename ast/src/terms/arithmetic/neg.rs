@@ -13,10 +13,6 @@ use crate::{
     },
 };
 
-pub mod prelude {
-    pub use super::Neg;
-}
-
 /// The arithmetic negation term expression.
 ///
 /// This negate the inner term expression.

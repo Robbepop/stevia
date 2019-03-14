@@ -20,14 +20,12 @@ pub mod prelude {
     };
 }
 
-pub use self::binexpr::{
-    BinBoolExpr,
-};
-pub use self::nary_expr::prelude::*;
-pub use self::bool_const::prelude::*;
-pub use self::bool_equals::prelude::*;
-pub use self::not::prelude::*;
-pub use self::and::prelude::*;
-pub use self::or::prelude::*;
-pub use self::xor::prelude::*;
-pub use self::implies::prelude::*;
+pub use self::binexpr::BinBoolExpr;
+pub use self::nary_expr::NaryBoolExpr;
+pub use self::bool_const::BoolConst;
+pub use self::bool_equals::BoolEquals;
+pub use self::not::Not;
+pub use self::and::And;
+pub use self::or::Or;
+pub use self::xor::Xor;
+pub use self::implies::Implies;

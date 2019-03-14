@@ -3,6 +3,7 @@ use stevia_ast::{
     iter::{
         Children,
     },
+    expr::utils::IfThenElseChildren,
     transformer::{
         AutoImplAnyExprTransformer,
         TransformOutcome,

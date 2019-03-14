@@ -17,10 +17,6 @@ use std::{
     cmp::Ordering,
 };
 
-pub mod prelude {
-    pub use super::NaryBoolExpr;
-}
-
 /// Generic n-ary formula expression.
 ///
 /// Used by concrete n-ary formula expressions as base template.

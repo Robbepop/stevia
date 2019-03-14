@@ -56,32 +56,13 @@ pub use self::{
         ExprErrorKind,
         ExprResult
     },
-	unit_child::{
-		UnaryChild
-	},
-    bin_children::{
-        BinaryChildren
-    },
-    ite::{
-        IfThenElseChildren
-    },
     factory::{
         IntoAnyExprOrError,
         ExprTreeFactory,
         ExprTreeBuilder,
         PlainExprTreeBuilder
     },
-    formulas::{
-        BinBoolExpr,
-        NaryBoolExpr
-    },
     terms::{
-        BinTermExpr,
-        NaryTermExpr,
-        AnyExtendExpr,
-        ExtendExpr,
-        ComparisonExpr,
-        ArrayReadChildren,
         CastError,
         CastErrorKind,
         CastResult,
@@ -149,6 +130,33 @@ pub mod iter {
 
 /// Re-exports all expression types.
 pub mod expr {
+    /// Utility data structures for expressions.
+    pub mod utils {
+        pub use super::super::{
+            unit_child::{
+                UnaryChild
+            },
+            bin_children::{
+                BinaryChildren
+            },
+            ite::{
+                IfThenElseChildren
+            },
+            formulas::{
+                BinBoolExpr,
+                NaryBoolExpr
+            },
+            terms::{
+                BinTermExpr,
+                NaryTermExpr,
+                AnyExtendExpr,
+                ExtendExpr,
+                ComparisonExpr,
+                ArrayReadChildren,
+            },
+        };
+    }
+
     pub use super::{
         ite::{
             IfThenElse

@@ -13,12 +13,6 @@ use crate::{
     },
 };
 
-pub mod prelude {
-    pub use super::{
-        BitNot
-    };
-}
-
 /// The bitwise not term expression.
 /// 
 /// This flips all bits of the inner term expression.

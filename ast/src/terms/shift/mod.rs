@@ -10,6 +10,6 @@ pub mod prelude {
     };
 }
 
-pub use self::shift_left::prelude::*;
-pub use self::logical_shift_right::prelude::*;
-pub use self::arithmetic_shift_right::prelude::*;
+pub use self::shift_left::ShiftLeft;
+pub use self::logical_shift_right::LogicalShiftRight;
+pub use self::arithmetic_shift_right::ArithmeticShiftRight;

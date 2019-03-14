@@ -1,11 +1,4 @@
-use crate::{
-    BinBoolExpr,
-};
-pub mod prelude {
-    pub use super::{
-        Implies
-    };
-}
+use crate::expr::utils::BinBoolExpr;
 
 mod marker {
     use crate::prelude::*;

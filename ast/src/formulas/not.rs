@@ -12,10 +12,6 @@ use crate::{
     },
 };
 
-pub mod prelude {
-    pub use super::Not;
-}
-
 /// The logical Not formula expression.
 ///
 /// This negate the inner boolean expression.

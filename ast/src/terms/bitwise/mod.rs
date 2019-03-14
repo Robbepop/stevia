@@ -12,7 +12,7 @@ pub mod prelude {
     };
 }
 
-pub use self::bitnot::prelude::*;
-pub use self::bitand::prelude::*;
-pub use self::bitor::prelude::*;
-pub use self::bitxor::prelude::*;
+pub use self::bitnot::BitNot;
+pub use self::bitand::BitAnd;
+pub use self::bitor::BitOr;
+pub use self::bitxor::BitXor;

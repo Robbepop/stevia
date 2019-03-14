@@ -8,6 +8,7 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    expr::utils::BinaryChildren,
     transformer::{
         AutoImplAnyExprTransformer,
         TransformOutcome,

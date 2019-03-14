@@ -1,10 +1,4 @@
-use crate::prelude::*;
-
-pub mod prelude {
-    pub use super::{
-        BoolEquals
-    };
-}
+use crate::expr::utils::NaryBoolExpr;
 
 mod marker {
     use crate::prelude::*;
