@@ -3,6 +3,12 @@ use stevia_ast::{
     ty::{
         BitvecTy,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 
 /// Reduces this `SignedGreaterEquals` to using less-than as only comparison.

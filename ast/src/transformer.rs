@@ -1,3 +1,5 @@
+//! Utilities to transform a stevia expression tree.
+
 use crate::{
     prelude::*,
     iter::{
@@ -554,6 +556,11 @@ impl<T> TraverseTransformer<T>
     }
 }
 
+/// Builds a complex expression tree transformer out of a combination of other transformers.
+///
+/// # Note
+///
+/// Users can use this recursively to build up combined transformer of combined transformers.
 #[macro_export]
 macro_rules! modular_ast_transformer {
     ($(#[$attr:meta])* struct $name:ident { $($trans_id:ident: $trans_ty:ty),+ } ) => {
@@ -563,25 +570,25 @@ macro_rules! modular_ast_transformer {
             $($trans_id: $trans_ty),*
         }
 
-        impl<'ctx> From<&'ctx Context> for $name {
-            fn from(ctx: &'ctx Context) -> Self {
+        impl<'ctx> From<&'ctx $crate::Context> for $name {
+            fn from(ctx: &'ctx $crate::Context) -> Self {
                 Self{
                     $($trans_id: ctx.into()),*
                 }
             }
         }
 
-        impl AnyExprTransformer for $name {
-            fn transform_any_expr(&self, expr: &mut AnyExpr, event: TransformEvent) -> TransformEffect {
-                let mut result = TransformEffect::Identity;
+        impl $crate::transformer::AnyExprTransformer for $name {
+            fn transform_any_expr(&self, expr: &mut $crate::AnyExpr, event: $crate::transformer::TransformEvent) -> $crate::transformer::TransformEffect {
+                let mut result = $crate::transformer::TransformEffect::Identity;
                 $(result |= self.$trans_id.transform_any_expr(expr, event));*;
                 result
             }
 
-            fn transform_any_expr_into(&self, expr: AnyExpr, event: TransformEvent) -> TransformOutcome {
+            fn transform_any_expr_into(&self, expr: $crate::AnyExpr, event: $crate::transformer::TransformEvent) -> $crate::transformer::TransformOutcome {
                 let mut expr = expr;
                 let result = self.transform_any_expr(&mut expr, event);
-                TransformOutcome::new(result, expr)
+                $crate::transformer::TransformOutcome::new(result, expr)
             }
         }
     }

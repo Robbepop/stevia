@@ -6,6 +6,12 @@ use stevia_ast::{
     iter::{
         IntoChildren,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 
 /// Resolves double negations into their equivalent forms without negation.

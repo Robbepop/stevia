@@ -4,6 +4,12 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 use std::collections::HashSet;
 use either::Either;

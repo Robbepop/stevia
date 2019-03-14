@@ -5,6 +5,12 @@ use stevia_ast::{
         HasType as _,
     },
     iter::ChildrenMut,
+    transformer::{
+        AnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        TransformEvent,
+    },
 };
 use std::collections::HashMap;
 

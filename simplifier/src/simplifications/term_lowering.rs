@@ -1,6 +1,12 @@
 use stevia_ast::{
     prelude::*,
     ty::BitvecTy,
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 
 /// This simplification procedure propagates constant values through term expressions.

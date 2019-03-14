@@ -7,6 +7,12 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 use either::Either;
 use itertools::Itertools;

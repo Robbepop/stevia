@@ -3,6 +3,12 @@ use stevia_ast::{
     iter::{
         Children,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 use itertools::Itertools;
 

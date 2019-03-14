@@ -8,6 +8,13 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    modular_ast_transformer,
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 use stevia_bitvec::Bitvec;
 use std::collections::{

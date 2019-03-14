@@ -7,6 +7,12 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 use itertools::Itertools;
 use std::cmp::Ordering;

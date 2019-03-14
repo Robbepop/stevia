@@ -4,6 +4,12 @@ use stevia_ast::{
         ArrayTy,
         BitvecTy,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 
 /// Lifts if-then-else expressions that are childs of array-reads and have

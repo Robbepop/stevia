@@ -8,6 +8,12 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 use apint::{ShiftAmount};
 use either::Either;

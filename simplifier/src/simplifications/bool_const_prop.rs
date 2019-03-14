@@ -4,6 +4,12 @@ use stevia_ast::{
         Children,
         IntoChildren,
     },
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 
 /// This simplification procedure propagates constant values through boolean expressions.

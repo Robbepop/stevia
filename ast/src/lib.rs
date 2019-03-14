@@ -24,7 +24,7 @@ mod consistency_checker;
 mod writer;
 
 #[macro_use]
-mod transformer;
+pub mod transformer;
 
 use std::fmt;
 
@@ -108,16 +108,6 @@ pub use self::{
         HasArity,
         recursive_arity,
         exceeds_recursive_arity
-    },
-    transformer::{
-        TransformEffect,
-        Transformer,
-        TransformEvent,
-        TransformOutcome,
-        AnyExprTransformer,
-        AutoImplAnyExprTransformer,
-        TraverseTransformer,
-        forward_transform_any_expr_into
     },
     symbol::{
         SymbolId,

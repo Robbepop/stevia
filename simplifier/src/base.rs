@@ -1,6 +1,12 @@
 use stevia_ast::{
     prelude::*,
     ty::BitvecTy,
+    modular_ast_transformer,
+    transformer::{
+        TraverseTransformer,
+        AnyExprTransformer,
+        TransformEffect,
+    },
 };
 use crate::simplifications;
 

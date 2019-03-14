@@ -1,5 +1,11 @@
 use stevia_ast::{
     prelude::*,
+    transformer::{
+        AutoImplAnyExprTransformer,
+        TransformOutcome,
+        TransformEffect,
+        Transformer,
+    },
 };
 
 /// This simplification procedure propagates constant values through boolean expressions.
