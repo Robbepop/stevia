@@ -18,6 +18,7 @@ pub mod prelude {
         BinTermExpr,
         NaryTermExpr,
         ArrayReadChildren,
+        ArrayWriteChildren,
         AnyExtendExpr,
 
         BitvecConst,

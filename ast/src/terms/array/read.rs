@@ -14,10 +14,6 @@ use crate::{
     },
 };
 
-pub mod prelude {
-    pub use super::{ArrayRead, ArrayReadChildren};
-}
-
 /// Array read-from-index expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayRead {

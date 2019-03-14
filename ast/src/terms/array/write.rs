@@ -14,10 +14,6 @@ use crate::{
     },
 };
 
-pub mod prelude {
-    pub use super::ArrayWrite;
-}
-
 /// Array write-at-index expression.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct ArrayWrite {

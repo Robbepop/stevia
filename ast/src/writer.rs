@@ -1,5 +1,10 @@
 use crate::{
-    prelude::*,
+    Context,
+    AnyExpr,
+    HasArity,
+    exceeds_recursive_arity,
+    expr,
+    HasKind,
     ty::{
         Type,
         HasType as _,
@@ -244,9 +249,14 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ty::{
-        BitvecTy,
-        ArrayTy,
+    use crate::{
+        ty::{
+            BitvecTy,
+            ArrayTy,
+        },
+        ArcContext,
+        PlainExprTreeBuilder,
+        IntoAnyExprOrError,
     };
     use indoc::{indoc, indoc_impl};
 

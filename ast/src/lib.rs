@@ -153,6 +153,7 @@ pub mod expr {
                 ExtendExpr,
                 ComparisonExpr,
                 ArrayReadChildren,
+                ArrayWriteChildren,
             },
         };
     }

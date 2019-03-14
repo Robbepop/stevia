@@ -1,14 +1,7 @@
 use crate::expr::utils::BinBoolExpr;
 
-pub mod prelude {
-    pub use super::{
-        Xor
-    };
-}
-
 mod marker {
-    use crate::prelude::*;
-    use crate::ExprMarker;
+    use crate::{ExprKind, ExprMarker};
 
     #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
     pub struct XorMarker;
