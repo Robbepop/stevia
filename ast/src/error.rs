@@ -1,5 +1,8 @@
 use crate::{
-    prelude::*,
+    AnyExpr,
+    CastError,
+    NamedSymbolId,
+    HasArity,
     ty::{
         Type,
         TypeError,

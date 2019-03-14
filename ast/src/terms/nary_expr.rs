@@ -1,5 +1,13 @@
 use crate::{
-    prelude::*,
+    AnyExpr,
+    ExprResult,
+    ExprError,
+    HasKind,
+    ExprKind,
+    HasArity,
+    DedupChildren,
+    SortChildren,
+    RetainChildren,
     ExprMarker,
     ty::{
         BitvecTy,

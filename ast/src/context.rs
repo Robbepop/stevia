@@ -1,11 +1,13 @@
 use crate::{
-    prelude::*,
+    expr,
+    AnyExpr,
+    GeneratedSymbolId,
+    NamedSymbolId,
     ty::{
         HasType as _,
         Type,
     },
 };
-
 use string_interner::{
     StringInterner,
 };
@@ -13,11 +15,8 @@ use vec_map::{
     VecMap,
     Entry::{Occupied, Vacant}
 };
-
 use std::{
-    collections::{
-        HashMap
-    },
+    collections::HashMap,
     sync::{
         atomic::{
             AtomicUsize,

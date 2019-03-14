@@ -1,5 +1,8 @@
 use crate::{
-    prelude::*,
+    HasArity,
+    AssertConsistency,
+    Context,
+    ExprResult,
     ty::{
         HasType,
         Type,

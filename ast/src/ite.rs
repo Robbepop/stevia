@@ -1,5 +1,11 @@
 use crate::{
-    prelude::*,
+    AnyExpr,
+    ExprResult,
+    ExprError,
+    HasKind,
+    ExprKind,
+    HasArity,
+    P,
     ty::{
         expect_type,
         expect_common_ty,
